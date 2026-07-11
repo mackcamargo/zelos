@@ -8,10 +8,7 @@ import GerenciarConteudo from './GerenciarConteudo';
 import GerenciarAgendaPersonal from './GerenciarAgendaPersonal';
 import GerenciarAlunos from './GerenciarAlunos';
 import GerenciarTemplates from './GerenciarTemplates';
-import ListaConversas from './ListaConversas';
-import Chat from './Chat';
 import { DashPersonalBemEstar } from './DashPersonalBemEstar';
-import { ConversaSumario } from '../types';
 
 interface PersonalAreaProps {
   userId: string;
@@ -21,11 +18,10 @@ interface PersonalAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'conteudo' | 'templates' | 'mensagens' | 'perfil' | 'gerenciar';
+type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar';
 
 export default function PersonalArea({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [selectedChat, setSelectedChat] = useState<ConversaSumario | null>(null);
 
   return (
     <div id="personal-area-root" className="min-h-screen bg-void text-ink font-sans flex flex-col pb-24">
@@ -59,7 +55,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
       </header>
 
       {/* Main View Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-6 pt-8 pb-32 md:pb-8">
         
         {/* TAB 0: DASHBOARD */}
         {activeTab === 'dashboard' && (
@@ -114,27 +110,6 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {activeTab === 'templates' && (
           <div id="tab-content-templates" className="space-y-6">
             <GerenciarTemplates personalId={userId} />
-          </div>
-        )}
-
-        {/* TAB: MENSAGENS */}
-        {activeTab === 'mensagens' && (
-          <div id="tab-content-mensagens" className="space-y-6">
-            {selectedChat ? (
-              <Chat 
-                personalId={userId}
-                alunoId={selectedChat.aluno_id}
-                currentUserId={userId}
-                otherParticipantName={selectedChat.aluno_nome}
-                otherParticipantAvatar={selectedChat.aluno_avatar}
-                onBack={() => setSelectedChat(null)}
-              />
-            ) : (
-              <ListaConversas 
-                personalId={userId} 
-                onSelectChat={(chat) => setSelectedChat(chat)} 
-              />
-            )}
           </div>
         )}
 
@@ -243,7 +218,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
 
       {/* Bottom Navigation Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-3 px-1 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
-        <div className="max-w-5xl h-full mx-auto grid grid-cols-8 gap-0.5 items-center">
+        <div className="max-w-5xl h-full mx-auto grid grid-cols-7 gap-0.5 items-center">
           {/* Tab 0: Dashboard */}
           <button
             id="tab-btn-dashboard"
@@ -336,25 +311,6 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
             <FolderHeart className="w-5 h-5" />
             <span className="text-[7px] font-bold tracking-tighter uppercase">Models</span>
             {activeTab === 'templates' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Mensagens (NEW) */}
-          <button
-            id="tab-btn-mensagens"
-            type="button"
-            onClick={() => {
-              setActiveTab('mensagens');
-              setSelectedChat(null);
-            }}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'mensagens' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Chat</span>
-            {activeTab === 'mensagens' && (
               <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>

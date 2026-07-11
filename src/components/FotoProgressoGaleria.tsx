@@ -4,9 +4,10 @@ import { FotoProgresso, AnguloFoto } from '../types';
 import { 
   ChevronLeft, ChevronRight, Maximize2, 
   Calendar, Info, Loader2, Image as ImageIcon,
-  MessageSquare, Save
+  MessageSquare, Save, Camera, Trash2, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import FotoProgressoUpload from './FotoProgressoUpload';
 
 interface FotoProgressoGaleriaProps {
   alunoId: string;
@@ -20,6 +21,8 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
   const [sliderPos, setSliderPos] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // For Personal to edit observation
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -58,6 +61,12 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
     loadFotos();
   };
 
+  const handleDeleteFoto = async (id: number) => {
+    await dbService.deleteFotoProgresso(id);
+    setDeletingId(null);
+    loadFotos();
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -68,22 +77,47 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
 
   return (
     <div className="space-y-8">
-      {/* Angle Selector */}
-      <div className="flex p-1 bg-void rounded-2xl border border-white/5">
-        {(['frontal', 'lateral', 'costas'] as AnguloFoto[]).map((a) => (
-          <button
-            key={a}
-            onClick={() => setActiveAngle(a)}
-            className={`flex-1 py-3 rounded-xl font-display font-bold text-[10px] uppercase tracking-widest transition-all ${
-              activeAngle === a 
-                ? 'bg-surface-3 text-flame shadow-lg' 
-                : 'text-ink-3 hover:text-ink'
-            }`}
-          >
-            {a}
-          </button>
-        ))}
+      {/* Header controls */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        {/* Angle Selector */}
+        <div className="flex p-1 bg-void rounded-2xl border border-white/5 w-full sm:w-auto">
+          {(['frontal', 'lateral', 'costas'] as AnguloFoto[]).map((a) => (
+            <button
+              key={a}
+              onClick={() => setActiveAngle(a)}
+              className={`flex-1 sm:px-6 py-3 rounded-xl font-display font-bold text-[10px] uppercase tracking-widest transition-all ${
+                activeAngle === a 
+                  ? 'bg-surface-3 text-flame shadow-lg' 
+                  : 'text-ink-3 hover:text-ink'
+              }`}
+            >
+              {a}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setShowUpload(true)}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-void border border-dashed border-white/10 rounded-xl text-[10px] font-bold text-ink hover:text-white hover:border-white/20 transition-all"
+        >
+          <Camera className="w-3.5 h-3.5 text-flame" />
+          <span>ADICIONAR FOTO</span>
+        </button>
       </div>
+
+      <AnimatePresence>
+        {showUpload && (
+          <FotoProgressoUpload
+            alunoId={alunoId}
+            personalId={null} // or pass personalId if needed
+            onSuccess={() => {
+              setShowUpload(false);
+              loadFotos();
+            }}
+            onClose={() => setShowUpload(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {filteredFotos.length >= 2 ? (
         <div className="space-y-6">
@@ -189,7 +223,14 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
                     <Calendar className="w-3.5 h-3.5" />
                     <span className="text-xs font-mono">{new Date(foto.registrado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                   </div>
-                  <span className="text-[10px] font-mono text-flame uppercase tracking-widest">{foto.angulo}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-flame uppercase tracking-widest">{foto.angulo}</span>
+                    {isPersonalView && (
+                      <button onClick={() => setDeletingId(foto.id)} className="text-ink-3 hover:text-rose-500 transition-colors">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
                 {editingId === foto.id ? (
@@ -233,6 +274,48 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
           ))}
         </div>
       </div>
+
+      <AnimatePresence>
+        {deletingId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-void/80 backdrop-blur-sm"
+              onClick={() => setDeletingId(null)}
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-sm bg-surface border border-white/10 rounded-[32px] p-6 shadow-2xl"
+            >
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-6 h-6 text-rose-500" />
+              </div>
+              <h3 className="font-display font-bold text-lg text-ink text-center mb-2">Excluir Foto</h3>
+              <p className="text-sm text-ink-3 text-center mb-6">
+                Tem certeza que deseja excluir esta foto? Esta ação não pode ser desfeita.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => setDeletingId(null)}
+                  className="py-3 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-ink-2 text-xs font-bold transition-all"
+                >
+                  CANCELAR
+                </button>
+                <button 
+                  onClick={() => handleDeleteFoto(deletingId)}
+                  className="py-3 px-4 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition-all shadow-lg shadow-rose-500/20"
+                >
+                  EXCLUIR
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

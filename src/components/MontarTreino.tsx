@@ -47,6 +47,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
   // Confirmation modals
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Load Categories & Exercises
   useEffect(() => {
@@ -537,11 +538,21 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       id="btn-clear-workout-list"
                       type="button"
                       onClick={() => {
-                        if (confirm('Limpar todos os exercícios?')) setSelectedExercises([]);
+                        if (showClearConfirm) {
+                          setSelectedExercises([]);
+                          setShowClearConfirm(false);
+                        } else {
+                          setShowClearConfirm(true);
+                          setTimeout(() => setShowClearConfirm(false), 3000);
+                        }
                       }}
-                      className="text-[10px] font-mono text-rose-400 hover:text-rose-300 uppercase tracking-wider"
+                      className={`text-[10px] font-mono uppercase tracking-wider transition-colors ${
+                        showClearConfirm 
+                          ? 'text-white bg-rose-500 hover:bg-rose-600 px-2 py-0.5 rounded' 
+                          : 'text-rose-400 hover:text-rose-300'
+                      }`}
                     >
-                      Limpar Tudo
+                      {showClearConfirm ? 'Tem certeza?' : 'Limpar Tudo'}
                     </button>
                   </div>
                 )}

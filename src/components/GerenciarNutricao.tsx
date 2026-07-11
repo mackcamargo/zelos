@@ -348,7 +348,7 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
         </div>
       </div>
 
-      <div className="fixed bottom-8 right-8 left-8 md:relative md:bottom-0 md:right-0 md:left-0 z-30">
+      <div className="pt-6 mt-8">
         <button
           onClick={handleSave}
           disabled={saving}

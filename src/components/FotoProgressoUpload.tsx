@@ -36,7 +36,7 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
     if (!angulo || !file) return;
     setUploading(true);
     try {
-      const { error } = await dbService.uploadFotoProgresso(alunoId, personalId, angulo, file);
+      const { error } = await dbService.uploadFotoProgresso(alunoId, personalId, angulo, file as any);
       if (!error) {
         onSuccess();
         onClose();
@@ -47,12 +47,13 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-sm">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-md bg-surface border border-white/10 rounded-[32px] overflow-hidden shadow-2xl"
-      >
+    <div className="fixed inset-0 z-[100] flex flex-col items-center p-4 bg-void/80 backdrop-blur-sm overflow-y-auto">
+      <div className="flex-1 w-full flex items-center justify-center min-h-[max-content] py-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="w-full max-w-md bg-surface border border-white/10 rounded-[32px] overflow-hidden shadow-2xl"
+        >
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <h3 className="font-display font-bold text-lg text-ink">Registrar Evolução</h3>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-ink-3 transition-colors">
@@ -163,6 +164,7 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
           capture="environment"
         />
       </motion.div>
+      </div>
     </div>
   );
 }

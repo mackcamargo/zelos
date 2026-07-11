@@ -96,8 +96,8 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
           <div className="space-y-3">
             {alunosAtencao.map(aluno => (
               <motion.button
-                key={aluno.aluno_id}
-                onClick={() => onSelectAluno(aluno.aluno_id)}
+                key={aluno.alunoId}
+                onClick={() => onSelectAluno(aluno.alunoId)}
                 whileHover={{ x: 4 }}
                 className="w-full bg-flame/5 border border-flame/10 rounded-2xl p-4 flex items-center justify-between group"
               >
@@ -153,8 +153,8 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {filteredAlunos.map(aluno => (
             <button
-              key={aluno.aluno_id}
-              onClick={() => onSelectAluno(aluno.aluno_id)}
+              key={aluno.alunoId}
+              onClick={() => onSelectAluno(aluno.alunoId)}
               className="bg-surface border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition-colors group"
             >
               <div className="flex items-center gap-4">

@@ -274,25 +274,3 @@ export interface FotoProgresso {
   signed_url?: string; // Temporary URL for display
 }
 
-export type TipoMensagem = 'texto' | 'foto' | 'audio';
-
-export interface Mensagem {
-  id: number;
-  personal_id: string;
-  aluno_id: string;
-  autor_id: string;
-  tipo: TipoMensagem;
-  conteudo: string | null;
-  arquivo_url: string | null;
-  lida: boolean;
-  criado_em: string;
-}
-
-export interface ConversaSumario {
-  aluno_id: string;
-  aluno_nome: string;
-  aluno_avatar: string | null;
-  ultima_mensagem: Mensagem | null;
-  nao_lidas: number;
-}
-

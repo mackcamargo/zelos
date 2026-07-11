@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
+import { dbService, isSupabaseConfigured } from '../lib/supabase';
 import { Profile, Exercicio } from '../types';
 import { 
   Dumbbell, TrendingUp, User, LogOut, Calendar, Target, 
   ShieldCheck, Heart, ArrowLeft, CheckCircle, Play, Sparkles, 
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
-  Scale, Plus, ChevronDown, Activity, TrendingDown, MessageSquare, Camera, Utensils, BookOpen
+  Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ResponsiveContainer, LineChart, Line, BarChart, Bar, 
   AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
 } from 'recharts';
-import Chat from './Chat';
 import CheckinForm from './CheckinForm';
 import HabitosPainel from './HabitosPainel';
 import GamificationProvider, { useGamification } from './GamificationTracker';
@@ -34,7 +33,7 @@ interface AlunoAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'treino' | 'progresso' | 'chat' | 'perfil' | 'nutricao' | 'bemestar' | 'aprender' | 'agenda';
+type TabType = 'treino' | 'progresso' | 'perfil' | 'nutricao' | 'bemestar' | 'aprender' | 'agenda';
 
 export default function AlunoArea(props: AlunoAreaProps) {
   return (
@@ -43,6 +42,13 @@ export default function AlunoArea(props: AlunoAreaProps) {
     </GamificationProvider>
   );
 }
+
+const getStartOfWeek = (d: Date = new Date()) => {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(date.setDate(diff)).toISOString().split('T')[0];
+};
 
 function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: AlunoAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('treino');
@@ -67,20 +73,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const [showCelebration, setShowCelebration] = useState(false);
   const [objetivo, setObjetivo] = useState<string | null>(null);
 
-  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [showCheckinForm, setShowCheckinForm] = useState(false);
   const [checkinDaSemana, setCheckinDaSemana] = useState<Checkin | null>(null);
   const [showFotoUpload, setShowFotoUpload] = useState(false);
   const [fotoRefreshTrigger, setFotoRefreshTrigger] = useState(0);
-
-  const getStartOfWeek = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday as start of week
-    const start = new Date(now.setDate(diff));
-    start.setHours(0, 0, 0, 0);
-    return start.toISOString().split('T')[0];
-  };
 
   const fetchCheckinDaSemana = async () => {
     const semana = getStartOfWeek();
@@ -352,35 +348,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       }
     };
     loadObjetivo();
-
-    // Supabase Realtime subscription for workout updates
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const channel = supabase
-          .channel(`student-treinos-${userId}`)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'treinos',
-              filter: `aluno_id=eq.${userId}`
-            },
-            (payload) => {
-              console.log('Realtime update received:', payload);
-              // reload workouts if a change is detected
-              loadStudentWorkouts();
-            }
-          )
-          .subscribe();
-
-        return () => {
-          supabase.removeChannel(channel);
-        };
-      } catch (err) {
-        console.error('Error setting up Realtime subscription:', err);
-      }
-    }
   }, [userId]);
 
   const loadStudentWorkouts = async () => {
@@ -607,7 +574,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </header>
 
       {/* Main View Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-6 pt-8 pb-32 md:pb-8">
         
         {/* TAB 1: TREINO */}
         {activeTab === 'treino' && (
@@ -1595,19 +1562,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           </div>
         )}
 
-        {/* TAB: CHAT */}
-        {activeTab === 'chat' && personalId && (
-          <div id="tab-content-chat" className="h-[calc(100vh-200px)] flex flex-col">
-            <Chat 
-              personalId={personalId}
-              alunoId={userId}
-              currentUserId={userId}
-              otherParticipantName={personalName}
-              otherParticipantAvatar={personalAvatar}
-            />
-          </div>
-        )}
-
         {/* TAB: AGENDA */}
         {activeTab === 'agenda' && (
           <div id="tab-content-agenda" className="pb-12">
@@ -1953,7 +1907,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
       {/* Bottom Navigation Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-3 px-1 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
-        <div className="max-w-6xl h-full mx-auto grid grid-cols-8 gap-0.5 items-center">
+        <div className="max-w-6xl h-full mx-auto grid grid-cols-7 gap-0.5 items-center">
           {/* Tab 1 */}
           <button
             id="tab-btn-treino"
@@ -2049,29 +2003,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             <BookOpen className="w-5 h-5" />
             <span className="text-[7px] font-bold tracking-tighter uppercase">Aprender</span>
             {activeTab === 'aprender' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Chat */}
-          <button
-            id="tab-btn-chat"
-            type="button"
-            onClick={() => setActiveTab('chat')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'chat' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <div className="relative">
-              <MessageSquare className="w-5 h-5" />
-              {unreadChatCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-flame text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-void">
-                  {unreadChatCount}
-                </span>
-              )}
-            </div>
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Chat</span>
-            {activeTab === 'chat' && (
               <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>

@@ -5,11 +5,10 @@ import {
   ArrowLeft, Search, Plus, Target, Users, Check, Copy, 
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
   Activity, Award, CheckCircle, ExternalLink, ShieldCheck,
-  Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, MessageSquare, AlertCircle
+  Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
-import Chat from './Chat';
 import CheckinsPainel from './CheckinsPainel';
 import GerenciarHabitos from './GerenciarHabitos';
 import GamificationDisplay from './GamificationDisplay';
@@ -59,7 +58,6 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
 
   // Workouts states
   const [isMontandoTreino, setIsMontandoTreino] = useState(false);
-  const [isChatting, setIsChatting] = useState(false);
   const [editingTreinoId, setEditingTreinoId] = useState<string | null>(null);
   const [initialTemplateId, setInitialTemplateId] = useState<number | null>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
@@ -357,21 +355,6 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
     );
   }
 
-  if (isChatting && selectedAluno) {
-    return (
-      <div className="space-y-6">
-        <Chat 
-          personalId={personalId}
-          alunoId={selectedAluno.id}
-          currentUserId={personalId}
-          otherParticipantName={selectedAluno.profile?.nome || 'Aluno'}
-          otherParticipantAvatar={selectedAluno.profile?.avatar_url || null}
-          onBack={() => setIsChatting(false)}
-        />
-      </div>
-    );
-  }
-
   return (
     <div id="alunos-management-container" className="space-y-6">
       
@@ -586,16 +569,6 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
 
                 {/* Status Switcher: Active/Inactive */}
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <button
-                    id="btn-open-student-chat"
-                    type="button"
-                    onClick={() => setIsChatting(true)}
-                    className="p-3 bg-surface-2 hover:bg-surface-3 border border-white/5 rounded-xl text-ink-2 hover:text-flame transition-all"
-                    title="Abrir Chat"
-                  >
-                    <MessageSquare className="w-5 h-5" />
-                  </button>
-
                   <div className="flex items-center gap-3 bg-surface-2 px-4 py-2 rounded-xl border border-white/5">
                     <span className="text-[10px] font-mono text-ink-2 uppercase tracking-wider">Status:</span>
                     <button

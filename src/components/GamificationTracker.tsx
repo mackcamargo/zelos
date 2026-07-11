@@ -42,7 +42,7 @@ export default function GamificationProvider({ alunoId, children }: { alunoId: s
   const checkPR = useCallback(async (exercicioId: number, exercicioNome: string, cargaKg: number) => {
     if (!cargaKg || cargaKg <= 0) return false;
     
-    const { isNewPR, data } = await dbService.checkAndSavePR(alunoId, exercicioId, exercicioNome, cargaKg);
+    const { isNewPR, data } = await dbService.checkAndSavePR(alunoId, exercicioId as any, exercicioNome as any, cargaKg as any);
     
     if (isNewPR && data) {
       setCelebration({
