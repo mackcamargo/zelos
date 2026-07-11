@@ -132,24 +132,9 @@ const loadMockConvites = (): MockConvite[] => {
 export const authService = {
   async signUp(email: string, password: string, nome: string, papel: PapelUsuario, avatar_tipo: TipoAvatar, codigoConvite?: string) {
     if (isSupabaseConfigured && supabase) {
-      let personalIdToLink: string | null = null;
+      // Diagnostic Log
       if (papel === 'aluno' && codigoConvite) {
-        const { data: conviteData, error: conviteErr } = await supabase
-          .from('convites')
-          .select('personal_id, usado')
-          .eq('codigo', codigoConvite.trim().toUpperCase())
-          .maybeSingle();
-        
-        if (conviteErr) {
-          return { data: null, error: conviteErr };
-        }
-        if (!conviteData) {
-          return { data: null, error: { message: 'Código de convite inválido ou não encontrado.' } };
-        }
-        if (conviteData.usado) {
-          return { data: null, error: { message: 'Este código de convite já foi utilizado.' } };
-        }
-        personalIdToLink = conviteData.personal_id;
+        console.log("Código digitado:", codigoConvite);
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -168,27 +153,30 @@ export const authService = {
         return { data, error };
       }
 
-      // If user was created and we have a personalId to link:
-      if (data?.user && papel === 'aluno' && personalIdToLink) {
-        const studentId = data.user.id;
+      // If user was created and we have a invitation code to process:
+      if (data?.user && papel === 'aluno' && codigoConvite) {
+        const codigoFormatado = codigoConvite.trim().toUpperCase();
         
-        // Upsert into standard 'alunos' table
-        const { error: updateError } = await supabase
-          .from('alunos')
-          .upsert({
-            id: studentId,
-            personal_id: personalIdToLink,
-            ativo: true
-          });
+        // Wait a small moment to ensure the backend trigger (profiles/alunos) has finished
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-        if (!updateError) {
-          // Mark invitation as used
-          await supabase
-            .from('convites')
-            .update({ usado: true })
-            .eq('codigo', codigoConvite!.trim().toUpperCase());
-        } else {
-          console.error('Erro ao vincular aluno ao Personal:', updateError);
+        // Use the requested RPC function for linking
+        const { data: rpcData, error: rpcError } = await supabase.rpc('usar_convite', {
+          p_codigo: codigoFormatado
+        });
+
+        // Diagnostic Log
+        console.log("Resultado da validação:", rpcData, rpcError);
+
+        if (rpcError) {
+          console.error('Erro ao validar convite via RPC:', rpcError);
+          // We don't block the sign up if linking fails, but we could return an error if preferred.
+          // For now, let's keep it consistent with the goal of linking.
+          if (rpcError.message.includes('não encontrado') || rpcError.message.includes('inválido')) {
+             return { data, error: { message: 'Conta criada, mas o código de convite é inválido ou já foi usado. Você pode se vincular ao seu Personal depois no perfil.' } };
+          }
+        } else if (rpcData === false) {
+          return { data, error: { message: 'Conta criada, mas o código de convite é inválido ou já foi usado.' } };
         }
       }
 
