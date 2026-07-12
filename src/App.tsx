@@ -127,16 +127,6 @@ export default function App() {
   // 3. AUTHENTICATED SYSTEM ROUTING
   return (
     <div id="app-workspace-root" className="min-h-screen bg-void relative">
-      {/* Floating Demo warning banner for authenticated view */}
-      {!isSupabaseConfigured && (
-        <div className="w-full bg-surface-2 border-b border-white/5 py-2.5 px-6 flex justify-center items-center gap-2 relative z-50">
-          <Terminal className="w-4 h-4 text-flame shrink-0" />
-          <span className="text-[10px] font-mono text-ink-2 uppercase tracking-wide">
-            Executando em Modo Demo · Alunos simulados criados localmente
-          </span>
-        </div>
-      )}
-
       {profile.papel === 'personal' ? (
         <PersonalArea
           userId={user.id}

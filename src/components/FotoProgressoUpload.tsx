@@ -110,7 +110,7 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="aspect-[3/4] bg-void rounded-3xl overflow-hidden border border-white/10 relative group">
+                <div className="aspect-[3/4] max-h-[50vh] mx-auto bg-void rounded-3xl overflow-hidden border border-white/10 relative group">
                   {preview ? (
                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
