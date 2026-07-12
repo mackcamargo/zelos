@@ -234,19 +234,33 @@ export const dbService = {
   },
 
   async getAlunos(personalId: string): Promise<{ data: Aluno[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('alunos')
+        .select('id, personal_id, objetivo, ativo, profile:profiles!alunos_id_fkey(id, papel, nome, avatar_url, avatar_tipo, criado_em)')
+        .eq('personal_id', personalId);
+      if (error) return { data: null, error };
+      const mapped = (data || []).map((a: any) => ({
+        id: a.id,
+        personal_id: a.personal_id,
+        objetivo: a.objetivo,
+        ativo: a.ativo,
+        profile: Array.isArray(a.profile) ? a.profile[0] : a.profile
+      }));
+      return { data: mapped as Aluno[], error: null };
+    }
     const alunos = loadMockAlunos();
-    const filtered = alunos.filter(a => a.personal_id === personalId);
-    return { data: filtered, error: null };
+    return { data: alunos.filter(a => a.personal_id === personalId), error: null };
   },
 
   async updateAlunoObjetivo(alunoId: string, objetivo: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('alunos').update({ objetivo }).eq('id', alunoId).select().single();
+      return { data, error };
+    }
     const alunos = loadMockAlunos();
     const index = alunos.findIndex(a => a.id === alunoId);
-    if (index >= 0) {
-      alunos[index].objetivo = objetivo;
-      save('zenite_mock_alunos', alunos);
-      return { data: alunos[index], error: null };
-    }
+    if (index >= 0) { alunos[index].objetivo = objetivo; save('zenite_mock_alunos', alunos); return { data: alunos[index], error: null }; }
     return { data: null, error: { message: 'Aluno não encontrado' } };
   },
 
@@ -257,46 +271,56 @@ export const dbService = {
   },
 
   async updateAlunoAtivo(alunoId: string, ativo: boolean): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('alunos').update({ ativo }).eq('id', alunoId).select().single();
+      return { data, error };
+    }
     const alunos = loadMockAlunos();
     const index = alunos.findIndex(a => a.id === alunoId);
-    if (index >= 0) {
-      alunos[index].ativo = ativo;
-      save('zenite_mock_alunos', alunos);
-      return { data: alunos[index], error: null };
-    }
+    if (index >= 0) { alunos[index].ativo = ativo; save('zenite_mock_alunos', alunos); return { data: alunos[index], error: null }; }
     return { data: null, error: { message: 'Aluno não encontrado' } };
   },
 
   async removeAluno(alunoId: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('alunos').update({ personal_id: null }).eq('id', alunoId);
+      return { error };
+    }
     const alunos = loadMockAlunos();
     const index = alunos.findIndex(a => a.id === alunoId);
-    if (index >= 0) {
-      alunos[index].personal_id = null;
-      save('zenite_mock_alunos', alunos);
-      return { error: null };
-    }
+    if (index >= 0) { alunos[index].personal_id = null; save('zenite_mock_alunos', alunos); return { error: null }; }
     return { error: { message: 'Aluno não encontrado' } };
   },
 
   async createConvite(personalId: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const codigo = `ZEN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const { data, error } = await supabase
+        .from('convites')
+        .insert({ personal_id: personalId, codigo, usado: false })
+        .select()
+        .single();
+      return { data, error };
+    }
     const convites = loadMockConvites();
     const codigo = `ZEN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    const newConvite = {
-      id: Math.floor(Math.random() * 1000000),
-      personal_id: personalId,
-      codigo,
-      usado: false,
-      criado_em: new Date().toISOString()
-    };
+    const newConvite = { id: Math.floor(Math.random() * 1000000), personal_id: personalId, codigo, usado: false, criado_em: new Date().toISOString() };
     convites.push(newConvite);
     save('zenite_mock_convites', convites);
     return { data: newConvite, error: null };
   },
 
   async getConvites(personalId: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('convites')
+        .select('*')
+        .eq('personal_id', personalId)
+        .order('criado_em', { ascending: false });
+      return { data, error };
+    }
     const convites = loadMockConvites();
-    const filtered = convites.filter((c: any) => c.personal_id === personalId);
-    return { data: filtered, error: null };
+    return { data: convites.filter((c: any) => c.personal_id === personalId), error: null };
   },
 
   async getCategorias(): Promise<{ data: Categoria[] | null; error: any }> {
