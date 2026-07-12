@@ -158,12 +158,10 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
 
   // Handle file select & upload
   const handleVideoUpload = async (file: File, gender: 'masc' | 'fem') => {
-    // 1. Validate size < 50MB
     if (file.size > 50 * 1024 * 1024) {
       setUploadError('O arquivo excede o limite recomendado de 50MB. Comprima-o antes do envio.');
       return;
     }
-    // 2. Validate type (video only)
     if (!file.type.startsWith('video/')) {
       setUploadError('Formato inválido. Por favor, envie apenas arquivos de vídeo (MP4, WEBM).');
       return;
@@ -174,7 +172,6 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
     const setUrl = gender === 'masc' ? setVideoUrlMasc : setVideoUrlFem;
     const setPreview = gender === 'masc' ? setVideoPreviewMasc : setVideoPreviewFem;
 
-    // Simulate standard chunk progress for visual premium feel
     setProgress(10);
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -185,65 +182,73 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
     }, 200);
 
     try {
-      let id_exercicio = selectedExercicio?.id || 'ex-' + Math.random().toString(36).substring(2, 9);
-
-      // Save/upsert exercise first to ensure it exists in the database before uploading
-      const payload: Partial<Exercicio> = {
-        id: id_exercicio,
-        nome: nome.trim() || 'Novo Exercício',
-        categoria_id: categoriaId,
-        personal_id: selectedExercicio?.personal_id || null,
-        video_url_masc: videoUrlMasc,
-        video_url_fem: videoUrlFem,
-        musculo_primario: musculoPrimario,
-        musculo_secundario: musculoSecundario,
-        dicas: dicas
-      };
-
-      const { data: savedEx, error: saveErr } = await dbService.saveExercicio(payload);
-      if (saveErr) {
-        console.error('Erro ao pré-salvar exercício para upload:', saveErr);
-        setUploadError(`Erro ao preparar o exercício no banco: ${saveErr.message || 'Erro'}`);
-        setProgress(null);
-        clearInterval(interval);
-        return;
-      }
-
-      if (savedEx) {
-        id_exercicio = savedEx.id;
-        setSelectedExercicio(savedEx);
-      }
-
-      const selectedCat = categorias.find((c) => c.id === categoriaId);
-      const catSlug = selectedCat ? selectedCat.slug : 'geral';
-      const caminho = gender === 'masc' ? `${catSlug}/${id_exercicio}-masc.mp4` : `${catSlug}/${id_exercicio}-fem.mp4`;
+      const isNew = !selectedExercicio?.id || String(selectedExercicio.id).startsWith('ex-');
+      let id_exercicio: any = isNew ? null : selectedExercicio!.id;
 
       if (isSupabaseConfigured && supabase) {
-        // PASSO 1 — UPLOAD:
-        const { data: uploadData, error: uploadErr } = await supabase.storage
+        if (isNew) {
+          const { data: inserted, error: insErr } = await supabase
+            .from('exercicios')
+            .insert({
+              nome: nome.trim() || 'Novo Exercício',
+              categoria_id: categoriaId,
+              personal_id: selectedExercicio?.personal_id || null,
+              musculo_primario: musculoPrimario,
+              musculo_secundario: musculoSecundario,
+              dicas: dicas
+            })
+            .select()
+            .single();
+
+          if (insErr || !inserted) {
+            console.error('Erro ao criar exercício antes do upload:', insErr);
+            setUploadError(`Erro ao preparar o exercício no banco: ${insErr?.message || 'Erro'}`);
+            setProgress(null);
+            clearInterval(interval);
+            return;
+          }
+          id_exercicio = inserted.id;
+          setSelectedExercicio(inserted);
+        } else {
+          await supabase
+            .from('exercicios')
+            .update({
+              nome: nome.trim() || 'Novo Exercício',
+              categoria_id: categoriaId,
+              musculo_primario: musculoPrimario,
+              musculo_secundario: musculoSecundario,
+              dicas: dicas
+            })
+            .eq('id', id_exercicio);
+        }
+
+        if (!id_exercicio) {
+          alert('Erro: ID do exercício inválido para persistência de vídeo.');
+          setProgress(null);
+          clearInterval(interval);
+          return;
+        }
+
+        const selectedCat = categorias.find((c) => c.id === categoriaId);
+        const catSlug = selectedCat ? selectedCat.slug : 'geral';
+        const caminho = gender === 'masc'
+          ? `${catSlug}/${id_exercicio}-masc.mp4`
+          : `${catSlug}/${id_exercicio}-fem.mp4`;
+
+        const { error: uploadErr } = await supabase.storage
           .from('exercicios')
           .upload(caminho, file, { upsert: true, cacheControl: '3600' });
 
         if (uploadErr) {
           console.error('Erro de upload:', uploadErr);
-          alert('Erro no upload: ' + uploadErr.message);
           setUploadError(`Erro ao enviar vídeo: ${uploadErr.message || 'Falha no servidor'}`);
           setProgress(null);
           clearInterval(interval);
-          return; // STOP — não continue.
-        }
-
-        // PASSO 2 — SALVAR O CAMINHO NO BANCO (obrigatório após upload):
-        console.log('Verificando exercicioId antes do update:', id_exercicio);
-        if (!id_exercicio || id_exercicio.startsWith('ex-')) {
-           alert('Erro: ID do exercício inválido para persistência de vídeo.');
-           setProgress(null);
-           clearInterval(interval);
-           return;
+          return;
         }
 
         const dbField = gender === 'masc' ? 'video_url_masc' : 'video_url_fem';
-        const { data: updData, error: updError } = await supabase
+        const { error: updError } = await supabase
           .from('exercicios')
           .update({ [dbField]: caminho })
           .eq('id', id_exercicio)
@@ -251,15 +256,12 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
 
         if (updError) {
           console.error('Erro ao persistir caminho do vídeo:', updError);
-          alert('Erro ao salvar no banco: ' + updError.message);
           setUploadError(`Erro ao salvar caminho do vídeo no banco: ${updError.message || 'Erro'}`);
           setProgress(null);
           clearInterval(interval);
-          return; // STOP
+          return;
         }
-        console.log('Caminho salvo no banco:', updData);
 
-        // PASSO 3 — RECARREGAR DADOS DO BANCO:
         const { data: selectData, error: selectErr } = await supabase
           .from('exercicios')
           .select('*')
@@ -271,49 +273,40 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
           setUploadError(`Erro ao confirmar gravação do vídeo: ${selectErr?.message || 'Erro'}`);
           setProgress(null);
           clearInterval(interval);
-          return; // STOP
+          return;
         }
 
         const verifiedPath = gender === 'masc' ? selectData.video_url_masc : selectData.video_url_fem;
         if (!verifiedPath) {
-          console.error('Erro: O campo de vídeo continua vazio no banco de dados.');
           setUploadError('Erro: O campo de vídeo continua vazio após atualização no banco de dados.');
           setProgress(null);
           clearInterval(interval);
-          return; // STOP
+          return;
         }
 
-        // It is verified! Update state
         setProgress(100);
         setUrl(verifiedPath);
-
-        const blobUrl = URL.createObjectURL(file);
-        setPreview(blobUrl);
-
+        setPreview(URL.createObjectURL(file));
         setSelectedExercicio(selectData);
         setVideoUrlMasc(selectData.video_url_masc || null);
         setVideoUrlFem(selectData.video_url_fem || null);
 
-        // Resolve signed URLs for preview
         if (selectData.video_url_masc) {
-          const resolvedMasc = await dbService.getSignedUrl(selectData.video_url_masc);
-          setVideoPreviewMasc(resolvedMasc);
+          setVideoPreviewMasc(await dbService.getSignedUrl(selectData.video_url_masc));
         }
         if (selectData.video_url_fem) {
-          const resolvedFem = await dbService.getSignedUrl(selectData.video_url_fem);
-          setVideoPreviewFem(resolvedFem);
+          setVideoPreviewFem(await dbService.getSignedUrl(selectData.video_url_fem));
         }
 
         await loadData();
       } else {
-        // MOCK MODE FALLBACK
+        const mockId = id_exercicio || 'ex-' + Math.random().toString(36).substring(2, 9);
+        const selectedCat = categorias.find((c) => c.id === categoriaId);
+        const catSlug = selectedCat ? selectedCat.slug : 'geral';
+        const caminho = gender === 'masc' ? `${catSlug}/${mockId}-masc.mp4` : `${catSlug}/${mockId}-fem.mp4`;
         const dbField = gender === 'masc' ? 'video_url_masc' : 'video_url_fem';
-        const { error: updateErr } = await dbService.updateExercicioVideo(
-          id_exercicio,
-          dbField,
-          caminho
-        );
 
+        const { error: updateErr } = await dbService.updateExercicioVideo(mockId, dbField, caminho);
         if (updateErr) {
           setUploadError(`Erro ao persistir caminho mock: ${updateErr.message}`);
           setProgress(null);
@@ -321,54 +314,9 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
           return;
         }
 
-        // Mock confirmation
-        const { data: selectData, error: selectErr } = await dbService.getExercicioById(id_exercicio);
-        if (selectErr || !selectData) {
-          setUploadError('Erro ao ler mock de exercício para verificação.');
-          setProgress(null);
-          clearInterval(interval);
-          return;
-        }
-
-        if (gender === 'masc') {
-          console.log('Caminho salvo:', selectData.video_url_masc);
-        } else {
-          console.log('Caminho salvo:', selectData.video_url_fem);
-        }
-
-        const verifiedPath = gender === 'masc' ? selectData.video_url_masc : selectData.video_url_fem;
-        if (!verifiedPath) {
-          setUploadError('Erro: O campo de vídeo está vazio no banco de dados mock.');
-          setProgress(null);
-          clearInterval(interval);
-          return;
-        }
-
         setProgress(100);
-        setUrl(verifiedPath);
-
-        const blobUrl = URL.createObjectURL(file);
-        setPreview(blobUrl);
-
-        if (!(window as any).__zenite_mock_videos) {
-          (window as any).__zenite_mock_videos = {};
-        }
-        (window as any).__zenite_mock_videos[caminho] = blobUrl;
-
-        setSelectedExercicio(selectData);
-        setVideoUrlMasc(selectData.video_url_masc || null);
-        setVideoUrlFem(selectData.video_url_fem || null);
-
-        if (selectData.video_url_masc) {
-          const resolvedMasc = await dbService.getSignedUrl(selectData.video_url_masc);
-          setVideoPreviewMasc(resolvedMasc);
-        }
-        if (selectData.video_url_fem) {
-          const resolvedFem = await dbService.getSignedUrl(selectData.video_url_fem);
-          setVideoPreviewFem(resolvedFem);
-        }
-
-        await loadData();
+        setUrl(caminho);
+        setPreview(URL.createObjectURL(file));
       }
 
       setTimeout(() => setProgress(null), 1500);
