@@ -426,50 +426,102 @@ export const dbService = {
     return { error: null };
   },
 
-  async getTreinosParaAluno(alunoId: string): Promise<{ data: Treino[] | null; error: any }> {
+  async getTreinosParaAluno(alunoId: string, personalId?: string): Promise<{ data: Treino[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      let query = supabase.from('treinos').select('*').eq('aluno_id', alunoId);
+      // Se for o personal consultando, mostra todos (inclusive rascunho); se for o aluno, o RLS já filtra
+      const { data, error } = await query.order('data_treino', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: (data || []) as Treino[], error: null };
+    }
     const treinos = load('zenite_mock_treinos', []);
-    const filtered = treinos.filter((t: any) => t.aluno_id === alunoId);
-    return { data: filtered, error: null };
+    return { data: treinos.filter((t: any) => t.aluno_id === alunoId), error: null };
   },
 
   async getTreinoCompleto(treinoId: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: treino, error: tErr } = await supabase
+        .from('treinos').select('*').eq('id', treinoId).single();
+      if (tErr || !treino) return { data: null, error: tErr };
+
+      const { data: tes, error: teErr } = await supabase
+        .from('treino_exercicios')
+        .select('*, exercicio:exercicios(*)')
+        .eq('treino_id', treinoId)
+        .order('ordem', { ascending: true });
+      if (teErr) return { data: null, error: teErr };
+
+      return { data: { ...treino, exercicios: tes || [] }, error: null };
+    }
     const treinos = load('zenite_mock_treinos', []);
     const workout = treinos.find((t: any) => t.id === treinoId);
     if (!workout) return { data: null, error: { message: 'Workout not found' } };
-    
     const workoutExercises = load('zenite_mock_treino_exercicios', []);
     const exercises = (await this.getAllExercicios()).data || [];
-    
-    const detailed = workoutExercises
-      .filter((te: any) => te.treino_id === treinoId)
-      .map((te: any) => ({
-        ...te,
-        exercicio: exercises.find((ex: any) => ex.id === te.exercicio_id)
-      }));
-      
+    const detailed = workoutExercises.filter((te: any) => te.treino_id === treinoId).map((te: any) => ({ ...te, exercicio: exercises.find((ex: any) => ex.id === te.exercicio_id) }));
     return { data: { ...workout, exercicios: detailed }, error: null };
   },
 
   async saveTreino(treino: any, exercicios: any[]): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      let treinoId = treino.id;
+      // Cria ou atualiza o treino
+      if (!treinoId) {
+        const { data: novo, error: insErr } = await supabase
+          .from('treinos')
+          .insert({
+            personal_id: treino.personal_id,
+            aluno_id: treino.aluno_id,
+            titulo: treino.titulo,
+            data_treino: treino.data_treino,
+            status: treino.status || 'rascunho'
+          })
+          .select()
+          .single();
+        if (insErr || !novo) return { data: null, error: insErr };
+        treinoId = novo.id;
+      } else {
+        const { error: updErr } = await supabase
+          .from('treinos')
+          .update({
+            titulo: treino.titulo,
+            data_treino: treino.data_treino,
+            status: treino.status || 'rascunho'
+          })
+          .eq('id', treinoId);
+        if (updErr) return { data: null, error: updErr };
+      }
+
+      // Substitui os exercícios do treino (apaga os antigos e insere os novos)
+      await supabase.from('treino_exercicios').delete().eq('treino_id', treinoId);
+
+      if (exercicios && exercicios.length > 0) {
+        const rows = exercicios.map((ex: any, idx: number) => ({
+          treino_id: treinoId,
+          exercicio_id: ex.exercicio_id,
+          ordem: ex.ordem ?? (idx + 1),
+          series: ex.series ?? 3,
+          repeticoes: ex.repeticoes ?? '10',
+          carga_kg: (ex.carga_kg === '' || ex.carga_kg === undefined) ? null : ex.carga_kg
+        }));
+        const { error: exErr } = await supabase.from('treino_exercicios').insert(rows);
+        if (exErr) return { data: null, error: exErr };
+      }
+
+      return { data: { id: treinoId, ...treino }, error: null };
+    }
+
+    // ---- MODO DEMO ----
     const treinos = load('zenite_mock_treinos', []);
     const id = treino.id || 'w-' + Math.random().toString(36).substring(2, 9);
     const newTreino = { ...treino, id, criado_em: treino.criado_em || new Date().toISOString() };
-    
     const index = treinos.findIndex((t: any) => t.id === id);
-    if (index >= 0) treinos[index] = newTreino;
-    else treinos.push(newTreino);
+    if (index >= 0) treinos[index] = newTreino; else treinos.push(newTreino);
     save('zenite_mock_treinos', treinos);
-
     const workoutExercises = load('zenite_mock_treino_exercicios', []);
     const filtered = workoutExercises.filter((te: any) => te.treino_id !== id);
-    const newWE = exercicios.map((ex, idx) => ({
-      ...ex,
-      id: ex.id || 'te-' + Math.random().toString(36).substring(2, 9),
-      treino_id: id,
-      ordem: idx
-    }));
+    const newWE = exercicios.map((ex, idx) => ({ ...ex, id: ex.id || 'te-' + Math.random().toString(36).substring(2, 9), treino_id: id, ordem: idx }));
     save('zenite_mock_treino_exercicios', [...filtered, ...newWE]);
-    
     return { data: newTreino, error: null };
   },
 
@@ -941,6 +993,13 @@ export const dbService = {
   },
 
   async getTreinos(alunoId: string, personalId?: string): Promise<{ data: Treino[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      let query = supabase.from('treinos').select('*').eq('aluno_id', alunoId);
+      // Se for o personal consultando, mostra todos (inclusive rascunho); se for o aluno, o RLS já filtra
+      const { data, error } = await query.order('data_treino', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: (data || []) as Treino[], error: null };
+    }
     const treinos = load('zenite_mock_treinos', []);
     return { data: treinos.filter((t: any) => t.aluno_id === alunoId), error: null };
   },
