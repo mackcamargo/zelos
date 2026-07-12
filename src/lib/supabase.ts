@@ -324,6 +324,11 @@ export const dbService = {
   },
 
   async getCategorias(): Promise<{ data: Categoria[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('categorias').select('*').order('ordem', { ascending: true });
+      if (error) return { data: null, error };
+      return { data: data as Categoria[], error: null };
+    }
     const categories = load('zenite_mock_categorias', [
       { id: 'cat-peito', slug: 'peito', nome: 'Peito', ordem: 1 },
       { id: 'cat-costas', slug: 'costas', nome: 'Costas', ordem: 2 },
@@ -336,6 +341,11 @@ export const dbService = {
   },
 
   async getAllExercicios(): Promise<{ data: Exercicio[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('exercicios').select('*').order('nome', { ascending: true });
+      if (error) return { data: null, error };
+      return { data: data as Exercicio[], error: null };
+    }
     const exercises = load('zenite_mock_exercicios', [
       {
         id: 'ex-supino',
