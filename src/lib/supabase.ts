@@ -126,88 +126,110 @@ const loadMockConvites = () => load('zenite_mock_convites', [
 
 export const authService = {
   async signUp(email: string, password: string, nome: string, papel: PapelUsuario, avatar_tipo: TipoAvatar, codigoConvite?: string) {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { nome, papel, avatar_tipo, codigo_convite: codigoConvite || null }
+        }
+      });
+      if (error) return { data: null, error };
+      return { data: { user: data.user }, error: null };
+    }
+
+    // ---- MODO DEMO (localStorage) ----
     const users = loadMockUsers();
     if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
       return { data: null, error: { message: 'Este email já está cadastrado.' } };
     }
-
     let personalIdToLink: string | null = 'personal-demo-id';
     if (papel === 'aluno' && codigoConvite) {
       const convites = loadMockConvites();
       const convite = convites.find((c: any) => c.codigo.trim().toUpperCase() === codigoConvite.trim().toUpperCase());
-      if (!convite) {
-        return { data: null, error: { message: 'Código de convite inválido ou não encontrado.' } };
-      }
-      if (convite.usado) {
-        return { data: null, error: { message: 'Este código de convite já foi utilizado.' } };
-      }
+      if (!convite) return { data: null, error: { message: 'Código de convite inválido ou não encontrado.' } };
+      if (convite.usado) return { data: null, error: { message: 'Este código de convite já foi utilizado.' } };
       personalIdToLink = convite.personal_id;
       convite.usado = true;
       save('zenite_mock_convites', convites);
     }
-
     const newUser: MockUser = {
       id: 'user-' + Math.random().toString(36).substring(2, 9),
-      email,
-      nome,
-      papel,
-      avatar_tipo,
-      avatar_url: null,
+      email, nome, papel, avatar_tipo, avatar_url: null,
       criado_em: new Date().toISOString()
     };
     users.push(newUser);
     save('zenite_mock_users', users);
-
     if (papel === 'aluno') {
       const alunos = loadMockAlunos();
       alunos.push({
-        id: newUser.id,
-        personal_id: personalIdToLink,
-        objetivo: 'Objetivo inicial',
-        ativo: true,
+        id: newUser.id, personal_id: personalIdToLink, objetivo: 'Objetivo inicial', ativo: true,
         profile: { ...newUser, avatar_tipo: newUser.avatar_tipo || 'masculino' }
       });
       save('zenite_mock_alunos', alunos);
     }
-
     const session = { user: { id: newUser.id, email, user_metadata: { nome, papel, avatar_tipo } } };
     save('zenite_mock_session', session);
     return { data: session, error: null };
   },
 
-  async signIn(email: string, _password?: string) {
+  async signIn(email: string, password?: string) {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: password || '' });
+      if (error) return { data: null, error };
+      return { data: { user: data.user }, error: null };
+    }
+
+    // ---- MODO DEMO ----
     const users = loadMockUsers();
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (!user) {
-      return { data: null, error: { message: 'Usuário não encontrado.' } };
-    }
+    if (!user) return { data: null, error: { message: 'Usuário não encontrado.' } };
     const session = { user: { id: user.id, email: user.email, user_metadata: { nome: user.nome, papel: user.papel, avatar_tipo: user.avatar_tipo } } };
     save('zenite_mock_session', session);
     return { data: session, error: null };
   },
 
   async signOut() {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.signOut();
+      return { error };
+    }
     localStorage.removeItem('zenite_mock_session');
     return { error: null };
   },
 
   async getCurrentUser() {
-    const sessionStr = localStorage.getItem('zenite_mock_session');
-    if (sessionStr) {
-      const session = JSON.parse(sessionStr);
-      return session.user;
+    if (isSupabaseConfigured && supabase) {
+      const { data } = await supabase.auth.getSession();
+      return data.session?.user ?? null;
     }
+    const sessionStr = localStorage.getItem('zenite_mock_session');
+    if (sessionStr) return JSON.parse(sessionStr).user;
     return null;
+  },
+
+  async validarConvite(codigo: string): Promise<{ valido: boolean; personalId: string | null }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.rpc('validar_convite', { p_codigo: codigo });
+      if (error) return { valido: false, personalId: null };
+      return { valido: !!data, personalId: (data as string) ?? null };
+    }
+    const convites = loadMockConvites();
+    const c = convites.find((x: any) => x.codigo.trim().toUpperCase() === codigo.trim().toUpperCase() && !x.usado);
+    return { valido: !!c, personalId: c?.personal_id ?? null };
   }
 };
 
 export const dbService = {
   async getProfile(userId: string): Promise<{ data: Profile | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      if (error) return { data: null, error };
+      return { data: data as Profile, error: null };
+    }
     const users = loadMockUsers();
     const user = users.find(u => u.id === userId);
-    if (user) {
-      return { data: { ...user, avatar_tipo: user.avatar_tipo || 'masculino' } as Profile, error: null };
-    }
+    if (user) return { data: { ...user, avatar_tipo: user.avatar_tipo || 'masculino' } as Profile, error: null };
     return { data: null, error: { message: 'Profile not found' } };
   },
 

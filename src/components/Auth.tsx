@@ -43,6 +43,16 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           return;
         }
 
+        // Valida o código de convite do aluno ANTES de criar a conta
+        if (papel === 'aluno' && codigoConvite.trim()) {
+          const { valido } = await authService.validarConvite(codigoConvite.trim());
+          if (!valido) {
+            setError('Código de convite inválido ou já utilizado. Confira com seu Personal.');
+            setLoading(false);
+            return;
+          }
+        }
+
         const { data, error: authError } = await authService.signUp(
           email,
           password,
@@ -54,18 +64,11 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
         if (authError) {
           setError(authError.message);
+        } else if (data?.user) {
+          // E-mail desligado: entra direto
+          onAuthSuccess(data.user);
         } else {
-          if (isSupabaseConfigured) {
-            setSuccessMessage(
-              'Conta criada com sucesso! Enviamos um e-mail de confirmação. Por favor, verifique sua caixa de entrada.'
-            );
-            // Don't auto-redirect to let them see the email confirmation message
-          } else {
-            // Demo Mode: Auto-login
-            if (data?.user) {
-              onAuthSuccess(data.user);
-            }
-          }
+          setError('Não foi possível criar a conta. Tente novamente.');
         }
       }
     } catch (err: any) {
