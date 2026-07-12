@@ -186,13 +186,23 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
       let id_exercicio: any = isNew ? null : selectedExercicio!.id;
 
       if (isSupabaseConfigured && supabase) {
+        // Descobre o personal logado (obrigatório: exercicios.personal_id deve ser = auth.uid())
+        const { data: userData } = await supabase.auth.getUser();
+        const personalId = userData?.user?.id;
+        if (!personalId) {
+          setUploadError('Sessão expirada. Faça login novamente para enviar vídeos.');
+          setProgress(null);
+          clearInterval(interval);
+          return;
+        }
+
         if (isNew) {
           const { data: inserted, error: insErr } = await supabase
             .from('exercicios')
             .insert({
               nome: nome.trim() || 'Novo Exercício',
               categoria_id: categoriaId,
-              personal_id: selectedExercicio?.personal_id || null,
+              personal_id: personalId,
               musculo_primario: musculoPrimario,
               musculo_secundario: musculoSecundario,
               dicas: dicas
@@ -215,6 +225,7 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
             .update({
               nome: nome.trim() || 'Novo Exercício',
               categoria_id: categoriaId,
+              personal_id: personalId,
               musculo_primario: musculoPrimario,
               musculo_secundario: musculoSecundario,
               dicas: dicas

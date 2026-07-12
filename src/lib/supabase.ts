@@ -373,6 +373,25 @@ export const dbService = {
   },
 
   async getSignedUrl(path: string): Promise<string | null> {
+    if (!path) return null;
+    // Se já for uma URL completa ou data URI (mock), retorna direto
+    if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) {
+      return path;
+    }
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.storage
+        .from('exercicios')
+        .createSignedUrl(path, 60 * 60); // válido por 1 hora
+      if (error) {
+        console.error('Erro ao gerar signed URL:', error);
+        return null;
+      }
+      return data?.signedUrl ?? null;
+    }
+    // Modo demo: tenta recuperar blob local
+    if ((window as any).__zenite_mock_videos && (window as any).__zenite_mock_videos[path]) {
+      return (window as any).__zenite_mock_videos[path];
+    }
     return path;
   },
 
