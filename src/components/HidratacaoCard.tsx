@@ -38,16 +38,16 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       setRegistros(regsRes.data || []);
       setHistorico(histRes.data || []);
       
-      // Tentar carregar meta do localStorage (simulado como config do aluno)
-      const savedMeta = localStorage.getItem(`zenite_meta_agua_${alunoId}`);
-      if (savedMeta) setMeta(Number(savedMeta));
+      // Meta prescrita pelo personal (vem do banco)
+      const metaRes = await dbService.getMetaHidratacao(alunoId);
+      setMeta(Number(metaRes.data) || 2000);
     } finally {
       setLoading(false);
     }
   };
 
-  const currentTotal = registros.reduce((acc, curr) => acc + curr.quantidade_ml, 0);
-  const percent = Math.min((currentTotal / meta) * 100, 100);
+  const currentTotal = registros.reduce((acc, curr) => acc + (Number((curr as any).ml ?? (curr as any).quantidade_ml) || 0), 0);
+  const percent = meta > 0 ? Math.min((currentTotal / meta) * 100, 100) : 0;
 
   const handleAddWater = async (ml: number) => {
     setSaving(true);

@@ -999,6 +999,35 @@ export const dbService = {
     return { data: registros.filter((r: any) => r.aluno_id === alunoId), error: null };
   },
 
+  async getMetaHidratacao(alunoId: string): Promise<{ data: number; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('alunos')
+        .select('meta_hidratacao_ml')
+        .eq('id', alunoId)
+        .single();
+      if (error) return { data: 2000, error };
+      return { data: data?.meta_hidratacao_ml ?? 2000, error: null };
+    }
+    const alunos = load('zenite_mock_alunos', []);
+    const al = alunos.find((a: any) => a.id === alunoId);
+    return { data: al?.meta_hidratacao_ml ?? 2000, error: null };
+  },
+
+  async setMetaHidratacao(alunoId: string, metaMl: number): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('alunos')
+        .update({ meta_hidratacao_ml: metaMl })
+        .eq('id', alunoId);
+      return { error };
+    }
+    const alunos = load('zenite_mock_alunos', []);
+    const idx = alunos.findIndex((a: any) => a.id === alunoId);
+    if (idx >= 0) { alunos[idx].meta_hidratacao_ml = metaMl; save('zenite_mock_alunos', alunos); }
+    return { error: null };
+  },
+
   async saveRegistroHidratacao(registro: any): Promise<{ data: any; error: any }> {
     const targetDate = registro.data || new Date().toISOString().split('T')[0];
     // Aceita tanto "ml" quanto "quantidade_ml" vindos do componente
