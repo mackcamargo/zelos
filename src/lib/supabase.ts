@@ -718,18 +718,56 @@ export const dbService = {
     return { error: null };
   },
 
-  async getHabitos(alunoId: string): Promise<{ data: Habito[] | null; error: any }> {
+  async getHabitos(alunoId: string): Promise<{ data: any[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: habitos, error } = await supabase
+        .from('habitos')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .eq('ativo', true)
+        .order('criado_em', { ascending: true });
+      if (error) return { data: [], error };
+      const ids = (habitos || []).map((h: any) => h.id);
+      let registros: any[] = [];
+      if (ids.length > 0) {
+        const { data: regs } = await supabase
+          .from('habitos_registros')
+          .select('*')
+          .in('habito_id', ids);
+        registros = regs || [];
+      }
+      const detailed = (habitos || []).map((h: any) => ({
+        ...h,
+        registros: registros.filter((r: any) => r.habito_id === h.id)
+      }));
+      return { data: detailed, error: null };
+    }
     const habitos = load('zenite_habitos', []);
     const registros = load('zenite_habitos_registros', []);
     const filtered = habitos.filter((h: any) => h.aluno_id === alunoId);
-    const detailed = filtered.map((h: any) => ({
-      ...h,
-      registros: registros.filter((r: any) => r.habito_id === h.id)
-    }));
+    const detailed = filtered.map((h: any) => ({ ...h, registros: registros.filter((r: any) => r.habito_id === h.id) }));
     return { data: detailed, error: null };
   },
 
   async salvarRegistroHabito(registro: any): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: existente } = await supabase
+        .from('habitos_registros')
+        .select('id')
+        .eq('habito_id', registro.habito_id)
+        .eq('data', registro.data)
+        .eq('aluno_id', registro.aluno_id)
+        .maybeSingle();
+      if (existente?.id) {
+        const { error } = await supabase.from('habitos_registros').update({ concluido: !!registro.concluido }).eq('id', existente.id);
+        return { error };
+      } else {
+        const { error } = await supabase.from('habitos_registros').insert({
+          habito_id: registro.habito_id, aluno_id: registro.aluno_id, data: registro.data, concluido: !!registro.concluido
+        });
+        return { error };
+      }
+    }
     const registros = load('zenite_habitos_registros', []);
     const index = registros.findIndex((r: any) => r.habito_id === registro.habito_id && r.data === registro.data);
     if (index >= 0) registros[index] = { ...registros[index], ...registro };
@@ -936,6 +974,24 @@ export const dbService = {
   },
 
   async salvarHabito(habito: any): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      // Descobre o personal se não veio
+      let pid = habito.personal_id;
+      if (!pid) {
+        const { data: al } = await supabase.from('alunos').select('personal_id').eq('id', habito.aluno_id).maybeSingle();
+        pid = al?.personal_id;
+      }
+      if (!pid) return { error: { message: 'Aluno não vinculado a um personal.' } };
+      const { error } = await supabase.from('habitos').insert({
+        personal_id: pid,
+        aluno_id: habito.aluno_id,
+        nome: habito.nome,
+        icone: habito.icone || '💧',
+        meta_diaria: habito.meta_diaria || null,
+        ativo: true
+      });
+      return { error };
+    }
     const habitos = load('zenite_habitos', []);
     habitos.push({ id: Math.floor(Math.random() * 1000000), ...habito });
     save('zenite_habitos', habitos);
@@ -943,6 +999,10 @@ export const dbService = {
   },
 
   async desativarHabito(id: number): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('habitos').update({ ativo: false }).eq('id', id);
+      return { error };
+    }
     const habitos = load('zenite_habitos', []);
     const index = habitos.findIndex((h: any) => h.id === id);
     if (index >= 0) {
@@ -1078,6 +1138,33 @@ export const dbService = {
   },
 
   async toggleHabitoRegistro(habitoId: number, alunoId: string, data: string, concluido: boolean): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: existente } = await supabase
+        .from('habitos_registros')
+        .select('id')
+        .eq('habito_id', habitoId)
+        .eq('data', data)
+        .eq('aluno_id', alunoId)
+        .maybeSingle();
+
+      if (existente?.id) {
+        const { error } = await supabase
+          .from('habitos_registros')
+          .update({ concluido })
+          .eq('id', existente.id);
+        return { error };
+      } else {
+        const { error } = await supabase
+          .from('habitos_registros')
+          .insert({
+            habito_id: habitoId,
+            aluno_id: alunoId,
+            data,
+            concluido
+          });
+        return { error };
+      }
+    }
     const registros = load('zenite_habitos_registros', []);
     const index = registros.findIndex((r: any) => r.habito_id === habitoId && r.data === data && r.aluno_id === alunoId);
     if (index >= 0) {
