@@ -674,10 +674,59 @@ export const dbService = {
   },
 
   async salvarCheckin(checkin: any): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      // Descobre o personal do aluno (personal_id é obrigatório na tabela)
+      let personalId = checkin.personal_id;
+      if (!personalId) {
+        const { data: alunoRow } = await supabase
+          .from('alunos').select('personal_id').eq('id', checkin.aluno_id).maybeSingle();
+        personalId = alunoRow?.personal_id;
+      }
+      if (!personalId) return { error: { message: 'Aluno não vinculado a um personal.' } };
+
+      const semana = checkin.semana || new Date().toISOString().split('T')[0];
+      const payload = {
+        aluno_id: checkin.aluno_id,
+        personal_id: personalId,
+        semana,
+        energia: checkin.energia ?? null,
+        qualidade_sono: checkin.qualidade_sono ?? null,
+        nivel_estresse: checkin.nivel_estresse ?? null,
+        dores: checkin.dores ?? null,
+        observacoes: checkin.observacoes ?? null,
+        peso_kg: (checkin.peso_kg === '' || checkin.peso_kg === undefined) ? null : checkin.peso_kg
+      };
+
+      // Um check-in por semana: se já existe, atualiza; senão, cria.
+      const { data: existente } = await supabase
+        .from('checkins').select('id')
+        .eq('aluno_id', checkin.aluno_id).eq('semana', semana).maybeSingle();
+
+      if (existente?.id) {
+        const { error } = await supabase.from('checkins').update(payload).eq('id', existente.id);
+        return { error };
+      } else {
+        const { error } = await supabase.from('checkins').insert(payload);
+        return { error };
+      }
+    }
     const checkins = load('zenite_checkins', []);
     checkins.push({ id: Math.floor(Math.random() * 1000000), ...checkin });
     save('zenite_checkins', checkins);
     return { error: null };
+  },
+
+  async getCheckins(alunoId: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('checkins').select('*')
+        .eq('aluno_id', alunoId)
+        .order('semana', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
+    const checkins = load('zenite_checkins', []);
+    return { data: checkins.filter((c: any) => c.aluno_id === alunoId), error: null };
   },
 
   async getResumoBemEstar(alunoId: string): Promise<{ data: ResumoBemEstar | null; error: any }> {
@@ -1102,11 +1151,6 @@ export const dbService = {
 
   async getResumoBemEstarAluno(alunoId: string): Promise<{ data: ResumoBemEstar | null; error: any }> {
     return this.getResumoBemEstar(alunoId);
-  },
-
-  async getCheckins(alunoId: string): Promise<{ data: Checkin[]; error: any }> {
-    const checkins = load('zenite_checkins', []);
-    return { data: checkins.filter((c: any) => c.aluno_id === alunoId), error: null };
   },
 
   async getResumoAlunosPersonal(personalId: string): Promise<{ data: any[]; error: any }> {
