@@ -1290,17 +1290,46 @@ export const dbService = {
     return { data: newS, error: null };
   },
 
-  async getRegistrosNutricao(alunoId: string, data: string): Promise<{ data: RegistroNutricao[]; error: any }> {
+  async getRegistrosNutricao(alunoId: string, data: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: rows, error } = await supabase
+        .from('registro_alimentar')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .eq('data', data)
+        .order('criado_em', { ascending: true });
+      if (error) return { data: [], error };
+      return { data: rows || [], error: null };
+    }
     const registros = load('zenite_nutricao', []);
     return { data: registros.filter((r: any) => r.aluno_id === alunoId && r.data === data), error: null };
   },
 
   async getHistoricoCalorias(alunoId: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: rows, error } = await supabase
+        .from('registro_alimentar')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .order('data', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: rows || [], error: null };
+    }
     const registros = load('zenite_nutricao', []);
     return { data: registros.filter((r: any) => r.aluno_id === alunoId), error: null };
   },
 
   async saveRegistroNutricao(registro: any): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('registro_alimentar').insert({
+        aluno_id: registro.aluno_id,
+        data: registro.data || new Date().toISOString().split('T')[0],
+        refeicao: registro.refeicao || registro.tipo || 'Refeição',
+        alimento: registro.alimento || registro.nome || 'Alimento',
+        calorias: (registro.calorias === '' || registro.calorias === undefined) ? null : Number(registro.calorias)
+      });
+      return { error };
+    }
     const registros = load('zenite_nutricao', []);
     registros.push({ id: Math.floor(Math.random() * 1000000), ...registro });
     save('zenite_nutricao', registros);
