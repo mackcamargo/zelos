@@ -341,18 +341,26 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
     }
   };
 
-  const handleLoadTemplate = (template: TemplateTreino) => {
-    if (template.exercicios) {
-      setSelectedExercises(template.exercicios.map(te => ({
+  const handleLoadTemplate = async (template: TemplateTreino) => {
+    try {
+      const { data: full, error } = await dbService.getTemplateCompleto(template.id);
+      if (error || !full) {
+        showToast('Erro ao carregar o modelo.');
+        return;
+      }
+      const exs = full.exercicios || [];
+      setSelectedExercises(exs.map((te: any) => ({
         exercicio_id: te.exercicio_id,
         series: te.series,
         repeticoes: te.repeticoes,
         carga_kg: te.carga_kg,
         exercicio: te.exercicio
       })));
-      setTitulo(template.titulo);
-      showToast(`Modelo "${template.titulo}" aplicado.`);
+      setTitulo(full.titulo || template.titulo);
+      showToast(`Modelo "${full.titulo || template.titulo}" aplicado.`);
       setShowTemplatesModal(false);
+    } catch (e) {
+      showToast('Erro ao carregar o modelo.');
     }
   };
 
