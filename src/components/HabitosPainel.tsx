@@ -104,7 +104,7 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
   if (habitos.length === 0) return null;
 
   return (
-    <div className="bg-surface-2 border border-white/5 rounded-3xl p-6 space-y-6 overflow-hidden relative group">
+    <div className="w-full bg-surface-2 border border-white/5 rounded-3xl p-6 space-y-6 overflow-hidden relative group">
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-flame/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 

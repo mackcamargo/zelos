@@ -586,10 +586,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {activeTab === 'treino' && (
           <div id="tab-content-treino" className="space-y-6">
             
-            <div className="flex items-center justify-between">
-              <HabitosPainel alunoId={userId} onHabitComplete={() => checkAchievements('habit')} />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex-1 w-full">
+                <HabitosPainel alunoId={userId} onHabitComplete={() => checkAchievements('habit')} />
+              </div>
               {streak > 0 && (
-                <div className="shrink-0 flex flex-col items-end">
+                <div className="shrink-0 flex flex-col items-center md:items-end w-full md:w-auto">
                   <div className="flex items-center gap-2 bg-flame/10 px-4 py-2 rounded-2xl border border-flame/20 shadow-[0_0_20px_rgba(245,51,79,0.1)]">
                     <Flame className="w-5 h-5 text-flame animate-pulse" />
                     <span className="text-lg font-mono font-black text-flame">{streak} DIAS DE STREAK</span>
