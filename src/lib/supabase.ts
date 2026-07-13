@@ -534,34 +534,96 @@ export const dbService = {
   },
 
   async getTemplates(personalId: string): Promise<{ data: TemplateTreino[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('templates_treino')
+        .select('*')
+        .eq('personal_id', personalId)
+        .order('criado_em', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
     const templates = load('zenite_mock_templates', []);
     return { data: templates.filter((t: any) => t.personal_id === personalId), error: null };
   },
 
   async saveTemplate(template: any, exercicios: any[]): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      let templateId = template.id;
+      if (!templateId) {
+        const { data: novo, error: insErr } = await supabase
+          .from('templates_treino')
+          .insert({
+            personal_id: template.personal_id,
+            titulo: template.titulo || 'Novo Modelo',
+            descricao: template.descricao || null
+          })
+          .select()
+          .single();
+        if (insErr || !novo) return { data: null, error: insErr };
+        templateId = novo.id;
+      } else {
+        const { error: updErr } = await supabase
+          .from('templates_treino')
+          .update({ titulo: template.titulo || 'Novo Modelo', descricao: template.descricao || null })
+          .eq('id', templateId);
+        if (updErr) return { data: null, error: updErr };
+      }
+
+      // Substitui os exercícios do template
+      await supabase.from('template_exercicios').delete().eq('template_id', templateId);
+
+      if (exercicios && exercicios.length > 0) {
+        const rows = exercicios.map((ex: any, idx: number) => ({
+          template_id: templateId,
+          exercicio_id: ex.exercicio_id,
+          ordem: ex.ordem ?? idx,
+          series: ex.series ?? 3,
+          repeticoes: ex.repeticoes ?? '10',
+          carga_kg: (ex.carga_kg === '' || ex.carga_kg === undefined) ? null : ex.carga_kg
+        }));
+        const { error: exErr } = await supabase.from('template_exercicios').insert(rows);
+        if (exErr) return { data: null, error: exErr };
+      }
+
+      return { data: { id: templateId, ...template }, error: null };
+    }
+
     const templates = load('zenite_mock_templates', []);
     const id = template.id || Math.floor(Math.random() * 1000000);
     const newTemplate = { ...template, id, criado_em: template.criado_em || new Date().toISOString() };
-    
     const index = templates.findIndex((t: any) => t.id === id);
-    if (index >= 0) templates[index] = newTemplate;
-    else templates.push(newTemplate);
+    if (index >= 0) templates[index] = newTemplate; else templates.push(newTemplate);
     save('zenite_mock_templates', templates);
-
     const templateExercises = load('zenite_mock_template_exercicios', []);
     const filtered = templateExercises.filter((te: any) => te.template_id !== id);
-    const newTE = exercicios.map((ex, idx) => ({
-      ...ex,
-      id: ex.id || Math.floor(Math.random() * 1000000),
-      template_id: id,
-      ordem: idx
-    }));
+    const newTE = exercicios.map((ex, idx) => ({ ...ex, id: ex.id || Math.floor(Math.random() * 1000000), template_id: id, ordem: idx }));
     save('zenite_mock_template_exercicios', [...filtered, ...newTE]);
-    
     return { data: newTemplate, error: null };
   },
 
   async getTemplateCompleto(templateId: number): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: tpl, error: tErr } = await supabase
+        .from('templates_treino').select('*').eq('id', templateId).single();
+      if (tErr || !tpl) return { data: null, error: tErr };
+      
+      const { data: tes, error: teErr } = await supabase
+        .from('template_exercicios')
+        .select('*')
+        .eq('template_id', templateId)
+        .order('ordem', { ascending: true });
+      if (teErr) return { data: null, error: teErr };
+
+      const exercises = (await this.getAllExercicios()).data || [];
+      const detailed = (tes || []).map((te: any) => ({
+        ...te,
+        exercicio: exercises.find((ex: any) => ex.id === te.exercicio_id)
+      }));
+
+      return { data: { ...tpl, exercicios: detailed }, error: null };
+    }
+
     const templates = load('zenite_mock_templates', []);
     const template = templates.find((t: any) => t.id === templateId);
     if (!template) return { data: null, error: { message: 'Template not found' } };
@@ -580,8 +642,17 @@ export const dbService = {
   },
 
   async deleteTemplate(templateId: number): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      // Deleta primeiro os exercicios vinculados
+      await supabase.from('template_exercicios').delete().eq('template_id', templateId);
+      const { error } = await supabase.from('templates_treino').delete().eq('id', templateId);
+      return { error };
+    }
     const templates = load('zenite_mock_templates', []);
     save('zenite_mock_templates', templates.filter((t: any) => t.id !== templateId));
+    // Deleta os exercicios mockados correspondentes
+    const templateExercises = load('zenite_mock_template_exercicios', []);
+    save('zenite_mock_template_exercicios', templateExercises.filter((te: any) => te.template_id !== templateId));
     return { error: null };
   },
 
