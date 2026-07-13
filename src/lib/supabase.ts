@@ -833,14 +833,194 @@ export const dbService = {
   },
 
   async getPlanoAlimentarAtivo(alunoId: string): Promise<{ data: PlanoAlimentar | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('planos_alimentares')
+        .select('*, refeicoes(*, alimentos_refeicao(*))')
+        .eq('aluno_id', alunoId)
+        .eq('ativo', true)
+        .maybeSingle();
+
+      if (error) return { data: null, error };
+      if (!data) return { data: null, error: null };
+
+      // Traduzir do schema do Supabase para o tipo PlanoAlimentar do Frontend
+      const mappedPlano: PlanoAlimentar = {
+        id: data.id,
+        aluno_id: data.aluno_id,
+        personal_id: data.personal_id,
+        meta_calorias: data.meta_calorias,
+        meta_proteina: data.meta_proteina,
+        meta_carboidrato: data.meta_carbo ?? data.meta_carboidrato,
+        meta_gordura: data.meta_gordura,
+        ativo: data.ativo,
+        criado_em: data.criado_em,
+        refeicoes: (data.refeicoes || []).map((r: any) => ({
+          id: r.id,
+          plano_id: r.plano_id,
+          nome: r.nome,
+          horario: r.horario,
+          ordem: r.ordem ?? 0,
+          alimentos: (r.alimentos_refeicao || []).map((a: any) => ({
+            id: a.id,
+            refeicao_id: a.refeicao_id,
+            nome: a.alimento ?? a.nome,
+            quantidade: a.quantidade,
+            calorias: a.calorias,
+            proteina: a.proteina,
+            carboidrato: a.carbo ?? a.carboidrato,
+            gordura: a.gordura
+          }))
+        }))
+      };
+
+      // Ordenar as refeições por "ordem"
+      mappedPlano.refeicoes?.sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+
+      return { data: mappedPlano, error: null };
+    }
+
     const planos = load('zenite_planos_alimentares', []);
     const found = planos.find((p: any) => p.aluno_id === alunoId && p.ativo);
     return { data: found || null, error: null };
   },
 
   async savePlanoAlimentar(plano: any): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      let isEdicao = false;
+      let planoId = plano.id;
+
+      if (planoId) {
+        const { data: planoExistente } = await supabase
+          .from('planos_alimentares')
+          .select('id')
+          .eq('id', planoId)
+          .maybeSingle();
+        if (planoExistente?.id) {
+          isEdicao = true;
+        }
+      }
+
+      if (isEdicao) {
+        // Atualizar o plano alimentar
+        const { error: updateError } = await supabase
+          .from('planos_alimentares')
+          .update({
+            personal_id: plano.personal_id,
+            titulo: plano.titulo || 'Plano Alimentar',
+            meta_calorias: Number(plano.meta_calorias) || 2000,
+            meta_proteina: Number(plano.meta_proteina) || 150,
+            meta_carbo: Number(plano.meta_carboidrato) || 200,
+            meta_gordura: Number(plano.meta_gordura) || 60,
+            ativo: true
+          })
+          .eq('id', planoId);
+
+        if (updateError) return { error: updateError };
+
+        // "Se o plano já tiver id (edição), apague as refeições antigas antes de reinserir"
+        const { data: refeicoesAntigas } = await supabase
+          .from('refeicoes')
+          .select('id')
+          .eq('plano_id', planoId);
+
+        if (refeicoesAntigas && refeicoesAntigas.length > 0) {
+          const refeicaoIds = refeicoesAntigas.map((r: any) => r.id);
+          // Apagar alimentos
+          await supabase
+            .from('alimentos_refeicao')
+            .delete()
+            .in('refeicao_id', refeicaoIds);
+          // Apagar refeições
+          await supabase
+            .from('refeicoes')
+            .delete()
+            .eq('plano_id', planoId);
+        }
+      } else {
+        // "primeiro marque como ativo = false os planos anteriores desse aluno"
+        await supabase
+          .from('planos_alimentares')
+          .update({ ativo: false })
+          .eq('aluno_id', plano.aluno_id);
+
+        // "depois insira o novo plano em planos_alimentares com ativo = true"
+        const { data: novoPlano, error: insertPlanoError } = await supabase
+          .from('planos_alimentares')
+          .insert({
+            personal_id: plano.personal_id,
+            aluno_id: plano.aluno_id,
+            titulo: plano.titulo || 'Plano Alimentar',
+            meta_calorias: Number(plano.meta_calorias) || 2000,
+            meta_proteina: Number(plano.meta_proteina) || 150,
+            meta_carbo: Number(plano.meta_carboidrato) || 200,
+            meta_gordura: Number(plano.meta_gordura) || 60,
+            ativo: true
+          })
+          .select()
+          .single();
+
+        if (insertPlanoError) return { error: insertPlanoError };
+        planoId = novoPlano.id;
+      }
+
+      // Inserir as refeições e alimentos
+      if (plano.refeicoes && plano.refeicoes.length > 0) {
+        for (let i = 0; i < plano.refeicoes.length; i++) {
+          const ref = plano.refeicoes[i];
+          const { data: novaRef, error: insertRefError } = await supabase
+            .from('refeicoes')
+            .insert({
+              plano_id: planoId,
+              nome: ref.nome || 'Refeição',
+              horario: ref.horario || '08:00',
+              ordem: i
+            })
+            .select()
+            .single();
+
+          if (insertRefError) return { error: insertRefError };
+
+          if (ref.alimentos && ref.alimentos.length > 0) {
+            const alimentosPayload = ref.alimentos.map((a: any) => ({
+              refeicao_id: novaRef.id,
+              alimento: a.nome || 'Alimento',
+              quantidade: a.quantidade || '100g',
+              calorias: Number(a.calorias) || 0,
+              proteina: Number(a.proteina) || 0,
+              carbo: Number(a.carboidrato) || 0,
+              gordura: Number(a.gordura) || 0
+            }));
+
+            const { error: insertAlimentosError } = await supabase
+              .from('alimentos_refeicao')
+              .insert(alimentosPayload);
+
+            if (insertAlimentosError) return { error: insertAlimentosError };
+          }
+        }
+      }
+
+      return { error: null };
+    }
+
     const planos = load('zenite_planos_alimentares', []);
-    planos.push({ id: Math.floor(Math.random() * 1000000), ...plano });
+    if (plano.id && plano.id >= 1) {
+      const idx = planos.findIndex((p: any) => p.id === plano.id);
+      if (idx >= 0) {
+        planos[idx] = { ...planos[idx], ...plano };
+        save('zenite_planos_alimentares', planos);
+        return { error: null };
+      }
+    }
+
+    planos.forEach((p: any) => {
+      if (p.aluno_id === plano.aluno_id) {
+        p.ativo = false;
+      }
+    });
+
+    planos.push({ id: Math.floor(Math.random() * 1000000), ...plano, ativo: true });
     save('zenite_planos_alimentares', planos);
     return { error: null };
   },

@@ -173,6 +173,7 @@ export interface RefeicaoPlano {
   plano_id: number;
   nome: string;
   horario: string;
+  ordem?: number;
   alimentos?: AlimentoRefeicao[];
 }
 
