@@ -811,8 +811,9 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                           // Calculate highest load per exercise name
                           const loadMap: Record<string, number> = {};
                           studentSeries.forEach(s => {
-                            const name = s.exercicio?.nome || 'Exercício';
-                            const load = s.carga_kg || 0;
+                            const name = s.exercicio_nome || s.exercicio?.nome || 'Exercício';
+                            const load = Number(s.carga_kg) || 0;
+                            if (load <= 0) return;
                             if (!loadMap[name] || load > loadMap[name]) {
                               loadMap[name] = load;
                             }
