@@ -1248,11 +1248,38 @@ export const dbService = {
   },
 
   async getFotosProgresso(alunoId: string): Promise<{ data: FotoProgresso[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('fotos_progresso')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .order('registrado_em', { ascending: false });
+      if (error) return { data: [], error };
+      // Gera signed URL para cada foto (bucket privado)
+      const withUrls = await Promise.all((data || []).map(async (f: any) => {
+        let url = f.foto_url;
+        if (url && !url.startsWith('http') && !url.startsWith('data:')) {
+          const { data: signed } = await supabase.storage.from('zenite_fotos_progresso').createSignedUrl(url, 3600);
+          url = signed?.signedUrl || f.foto_url;
+        }
+        return { ...f, signed_url: url, foto_url_display: url };
+      }));
+      return { data: withUrls, error: null };
+    }
     const fotos = load('zenite_fotos_progresso', []);
-    return { data: fotos.filter((f: any) => f.aluno_id === alunoId), error: null };
+    const filtered = fotos.filter((f: any) => f.aluno_id === alunoId);
+    const mapped = filtered.map((f: any) => ({
+      ...f,
+      signed_url: f.signed_url || f.foto_url
+    }));
+    return { data: mapped, error: null };
   },
 
   async updateFotoObservacao(id: string | number, observacao: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('fotos_progresso').update({ observacao }).eq('id', id);
+      return { error };
+    }
     const fotos = load('zenite_fotos_progresso', []);
     const idx = fotos.findIndex((f: any) => f.id === id.toString());
     if (idx >= 0) {
@@ -1282,6 +1309,15 @@ export const dbService = {
   },
 
   async deleteFotoProgresso(id: string | number): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      // Busca o caminho pra apagar do storage também
+      const { data: foto } = await supabase.from('fotos_progresso').select('foto_url').eq('id', id).maybeSingle();
+      if (foto?.foto_url && !foto.foto_url.startsWith('http') && !foto.foto_url.startsWith('data:')) {
+        await supabase.storage.from('zenite_fotos_progresso').remove([foto.foto_url]);
+      }
+      const { error } = await supabase.from('fotos_progresso').delete().eq('id', id);
+      return { error };
+    }
     const fotos = load('zenite_fotos_progresso', []);
     const newFotos = fotos.filter((f: any) => f.id !== id.toString());
     save('zenite_fotos_progresso', newFotos);
@@ -1289,13 +1325,104 @@ export const dbService = {
   },
 
   async uploadFotoProgresso(alunoId: string, personalId: string | null, angulo: any, file: File | string, observacao?: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      // Descobre o personal se não veio
+      let pid = personalId;
+      if (!pid) {
+        const { data: al } = await supabase.from('alunos').select('personal_id').eq('id', alunoId).maybeSingle();
+        pid = al?.personal_id || null;
+      }
+      if (!pid) return { error: { message: 'Aluno não vinculado a um personal.' } };
+
+      // Faz o upload do arquivo (espera um File)
+      if (typeof file === 'string') return { error: { message: 'Arquivo inválido.' } };
+      const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase();
+      const caminho = `${alunoId}/${angulo}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('zenite_fotos_progresso')
+        .upload(caminho, file, { upsert: true, cacheControl: '3600' });
+      if (upErr) return { error: upErr };
+
+      // Grava no banco
+      const { error: insErr } = await supabase.from('fotos_progresso').insert({
+        aluno_id: alunoId,
+        personal_id: pid,
+        foto_url: caminho,
+        angulo,
+        registrado_em: new Date().toISOString().split('T')[0],
+        observacao: observacao || null
+      });
+      if (insErr) {
+        // Se falhar a gravação no banco, tenta remover do storage pra manter a consistência
+        await supabase.storage.from('zenite_fotos_progresso').remove([caminho]);
+        return { error: insErr };
+      }
+
+      // Regra de negócio: máximo de 4 fotos por ângulo — ao subir a 5ª de um ângulo, apaga a mais antiga daquele ângulo
+      try {
+        const { data: fotosExistentes, error: getErr } = await supabase
+          .from('fotos_progresso')
+          .select('id, foto_url')
+          .eq('aluno_id', alunoId)
+          .eq('angulo', angulo)
+          .order('registrado_em', { ascending: true })
+          .order('id', { ascending: true });
+
+        if (!getErr && fotosExistentes && fotosExistentes.length > 4) {
+          const excedentes = fotosExistentes.slice(0, fotosExistentes.length - 4);
+          for (const exc of excedentes) {
+            if (exc.foto_url && !exc.foto_url.startsWith('http') && !exc.foto_url.startsWith('data:')) {
+              await supabase.storage.from('zenite_fotos_progresso').remove([exc.foto_url]);
+            }
+            await supabase.from('fotos_progresso').delete().eq('id', exc.id);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao processar limite de fotos:', err);
+      }
+
+      return { error: null };
+    }
+
+    // Fallback Local Storage
     const fotos = load('zenite_fotos_progresso', []);
+    
+    // Regra de negócio: máximo de 4 fotos por ângulo
+    const fotosDoAngulo = fotos.filter((f: any) => f.aluno_id === alunoId && f.angulo === angulo);
+    if (fotosDoAngulo.length >= 4) {
+      const ordenadas = [...fotosDoAngulo].sort((a: any, b: any) => {
+        const d1 = a.registrado_em || a.data || '';
+        const d2 = b.registrado_em || b.data || '';
+        const dCompare = d1.localeCompare(d2);
+        if (dCompare !== 0) return dCompare;
+        return String(a.id).localeCompare(String(b.id));
+      });
+      const maisAntiga = ordenadas[0];
+      const indexParaRemover = fotos.findIndex((f: any) => f.id === maisAntiga.id);
+      if (indexParaRemover >= 0) {
+        fotos.splice(indexParaRemover, 1);
+      }
+    }
+
+    // Se file for File e não string, no mock salvamos como dataUrl ou mock string
+    let mockUrl = typeof file === 'string' ? file : 'mock-url';
+    if (typeof file !== 'string') {
+      try {
+        mockUrl = URL.createObjectURL(file);
+      } catch (e) {
+        mockUrl = 'mock-url';
+      }
+    }
+
     fotos.push({
       id: Math.random().toString(36).substring(2, 9),
       aluno_id: alunoId,
+      personal_id: personalId || 'mock-personal',
       angulo,
-      foto_url: typeof file === 'string' ? file : 'mock-url',
+      foto_url: mockUrl,
+      signed_url: mockUrl,
       observacao,
+      registrado_em: new Date().toISOString().split('T')[0],
       data: new Date().toISOString().split('T')[0]
     });
     save('zenite_fotos_progresso', fotos);

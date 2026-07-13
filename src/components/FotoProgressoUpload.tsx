@@ -32,11 +32,47 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
     }
   };
 
+  // Comprime e redimensiona a imagem antes do upload (protege o storage)
+  const comprimirImagem = (arquivo: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const MAX_LARGURA = 1080;
+      const QUALIDADE = 0.8;
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = (e) => { img.src = e.target?.result as string; };
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > MAX_LARGURA) {
+          height = Math.round((height * MAX_LARGURA) / width);
+          width = MAX_LARGURA;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(arquivo); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { resolve(arquivo); return; }
+            const nomeBase = (arquivo.name?.split('.')[0] || 'foto');
+            resolve(new File([blob], `${nomeBase}.jpg`, { type: 'image/jpeg' }));
+          },
+          'image/jpeg',
+          QUALIDADE
+        );
+      };
+      img.onerror = () => resolve(arquivo);
+      reader.readAsDataURL(arquivo);
+    });
+  };
+
   const handleUpload = async () => {
     if (!angulo || !file) return;
     setUploading(true);
     try {
-      const { error } = await dbService.uploadFotoProgresso(alunoId, personalId, angulo, file as any);
+      const arquivoComprimido = await comprimirImagem(file);
+      const { error } = await dbService.uploadFotoProgresso(alunoId, personalId, angulo, arquivoComprimido as any);
       if (!error) {
         onSuccess();
         onClose();
@@ -100,6 +136,14 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
                       </div>
                     </button>
                   ))}
+                </div>
+
+                <div className="flex items-start gap-2 p-3 bg-violet/5 border border-violet/15 rounded-xl">
+                  <Info className="w-4 h-4 text-violet shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-ink-3 leading-relaxed">
+                    Cada ângulo guarda até <span className="text-ink font-semibold">4 fotos</span> para acompanhar sua evolução.
+                    Ao enviar uma nova além disso, a <span className="text-ink font-semibold">foto mais antiga</span> daquele ângulo é substituída automaticamente.
+                  </p>
                 </div>
               </motion.div>
             ) : (
