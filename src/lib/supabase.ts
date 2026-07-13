@@ -889,26 +889,24 @@ export const dbService = {
 
   async saveRegistroHidratacao(registro: any): Promise<{ data: any; error: any }> {
     const targetDate = registro.data || new Date().toISOString().split('T')[0];
+    // Aceita tanto "ml" quanto "quantidade_ml" vindos do componente
+    const incremento = Number(registro.ml ?? registro.quantidade_ml ?? 0) || 0;
+    const metaMl = Number(registro.meta_ml) || 2000;
+
     if (isSupabaseConfigured && supabase) {
-      // Um registro por aluno por dia: se já existe, atualiza; senão, cria.
+      // Um registro por aluno por dia: soma o incremento ao total já existente.
       const { data: existente } = await supabase
         .from('hidratacao')
-        .select('id')
+        .select('id, ml, meta_ml')
         .eq('aluno_id', registro.aluno_id)
         .eq('data', targetDate)
         .maybeSingle();
 
-      const payload = {
-        aluno_id: registro.aluno_id,
-        data: targetDate,
-        ml: registro.ml ?? 0,
-        meta_ml: registro.meta_ml ?? 2000
-      };
-
       if (existente?.id) {
+        const novoTotal = (Number(existente.ml) || 0) + incremento;
         const { data, error } = await supabase
           .from('hidratacao')
-          .update({ ml: payload.ml, meta_ml: payload.meta_ml })
+          .update({ ml: novoTotal, meta_ml: existente.meta_ml || metaMl })
           .eq('id', existente.id)
           .select()
           .single();
@@ -916,30 +914,24 @@ export const dbService = {
       } else {
         const { data, error } = await supabase
           .from('hidratacao')
-          .insert(payload)
+          .insert({ aluno_id: registro.aluno_id, data: targetDate, ml: incremento, meta_ml: metaMl })
           .select()
           .single();
         return { data, error };
       }
     }
+
     const registros = load('zenite_hidratacao', []);
-    const index = registros.findIndex((r: any) => r.aluno_id === registro.aluno_id && r.data === targetDate);
-    const payload = {
-      aluno_id: registro.aluno_id,
-      data: targetDate,
-      ml: registro.ml ?? 0,
-      meta_ml: registro.meta_ml ?? 2000
-    };
-    let finalRegistro;
-    if (index >= 0) {
-      registros[index] = { ...registros[index], ...payload };
-      finalRegistro = registros[index];
-    } else {
-      finalRegistro = { id: Math.floor(Math.random() * 1000000), ...payload };
-      registros.push(finalRegistro);
+    const idx = registros.findIndex((r: any) => r.aluno_id === registro.aluno_id && r.data === targetDate);
+    if (idx >= 0) {
+      registros[idx].ml = (Number(registros[idx].ml) || 0) + incremento;
+      save('zenite_hidratacao', registros);
+      return { data: registros[idx], error: null };
     }
+    const newR = { id: Math.floor(Math.random() * 1000000), aluno_id: registro.aluno_id, data: targetDate, ml: incremento, meta_ml: metaMl };
+    registros.push(newR);
     save('zenite_hidratacao', registros);
-    return { data: finalRegistro, error: null };
+    return { data: newR, error: null };
   },
 
   async saveSessaoBemEstar(sessao: any): Promise<{ data: any; error: any }> {
