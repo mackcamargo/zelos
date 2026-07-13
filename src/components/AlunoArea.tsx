@@ -497,6 +497,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         if (completed === total) {
           await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
           setShowCelebration(true);
+          if (userId) {
+            await dbService.verificarConquistas(userId);
+          }
           await checkAchievements('workout');
           try {
             const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
@@ -521,6 +524,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const handleFinishWorkout = async () => {
     if (selectedWorkout) {
       await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
+      if (userId) {
+        await dbService.verificarConquistas(userId);
+      }
     }
     setShowCelebration(true);
     try {

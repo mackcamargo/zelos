@@ -1574,7 +1574,12 @@ export const dbService = {
     return { data, isNewPR, error: null };
   },
 
-  async getConquistas(): Promise<{ data: Conquista[]; error: any }> {
+  async getConquistas(): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('conquistas').select('*').order('id', { ascending: true });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
     const conquistas = load('zenite_conquistas', [
       { id: 'c1', nome: 'Iniciante', descricao: 'Primeiro treino realizado', icone: 'award', pontos: 10 },
       { id: 'c2', nome: 'Consistente', descricao: '5 treinos na semana', icone: 'flame', pontos: 50 }
@@ -1582,7 +1587,15 @@ export const dbService = {
     return { data: conquistas, error: null };
   },
 
-  async getAlunoConquistas(alunoId: string): Promise<{ data: AlunoConquista[]; error: any }> {
+  async getAlunoConquistas(alunoId: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('aluno_conquistas')
+        .select('*')
+        .eq('aluno_id', alunoId);
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
     const registros = load('zenite_aluno_conquistas', []);
     return { data: registros.filter((r: any) => r.aluno_id === alunoId), error: null };
   },
@@ -1592,15 +1605,23 @@ export const dbService = {
     return { data: prs.filter((r: any) => r.aluno_id === alunoId), error: null };
   },
 
+  async verificarConquistas(alunoId: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.rpc('verificar_conquistas', { p_aluno: alunoId });
+      return { error };
+    }
+    return { error: null };
+  },
+
   async desbloquearConquista(alunoId: string, conquistaId: string): Promise<{ data: any; error: any }> {
+    // Mantido para compatibilidade; a lógica real agora é a verificarConquistas (função do banco)
+    if (isSupabaseConfigured && supabase) {
+      await this.verificarConquistas(alunoId);
+      return { data: null, error: null };
+    }
     const registros = load('zenite_aluno_conquistas', []);
     if (!registros.some((r: any) => r.aluno_id === alunoId && r.conquista_id === conquistaId)) {
-      const newRec = {
-        id: Math.random().toString(36).substring(2, 9),
-        aluno_id: alunoId,
-        conquista_id: conquistaId,
-        conquistado_em: new Date().toISOString()
-      };
+      const newRec = { id: Math.random().toString(36).substring(2, 9), aluno_id: alunoId, conquista_id: conquistaId, conquistado_em: new Date().toISOString() };
       registros.push(newRec);
       save('zenite_aluno_conquistas', registros);
       return { data: newRec, error: null };
