@@ -9,7 +9,7 @@ interface HidratacaoStatsProps {
 export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
   const [loading, setLoading] = useState(true);
   const [average, setAverage] = useState(0);
-  const [meta, setMeta] = useState<number>(2000);
+  const [meta, setMeta] = useState<number | string>(2000);
   const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -31,26 +31,42 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
       }
       const { data: metaData } = await dbService.getMetaHidratacao(alunoId);
       setMeta(Number(metaData) || 2000);
+    } catch (err: any) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSalvarMeta = async () => {
+  const handleSalvarMeta = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setErro(null);
-    const valor = Number(meta);
-    if (!valor || isNaN(valor) || valor < 500 || valor > 8000) {
+    
+    const parsedValue = Number(meta);
+    const valor = Math.floor(parsedValue);
+    
+    if (isNaN(valor) || valor < 500 || valor > 8000) {
       setErro("A meta deve ser entre 500 e 8000 ml.");
       return;
     }
+    
+    setMeta(valor); // Limpa zeros à esquerda e decimais na tela
     setSalvando(true);
     setSalvo(false);
+    
     try {
       const { error } = await dbService.setMetaHidratacao(alunoId, valor);
       if (!error) {
         setSalvo(true);
-        setTimeout(() => setSalvo(false), 2000);
+        setTimeout(() => setSalvo(false), 3000);
+      } else {
+        setErro(error.message || "Erro ao salvar a meta.");
       }
+    } catch (err: any) {
+      setErro(err?.message || "Erro de conexão ao salvar.");
     } finally {
       setSalvando(false);
     }
@@ -79,13 +95,14 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
           <Target className="w-4 h-4 text-flame" />
           <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Meta Diária Prescrita</p>
         </div>
-        <div className="flex items-center gap-2">
+        <form onSubmit={handleSalvarMeta} className="flex items-center gap-2">
           <input
             type="number"
             value={meta}
             onChange={(e) => {
               setErro(null);
-              setMeta(Number(e.target.value));
+              const val = e.target.value;
+              setMeta(val === '' ? '' : Number(val));
             }}
             step={250}
             min={500}
@@ -95,22 +112,29 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
           />
           <span className="text-xs text-ink-3 font-mono mr-2">ml</span>
           <button
-            onClick={handleSalvarMeta}
+            type="submit"
             disabled={salvando}
-            className="p-2.5 bg-violet hover:bg-violet/80 disabled:opacity-50 text-white rounded-xl transition-colors flex items-center justify-center min-w-[40px]"
+            className={`p-2.5 text-white rounded-xl transition-colors flex items-center justify-center min-w-[40px] ${
+              salvo 
+                ? 'bg-emerald-600 hover:bg-emerald-700' 
+                : 'bg-violet hover:bg-violet/80'
+            } disabled:opacity-50`}
             title="Salvar Meta"
           >
             {salvando ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : salvo ? (
-              <Check className="w-4 h-4 text-emerald-400" />
+              <Check className="w-4 h-4 text-white" />
             ) : (
               <Check className="w-4 h-4" />
             )}
           </button>
-        </div>
+        </form>
         {erro && (
           <p className="text-[10px] text-red-500 font-mono mt-1">{erro}</p>
+        )}
+        {salvo && (
+          <p className="text-[10px] text-emerald-400 font-mono mt-1">✓ Meta salva com sucesso!</p>
         )}
       </div>
     </div>
