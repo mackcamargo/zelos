@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService } from '../lib/supabase';
 import { Agendamento, StatusAgendamento, TipoSessao, Aluno } from '../types';
+import CriarSessaoModal from './CriarSessaoModal';
 
 interface GerenciarAgendaPersonalProps {
   personalId: string;
@@ -24,6 +25,7 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<StatusAgendamento | 'todos'>('todos');
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
 
   useEffect(() => {
     loadAgendamentos();
@@ -253,7 +255,10 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
               )}
             </div>
             
-            <button className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+            <button 
+              onClick={() => setModalAberto(true)} 
+              className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+            >
               <Plus className="w-4 h-4" /> Criar p/ Aluno
             </button>
           </div>
@@ -265,6 +270,13 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
           </div>
         </div>
       </div>
+
+      <CriarSessaoModal
+        aberto={modalAberto}
+        onFechar={() => setModalAberto(false)}
+        onCriado={loadAgendamentos}
+        personalId={personalId}
+      />
     </div>
   );
 }
