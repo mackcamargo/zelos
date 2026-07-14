@@ -22,6 +22,8 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [pendingUser, setPendingUser] = useState<any>(null);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -77,8 +79,14 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         if (authError) {
           setError(authError.message);
         } else if (data?.user) {
-          // E-mail desligado: entra direto
-          onAuthSuccess(data.user);
+          // Se for aluno e cadastro novo, mostra boas-vindas
+          if (papel === 'aluno') {
+            setPendingUser(data.user);
+            setShowWelcomeModal(true);
+          } else {
+            // E-mail desligado: entra direto
+            onAuthSuccess(data.user);
+          }
         } else {
           setError('Não foi possível criar a conta. Tente novamente.');
         }
@@ -90,8 +98,56 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
     }
   };
 
+  const handleStartApp = () => {
+    if (pendingUser) {
+      onAuthSuccess(pendingUser);
+    }
+  };
+
   return (
     <div id="auth-container" className="min-h-screen bg-void flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden">
+      {/* Welcome Modal for Students */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-sm bg-[#141414] border border-white/10 rounded-3xl p-8 relative shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+          >
+            {/* Background accent */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
+            
+            <div className="text-center space-y-6 relative z-10">
+              <div className="flex justify-center">
+                <div className="w-20 h-20 bg-[#F26A1B]/10 rounded-full flex items-center justify-center border border-[#F26A1B]/20">
+                  <div className="w-12 h-12 bg-[#F26A1B] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(242,106,27,0.4)]">
+                    <Check className="w-7 h-7 text-white stroke-[3px]" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="font-display font-bold text-2xl text-ink leading-tight">
+                  Bem-vindo à sua jornada!
+                </h2>
+                <p className="text-sm text-ink-2 leading-relaxed font-sans">
+                  Sua conta foi criada com sucesso e você já está conectado ao seu Personal. A partir de agora, seus treinos, metas e acompanhamento aparecem aqui. Assim que seu Personal montar seu plano, tudo estará disponível nesta tela.
+                </p>
+              </div>
+
+              <button
+                id="btn-welcome-start"
+                type="button"
+                onClick={handleStartApp}
+                className="w-full py-4 px-6 rounded-2xl bg-[#F26A1B] hover:bg-[#FF7A2B] text-white font-display font-bold text-base transition-all active:scale-[0.98] shadow-[0_4px_15px_rgba(242,106,27,0.3)]"
+              >
+                Começar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Decorative ambient background glows */}
       <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-gradient-to-b from-[#F5334F]/10 via-[#FF6A2B]/5 to-transparent blur-3xl pointer-events-none rounded-full" />
       <div className="absolute bottom-[-100px] left-1/4 w-[300px] h-[300px] bg-[#7B6CF6]/5 blur-3xl pointer-events-none rounded-full" />
