@@ -29,6 +29,7 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [customTitle, setCustomTitle] = useState('');
   const [applyDate, setApplyDate] = useState(new Date().toISOString().split('T')[0]);
+  const [applyTime, setApplyTime] = useState('');
   const [applying, setApplying] = useState(false);
   
   // Feedback
@@ -87,7 +88,8 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
         p_template_id: templateToApply.id,
         p_aluno_id: selectedStudentId,
         p_titulo: customTitle.trim() || null,
-        p_data: applyDate
+        p_data: applyDate,
+        p_hora: applyTime || null
       });
 
       if (error) {
@@ -384,17 +386,33 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Data do Treino</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
-                      <input
-                        id="input-apply-data"
-                        type="date"
-                        value={applyDate}
-                        onChange={(e) => setApplyDate(e.target.value)}
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all"
-                      />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Data do Treino</label>
+                      <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                        <input
+                          id="input-apply-data"
+                          type="date"
+                          value={applyDate}
+                          onChange={(e) => setApplyDate(e.target.value)}
+                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Hora (Opcional)</label>
+                      <div className="relative">
+                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                        <input
+                          id="input-apply-hora"
+                          type="time"
+                          value={applyTime}
+                          onChange={(e) => setApplyTime(e.target.value)}
+                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

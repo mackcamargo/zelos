@@ -721,16 +721,18 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                                 {workout.titulo}
                               </h4>
                               <p className="text-[10px] text-ink-3 font-mono mt-0.5">
-                                Data: {dateFormatted}
+                                Data: {dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}
                               </p>
                             </div>
                             <div className="flex items-center gap-2 font-mono shrink-0">
                               <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                                isPublished 
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                workout.status === 'concluido'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : workout.status === 'publicado'
+                                    ? 'bg-flame/10 text-flame border border-flame/20'
+                                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               }`}>
-                                {workout.status}
+                                {workout.status === 'concluido' ? 'CONCLUÍDO' : workout.status === 'publicado' ? 'A FAZER' : 'Rascunho'}
                               </span>
                               <span className="text-[10px] text-ink-3 group-hover:text-ink transition-colors">→</span>
                             </div>

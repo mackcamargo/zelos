@@ -54,6 +54,7 @@ export interface Treino {
   titulo: string;
   nome?: string; // fallback if needed
   data_treino: string;
+  hora_treino?: string | null;
   status: TreinoStatus;
   criado_em: string;
   exercicios?: TreinoExercicioDetailed[];

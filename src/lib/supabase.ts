@@ -507,6 +507,7 @@ export const dbService = {
             aluno_id: treino.aluno_id,
             titulo: treino.titulo,
             data_treino: treino.data_treino,
+            hora_treino: treino.hora_treino || null,
             status: treino.status || 'rascunho'
           })
           .select()
@@ -519,6 +520,7 @@ export const dbService = {
           .update({
             titulo: treino.titulo,
             data_treino: treino.data_treino,
+            hora_treino: treino.hora_treino || null,
             status: treino.status || 'rascunho'
           })
           .eq('id', treinoId);

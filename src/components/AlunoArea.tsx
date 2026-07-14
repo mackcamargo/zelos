@@ -727,15 +727,15 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full" />
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              {isWorkoutConcluido ? (
-                                <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
-                                  <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
-                                </span>
-                              ) : (
-                                <span className="text-[10px] font-mono bg-flame/10 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                                  Planilha Ativa
-                                </span>
-                              )}
+                                {isWorkoutConcluido ? (
+                                  <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
+                                    <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-mono bg-flame/10 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/20">
+                                    A FAZER
+                                  </span>
+                                )}
                             </div>
                             <h3 className="font-display font-bold text-lg text-ink group-hover:text-white transition-colors mt-2 truncate">
                               {workout.titulo}
@@ -745,7 +745,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           <div className="flex items-center justify-between pt-4 border-t border-white/5">
                             <span className="text-xs text-ink-3 font-mono flex items-center gap-1.5">
                               <Calendar className="w-3.5 h-3.5 text-violet" />
-                              {dateFormatted}
+                              {dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}
                             </span>
                             <span className={`text-xs font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform ${
                               isWorkoutConcluido ? 'text-emerald-400' : 'text-flame'
@@ -811,6 +811,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3.5 h-3.5 text-violet" />
                               {new Date(selectedWorkout.data_treino + 'T00:00:00').toLocaleDateString('pt-BR')}
+                              {selectedWorkout.hora_treino ? ` às ${selectedWorkout.hora_treino.substring(0, 5)}` : ''}
                             </span>
                             <span>·</span>
                             <span className="flex items-center gap-1 text-ink">

@@ -3,7 +3,7 @@ import { dbService } from '../lib/supabase';
 import { Exercicio, Treino, TreinoExercicioDetailed, Categoria, TemplateTreino, TemplateExercicioDetailed } from '../types';
 import { 
   ArrowLeft, Trash2, ChevronUp, ChevronDown, Plus, Check, Sparkles, 
-  Save, Send, Calendar, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info
+  Save, Send, Calendar, Clock, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -23,6 +23,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   const [titulo, setTitulo] = useState(isTemplateMode ? 'Novo Modelo' : 'Treino A');
   const [descricao, setDescricao] = useState('');
   const [dataTreino, setDataTreino] = useState(new Date().toISOString().split('T')[0]);
+  const [horaTreino, setHoraTreino] = useState('');
   const [status, setStatus] = useState<'rascunho' | 'publicado' | 'concluido'>('rascunho');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -129,6 +130,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
           } else if (data) {
             setTitulo(data.titulo);
             setDataTreino(data.data_treino);
+            setHoraTreino(data.hora_treino || '');
             setStatus(data.status);
             
             const mapped = data.exercicios.map((item: any) => ({
@@ -269,6 +271,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
           personal_id: personalId,
           titulo: titulo.trim(),
           data_treino: dataTreino,
+          hora_treino: horaTreino || null,
           status: targetStatus
         };
 
@@ -490,19 +493,36 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   />
                 </div>
                 {!isTemplateMode ? (
-                  <div>
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block mb-1.5">
-                      Data do Treino
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
-                      <input
-                        id="input-workout-date"
-                        type="date"
-                        value={dataTreino}
-                        onChange={(e) => setDataTreino(e.target.value)}
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
-                      />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block mb-1.5">
+                        Data do Treino
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
+                        <input
+                          id="input-workout-date"
+                          type="date"
+                          value={dataTreino}
+                          onChange={(e) => setDataTreino(e.target.value)}
+                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block mb-1.5">
+                        Hora (Opcional)
+                      </label>
+                      <div className="relative">
+                        <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
+                        <input
+                          id="input-workout-time"
+                          type="time"
+                          value={horaTreino}
+                          onChange={(e) => setHoraTreino(e.target.value)}
+                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                        />
+                      </div>
                     </div>
                   </div>
                 ) : (
