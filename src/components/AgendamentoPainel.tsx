@@ -79,8 +79,8 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
   };
 
   const proximaSessao = agendamentos
-    .filter(a => a.status === 'confirmado' && new Date(`${a.data}T${a.horario}`) >= new Date())
-    .sort((a, b) => new Date(`${a.data}T${a.horario}`).getTime() - new Date(`${b.data}T${b.horario}`).getTime())[0];
+    .filter(a => a.status === 'confirmado' && new Date(a.data_hora) >= new Date())
+    .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())[0];
 
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-flame animate-spin" /></div>;
@@ -106,13 +106,13 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-4xl md:text-5xl font-display font-black tracking-tighter leading-none">
-                {new Date(proximaSessao.data).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+              <h2 className="text-4xl md:text-5xl font-display font-black tracking-tighter leading-none text-void">
+                {new Date(proximaSessao.data_hora).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </h2>
               <div className="flex flex-wrap items-center gap-6 text-xl font-bold opacity-90 italic">
                 <div className="flex items-center gap-2">
                   <Clock className="w-6 h-6" />
-                  {proximaSessao.horario}
+                  {new Date(proximaSessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-2">
                   {proximaSessao.tipo === 'presencial' ? <MapPin className="w-6 h-6" /> : <Video className="w-6 h-6" />}
@@ -155,16 +155,18 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     agendamento.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
                   }`}>
                     <span className="text-[10px] uppercase opacity-70">
-                      {new Date(agendamento.data).toLocaleDateString('pt-BR', { month: 'short' })}
+                      {new Date(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
                     </span>
                     <span className="text-2xl leading-none">
-                      {new Date(agendamento.data).getDate()}
+                      {new Date(agendamento.data_hora).getDate()}
                     </span>
                   </div>
                   
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <h4 className="text-lg font-bold text-ink leading-none">{agendamento.horario}</h4>
+                      <h4 className="text-lg font-bold text-ink leading-none">
+                        {new Date(agendamento.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </h4>
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest ${config.color}`}>
                         <StatusIcon className="w-3 h-3" />
                         {config.label}

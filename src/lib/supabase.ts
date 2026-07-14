@@ -878,13 +878,13 @@ export const dbService = {
       const campo = papel === 'personal' ? 'personal_id' : 'aluno_id';
       const { data, error } = await supabase
         .from('agendamentos')
-        .select("id, aluno_id, data_hora, duracao_min, tipo, status, observacao, aluno:profiles!agendamentos_aluno_id_fkey(nome)")
+        .select("id, aluno_id, data_hora, duracao_min, tipo, status, observacao, aluno:alunos!agendamentos_aluno_id_fkey(profiles(nome))")
         .eq(campo, userId)
         .order('data_hora', { ascending: true });
       if (error) return { data: [], error };
       const mapped = (data || []).map((row: any) => ({
         ...row,
-        aluno_nome: row.aluno?.nome ?? "Aluno"
+        aluno_nome: row.aluno?.profiles?.nome ?? "Aluno"
       }));
       return { data: mapped, error: null };
     }
