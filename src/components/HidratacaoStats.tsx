@@ -113,6 +113,7 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
           <span className="text-xs text-ink-3 font-mono mr-2">ml</span>
           <button
             type="submit"
+            onClick={handleSalvarMeta}
             disabled={salvando}
             className={`p-2.5 text-white rounded-xl transition-colors flex items-center justify-center min-w-[40px] ${
               salvo 

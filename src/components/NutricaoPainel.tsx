@@ -45,21 +45,23 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
     }
   };
 
-  const calculateCurrentMacros = () => {
-    let cal = 0, prot = 0, carb = 0, fat = 0;
-    // Soma macros do plano (refeições feitas - mock logic here, for now using registros)
-    // In a real app, you might have "feita" status on meals. 
-    // Here we'll sum the registros calories and mock macros based on ratios if needed, 
-    // but the prompt asks to track total day vs meta.
-    cal = registros.reduce((acc, curr) => acc + curr.calorias, 0);
-    
-    // Estimating macros from calories for visual progress if actual macros aren't logged per manual meal
-    // In a complete app, RegistroNutricao would have P, C, G too.
-    return { cal, prot, carb, fat };
-  };
+  const metaCalorias = plano ? Number(plano.meta_calorias) || 0 : 0;
+  const consumidoCalorias = registros.reduce((acc, curr) => acc + (Number(curr.calorias) || 0), 0);
+  const calPercent = metaCalorias > 0 ? Math.min(100, Math.round((consumidoCalorias / metaCalorias) * 100)) : 0;
 
-  const current = calculateCurrentMacros();
-  const calPercent = plano ? Math.min((current.cal / plano.meta_calorias) * 100, 100) : 0;
+  const pctCal = metaCalorias > 0 ? (consumidoCalorias / metaCalorias) : 0;
+
+  const metaProteina = plano ? Number(plano.meta_proteina) || 0 : 0;
+  const consumidoProteina = plano && metaCalorias > 0 ? Math.round(pctCal * metaProteina) : 0;
+  const protPercent = metaProteina > 0 ? Math.min(100, Math.round((consumidoProteina / metaProteina) * 100)) : 0;
+
+  const metaCarbo = plano ? Number(plano.meta_carboidrato ?? (plano as any).meta_carbo) || 0 : 0;
+  const consumidoCarbo = plano && metaCalorias > 0 ? Math.round(pctCal * metaCarbo) : 0;
+  const carboPercent = metaCarbo > 0 ? Math.min(100, Math.round((consumidoCarbo / metaCarbo) * 100)) : 0;
+
+  const metaGordura = plano ? Number(plano.meta_gordura) || 0 : 0;
+  const consumidoGordura = plano && metaCalorias > 0 ? Math.round(pctCal * metaGordura) : 0;
+  const gorduraPercent = metaGordura > 0 ? Math.min(100, Math.round((consumidoGordura / metaGordura) * 100)) : 0;
 
   const handleAddMeal = async () => {
     if (!newMeal.nome || !newMeal.calorias) return;
@@ -94,105 +96,113 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
         {/* Decorative background flare */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-flame/5 blur-[100px] pointer-events-none" />
         
-        <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
-          {/* Calorias Ring */}
-          <div className="relative w-48 h-48">
-            <svg className="w-full h-full -rotate-90">
-              <circle
-                cx="96"
-                cy="96"
-                r="88"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="12"
-                className="text-white/5"
-              />
-              <motion.circle
-                cx="96"
-                cy="96"
-                r="88"
-                fill="none"
-                stroke="url(#flame-gradient)"
-                strokeWidth="12"
-                strokeLinecap="round"
-                strokeDasharray="552.92"
-                initial={{ strokeDashoffset: 552.92 }}
-                animate={{ strokeDashoffset: 552.92 - (552.92 * calPercent) / 100 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              />
-              <defs>
-                <linearGradient id="flame-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#F5334F" />
-                  <stop offset="100%" stopColor="#F57633" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-mono font-black text-ink tracking-tighter">
-                {current.cal}
-              </span>
-              <span className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">
-                kcal consumidas
-              </span>
-              {plano && (
+        {!plano ? (
+          <div className="relative z-10 flex flex-col items-center justify-center text-center py-6">
+            <Utensils className="w-12 h-12 text-ink-3 mb-4 opacity-50 animate-pulse" />
+            <h3 className="font-display font-bold text-lg text-ink mb-2">Sem Plano Ativo</h3>
+            <p className="text-sm text-ink-3 max-w-md">
+              Nenhum plano alimentar ativo. Seu personal ainda não prescreveu suas metas.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+            {/* Calorias Ring */}
+            <div className="relative w-48 h-48 flex-shrink-0">
+              <svg className="w-full h-full -rotate-90">
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="88"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="12"
+                  className="text-white/5"
+                />
+                <motion.circle
+                  cx="96"
+                  cy="96"
+                  r="88"
+                  fill="none"
+                  stroke="url(#flame-gradient)"
+                  strokeWidth="12"
+                  strokeLinecap="round"
+                  strokeDasharray="552.92"
+                  initial={{ strokeDashoffset: 552.92 }}
+                  animate={{ strokeDashoffset: 552.92 - (552.92 * calPercent) / 100 }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                />
+                <defs>
+                  <linearGradient id="flame-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#F5334F" />
+                    <stop offset="100%" stopColor="#F57633" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4xl font-mono font-black text-ink tracking-tighter">
+                  {consumidoCalorias}
+                </span>
+                <span className="text-[10px] font-mono text-ink-3 uppercase tracking-widest text-center px-4">
+                  kcal consumidas
+                </span>
                 <div className="mt-2 text-[10px] font-mono text-flame font-bold bg-flame/10 px-2 py-0.5 rounded-full border border-flame/20">
-                  META: {plano.meta_calorias}
+                  META: {metaCalorias}
                 </div>
-              )}
+              </div>
+            </div>
+
+            {/* Macros Progress */}
+            <div className="flex-1 w-full space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-violet" /> Proteína
+                  </span>
+                  <span className="text-[10px] font-mono text-ink-3">{consumidoProteina} / {metaProteina}g</span>
+                </div>
+                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${protPercent}%` }}
+                    className="h-full bg-violet rounded-full shadow-[0_0_10px_rgba(139,92,246,0.3)]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-amber" /> Carboidratos
+                  </span>
+                  <span className="text-[10px] font-mono text-ink-3">{consumidoCarbo} / {metaCarbo}g</span>
+                </div>
+                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${carboPercent}%` }}
+                    className="h-full bg-amber rounded-full shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-end">
+                  <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-orange-500" /> Gorduras
+                  </span>
+                  <span className="text-[10px] font-mono text-ink-3">{consumidoGordura} / {metaGordura}g</span>
+                </div>
+                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${gorduraPercent}%` }}
+                    className="h-full bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Macros Progress */}
-          <div className="flex-1 w-full space-y-6">
-            <div className="space-y-2">
-              <div className="flex justify-between items-end">
-                <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-violet" /> Proteína
-                </span>
-                <span className="text-[10px] font-mono text-ink-3">Meta: {plano?.meta_proteina || 0}g</span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.random() * 80 + 20}%` }} // Mocking macro progress
-                  className="h-full bg-violet rounded-full shadow-[0_0_10px_rgba(139,92,246,0.3)]"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-end">
-                <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-amber" /> Carboidratos
-                </span>
-                <span className="text-[10px] font-mono text-ink-3">Meta: {plano?.meta_carboidrato || 0}g</span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.random() * 80 + 20}%` }} // Mocking macro progress
-                  className="h-full bg-amber rounded-full shadow-[0_0_10px_rgba(245,158,11,0.3)]"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-end">
-                <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-orange-500" /> Gorduras
-                </span>
-                <span className="text-[10px] font-mono text-ink-3">Meta: {plano?.meta_gordura || 0}g</span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.random() * 80 + 20}%` }} // Mocking macro progress
-                  className="h-full bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.3)]"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* HIDRATAÇÃO */}
