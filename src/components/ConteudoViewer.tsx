@@ -10,6 +10,26 @@ interface ConteudoViewerProps {
 }
 
 export default function ConteudoViewer({ conteudo, onClose }: ConteudoViewerProps) {
+  // Extrai o ID de um link do YouTube (aceita youtube.com/watch?v=, youtu.be/, /embed/)
+  const getYoutubeId = (url?: string): string | null => {
+    if (!url) return null;
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=)([\w-]{11})/,
+      /(?:youtu\.be\/)([\w-]{11})/,
+      /(?:youtube\.com\/embed\/)([\w-]{11})/
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    return null;
+  };
+
+  // Procura um link de YouTube tanto em video_url quanto em capa_url
+  const youtubeId = getYoutubeId(conteudo.video_url) || getYoutubeId(conteudo.capa_url);
+  // Só trata como imagem se capa_url NÃO for um link de vídeo
+  const imagemCapa = !getYoutubeId(conteudo.capa_url) ? conteudo.capa_url : null;
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -58,31 +78,30 @@ export default function ConteudoViewer({ conteudo, onClose }: ConteudoViewerProp
         </div>
 
         {/* MEDIA CONTENT */}
-        <div className="rounded-[40px] overflow-hidden bg-surface-2 border border-white/5 shadow-2xl relative aspect-video">
-          {conteudo.tipo === 'video' ? (
-            <div className="w-full h-full">
-              {conteudo.video_url?.includes('youtube.com') || conteudo.video_url?.includes('youtu.be') ? (
-                <iframe 
-                  src={conteudo.video_url.replace('watch?v=', 'embed/')} 
-                  className="w-full h-full"
-                  allowFullScreen
-                />
-              ) : (
-                <video 
-                  src={conteudo.video_url || ''} 
-                  controls 
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-          ) : (
-            <img 
-              src={conteudo.capa_url || 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80'} 
-              className="w-full h-full object-cover opacity-60"
-              alt={conteudo.titulo}
+        {youtubeId ? (
+          <div className="rounded-[40px] overflow-hidden bg-surface-2 border border-white/5 shadow-2xl relative aspect-video">
+            <iframe
+              className="w-full h-full"
+              src={`https://www.youtube.com/embed/${youtubeId}`}
+              title={conteudo.titulo}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
             />
-          )}
-        </div>
+          </div>
+        ) : conteudo.tipo === 'video' ? (
+          <div className="rounded-[40px] overflow-hidden bg-surface-2 border border-white/5 shadow-2xl relative aspect-video">
+            <video 
+              src={conteudo.video_url || ''} 
+              controls 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : imagemCapa ? (
+          <div className="rounded-[40px] overflow-hidden bg-surface-2 border border-white/5 shadow-2xl relative aspect-video">
+            <img src={imagemCapa} alt={conteudo.titulo} className="w-full h-full object-cover" />
+          </div>
+        ) : null}
 
         {/* TEXT CONTENT */}
         <div className="max-w-3xl mx-auto space-y-8">
