@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { dbService } from '../lib/supabase';
+import { dbService, supabase } from '../lib/supabase';
 import { TemplateTreino } from '../types';
 import { 
   ArrowLeft, Search, Plus, FolderHeart, Trash2, Edit2, 
-  Sparkles, CheckCircle, Clock, Info, Dumbbell, Play
+  Sparkles, CheckCircle, Clock, Info, Dumbbell, Play,
+  UserPlus, Calendar, X, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
@@ -20,6 +21,15 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
   // Navigation/Editor states
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  
+  // Apply Template States
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [templateToApply, setTemplateToApply] = useState<TemplateTreino | null>(null);
+  const [students, setStudents] = useState<any[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [customTitle, setCustomTitle] = useState('');
+  const [applyDate, setApplyDate] = useState(new Date().toISOString().split('T')[0]);
+  const [applying, setApplying] = useState(false);
   
   // Feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -48,6 +58,53 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
   useEffect(() => {
     loadTemplates();
   }, [personalId]);
+
+  const loadStudents = async () => {
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('alunos')
+        .select('id, profiles(nome)')
+        .eq('personal_id', personalId)
+        .eq('ativo', true);
+      
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (err) {
+      console.error('Erro ao buscar alunos:', err);
+    }
+  };
+
+  const handleApplyTemplate = async () => {
+    if (!supabase || !templateToApply || !selectedStudentId) {
+      if (!selectedStudentId) showToast('Selecione um aluno');
+      return;
+    }
+    
+    setApplying(true);
+    try {
+      const { data, error } = await supabase.rpc('aplicar_template', {
+        p_template_id: templateToApply.id,
+        p_aluno_id: selectedStudentId,
+        p_titulo: customTitle.trim() || null,
+        p_data: applyDate
+      });
+
+      if (error) {
+        showToast(error.message || 'Erro ao aplicar template');
+      } else {
+        showToast('Treino aplicado com sucesso!');
+        setIsApplyModalOpen(false);
+        setTemplateToApply(null);
+        setSelectedStudentId('');
+        setCustomTitle('');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Erro inesperado ao aplicar template');
+    } finally {
+      setApplying(false);
+    }
+  };
 
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -195,6 +252,21 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
                   </div>
                   <div className="flex items-center gap-1">
                     <button
+                      id={`btn-apply-template-${template.id}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTemplateToApply(template);
+                        setCustomTitle(template.titulo);
+                        setIsApplyModalOpen(true);
+                        loadStudents();
+                      }}
+                      className="p-2 text-ink-3 hover:text-[#F26A1B] hover:bg-[#F26A1B]/10 rounded-lg transition-all"
+                      title="Aplicar a Aluno"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                    </button>
+                    <button
                       type="button"
                       onClick={(e) => handleDelete(template.id, e)}
                       className="p-2 text-ink-3 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-all"
@@ -239,6 +311,122 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
           ))}
         </div>
       )}
+
+      {/* Modal: Aplicar Template */}
+      <AnimatePresence>
+        {isApplyModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsApplyModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-[#141414] border border-white/10 rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+            >
+              {/* Glow decorativo */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
+              
+              <div className="relative z-10 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#F26A1B]/10 border border-[#F26A1B]/20 rounded-xl flex items-center justify-center text-[#F26A1B]">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-lg text-ink">Aplicar Modelo</h3>
+                      <p className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">
+                        {templateToApply?.titulo}
+                      </p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIsApplyModalOpen(false)}
+                    className="p-2 hover:bg-white/5 rounded-full text-ink-3 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Selecionar Aluno</label>
+                    <select
+                      id="select-apply-aluno"
+                      value={selectedStudentId}
+                      onChange={(e) => setSelectedStudentId(e.target.value)}
+                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink outline-none transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="">Selecione um aluno...</option>
+                      {students.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.profiles?.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Título do Treino (Opcional)</label>
+                    <input
+                      id="input-apply-titulo"
+                      type="text"
+                      value={customTitle}
+                      onChange={(e) => setCustomTitle(e.target.value)}
+                      placeholder={templateToApply?.titulo}
+                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Data do Treino</label>
+                    <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                      <input
+                        id="input-apply-data"
+                        type="date"
+                        value={applyDate}
+                        onChange={(e) => setApplyDate(e.target.value)}
+                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-3">
+                  <button
+                    onClick={() => setIsApplyModalOpen(false)}
+                    className="flex-1 py-3.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-ink text-xs font-bold transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    id="btn-confirm-apply"
+                    onClick={handleApplyTemplate}
+                    disabled={applying || !selectedStudentId}
+                    className="flex-[2] py-3.5 px-4 rounded-xl bg-[#F26A1B] hover:bg-[#FF7A2B] text-white text-xs font-bold transition-all shadow-[0_4px_15px_rgba(242,106,27,0.3)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                  >
+                    {applying ? (
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Aplicar Treino</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
