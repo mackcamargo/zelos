@@ -878,15 +878,28 @@ export const dbService = {
       const campo = papel === 'personal' ? 'personal_id' : 'aluno_id';
       const { data, error } = await supabase
         .from('agendamentos')
-        .select('*')
+        .select("id, aluno_id, data_hora, duracao_min, tipo, status, observacao, aluno:profiles!agendamentos_aluno_id_fkey(nome)")
         .eq(campo, userId)
         .order('data_hora', { ascending: true });
       if (error) return { data: [], error };
-      return { data: data || [], error: null };
+      const mapped = (data || []).map((row: any) => ({
+        ...row,
+        aluno_nome: row.aluno?.nome ?? "Aluno"
+      }));
+      return { data: mapped, error: null };
     }
     const agenda = load('zenite_agenda', []);
     const filtered = agenda.filter((a: any) => papel === 'personal' ? a.personal_id === userId : a.aluno_id === userId);
-    return { data: filtered, error: null };
+    const alunos = loadMockAlunos();
+    const mappedDemo = filtered.map((row: any) => {
+      const aluno = alunos.find((al: any) => al.id === row.aluno_id);
+      const name = aluno?.profile?.nome || "Aluno";
+      return {
+        ...row,
+        aluno_nome: row.aluno_nome || name
+      };
+    });
+    return { data: mappedDemo, error: null };
   },
 
   async salvarAgendamento(agendamento: any): Promise<{ error: any }> {
@@ -1446,7 +1459,7 @@ export const dbService = {
       const payload = {
         personal_id: agendamento.personal_id,
         aluno_id: agendamento.aluno_id,
-        data_hora: agendamento.data_hora,
+        data_hora: agendamento.data_hora || (agendamento.data && agendamento.horario ? new Date(`${agendamento.data}T${agendamento.horario}`).toISOString() : new Date().toISOString()),
         duracao_min: agendamento.duracao_min ?? 60,
         tipo: agendamento.tipo || 'treino',
         status: agendamento.status || 'agendado',
@@ -1461,7 +1474,11 @@ export const dbService = {
       }
     }
     const agenda = load('zenite_agenda', []);
-    const newAgendamento = { id: Math.floor(Math.random() * 1000000), ...agendamento };
+    const newAgendamento = { 
+      id: Math.floor(Math.random() * 1000000), 
+      ...agendamento,
+      data_hora: agendamento.data_hora || (agendamento.data && agendamento.horario ? new Date(`${agendamento.data}T${agendamento.horario}`).toISOString() : new Date().toISOString())
+    };
     agenda.push(newAgendamento);
     save('zenite_agenda', agenda);
     return { data: newAgendamento, error: null };

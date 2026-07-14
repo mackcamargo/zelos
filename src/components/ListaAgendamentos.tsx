@@ -125,6 +125,10 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
       <AnimatePresence mode="popLayout">
         {agendamentos.map((agenda, index) => {
           const config = STATUS_CONFIG[agenda.status] || { label: agenda.status, color: 'text-ink-3 bg-white/5 border-white/10' };
+          const d = new Date(agenda.data_hora);
+          const dataFmt = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", weekday: "short" });
+          const horaFmt = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
           return (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -139,17 +143,18 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                   agenda.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
                 }`}>
                   <span className="text-[10px] uppercase opacity-70">
-                    {new Date(agenda.data).toLocaleDateString('pt-BR', { month: 'short' })}
+                    {isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-BR', { month: 'short' })}
                   </span>
                   <span className="text-xl leading-none">
-                    {new Date(agenda.data).getDate()}
+                    {isNaN(d.getTime()) ? '-' : d.getDate()}
                   </span>
                 </div>
                 
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <h4 className="font-bold text-ink">{agenda.horario}</h4>
-                    <span className="text-[10px] font-mono text-flame uppercase tracking-widest">• {agenda.aluno?.profile?.nome || 'Aluno'}</span>
+                    <h4 className="font-bold text-ink">{isNaN(d.getTime()) ? 'Horário' : horaFmt}</h4>
+                    <span className="text-[10px] font-mono text-ink-3 uppercase">({isNaN(d.getTime()) ? 'Data' : dataFmt})</span>
+                    <span className="text-[10px] font-mono text-flame uppercase tracking-widest">• {agenda.aluno_nome || 'Aluno'}</span>
                   </div>
                   <div className="flex items-center gap-4 text-[10px] text-ink-3 font-mono uppercase tracking-widest">
                      <span className="flex items-center gap-1">

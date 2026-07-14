@@ -221,13 +221,15 @@ export interface Agendamento {
   id: number;
   aluno_id: string;
   personal_id: string;
-  data: string;
-  horario: string;
+  data_hora: string;
+  data?: string;
+  horario?: string;
   tipo: TipoSessao;
   status: StatusAgendamento;
   observacao: string | null;
   criado_em: string;
   aluno?: Aluno;
+  aluno_nome?: string;
 }
 
 export interface ResumoBemEstar {

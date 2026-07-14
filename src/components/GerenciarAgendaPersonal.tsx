@@ -41,8 +41,8 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
   
   const solicitacoesPendentes = agendamentos.filter(a => a.status === 'solicitado');
   const proximasSessoes = agendamentos
-    .filter(a => a.status === 'confirmado' && new Date(`${a.data}T${a.horario}`) >= new Date())
-    .sort((a, b) => new Date(`${a.data}T${a.horario}`).getTime() - new Date(`${b.data}T${b.horario}`).getTime());
+    .filter(a => a.status === 'confirmado' && new Date(a.data_hora) >= new Date())
+    .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
 
   if (carregando) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-flame animate-spin" /></div>;
@@ -77,9 +77,9 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
                     <User className="w-6 h-6 text-ink-3" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-ink leading-none">{req.aluno?.profile?.nome || 'Aluno'}</h4>
+                    <h4 className="font-bold text-ink leading-none">{req.aluno_nome || 'Aluno'}</h4>
                     <p className="text-[10px] font-mono text-ink-3 uppercase mt-1">
-                      {new Date(req.data).toLocaleDateString()} • {req.horario}
+                      {new Date(req.data_hora).toLocaleDateString('pt-BR')} • {new Date(req.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -142,9 +142,9 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <h5 className="font-bold text-ink leading-tight">{s.aluno?.profile?.nome}</h5>
+                    <h5 className="font-bold text-ink leading-tight">{s.aluno_nome || 'Aluno'}</h5>
                     <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mt-1">
-                      {new Date(s.data).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} • {s.horario}
+                      {new Date(s.data_hora).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} • {new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
