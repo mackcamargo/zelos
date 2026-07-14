@@ -1375,16 +1375,25 @@ export const dbService = {
     return { data: result, error: null };
   },
 
-  async getConteudosEducativos(categoria?: string): Promise<{ data: any[]; error: any }> {
+  async getConteudosEducativos(personalIdOuCategoria?: string): Promise<{ data: any[]; error: any }> {
     if (isSupabaseConfigured && supabase) {
       let query = supabase.from('conteudos').select('*').eq('publicado', true);
-      if (categoria && categoria !== 'Todas') query = query.eq('categoria', categoria);
+      // Se o parâmetro parece um UUID (personal_id), filtra por personal; senão trata como categoria
+      const ehUuid = typeof personalIdOuCategoria === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(personalIdOuCategoria);
+      if (ehUuid) {
+        query = query.eq('personal_id', personalIdOuCategoria);
+      } else if (personalIdOuCategoria && personalIdOuCategoria !== 'Todas' && personalIdOuCategoria !== 'Todos') {
+        query = query.eq('categoria', personalIdOuCategoria);
+      }
       const { data, error } = await query.order('criado_em', { ascending: false });
       if (error) return { data: [], error };
       return { data: data || [], error: null };
     }
     const contents = load('zenite_conteudos', []);
-    if (categoria && categoria !== 'Todas') return { data: contents.filter((c: any) => c.categoria === categoria), error: null };
+    if (personalIdOuCategoria && personalIdOuCategoria !== 'Todas' && personalIdOuCategoria !== 'Todos') {
+      const ehUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(personalIdOuCategoria);
+      if (!ehUuid) return { data: contents.filter((c: any) => c.categoria === personalIdOuCategoria), error: null };
+    }
     return { data: contents, error: null };
   },
 
