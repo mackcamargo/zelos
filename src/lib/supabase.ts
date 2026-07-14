@@ -505,14 +505,21 @@ export const dbService = {
           .insert({
             personal_id: treino.personal_id,
             aluno_id: treino.aluno_id,
-            titulo: treino.titulo,
+            titulo: treino.titulo || 'Treino',
             data_treino: treino.data_treino,
             hora_treino: treino.hora_treino || null,
             status: treino.status || 'rascunho'
           })
           .select()
           .single();
-        if (insErr || !novo) return { data: null, error: insErr };
+        
+        if (insErr) {
+          console.error('Erro ao inserir treino:', insErr);
+          return { data: null, error: insErr };
+        }
+        if (!novo) {
+          return { data: null, error: { message: 'Falha ao criar treino: nenhum dado retornado' } };
+        }
         treinoId = novo.id;
       } else {
         const { error: updErr } = await supabase
@@ -524,11 +531,20 @@ export const dbService = {
             status: treino.status || 'rascunho'
           })
           .eq('id', treinoId);
-        if (updErr) return { data: null, error: updErr };
+        
+        if (updErr) {
+          console.error('Erro ao atualizar treino:', updErr);
+          return { data: null, error: updErr };
+        }
       }
 
       // Substitui os exercícios do treino (apaga os antigos e insere os novos)
-      await supabase.from('treino_exercicios').delete().eq('treino_id', treinoId);
+      const { error: delErr } = await supabase.from('treino_exercicios').delete().eq('treino_id', treinoId);
+      if (delErr) {
+        console.error('Erro ao remover exercícios antigos:', delErr);
+        // Podemos decidir se continuamos ou paramos. Geralmente paramos se a limpeza falhou.
+        return { data: null, error: delErr };
+      }
 
       if (exercicios && exercicios.length > 0) {
         const rows = exercicios.map((ex: any, idx: number) => ({
@@ -537,10 +553,14 @@ export const dbService = {
           ordem: ex.ordem ?? (idx + 1),
           series: ex.series ?? 3,
           repeticoes: ex.repeticoes ?? '10',
-          carga_kg: (ex.carga_kg === '' || ex.carga_kg === undefined) ? null : ex.carga_kg
+          carga_kg: (ex.carga_kg === '' || ex.carga_kg === undefined || ex.carga_kg === null) ? null : ex.carga_kg
         }));
+        
         const { error: exErr } = await supabase.from('treino_exercicios').insert(rows);
-        if (exErr) return { data: null, error: exErr };
+        if (exErr) {
+          console.error('Erro ao inserir exercícios do treino:', exErr);
+          return { data: null, error: exErr };
+        }
       }
 
       return { data: { id: treinoId, ...treino }, error: null };

@@ -291,16 +291,17 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
         const { error } = await dbService.saveTreino(treinoPayload, exercisesPayload);
         if (error) {
-          showToast('Erro ao salvar ficha de treino');
+          console.error('Erro ao salvar ficha de treino:', error);
+          showToast(`Erro ao salvar: ${error.message || 'Erro desconhecido'}`);
         } else {
           setStatus(targetStatus);
           showToast(targetStatus === 'publicado' ? 'Treino publicado!' : 'Rascunho salvo!');
           onBack();
         }
       }
-    } catch (err) {
-      console.error(err);
-      showToast('Ocorreu um erro ao salvar.');
+    } catch (err: any) {
+      console.error('Erro geral ao salvar:', err);
+      showToast(`Ocorreu um erro: ${err.message || 'Erro inesperado'}`);
     } finally {
       setSaving(false);
       setShowPublishConfirm(false);
@@ -335,16 +336,20 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
       }));
 
       const { error } = await dbService.saveTemplate(templatePayload, exercisesPayload);
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao salvar modelo:', error);
+        showToast(`Erro ao salvar modelo: ${error.message || 'Erro desconhecido'}`);
+        return;
+      }
 
       showToast(`Modelo "${templateName.trim()}" salvo com sucesso!`);
       setTemplateName('');
       setTemplateDesc('');
       fetchTemplates();
       setShowTemplatesModal(false);
-    } catch (e) {
-      console.error(e);
-      showToast('Erro ao salvar modelo.');
+    } catch (e: any) {
+      console.error('Erro geral ao salvar modelo:', e);
+      showToast(`Erro ao salvar modelo: ${e.message || 'Erro inesperado'}`);
     } finally {
       setSaving(false);
     }
