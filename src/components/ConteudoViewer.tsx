@@ -94,7 +94,7 @@ export default function ConteudoViewer({ conteudo, onClose }: ConteudoViewerProp
 
           {conteudo.tipo === 'artigo' && (
             <div className="markdown-body prose prose-invert prose-violet max-w-none">
-              <Markdown>{conteudo.corpo_texto || ''}</Markdown>
+              <Markdown>{conteudo.conteudo || conteudo.corpo_texto || conteudo.descricao || ''}</Markdown>
             </div>
           )}
         </div>

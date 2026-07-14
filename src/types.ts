@@ -256,6 +256,7 @@ export interface ConteudoEducativo {
   categoria: CategoriaConteudo;
   capa_url: string | null;
   corpo_texto: string | null;
+  conteudo?: string | null;
   video_url: string | null;
   publicado: boolean;
   criado_em: string;
