@@ -223,7 +223,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
   };
 
   const handleCopyLink = (code: string) => {
-    const link = `${window.location.origin}/cadastro?convite=${code}`;
+    const link = `${window.location.origin}/?convite=${code}`;
     navigator.clipboard.writeText(link);
     setCopiedLink(true);
     showToast('Link de cadastro copiado!');
@@ -1118,7 +1118,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                       <div className="space-y-2">
                         <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Link de Convite:</span>
                         <div className="bg-surface-2 p-3 rounded-xl border border-white/5 text-xs text-ink-2 font-mono truncate select-all">
-                          {`${window.location.origin}/cadastro?convite=${generatedCode}`}
+                          {`${window.location.origin}/?convite=${generatedCode}`}
                         </div>
                       </div>
 
@@ -1136,7 +1136,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                         <a
                           id="btn-whatsapp-share"
                           href={`https://wa.me/?text=${encodeURIComponent(
-                            `Olá ${conviteNome}! Aqui está o seu link exclusivo para se cadastrar no ZÊNITE: ${window.location.origin}/cadastro?convite=${generatedCode}\n\nCódigo de convite: ${generatedCode}`
+                            `Olá ${conviteNome}! Aqui está o seu link exclusivo para se cadastrar no ZÊNITE: ${window.location.origin}/?convite=${generatedCode}\n\nCódigo de convite: ${generatedCode}`
                           )}`}
                           target="_blank"
                           rel="noreferrer noopener"
