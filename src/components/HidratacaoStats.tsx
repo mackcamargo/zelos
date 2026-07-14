@@ -12,6 +12,7 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
   const [meta, setMeta] = useState<number>(2000);
   const [salvando, setSalvando] = useState(false);
   const [salvo, setSalvo] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     loadStats();
@@ -19,6 +20,7 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
 
   const loadStats = async () => {
     setLoading(true);
+    setErro(null);
     try {
       const { data } = await dbService.getHistoricoHidratacao(alunoId);
       if (data && data.length > 0) {
@@ -35,10 +37,15 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
   };
 
   const handleSalvarMeta = async () => {
+    setErro(null);
+    const valor = Number(meta);
+    if (!valor || isNaN(valor) || valor < 500 || valor > 8000) {
+      setErro("A meta deve ser entre 500 e 8000 ml.");
+      return;
+    }
     setSalvando(true);
     setSalvo(false);
     try {
-      const valor = Number(meta) || 2000;
       const { error } = await dbService.setMetaHidratacao(alunoId, valor);
       if (!error) {
         setSalvo(true);
@@ -76,9 +83,13 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
           <input
             type="number"
             value={meta}
-            onChange={(e) => setMeta(Number(e.target.value))}
+            onChange={(e) => {
+              setErro(null);
+              setMeta(Number(e.target.value));
+            }}
             step={250}
-            min={0}
+            min={500}
+            max={8000}
             className="flex-1 bg-void border border-white/10 rounded-xl px-4 py-2.5 text-ink font-mono text-sm focus:outline-none focus:border-flame/50"
             placeholder="Ex: 3000"
           />
@@ -98,6 +109,9 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
             )}
           </button>
         </div>
+        {erro && (
+          <p className="text-[10px] text-red-500 font-mono mt-1">{erro}</p>
+        )}
       </div>
     </div>
   );

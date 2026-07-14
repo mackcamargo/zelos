@@ -1245,20 +1245,21 @@ export const dbService = {
     return { error: null };
   },
 
-  async getHidratacaoHoje(alunoId: string, data?: string): Promise<{ data: any[]; error: any }> {
-    const targetDate = data || new Date().toISOString().split('T')[0];
+  async getHidratacaoHoje(alunoId: string, data?: string): Promise<{ data: any; error: any }> {
+    const targetDate = data || new Date().toISOString().slice(0, 10);
     if (isSupabaseConfigured && supabase) {
-      const { data: rows, error } = await supabase
+      const { data: row, error } = await supabase
         .from('hidratacao')
-        .select('*')
+        .select('ml')
         .eq('aluno_id', alunoId)
-        .eq('data', targetDate);
-      if (error) return { data: [], error };
-      return { data: rows || [], error: null };
+        .eq('data', targetDate)
+        .maybeSingle();
+      if (error) return { data: null, error };
+      return { data: row || null, error: null };
     }
     const registros = load('zenite_hidratacao', []);
-    const filtered = registros.filter((r: any) => r.aluno_id === alunoId && r.data === targetDate);
-    return { data: filtered, error: null };
+    const match = registros.find((r: any) => r.aluno_id === alunoId && r.data === targetDate);
+    return { data: match || null, error: null };
   },
 
   async getHistoricoHidratacao(alunoId: string): Promise<{ data: any[]; error: any }> {
@@ -1305,47 +1306,28 @@ export const dbService = {
   },
 
   async saveRegistroHidratacao(registro: any): Promise<{ data: any; error: any }> {
-    const targetDate = registro.data || new Date().toISOString().split('T')[0];
-    // Aceita tanto "ml" quanto "quantidade_ml" vindos do componente
-    const incremento = Number(registro.ml ?? registro.quantidade_ml ?? 0) || 0;
-    const metaMl = Number(registro.meta_ml) || 2000;
+    const targetDate = registro.data || new Date().toISOString().slice(0, 10);
+    // O novo total é passado no parâmetro ml do registro
+    const novoTotal = Number(registro.ml) || 0;
 
     if (isSupabaseConfigured && supabase) {
-      // Um registro por aluno por dia: soma o incremento ao total já existente.
-      const { data: existente } = await supabase
+      const { error } = await supabase
         .from('hidratacao')
-        .select('id, ml, meta_ml')
-        .eq('aluno_id', registro.aluno_id)
-        .eq('data', targetDate)
-        .maybeSingle();
-
-      if (existente?.id) {
-        const novoTotal = (Number(existente.ml) || 0) + incremento;
-        const { data, error } = await supabase
-          .from('hidratacao')
-          .update({ ml: novoTotal, meta_ml: existente.meta_ml || metaMl })
-          .eq('id', existente.id)
-          .select()
-          .single();
-        return { data, error };
-      } else {
-        const { data, error } = await supabase
-          .from('hidratacao')
-          .insert({ aluno_id: registro.aluno_id, data: targetDate, ml: incremento, meta_ml: metaMl })
-          .select()
-          .single();
-        return { data, error };
-      }
+        .upsert(
+          { aluno_id: registro.aluno_id, data: targetDate, ml: novoTotal },
+          { onConflict: 'aluno_id,data' }
+        );
+      return { data: { ml: novoTotal, aluno_id: registro.aluno_id, data: targetDate }, error };
     }
 
     const registros = load('zenite_hidratacao', []);
-    const idx = registros.findIndex((r: any) => r.aluno_id === registro.aluno_id && r.data === targetDate);
+    const idx = registros.findIndex((r: any) => (r.aluno_id === registro.aluno_id) && r.data === targetDate);
     if (idx >= 0) {
-      registros[idx].ml = (Number(registros[idx].ml) || 0) + incremento;
+      registros[idx].ml = novoTotal;
       save('zenite_hidratacao', registros);
       return { data: registros[idx], error: null };
     }
-    const newR = { id: Math.floor(Math.random() * 1000000), aluno_id: registro.aluno_id, data: targetDate, ml: incremento, meta_ml: metaMl };
+    const newR = { id: Math.floor(Math.random() * 1000000), aluno_id: registro.aluno_id, data: targetDate, ml: novoTotal };
     registros.push(newR);
     save('zenite_hidratacao', registros);
     return { data: newR, error: null };

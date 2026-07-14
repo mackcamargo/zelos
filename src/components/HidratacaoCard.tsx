@@ -15,14 +15,14 @@ interface HidratacaoCardProps {
 
 export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   const [loading, setLoading] = useState(true);
-  const [registros, setRegistros] = useState<RegistroHidratacao[]>([]);
+  const [consumido, setConsumido] = useState(0);
   const [historico, setHistorico] = useState<{ data: string; total: number }[]>([]);
   const [meta, setMeta] = useState(2000); // Meta padrão
   const [showSettings, setShowSettings] = useState(false);
   const [saving, setSaving] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
 
   useEffect(() => {
     loadData();
@@ -31,51 +31,75 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [regsRes, histRes] = await Promise.all([
+      const [regsRes, histRes, metaRes] = await Promise.all([
         dbService.getHidratacaoHoje(alunoId, today),
-        dbService.getHistoricoHidratacao(alunoId)
+        dbService.getHistoricoHidratacao(alunoId),
+        dbService.getMetaHidratacao(alunoId)
       ]);
-      setRegistros(regsRes.data || []);
-      setHistorico(histRes.data || []);
       
-      // Meta prescrita pelo personal (vem do banco)
-      const metaRes = await dbService.getMetaHidratacao(alunoId);
+      const con = Number(regsRes.data?.ml) || 0;
+      setConsumido(con);
+      
+      const formattedHistory = (histRes.data || []).map((row: any) => ({
+        data: row.data,
+        total: Number(row.ml) || 0
+      }));
+      setHistorico(formattedHistory);
+      
+      // Meta prescrita pelo personal (vem do banco ou default 2000)
       setMeta(Number(metaRes.data) || 2000);
+    } catch (err) {
+      console.error("Erro ao carregar dados de hidratação:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const currentTotal = registros.reduce((acc, curr) => acc + (Number((curr as any).ml ?? (curr as any).quantidade_ml) || 0), 0);
-  const percent = meta > 0 ? Math.min((currentTotal / meta) * 100, 100) : 0;
+  const percent = meta > 0 ? Math.min(100, Math.round((consumido / meta) * 100)) : 0;
 
-  const handleAddWater = async (ml: number) => {
+  const handleAddWater = async (incremento: number) => {
     setSaving(true);
     try {
-      const { data } = await dbService.saveRegistroHidratacao({
+      const novoTotal = consumido + incremento;
+      const { error } = await dbService.saveRegistroHidratacao({
         aluno_id: alunoId,
-        quantidade_ml: ml,
+        ml: novoTotal,
         data: today
       });
       
-      if (data) {
-        setRegistros(prev => [...prev, data]);
-        const newTotal = currentTotal + ml;
-        if (newTotal >= meta && currentTotal < meta) {
+      if (!error) {
+        setConsumido(novoTotal);
+        if (novoTotal >= meta && consumido < meta) {
           setCelebrate(true);
           setTimeout(() => setCelebrate(false), 3000);
         }
-        // Update history locally for instant feedback
-        loadData(); // Re-fetch to keep it clean
+        
+        // Recarregar histórico
+        const histRes = await dbService.getHistoricoHidratacao(alunoId);
+        const formattedHistory = (histRes.data || []).map((row: any) => ({
+          data: row.data,
+          total: Number(row.ml) || 0
+        }));
+        setHistorico(formattedHistory);
       }
+    } catch (err) {
+      console.error("Erro ao salvar registro de hidratação:", err);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveMeta = () => {
-    localStorage.setItem(`zenite_meta_agua_${alunoId}`, meta.toString());
-    setShowSettings(false);
+  const handleSaveMeta = async () => {
+    setSaving(true);
+    try {
+      const valor = Number(meta) || 2000;
+      await dbService.setMetaHidratacao(alunoId, valor);
+      setShowSettings(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const requestNotificationPermission = async () => {
@@ -147,9 +171,9 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
                   <span className="text-3xl font-mono font-black text-ink tracking-tighter">
-                    {currentTotal.toLocaleString()} <span className="text-sm font-normal text-ink-3">ml</span>
+                    {consumido} <span className="text-sm font-normal text-ink-3">/ {meta} ml</span>
                   </span>
-                  <span className="text-xs font-mono text-ink-3">Meta: {meta}ml</span>
+                  <span className="text-sm font-mono text-ink-3">{percent}%</span>
                 </div>
                 <div className="h-1.5 bg-void rounded-full overflow-hidden">
                   <motion.div 
