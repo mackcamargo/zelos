@@ -22,8 +22,14 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   // Workout header states
   const [titulo, setTitulo] = useState(isTemplateMode ? 'Novo Modelo' : 'Treino A');
   const [descricao, setDescricao] = useState('');
-  const [dataTreino, setDataTreino] = useState(new Date().toISOString().split('T')[0]);
-  const [horaTreino, setHoraTreino] = useState('');
+  
+  // Default values for date and time
+  const agora = new Date();
+  const dataHoje = agora.toISOString().split('T')[0];
+  const horaAtual = `${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
+  
+  const [dataTreino, setDataTreino] = useState(dataHoje);
+  const [horaTreino, setHoraTreino] = useState(horaAtual);
   const [status, setStatus] = useState<'rascunho' | 'publicado' | 'concluido'>('rascunho');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -495,8 +501,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 {!isTemplateMode ? (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block mb-1.5">
-                        Data do Treino
+                      <label className="text-[10px] font-mono uppercase tracking-wider text-white/50 block mb-2 font-bold">
+                        DATA
                       </label>
                       <div className="relative">
                         <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
@@ -505,13 +511,13 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           type="date"
                           value={dataTreino}
                           onChange={(e) => setDataTreino(e.target.value)}
-                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark]"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block mb-1.5">
-                        Hora (Opcional)
+                      <label className="text-[10px] font-mono uppercase tracking-wider text-white/50 block mb-2 font-bold">
+                        HORA
                       </label>
                       <div className="relative">
                         <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
@@ -520,7 +526,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           type="time"
                           value={horaTreino}
                           onChange={(e) => setHoraTreino(e.target.value)}
-                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark]"
                         />
                       </div>
                     </div>

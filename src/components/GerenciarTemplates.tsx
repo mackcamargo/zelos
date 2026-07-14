@@ -28,8 +28,14 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
   const [students, setStudents] = useState<any[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [customTitle, setCustomTitle] = useState('');
-  const [applyDate, setApplyDate] = useState(new Date().toISOString().split('T')[0]);
-  const [applyTime, setApplyTime] = useState('');
+  
+  // Default values for date and time
+  const agora = new Date();
+  const dataHoje = agora.toISOString().split('T')[0];
+  const horaAtual = `${String(agora.getHours()).padStart(2, "0")}:${String(agora.getMinutes()).padStart(2, "0")}`;
+  
+  const [applyDate, setApplyDate] = useState(dataHoje);
+  const [applyTime, setApplyTime] = useState(horaAtual);
   const [applying, setApplying] = useState(false);
   
   // Feedback
@@ -388,7 +394,7 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Data do Treino</label>
+                      <label className="text-xs font-mono uppercase tracking-wider text-white/50 block font-bold">DATA</label>
                       <div className="relative">
                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input
@@ -396,13 +402,13 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
                           type="date"
                           value={applyDate}
                           onChange={(e) => setApplyDate(e.target.value)}
-                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all"
+                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark]"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Hora (Opcional)</label>
+                      <label className="text-xs font-mono uppercase tracking-wider text-white/50 block font-bold">HORA</label>
                       <div className="relative">
                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input
@@ -410,7 +416,7 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
                           type="time"
                           value={applyTime}
                           onChange={(e) => setApplyTime(e.target.value)}
-                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all"
+                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark]"
                         />
                       </div>
                     </div>
