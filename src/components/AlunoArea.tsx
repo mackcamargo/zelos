@@ -485,34 +485,82 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     }
 
     if (selectedWorkout) {
-      const total = selectedWorkout.exercicios?.reduce((acc: number, item: any) => acc + (Number(item.series) || 0), 0) || 0;
-      if (total > 0) {
-        let completed = 0;
-        selectedWorkout.exercicios?.forEach((item: any) => {
-          for (let s = 1; s <= (Number(item.series) || 0); s++) {
-            if (updatedCompleted[`${item.id}_${s}`]) {
-              completed++;
+      if (supabase && isSupabaseConfigured) {
+        // Refetch the training status directly from the table, bypassing caching/local updates
+        try {
+          const { data: updatedTreino, error: tErr } = await supabase
+            .from("treinos")
+            .select("status")
+            .eq("id", selectedWorkout.id)
+            .maybeSingle();
+
+          if (updatedTreino && !tErr) {
+            const oldStatus = selectedWorkout.status;
+            const newStatus = updatedTreino.status;
+
+            // If trigger updated the status to 'concluido' on the database
+            if (newStatus === 'concluido' && oldStatus !== 'concluido') {
+              setExpandido(false);
+              setShowCelebration(true);
+              if (userId) {
+                await dbService.verificarConquistas(userId);
+              }
+              await checkAchievements('workout');
+              try {
+                const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
+                localStorage.setItem('zenite_finished_count', String(finishedCount));
+                localStorage.setItem('zenite_last_workout_date', new Date().toISOString().split('T')[0]);
+              } catch (e) {
+                console.error(e);
+              }
+            }
+
+            // Update selectedWorkout with newest status
+            setSelectedWorkout(prev => prev ? { ...prev, status: newStatus } : null);
+            // Also reload overall workouts list
+            const { data: listData } = await dbService.getTreinosParaAluno(userId);
+            if (listData) {
+              setWorkouts(listData);
             }
           }
-        });
+        } catch (err) {
+          console.error('Erro ao recarregar status do treino:', err);
+        }
+      } else {
+        // Mock fallback simulation
+        const total = selectedWorkout.exercicios?.reduce((acc: number, item: any) => acc + (Number(item.series) || 0), 0) || 0;
+        if (total > 0) {
+          let completed = 0;
+          selectedWorkout.exercicios?.forEach((item: any) => {
+            for (let s = 1; s <= (Number(item.series) || 0); s++) {
+              if (updatedCompleted[`${item.id}_${s}`]) {
+                completed++;
+              }
+            }
+          });
 
-        if (completed === total) {
-          if (supabase) {
-            await supabase.from("treinos").update({ status: "concluido" }).eq("id", selectedWorkout.id);
-          }
-          await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
-          setExpandido(false);
-          setShowCelebration(true);
-          if (userId) {
-            await dbService.verificarConquistas(userId);
-          }
-          await checkAchievements('workout');
-          try {
-            const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
-            localStorage.setItem('zenite_finished_count', String(finishedCount));
-            localStorage.setItem('zenite_last_workout_date', new Date().toISOString().split('T')[0]);
-          } catch (e) {
-            console.error(e);
+          if (completed === total) {
+            await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
+            setExpandido(false);
+            setShowCelebration(true);
+            if (userId) {
+              await dbService.verificarConquistas(userId);
+            }
+            await checkAchievements('workout');
+            try {
+              const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
+              localStorage.setItem('zenite_finished_count', String(finishedCount));
+              localStorage.setItem('zenite_last_workout_date', new Date().toISOString().split('T')[0]);
+            } catch (e) {
+              console.error(e);
+            }
+            
+            // Reload list and selected workout
+            const { data: listData } = await dbService.getTreinosParaAluno(userId);
+            if (listData) {
+              setWorkouts(listData);
+            }
+            setSelectedWorkout(prev => prev ? { ...prev, status: 'concluido' } : null);
           }
         }
       }
@@ -529,20 +577,46 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
   const handleFinishWorkout = async () => {
     if (selectedWorkout) {
-      if (supabase) {
-        await supabase.from("treinos").update({ status: "concluido" }).eq("id", selectedWorkout.id);
+      if (supabase && isSupabaseConfigured) {
+        try {
+          const { data: updatedTreino } = await supabase
+            .from("treinos")
+            .select("status")
+            .eq("id", selectedWorkout.id)
+            .maybeSingle();
+
+          if (updatedTreino) {
+            setSelectedWorkout(prev => prev ? { ...prev, status: updatedTreino.status } : null);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
       }
-      await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
+      
       if (userId) {
         await dbService.verificarConquistas(userId);
       }
     }
+    
     setExpandido(false);
     setShowCelebration(true);
+    
     try {
       const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
       localStorage.setItem('zenite_finished_count', String(finishedCount));
       localStorage.setItem('zenite_last_workout_date', new Date().toISOString().split('T')[0]);
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Refresh overall list of workouts to stay in sync
+    try {
+      const { data: listData } = await dbService.getTreinosParaAluno(userId);
+      if (listData) {
+        setWorkouts(listData);
+      }
     } catch (e) {
       console.error(e);
     }
