@@ -857,18 +857,18 @@ export const dbService = {
     };
   },
 
-  async getConteudoEducativo(): Promise<{ data: ConteudoEducativo[] | null; error: any }> {
+  async getConteudoEducativo(): Promise<{ data: any[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('conteudos')
+        .select('*')
+        .eq('publicado', true)
+        .order('criado_em', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
     const contents = load('zenite_conteudos', [
-      {
-        id: 1,
-        titulo: 'O poder da consistência',
-        descricao: 'Por que treinar 3x por semana vence treinar 5x por uma semana.',
-        tipo: 'artigo',
-        categoria: 'Geral',
-        capa_url: null,
-        publicado: true,
-        criado_em: new Date().toISOString()
-      }
+      { id: 1, titulo: 'O poder da consistência', descricao: 'Por que treinar 3x por semana vence treinar 5x por uma semana.', tipo: 'artigo', categoria: 'Geral', capa_url: null, publicado: true, criado_em: new Date().toISOString() }
     ]);
     return { data: contents, error: null };
   },
@@ -950,6 +950,26 @@ export const dbService = {
   },
 
   async saveConteudoEducativo(conteudo: any): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const payload = {
+        personal_id: conteudo.personal_id,
+        titulo: conteudo.titulo || 'Sem título',
+        categoria: conteudo.categoria || 'Geral',
+        tipo: conteudo.tipo || 'artigo',
+        conteudo: conteudo.conteudo ?? conteudo.descricao ?? null,
+        video_url: conteudo.video_url ?? null,
+        capa_url: conteudo.capa_url ?? null,
+        publicado: conteudo.publicado ?? false
+      };
+      if (conteudo.id && typeof conteudo.id === 'number' && conteudo.id < 1000000000000) {
+        // edição de registro existente
+        const { data, error } = await supabase.from('conteudos').update(payload).eq('id', conteudo.id).select().single();
+        return { data, error };
+      } else {
+        const { data, error } = await supabase.from('conteudos').insert(payload).select().single();
+        return { data, error };
+      }
+    }
     const contents = load('zenite_conteudos', []);
     const newC = { id: Math.floor(Math.random() * 1000000), ...conteudo };
     contents.push(newC);
@@ -1355,11 +1375,16 @@ export const dbService = {
     return { data: result, error: null };
   },
 
-  async getConteudosEducativos(categoria?: string): Promise<{ data: ConteudoEducativo[]; error: any }> {
-    const contents = load('zenite_conteudos', []);
-    if (categoria && categoria !== 'Todas') {
-      return { data: contents.filter((c: any) => c.categoria === categoria), error: null };
+  async getConteudosEducativos(categoria?: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      let query = supabase.from('conteudos').select('*').eq('publicado', true);
+      if (categoria && categoria !== 'Todas') query = query.eq('categoria', categoria);
+      const { data, error } = await query.order('criado_em', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
     }
+    const contents = load('zenite_conteudos', []);
+    if (categoria && categoria !== 'Todas') return { data: contents.filter((c: any) => c.categoria === categoria), error: null };
     return { data: contents, error: null };
   },
 
@@ -1673,12 +1698,26 @@ export const dbService = {
     return newAluno;
   },
 
-  async getConteudosPersonal(personalId: string): Promise<{ data: ConteudoEducativo[]; error: any }> {
+  async getConteudosPersonal(personalId: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      // Traz TODOS do personal (publicados e rascunhos), pra ele gerenciar
+      const { data, error } = await supabase
+        .from('conteudos')
+        .select('*')
+        .eq('personal_id', personalId)
+        .order('criado_em', { ascending: false });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
     const contents = load('zenite_conteudos', []);
     return { data: contents, error: null };
   },
 
   async deleteConteudoEducativo(id: number | string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('conteudos').delete().eq('id', id);
+      return { error };
+    }
     const contents = load('zenite_conteudos', []);
     const targetId = typeof id === 'string' ? parseInt(id) : id;
     const filtered = contents.filter((c: any) => c.id !== targetId);
