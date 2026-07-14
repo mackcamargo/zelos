@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { dbService } from '../lib/supabase';
 import { Agendamento, StatusAgendamento, TipoSessao, Aluno } from '../types';
 import CriarSessaoModal from './CriarSessaoModal';
+import ListaAgendamentos, { useAgendamentos } from './ListaAgendamentos';
 
 interface GerenciarAgendaPersonalProps {
   personalId: string;
@@ -21,25 +22,10 @@ const STATUS_CONFIG: Record<StatusAgendamento, { label: string, color: string, r
 };
 
 export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaPersonalProps) {
-  const [loading, setLoading] = useState(true);
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
+  const { agendamentos, carregando, erro, loadAgendamentos } = useAgendamentos();
   const [selectedFilter, setSelectedFilter] = useState<StatusAgendamento | 'todos'>('todos');
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
-
-  useEffect(() => {
-    loadAgendamentos();
-  }, [personalId]);
-
-  const loadAgendamentos = async () => {
-    setLoading(true);
-    try {
-      const { data } = await dbService.getAgendamentosPersonal(personalId);
-      setAgendamentos(data || []);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleUpdateStatus = async (agendamento: Agendamento, newStatus: StatusAgendamento) => {
     setProcessingId(agendamento.id);
@@ -58,7 +44,7 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
     .filter(a => a.status === 'confirmado' && new Date(`${a.data}T${a.horario}`) >= new Date())
     .sort((a, b) => new Date(`${a.data}T${a.horario}`).getTime() - new Date(`${b.data}T${b.horario}`).getTime());
 
-  if (loading) {
+  if (carregando) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-flame animate-spin" /></div>;
   }
 
@@ -141,94 +127,7 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
           </div>
 
           {/* MAIN LIST */}
-          <div className="space-y-4">
-            {filtered.length > 0 ? (
-              filtered.map((agenda, index) => {
-                const config = STATUS_CONFIG[agenda.status];
-                return (
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    key={agenda.id}
-                    className="group bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
-                  >
-                    <div className="flex items-center gap-6">
-                      <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-bold ${
-                        agenda.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
-                      }`}>
-                        <span className="text-[10px] uppercase opacity-70">
-                          {new Date(agenda.data).toLocaleDateString('pt-BR', { month: 'short' })}
-                        </span>
-                        <span className="text-xl leading-none">
-                          {new Date(agenda.data).getDate()}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                          <h4 className="font-bold text-ink">{agenda.horario}</h4>
-                          <span className={`text-[10px] font-mono text-flame uppercase tracking-widest`}>• {agenda.aluno?.profile?.nome || 'Aluno'}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-[10px] text-ink-3 font-mono uppercase tracking-widest">
-                           <span className="flex items-center gap-1">
-                             {agenda.tipo === 'presencial' ? <MapPin className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-                             {agenda.tipo}
-                           </span>
-                           <span className={`px-2 py-0.5 rounded-full border ${config.color} text-[8px] font-black`}>
-                             {config.label}
-                           </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {agenda.status === 'solicitado' ? (
-                        <>
-                          <button 
-                            onClick={() => handleUpdateStatus(agenda, 'confirmado')}
-                            className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-green-500/20 hover:bg-green-500/20"
-                          >
-                            <Check className="w-4 h-4" /> Confirmar
-                          </button>
-                          <button 
-                            onClick={() => handleUpdateStatus(agenda, 'cancelado')}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-red-500/20 hover:bg-red-500/20"
-                          >
-                            <X className="w-4 h-4" /> Recusar
-                          </button>
-                        </>
-                      ) : (
-                         <div className="flex gap-2">
-                           {agenda.status !== 'cancelado' && (
-                             <button 
-                               onClick={() => handleUpdateStatus(agenda, 'cancelado')}
-                               className="p-2 bg-white/5 text-ink-3 hover:text-red-500 rounded-xl transition-colors"
-                             >
-                               <X className="w-4 h-4" />
-                             </button>
-                           )}
-                           {agenda.status === 'cancelado' && (
-                              <button 
-                                onClick={() => handleUpdateStatus(agenda, 'confirmado')}
-                                className="p-2 bg-white/5 text-ink-3 hover:text-green-500 rounded-xl transition-colors"
-                              >
-                                <RefreshCw className="w-4 h-4" />
-                              </button>
-                           )}
-                         </div>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })
-            ) : (
-              <div className="py-20 text-center space-y-4 border-2 border-dashed border-white/5 rounded-[40px]">
-                <CalendarIcon className="w-8 h-8 text-ink-3 mx-auto" />
-                <p className="text-xs font-mono text-ink-3 uppercase tracking-widest">Nenhuma sessão encontrada.</p>
-              </div>
-            )}
-          </div>
+          <ListaAgendamentos agendamentos={filtered} carregando={carregando} erro={erro} />
         </div>
 
         {/* SIDEBAR WIDGETS */}
