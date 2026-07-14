@@ -104,7 +104,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
   const handleUpdateStatus = async (agenda: Agendamento, newStatus: StatusAgendamento) => {
     setProcessingId(agenda.id);
     try {
-      await dbService.updateStatusAgendamento(agenda.id, newStatus, agenda.aluno_id, agenda.personal_id);
+      await dbService.updateStatusAgendamento(agenda.id, newStatus);
       window.dispatchEvent(new CustomEvent('agendamentos-changed'));
     } catch (err) {
       console.error('Erro ao atualizar status do agendamento:', err);

@@ -35,7 +35,7 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
   const handleUpdateStatus = async (agendamento: Agendamento, newStatus: StatusAgendamento) => {
     setProcessingId(agendamento.id);
     try {
-      await dbService.updateStatusAgendamento(agendamento.id, newStatus, agendamento.aluno_id, personalId);
+      await dbService.updateStatusAgendamento(agendamento.id, newStatus);
       loadAgendamentos();
     } finally {
       setProcessingId(null);

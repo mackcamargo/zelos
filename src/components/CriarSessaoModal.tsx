@@ -80,7 +80,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
         tipo: formData.tipo,
         duracao_min: Number(formData.duracao_min),
         status: 'confirmado', // Personal schedule is pre-confirmed
-        observacao: formData.observacao || null
+        observacao: formData.observacao?.trim() || null
       });
 
       if (error) {

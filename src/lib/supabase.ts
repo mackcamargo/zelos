@@ -220,6 +220,11 @@ export const authService = {
   }
 };
 
+const isUUID = (val: any): boolean => {
+  if (typeof val !== 'string') return false;
+  return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val) || (val.length > 25 && (val.includes('-') || /^[0-9a-fA-F]+$/.test(val)));
+};
+
 export const dbService = {
   async getProfile(userId: string): Promise<{ data: Profile | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
@@ -1492,7 +1497,9 @@ export const dbService = {
         duracao_min: agendamento.duracao_min ?? 60,
         tipo: agendamento.tipo || 'treino',
         status: agendamento.status || 'agendado',
-        observacao: agendamento.observacao ?? null
+        observacao: (agendamento.observacao && typeof agendamento.observacao === 'string' && !isUUID(agendamento.observacao))
+          ? (agendamento.observacao.trim() || null)
+          : null
       };
       if (agendamento.id && typeof agendamento.id === 'number' && agendamento.id < 1000000000000) {
         const { data, error } = await supabase.from('agendamentos').update(payload).eq('id', agendamento.id).select().single();
@@ -1506,7 +1513,10 @@ export const dbService = {
     const newAgendamento = { 
       id: Math.floor(Math.random() * 1000000), 
       ...agendamento,
-      data_hora: agendamento.data_hora || (agendamento.data && agendamento.horario ? new Date(`${agendamento.data}T${agendamento.horario}`).toISOString() : new Date().toISOString())
+      data_hora: agendamento.data_hora || (agendamento.data && agendamento.horario ? new Date(`${agendamento.data}T${agendamento.horario}`).toISOString() : new Date().toISOString()),
+      observacao: (agendamento.observacao && typeof agendamento.observacao === 'string' && !isUUID(agendamento.observacao))
+        ? (agendamento.observacao.trim() || null)
+        : null
     };
     agenda.push(newAgendamento);
     save('zenite_agenda', agenda);
@@ -1516,13 +1526,21 @@ export const dbService = {
   async updateStatusAgendamento(id: number | string, status: string, observacao_personal?: string, extra_param?: any): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
       const patch: any = { status };
-      if (observacao_personal !== undefined) patch.observacao = observacao_personal;
+      if (observacao_personal !== undefined && !isUUID(observacao_personal)) {
+        patch.observacao = observacao_personal;
+      }
       const { error } = await supabase.from('agendamentos').update(patch).eq('id', id);
       return { error };
     }
     const agenda = load('zenite_agenda', []);
     const idx = agenda.findIndex((a: any) => a.id === (typeof id === 'string' ? parseInt(id) : id));
-    if (idx >= 0) { agenda[idx].status = status; if (observacao_personal) agenda[idx].observacao_personal = observacao_personal; save('zenite_agenda', agenda); }
+    if (idx >= 0) { 
+      agenda[idx].status = status; 
+      if (observacao_personal && !isUUID(observacao_personal)) {
+        agenda[idx].observacao = observacao_personal; 
+      }
+      save('zenite_agenda', agenda); 
+    }
     return { error: null };
   },
 
