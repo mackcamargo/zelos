@@ -5,7 +5,7 @@ import {
   AlertCircle, CheckCircle2, XCircle, Info, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { dbService } from '../lib/supabase';
+import { dbService, supabase } from '../lib/supabase';
 import { Agendamento, StatusAgendamento, TipoSessao } from '../types';
 
 interface AgendamentoPainelProps {
@@ -24,6 +24,9 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -47,25 +50,47 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
     }
   };
 
-  const handleAgendar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!personalId) return;
-    
+  const handleSolicitar = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
     setSaving(true);
     try {
-      const { data, error } = await dbService.saveAgendamento({
-        aluno_id: alunoId,
-        personal_id: personalId,
-        data: formData.data,
-        horario: formData.horario,
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setErrorMsg("Usuário não autenticado. Faça login.");
+        return;
+      }
+
+      // buscar o personal_id do aluno logado:
+      const { data: alunoRow, error: alunoError } = await supabase
+        .from("alunos")
+        .select("personal_id")
+        .eq("id", user.id)
+        .single();
+
+      if (alunoError || !alunoRow?.personal_id) {
+        setErrorMsg("Erro ao buscar seu treinador (Personal Trainer). Certifique-se de estar vinculado a um personal.");
+        return;
+      }
+
+      const { error } = await supabase.from("agendamentos").insert({
+        personal_id: alunoRow.personal_id, // o treinador do aluno
+        aluno_id: user.id,                 // o próprio aluno
+        data_hora: new Date(`${formData.data}T${formData.horario}:00`).toISOString(),
+        duracao_min: 60,
         tipo: formData.tipo,
-        status: 'solicitado',
-        observacao: formData.observacao
+        status: "solicitado",              // pedido do aluno nasce como solicitado
+        observacao: formData.observacao?.trim() || null,
       });
-      
-      if (data) {
+
+      if (error) {
+        setErrorMsg(error.message);
+      } else {
+        setSuccessMsg("Solicitação enviada!");
         setShowModal(false);
         loadAgendamentos();
+        // Reset form
         setFormData({
           data: new Date().toISOString().split('T')[0],
           horario: '10:00',
@@ -73,6 +98,8 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
           observacao: ''
         });
       }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Ocorreu um erro ao enviar a solicitação.");
     } finally {
       setSaving(false);
     }
@@ -124,11 +151,22 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
         </motion.div>
       )}
 
+      {successMsg && (
+        <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-3xl text-xs font-mono uppercase flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-green-400" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
       {/* ACTION BAR */}
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-display font-black text-ink uppercase italic tracking-tighter">Sua <span className="text-flame">Agenda</span></h3>
         <button 
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setErrorMsg(null);
+            setSuccessMsg(null);
+            setShowModal(true);
+          }}
           className="flex items-center gap-2 px-6 py-3 bg-ink text-void rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4" /> Solicitar Sessão
@@ -232,7 +270,14 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 </button>
               </div>
 
-              <form onSubmit={handleAgendar} className="p-8 space-y-6">
+              <div className="p-8 space-y-6">
+                {errorMsg && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-xs font-mono uppercase flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Data</label>
                   <input 
@@ -285,14 +330,15 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 </div>
 
                 <button
-                  type="submit"
-                  disabled={saving || !personalId}
+                  type="button"
+                  onClick={handleSolicitar}
+                  disabled={saving}
                   className="w-full py-4 bg-ink text-void rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   Confirmar Solicitação
                 </button>
-              </form>
+              </div>
             </motion.div>
           </motion.div>
         )}
