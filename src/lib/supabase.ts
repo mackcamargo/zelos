@@ -832,6 +832,15 @@ export const dbService = {
   },
 
   async getCheckinDaSemana(alunoId: string, semana: string): Promise<{ data: Checkin | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('checkins')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .eq('semana', semana)
+        .maybeSingle();
+      return { data: data as Checkin, error };
+    }
     const checkins = load('zenite_checkins', []);
     const found = checkins.find((c: any) => c.aluno_id === alunoId && c.semana === semana);
     return { data: found || null, error: null };
@@ -849,33 +858,32 @@ export const dbService = {
       if (!personalId) return { error: { message: 'Aluno não vinculado a um personal.' } };
 
       const semana = checkin.semana || new Date().toISOString().split('T')[0];
-      const payload = {
+      const { error } = await supabase.from("checkins").upsert({
         aluno_id: checkin.aluno_id,
         personal_id: personalId,
         semana,
-        energia: checkin.energia ?? null,
-        qualidade_sono: checkin.qualidade_sono ?? null,
-        nivel_estresse: checkin.nivel_estresse ?? null,
-        dores: checkin.dores ?? null,
-        observacoes: checkin.observacoes ?? null,
-        peso_kg: (checkin.peso_kg === '' || checkin.peso_kg === undefined) ? null : checkin.peso_kg
-      };
-
-      // Um check-in por semana: se já existe, atualiza; senão, cria.
-      const { data: existente } = await supabase
-        .from('checkins').select('id')
-        .eq('aluno_id', checkin.aluno_id).eq('semana', semana).maybeSingle();
-
-      if (existente?.id) {
-        const { error } = await supabase.from('checkins').update(payload).eq('id', existente.id);
-        return { error };
-      } else {
-        const { error } = await supabase.from('checkins').insert(payload);
-        return { error };
-      }
+        energia: checkin.energia,
+        qualidade_sono: checkin.qualidade_sono,
+        nivel_estresse: checkin.nivel_estresse,
+        peso_kg: checkin.peso_kg ? Number(checkin.peso_kg) : null,
+        dores: checkin.dores?.trim() || null,
+        observacoes: checkin.observacoes?.trim() || null,
+      }, { onConflict: "aluno_id,semana" });
+      
+      return { error };
     }
     const checkins = load('zenite_checkins', []);
-    checkins.push({ id: Math.floor(Math.random() * 1000000), ...checkin });
+    const semana = checkin.semana || new Date().toISOString().split('T')[0];
+    const index = checkins.findIndex((c: any) => c.aluno_id === checkin.aluno_id && c.semana === semana);
+    
+    const payload = {
+      id: index >= 0 ? checkins[index].id : Math.floor(Math.random() * 1000000),
+      ...checkin,
+      semana,
+      criado_em: index >= 0 ? checkins[index].criado_em : new Date().toISOString()
+    };
+
+    if (index >= 0) checkins[index] = payload; else checkins.push(payload);
     save('zenite_checkins', checkins);
     return { error: null };
   },

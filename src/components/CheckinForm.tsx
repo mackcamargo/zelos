@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { dbService } from '../lib/supabase';
 import { Checkin } from '../types';
 import { 
   Zap, Moon, Flame, AlertCircle, Scale, 
-  MessageSquare, ChevronRight, CheckCircle2, X
+  MessageSquare, CheckCircle2, X, Loader2
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 interface CheckinFormProps {
   alunoId: string;
@@ -22,17 +22,41 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
   const [dores, setDores] = useState('');
   const [peso, setPeso] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    loadExistingCheckin();
+  }, [alunoId, semana]);
+
+  const loadExistingCheckin = async () => {
+    setLoading(true);
+    try {
+      const { data } = await dbService.getCheckinDaSemana(alunoId, semana);
+      if (data) {
+        setEnergia(data.energia || 3);
+        setSono(data.qualidade_sono || 3);
+        setEstresse(data.nivel_estresse || 3);
+        setDores(data.dores || '');
+        setPeso(data.peso_kg?.toString() || '');
+        setObservacoes(data.observacoes || '');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    if (saving || success) return;
     
+    setSaving(true);
     try {
-      const payload: Partial<Checkin> = {
+      const payload = {
         aluno_id: alunoId,
         personal_id: personalId,
-        semana: semana,
+        semana,
         energia,
         qualidade_sono: sono,
         nivel_estresse: estresse,
@@ -45,7 +69,10 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
       if (error) {
         alert('Erro ao salvar check-in. Tente novamente.');
       } else {
-        onSuccess();
+        setSuccess(true);
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
       }
     } finally {
       setSaving(false);
@@ -115,90 +142,106 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-          <div className="grid grid-cols-1 gap-8">
-            <RatingField 
-              label="Nível de Energia" 
-              value={energia} 
-              onChange={setEnergia} 
-              icon={Zap}
-              colorClass="bg-amber-500"
-            />
-            <RatingField 
-              label="Qualidade do Sono" 
-              value={sono} 
-              onChange={setSono} 
-              icon={Moon}
-              colorClass="bg-violet"
-            />
-            <RatingField 
-              label="Nível de Estresse" 
-              value={estresse} 
-              onChange={setEstresse} 
-              icon={Flame}
-              colorClass="bg-flame"
-            />
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <Loader2 className="w-8 h-8 text-flame animate-spin" />
+              <p className="text-xs text-ink-3 font-mono">Carregando dados da semana...</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid grid-cols-1 gap-8">
+                <RatingField 
+                  label="Nível de Energia" 
+                  value={energia} 
+                  onChange={setEnergia} 
+                  icon={Zap}
+                  colorClass="bg-amber-500"
+                />
+                <RatingField 
+                  label="Qualidade do Sono" 
+                  value={sono} 
+                  onChange={setSono} 
+                  icon={Moon}
+                  colorClass="bg-violet"
+                />
+                <RatingField 
+                  label="Nível de Estresse" 
+                  value={estresse} 
+                  onChange={setEstresse} 
+                  icon={Flame}
+                  colorClass="bg-flame"
+                />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
-                  Peso Atual (kg)
-                </label>
-                <div className="relative">
-                  <Scale className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={peso}
-                    onChange={(e) => setPeso(e.target.value)}
-                    placeholder="75.5"
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+                      Peso Atual (kg)
+                    </label>
+                    <div className="relative">
+                      <Scale className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={peso}
+                        onChange={(e) => setPeso(e.target.value)}
+                        placeholder="75.5"
+                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+                      Sentiu Dores?
+                    </label>
+                    <div className="relative">
+                      <AlertCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                      <input
+                        type="text"
+                        value={dores}
+                        onChange={(e) => setDores(e.target.value)}
+                        placeholder="Sente alguma dor? Onde?"
+                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+                    Observações Adicionais
+                  </label>
+                  <textarea
+                    value={observacoes}
+                    onChange={(e) => setObservacoes(e.target.value)}
+                    placeholder="Conte algo mais sobre sua semana..."
+                    rows={3}
+                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-4 text-xs text-ink outline-none resize-none"
                   />
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
-                  Sentiu Dores?
-                </label>
-                <div className="relative">
-                  <AlertCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
-                  <input
-                    type="text"
-                    value={dores}
-                    onChange={(e) => setDores(e.target.value)}
-                    placeholder="Ex: Joelho direito"
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
-                Observações Adicionais
-              </label>
-              <textarea
-                value={observacoes}
-                onChange={(e) => setObservacoes(e.target.value)}
-                placeholder="Conte algo mais sobre sua semana..."
-                rows={3}
-                className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-4 text-xs text-ink outline-none resize-none"
-              />
-            </div>
-          </div>
-        </form>
+            </form>
+          )}
+        </div>
 
         {/* Footer */}
         <div className="p-6 border-t border-white/5 bg-void/50">
           <button
             type="submit"
             onClick={handleSubmit}
-            disabled={saving}
-            className="w-full py-4 rounded-2xl brand-gradient-bg font-display font-bold text-void text-sm flex items-center justify-center gap-2 transition-all hover:opacity-95 active:scale-[0.98] disabled:opacity-50"
+            disabled={saving || loading || success}
+            className={`w-full py-4 rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 ${
+              success ? 'bg-emerald-500 text-white' : 'brand-gradient-bg text-void hover:opacity-95'
+            }`}
           >
             {saving ? (
               <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+            ) : success ? (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                <span>SALVO COM SUCESSO!</span>
+              </>
             ) : (
               <>
                 <CheckCircle2 className="w-5 h-5" />

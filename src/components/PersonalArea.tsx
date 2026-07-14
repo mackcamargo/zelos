@@ -8,6 +8,7 @@ import GerenciarConteudo from './GerenciarConteudo';
 import GerenciarAgendaPersonal from './GerenciarAgendaPersonal';
 import GerenciarAlunos from './GerenciarAlunos';
 import GerenciarTemplates from './GerenciarTemplates';
+import GerenciarCheckins from './GerenciarCheckins';
 import { DashPersonalBemEstar } from './DashPersonalBemEstar';
 
 interface PersonalAreaProps {
@@ -18,7 +19,7 @@ interface PersonalAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar';
+type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar';
 
 export default function PersonalArea({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -103,6 +104,13 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {activeTab === 'agenda' && (
           <div id="tab-content-agenda" className="space-y-6">
             <GerenciarAgendaPersonal personalId={userId} />
+          </div>
+        )}
+
+        {/* TAB: CHECK-INS */}
+        {activeTab === 'checkins' && (
+          <div id="tab-content-checkins" className="space-y-6">
+            <GerenciarCheckins personalId={userId} />
           </div>
         )}
 
@@ -218,7 +226,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
 
       {/* Bottom Navigation Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-3 px-1 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
-        <div className="max-w-5xl h-full mx-auto grid grid-cols-7 gap-0.5 items-center">
+        <div className="max-w-5xl h-full mx-auto grid grid-cols-8 gap-0.5 items-center">
           {/* Tab 0: Dashboard */}
           <button
             id="tab-btn-dashboard"
@@ -279,6 +287,22 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
             <Calendar className="w-5 h-5" />
             <span className="text-[7px] font-bold tracking-tighter uppercase">Agenda</span>
             {activeTab === 'agenda' && (
+              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+            )}
+          </button>
+
+          {/* Tab: Check-ins */}
+          <button
+            id="tab-btn-checkins"
+            type="button"
+            onClick={() => setActiveTab('checkins')}
+            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
+              activeTab === 'checkins' ? 'text-flame' : 'text-ink-2 hover:text-ink'
+            }`}
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-[7px] font-bold tracking-tighter uppercase">Checks</span>
+            {activeTab === 'checkins' && (
               <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
