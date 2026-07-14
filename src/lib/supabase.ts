@@ -875,18 +875,27 @@ export const dbService = {
 
   async getAgendamentos(userId: string, papel: any): Promise<{ data: any[] | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
-      const campo = papel === 'personal' ? 'personal_id' : 'aluno_id';
-      const { data, error } = await supabase
-        .from('agendamentos')
-        .select("id, aluno_id, data_hora, duracao_min, tipo, status, observacao, aluno:alunos!agendamentos_aluno_id_fkey(profiles(nome))")
-        .eq(campo, userId)
-        .order('data_hora', { ascending: true });
-      if (error) return { data: [], error };
-      const mapped = (data || []).map((row: any) => ({
-        ...row,
-        aluno_nome: row.aluno?.profiles?.nome ?? "Aluno"
-      }));
-      return { data: mapped, error: null };
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          return { data: [], error: { message: 'Por favor, faça login.' } };
+        }
+        const targetUserId = user.id;
+        const campo = papel === 'personal' ? 'personal_id' : 'aluno_id';
+        const { data, error } = await supabase
+          .from('agendamentos')
+          .select("id, aluno_id, data_hora, duracao_min, tipo, status, observacao, aluno:alunos!agendamentos_aluno_id_fkey(profiles(nome))")
+          .eq(campo, targetUserId)
+          .order('data_hora', { ascending: true });
+        if (error) return { data: [], error };
+        const mapped = (data || []).map((row: any) => ({
+          ...row,
+          aluno_nome: row.aluno?.profiles?.nome ?? "Aluno"
+        }));
+        return { data: mapped, error: null };
+      } catch (err: any) {
+        return { data: [], error: err };
+      }
     }
     const agenda = load('zenite_agenda', []);
     const filtered = agenda.filter((a: any) => papel === 'personal' ? a.personal_id === userId : a.aluno_id === userId);

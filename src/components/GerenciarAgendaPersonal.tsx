@@ -22,7 +22,7 @@ const STATUS_CONFIG: Record<StatusAgendamento, { label: string, color: string, r
 };
 
 export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaPersonalProps) {
-  const { agendamentos, carregando, erro, loadAgendamentos } = useAgendamentos();
+  const { agendamentos, carregando, erro, loadAgendamentos } = useAgendamentos(personalId);
   const [selectedFilter, setSelectedFilter] = useState<StatusAgendamento | 'todos'>('todos');
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [modalAberto, setModalAberto] = useState(false);

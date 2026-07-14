@@ -4,7 +4,7 @@ import {
   Video, Check, X, Loader2, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { dbService } from '../lib/supabase';
+import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Agendamento, StatusAgendamento } from '../types';
 
 interface ListaAgendamentosProps {
@@ -26,14 +26,31 @@ export function useAgendamentos(personalId?: string) {
 
   const loadAgendamentos = useCallback(async () => {
     let targetId = personalId;
-    if (!targetId) {
-      const sessionStr = localStorage.getItem('zenite_mock_session');
-      if (sessionStr) {
-        try {
-          const parsed = JSON.parse(sessionStr);
-          targetId = parsed?.user?.id;
-        } catch (e) {
-          // ignore
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setErro("Faça login para ver seus agendamentos");
+          setCarregando(false);
+          return;
+        }
+        targetId = user.id;
+      } catch (err) {
+        setErro("Erro de autenticação");
+        setCarregando(false);
+        return;
+      }
+    } else {
+      if (!targetId) {
+        const sessionStr = localStorage.getItem('zenite_mock_session');
+        if (sessionStr) {
+          try {
+            const parsed = JSON.parse(sessionStr);
+            targetId = parsed?.user?.id;
+          } catch (e) {
+            // ignore
+          }
         }
       }
     }
