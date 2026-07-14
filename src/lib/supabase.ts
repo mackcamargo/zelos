@@ -873,27 +873,29 @@ export const dbService = {
     return { data: contents, error: null };
   },
 
-  async getAgendamentos(userId: string, papel: PapelUsuario): Promise<{ data: Agendamento[] | null; error: any }> {
+  async getAgendamentos(userId: string, papel: any): Promise<{ data: any[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const campo = papel === 'personal' ? 'personal_id' : 'aluno_id';
+      const { data, error } = await supabase
+        .from('agendamentos')
+        .select('*')
+        .eq(campo, userId)
+        .order('data_hora', { ascending: true });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
     const agenda = load('zenite_agenda', []);
     const filtered = agenda.filter((a: any) => papel === 'personal' ? a.personal_id === userId : a.aluno_id === userId);
     return { data: filtered, error: null };
   },
 
   async salvarAgendamento(agendamento: any): Promise<{ error: any }> {
-    const agenda = load('zenite_agenda', []);
-    agenda.push({ id: Math.floor(Math.random() * 1000000), ...agendamento });
-    save('zenite_agenda', agenda);
-    return { error: null };
+    const { error } = await this.saveAgendamento(agendamento);
+    return { error };
   },
 
   async updateAgendamentoStatus(id: number, status: string): Promise<{ error: any }> {
-    const agenda = load('zenite_agenda', []);
-    const idx = agenda.findIndex((a: any) => a.id === id);
-    if (idx >= 0) {
-      agenda[idx].status = status;
-      save('zenite_agenda', agenda);
-    }
-    return { error: null };
+    return this.updateStatusAgendamento(id, status);
   },
 
   async getMetricas(alunoId: string): Promise<{ data: any[] | null; error: any }> {
@@ -1440,6 +1442,24 @@ export const dbService = {
   },
 
   async saveAgendamento(agendamento: any): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const payload = {
+        personal_id: agendamento.personal_id,
+        aluno_id: agendamento.aluno_id,
+        data_hora: agendamento.data_hora,
+        duracao_min: agendamento.duracao_min ?? 60,
+        tipo: agendamento.tipo || 'treino',
+        status: agendamento.status || 'agendado',
+        observacao: agendamento.observacao ?? null
+      };
+      if (agendamento.id && typeof agendamento.id === 'number' && agendamento.id < 1000000000000) {
+        const { data, error } = await supabase.from('agendamentos').update(payload).eq('id', agendamento.id).select().single();
+        return { data, error };
+      } else {
+        const { data, error } = await supabase.from('agendamentos').insert(payload).select().single();
+        return { data, error };
+      }
+    }
     const agenda = load('zenite_agenda', []);
     const newAgendamento = { id: Math.floor(Math.random() * 1000000), ...agendamento };
     agenda.push(newAgendamento);
@@ -1448,13 +1468,15 @@ export const dbService = {
   },
 
   async updateStatusAgendamento(id: number | string, status: string, observacao_personal?: string, extra_param?: any): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const patch: any = { status };
+      if (observacao_personal !== undefined) patch.observacao = observacao_personal;
+      const { error } = await supabase.from('agendamentos').update(patch).eq('id', id);
+      return { error };
+    }
     const agenda = load('zenite_agenda', []);
     const idx = agenda.findIndex((a: any) => a.id === (typeof id === 'string' ? parseInt(id) : id));
-    if (idx >= 0) {
-      agenda[idx].status = status;
-      if (observacao_personal) agenda[idx].observacao_personal = observacao_personal;
-      save('zenite_agenda', agenda);
-    }
+    if (idx >= 0) { agenda[idx].status = status; if (observacao_personal) agenda[idx].observacao_personal = observacao_personal; save('zenite_agenda', agenda); }
     return { error: null };
   },
 
@@ -1663,12 +1685,14 @@ export const dbService = {
     return { data: null, error: null };
   },
 
-  async getAgendamentosPersonal(personalId: string): Promise<{ data: Agendamento[]; error: any }> {
-    return this.getAgendamentos(personalId, 'personal');
+  async getAgendamentosPersonal(personalId: string): Promise<{ data: any[]; error: any }> {
+    const res = await this.getAgendamentos(personalId, 'personal');
+    return { data: res.data || [], error: res.error };
   },
 
-  async getAgendamentosAluno(alunoId: string): Promise<{ data: Agendamento[]; error: any }> {
-    return this.getAgendamentos(alunoId, 'aluno');
+  async getAgendamentosAluno(alunoId: string): Promise<{ data: any[]; error: any }> {
+    const res = await this.getAgendamentos(alunoId, 'aluno');
+    return { data: res.data || [], error: res.error };
   },
 
   async getTreinos(alunoId: string, personalId?: string): Promise<{ data: Treino[]; error: any }> {
