@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dbService, isSupabaseConfigured } from '../lib/supabase';
+import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Profile, Exercicio } from '../types';
 import { 
   Dumbbell, TrendingUp, User, LogOut, Calendar, Target, 
@@ -60,6 +60,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   // Selected state for active workout & exercise detail
   const [selectedWorkout, setSelectedWorkout] = useState<any | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
+  const [expandido, setExpandido] = useState(true);
 
   // Series-by-series tracking states
   const [completedSeries, setCompletedSeries] = useState<Record<string, boolean>>({});
@@ -384,6 +385,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         console.error(error);
       } else if (data) {
         setSelectedWorkout(data);
+        setExpandido(data.status !== 'concluido');
 
         // Fetch personal profile to display actual name
         if (data.personal_id) {
@@ -495,7 +497,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         });
 
         if (completed === total) {
+          if (supabase) {
+            await supabase.from("treinos").update({ status: "concluido" }).eq("id", selectedWorkout.id);
+          }
           await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
+          setExpandido(false);
           setShowCelebration(true);
           if (userId) {
             await dbService.verificarConquistas(userId);
@@ -523,11 +529,15 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
   const handleFinishWorkout = async () => {
     if (selectedWorkout) {
+      if (supabase) {
+        await supabase.from("treinos").update({ status: "concluido" }).eq("id", selectedWorkout.id);
+      }
       await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
       if (userId) {
         await dbService.verificarConquistas(userId);
       }
     }
+    setExpandido(false);
     setShowCelebration(true);
     try {
       const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
@@ -631,17 +641,28 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {workouts.map((workout) => {
                       const dateFormatted = new Date(workout.data_treino + 'T00:00:00').toLocaleDateString('pt-BR');
+                      const isWorkoutConcluido = workout.status === 'concluido';
                       return (
                         <div
                           key={workout.id}
                           onClick={() => handleSelectWorkout(workout.id)}
-                          className="bg-surface border border-white/5 hover:border-white/10 rounded-2xl p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden"
+                          className={`bg-surface border rounded-2xl p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden ${
+                            isWorkoutConcluido ? 'border-emerald-500/20 bg-emerald-500/[0.01]' : 'border-white/5 hover:border-white/10'
+                          }`}
                         >
                           <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full" />
                           <div className="space-y-1">
-                            <span className="text-[10px] font-mono bg-flame/10 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                              Planilha Ativa
-                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {isWorkoutConcluido ? (
+                                <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
+                                  <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-mono bg-flame/10 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                  Planilha Ativa
+                                </span>
+                              )}
+                            </div>
                             <h3 className="font-display font-bold text-lg text-ink group-hover:text-white transition-colors mt-2 truncate">
                               {workout.titulo}
                             </h3>
@@ -652,8 +673,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                               <Calendar className="w-3.5 h-3.5 text-violet" />
                               {dateFormatted}
                             </span>
-                            <span className="text-xs text-flame font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                              <span>Iniciar</span>
+                            <span className={`text-xs font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform ${
+                              isWorkoutConcluido ? 'text-emerald-400' : 'text-flame'
+                            }`}>
+                              <span>{isWorkoutConcluido ? 'Ver Detalhes' : 'Iniciar'}</span>
                               <ChevronRight className="w-4 h-4" />
                             </span>
                           </div>
@@ -697,9 +720,16 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           </button>
                         )}
                         <div>
-                          <span className="text-[9px] font-mono uppercase bg-flame/10 text-flame px-2.5 py-0.5 rounded-full font-bold">
-                            Executando Treino Ativo
-                          </span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[9px] font-mono uppercase bg-flame/10 text-flame px-2.5 py-0.5 rounded-full font-bold">
+                              Executando Treino Ativo
+                            </span>
+                            {selectedWorkout.status === 'concluido' && (
+                              <span className="text-[9px] font-mono uppercase bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20 flex items-center gap-1">
+                                <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
+                              </span>
+                            )}
+                          </div>
                           <h2 className="font-display font-bold text-xl text-ink mt-1 tracking-tight">
                             {selectedWorkout.titulo}
                           </h2>
@@ -718,6 +748,15 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                       </div>
 
                       <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          onClick={() => setExpandido(!expandido)}
+                          className="py-2.5 px-4 rounded-xl bg-surface-3 hover:bg-surface border border-white/5 text-ink hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                          title={expandido ? "Recolher exercícios" : "Expandir exercícios"}
+                        >
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expandido ? 'rotate-180 text-flame' : 'text-ink-3'}`} />
+                          <span>{expandido ? "Recolher" : "Expandir"}</span>
+                        </button>
                         {workouts.length > 1 && (
                           <button
                             type="button"
@@ -727,13 +766,20 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             Outros Treinos
                           </button>
                         )}
-                        <button
-                          type="button"
-                          onClick={handleFinishWorkout}
-                          className="w-full sm:w-auto py-2.5 px-5 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs shadow-lg hover:opacity-95 transition-all"
-                        >
-                          Concluir Treino
-                        </button>
+                        {selectedWorkout.status === 'concluido' ? (
+                          <div className="py-2.5 px-5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-1.5 shrink-0">
+                            <Check className="w-4 h-4 stroke-[3]" />
+                            <span>Concluído</span>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleFinishWorkout}
+                            className="w-full sm:w-auto py-2.5 px-5 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs shadow-lg hover:opacity-95 transition-all"
+                          >
+                            Concluir Treino
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -752,8 +798,16 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     </div>
                   </div>
 
-                  {/* Exercises list */}
-                  <div className="space-y-3">
+                  {/* Exercises list - Accordion */}
+                  <AnimatePresence initial={false}>
+                    {expandido && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="space-y-3 overflow-hidden"
+                      >
                     {selectedWorkout.exercicios?.map((item: any) => {
                       const ex = item.exercicio;
                       const numSeries = Number(item.series) || 0;
@@ -968,7 +1022,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         </div>
                       );
                     })}
-                  </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                 </div>
               );
