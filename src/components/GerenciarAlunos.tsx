@@ -37,6 +37,9 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [generatingCode, setGeneratingCode] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [conviteNome, setConviteNome] = useState('');
+  const [conviteObjetivo, setConviteObjetivo] = useState('');
   const [convites, setConvites] = useState<any[]>([]);
   const [loadingConvites, setLoadingConvites] = useState(false);
 
@@ -191,9 +194,13 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
 
   // Handle invitation code generation
   const handleGenerateCode = async () => {
+    if (!conviteNome.trim()) {
+      showToast('Por favor, digite o nome do aluno.');
+      return;
+    }
     setGeneratingCode(true);
     try {
-      const { data, error } = await dbService.createConvite(personalId);
+      const { data, error } = await dbService.createConvite(personalId, conviteNome.trim(), conviteObjetivo.trim() || null);
       if (error) {
         showToast('Erro ao gerar código de convite');
       } else if (data) {
@@ -216,9 +223,17 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
   };
 
   const handleCopyLink = (code: string) => {
-    const link = `${window.location.origin}/signup?code=${code}`;
+    const link = `${window.location.origin}/cadastro?convite=${code}`;
     navigator.clipboard.writeText(link);
+    setCopiedLink(true);
     showToast('Link de cadastro copiado!');
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleResetConviteForm = () => {
+    setGeneratedCode('');
+    setConviteNome('');
+    setConviteObjetivo('');
   };
 
   // Handle direct creation (Forma B)
@@ -1044,67 +1059,114 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
               {/* TAB CONTENT: FORMA A — INVITATION CODE */}
               {modalTab === 'codigo' && (
                 <div id="modal-tab-content-codigo" className="space-y-6">
-                  <div className="p-5 bg-void rounded-2xl border border-white/5 space-y-4">
-                    <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Código de Convite Disponível:</span>
-                    
-                    {generatingCode ? (
-                      <div className="flex justify-center py-4">
-                        <span className="w-5 h-5 border border-flame border-t-transparent rounded-full animate-spin" />
+                  {!generatedCode ? (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Nome do Aluno</label>
+                        <input
+                          id="input-convite-nome"
+                          type="text"
+                          required
+                          value={conviteNome}
+                          onChange={(e) => setConviteNome(e.target.value)}
+                          placeholder="Nome completo do aluno"
+                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                        />
                       </div>
-                    ) : generatedCode ? (
-                      <div className="flex items-center justify-between gap-3 bg-surface-2 p-3 rounded-xl border border-white/5">
-                        <span className="font-mono font-bold text-lg text-flame tracking-wider px-2">
-                          {generatedCode}
-                        </span>
-                        
-                        <div className="flex gap-1.5 shrink-0">
-                          <button
-                            id="btn-copy-generated-code"
-                            type="button"
-                            onClick={() => handleCopyCode(generatedCode)}
-                            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-ink-2 hover:text-ink transition-colors"
-                            title="Copiar código"
-                          >
-                            {copiedCode ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                          </button>
-                          <button
-                            id="btn-copy-generated-link"
-                            type="button"
-                            onClick={() => handleCopyLink(generatedCode)}
-                            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-ink-2 hover:text-ink transition-colors"
-                            title="Copiar link de cadastro"
-                          >
-                            <ExternalLink className="w-4 h-4 text-violet" />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-3">
-                        <p className="text-xs text-ink-3">Nenhum código gerado no momento.</p>
-                      </div>
-                    )}
 
-                    <div className="flex justify-center">
+                      <div className="space-y-2">
+                        <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Objetivo (Opcional)</label>
+                        <input
+                          id="input-convite-objetivo"
+                          type="text"
+                          value={conviteObjetivo}
+                          onChange={(e) => setConviteObjetivo(e.target.value)}
+                          placeholder="Ex: Hipertrofia, Emagrecimento, etc."
+                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                        />
+                      </div>
+
                       <button
-                        id="btn-regenerate-code"
+                        id="btn-confirmar-convite"
                         type="button"
-                        disabled={generatingCode}
+                        disabled={generatingCode || !conviteNome.trim()}
                         onClick={handleGenerateCode}
-                        className="text-xs text-ink-2 hover:text-ink font-mono uppercase tracking-wider flex items-center gap-1.5 hover:underline"
+                        className="w-full py-3.5 px-4 rounded-xl brand-gradient-bg font-display font-semibold text-void hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.2)] disabled:opacity-50 disabled:pointer-events-none"
                       >
-                        <RefreshCw className={`w-3.5 h-3.5 text-flame ${generatingCode ? 'animate-spin' : ''}`} />
-                        <span>Gerar Novo Código de Convite</span>
+                        {generatingCode ? (
+                          <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <span>Confirmar e Gerar Convite</span>
+                            <Sparkles className="w-4 h-4" />
+                          </>
+                        )}
                       </button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-5 p-5 bg-void rounded-2xl border border-white/5">
+                      <div className="text-center space-y-1">
+                        <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Código de Convite Gerado:</span>
+                        <div className="font-mono font-black text-3xl text-flame tracking-widest py-2 select-all">
+                          {generatedCode}
+                        </div>
+                        {conviteNome && (
+                          <p className="text-xs text-ink-2">Para: <span className="text-ink font-semibold">{conviteNome}</span></p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Link de Convite:</span>
+                        <div className="bg-surface-2 p-3 rounded-xl border border-white/5 text-xs text-ink-2 font-mono truncate select-all">
+                          {`${window.location.origin}/cadastro?convite=${generatedCode}`}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          id="btn-copy-convite-link"
+                          type="button"
+                          onClick={() => handleCopyLink(generatedCode)}
+                          className="py-3 px-4 bg-surface-3 hover:bg-white/10 border border-white/5 text-ink text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                        >
+                          {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          <span>{copiedLink ? 'Copiado!' : 'Copiar Link'}</span>
+                        </button>
+
+                        <a
+                          id="btn-whatsapp-share"
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            `Olá ${conviteNome}! Aqui está o seu link exclusivo para se cadastrar no ZÊNITE: ${window.location.origin}/cadastro?convite=${generatedCode}\n\nCódigo de convite: ${generatedCode}`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-center"
+                        >
+                          <span>WhatsApp</span>
+                        </a>
+                      </div>
+
+                      <div className="flex justify-center pt-2">
+                        <button
+                          id="btn-novo-convite"
+                          type="button"
+                          onClick={handleResetConviteForm}
+                          className="text-xs text-flame hover:underline font-mono uppercase tracking-wider flex items-center gap-1.5"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Gerar Outro Convite</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-3">
                     <span className="text-xs font-mono uppercase text-ink-2 block tracking-wider">Como funciona?</span>
                     <ol className="list-decimal list-inside text-xs text-ink-2 space-y-2 pl-1 leading-relaxed">
-                      <li>Gere um código de convite exclusivo acima.</li>
-                      <li>Copie o código (ou link) e envie para o aluno no WhatsApp.</li>
-                      <li>Quando o aluno criar a conta no app, ele informa esse código no campo "Código do Personal".</li>
-                      <li>Ele será vinculado e aparecerá instantaneamente em sua lista!</li>
+                      <li>Preencha o nome do aluno e clique em gerar convite.</li>
+                      <li>Copie o link gerado ou envie diretamente pelo WhatsApp.</li>
+                      <li>Quando o aluno acessar o link, o código já virá pré-preenchido e travado para ele criar a conta.</li>
+                      <li>Assim que cadastrado, o aluno será vinculado a você automaticamente.</li>
                     </ol>
                   </div>
 

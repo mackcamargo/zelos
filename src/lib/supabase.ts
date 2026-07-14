@@ -297,19 +297,47 @@ export const dbService = {
     return { error: { message: 'Aluno não encontrado' } };
   },
 
-  async createConvite(personalId: string): Promise<{ data: any; error: any }> {
+  async createConvite(personalId: string, nomeAluno?: string, objetivo?: string | null): Promise<{ data: any; error: any }> {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     if (isSupabaseConfigured && supabase) {
-      const codigo = `ZEN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-      const { data, error } = await supabase
-        .from('convites')
-        .insert({ personal_id: personalId, codigo, usado: false })
-        .select()
-        .single();
-      return { data, error };
+      let lastError: any = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const codigo = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        const insertData: any = {
+          personal_id: personalId,
+          codigo,
+          usado: false,
+          nome_aluno: nomeAluno || null,
+          objetivo: objetivo || null
+        };
+        const { data, error } = await supabase
+          .from('convites')
+          .insert(insertData)
+          .select()
+          .maybeSingle();
+
+        if (!error) {
+          return { data, error: null };
+        }
+        lastError = error;
+        // Postgres unique violation code is '23505'
+        if (error.code !== '23505') {
+          break;
+        }
+      }
+      return { data: null, error: lastError };
     }
     const convites = loadMockConvites();
-    const codigo = `ZEN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    const newConvite = { id: Math.floor(Math.random() * 1000000), personal_id: personalId, codigo, usado: false, criado_em: new Date().toISOString() };
+    const codigo = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const newConvite = { 
+      id: Math.floor(Math.random() * 1000000), 
+      personal_id: personalId, 
+      codigo, 
+      usado: false, 
+      nome_aluno: nomeAluno || null,
+      objetivo: objetivo || null,
+      criado_em: new Date().toISOString() 
+    };
     convites.push(newConvite);
     save('zenite_mock_convites', convites);
     return { data: newConvite, error: null };

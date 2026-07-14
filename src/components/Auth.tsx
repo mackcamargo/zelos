@@ -16,11 +16,23 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
   const [papel, setPapel] = useState<PapelUsuario>('personal');
   const [avatarTipo, setAvatarTipo] = useState<TipoAvatar>('masculino');
   const [codigoConvite, setCodigoConvite] = useState('');
+  const [isConviteLocked, setIsConviteLocked] = useState(false);
   
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const conviteParam = params.get('convite') || params.get('code');
+    if (conviteParam) {
+      setCodigoConvite(conviteParam.toUpperCase());
+      setPapel('aluno');
+      setIsLogin(false);
+      setIsConviteLocked(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,6 +169,13 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           {/* Sign Up Fields */}
           {!isLogin && (
             <>
+              {isConviteLocked && (
+                <div className="p-3 bg-violet/10 border border-violet/20 rounded-2xl text-xs text-ink-2 flex items-center gap-2 mb-4">
+                  <Sparkles className="w-4 h-4 text-violet shrink-0" />
+                  <span>Você está se cadastrando como Aluno via link de convite.</span>
+                </div>
+              )}
+
               {/* Full Name */}
               <div className="space-y-2">
                 <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Nome Completo</label>
@@ -182,12 +201,13 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                   <button
                     id="role-personal"
                     type="button"
+                    disabled={isConviteLocked}
                     onClick={() => setPapel('personal')}
                     className={`p-4 rounded-2xl border text-left flex flex-col items-start transition-all duration-300 ${
                       papel === 'personal'
                         ? 'bg-surface-3 border-flame shadow-[0_0_15px_rgba(255,106,43,0.15)]'
                         : 'bg-void border-white/5 hover:border-white/10'
-                    }`}
+                    } disabled:opacity-40 disabled:cursor-not-allowed`}
                   >
                     <Dumbbell className={`w-6 h-6 mb-2 ${papel === 'personal' ? 'text-flame' : 'text-ink-3'}`} />
                     <span className="font-display font-semibold text-sm text-ink">Sou Personal</span>
@@ -198,12 +218,13 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                   <button
                     id="role-aluno"
                     type="button"
+                    disabled={isConviteLocked}
                     onClick={() => setPapel('aluno')}
                     className={`p-4 rounded-2xl border text-left flex flex-col items-start transition-all duration-300 ${
                       papel === 'aluno'
                         ? 'bg-surface-3 border-violet shadow-[0_0_15px_rgba(123,108,246,0.15)]'
                         : 'bg-void border-white/5 hover:border-white/10'
-                    }`}
+                    } disabled:opacity-75`}
                   >
                     <User className={`w-6 h-6 mb-2 ${papel === 'aluno' ? 'text-violet' : 'text-ink-3'}`} />
                     <span className="font-display font-semibold text-sm text-ink">Sou Aluno</span>
@@ -250,18 +271,22 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
               {papel === 'aluno' && (
                 <div className="space-y-2">
                   <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">
-                    Código do Personal <span className="text-ink-3 text-[10px] font-sans lowercase italic">(opcional)</span>
+                    Código do Personal <span className="text-ink-3 text-[10px] font-sans lowercase italic">({isConviteLocked ? 'travado' : 'opcional'})</span>
                   </label>
                   <input
                     id="input-codigo-convite"
                     type="text"
                     value={codigoConvite}
                     onChange={(e) => setCodigoConvite(e.target.value.toUpperCase())}
+                    disabled={isConviteLocked}
                     placeholder="Ex: ZEN-DEMO-123"
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 px-4 text-sm font-mono text-ink placeholder-ink-3 outline-none transition-all"
+                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 px-4 text-sm font-mono text-ink placeholder-ink-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                   />
                   <p className="text-[10px] text-ink-3 font-sans leading-relaxed">
-                    Insira o código enviado pelo seu Personal Trainer para se vincular instantaneamente a ele. No modo Demo, use <span className="text-violet font-mono font-bold">ZEN-DEMO-123</span>.
+                    {isConviteLocked 
+                      ? 'Este código de convite vincula você automaticamente ao seu Personal Trainer após criar sua conta.' 
+                      : 'Insira o código enviado pelo seu Personal Trainer para se vincular instantaneamente a ele. No modo Demo, use ZEN-DEMO-123.'
+                    }
                   </p>
                 </div>
               )}
