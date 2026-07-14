@@ -228,7 +228,7 @@ const isUUID = (val: any): boolean => {
 export const dbService = {
   async getProfile(userId: string): Promise<{ data: Profile | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
       if (error) return { data: null, error };
       return { data: data as Profile, error: null };
     }
@@ -273,6 +273,15 @@ export const dbService = {
     const alunos = loadMockAlunos();
     const found = alunos.find(a => a.id === alunoId);
     return { objetivo: found?.objetivo || 'Foco em saúde' };
+  },
+
+  async getPersonalId(alunoId: string): Promise<string | null> {
+    if (isSupabaseConfigured && supabase) {
+      const { data } = await supabase.from('alunos').select('personal_id').eq('id', alunoId).maybeSingle();
+      return data?.personal_id || null;
+    }
+    const alunos = loadMockAlunos();
+    return alunos.find(a => a.id === alunoId)?.personal_id || null;
   },
 
   async updateAlunoAtivo(alunoId: string, ativo: boolean): Promise<{ data: any; error: any }> {
@@ -474,7 +483,7 @@ export const dbService = {
   async getTreinoCompleto(treinoId: string): Promise<{ data: any; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data: treino, error: tErr } = await supabase
-        .from('treinos').select('*').eq('id', treinoId).single();
+        .from('treinos').select('*').eq('id', treinoId).maybeSingle();
       if (tErr || !treino) return { data: null, error: tErr };
 
       const { data: tes, error: teErr } = await supabase
@@ -660,7 +669,7 @@ export const dbService = {
   async getTemplateCompleto(templateId: number): Promise<{ data: any; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data: tpl, error: tErr } = await supabase
-        .from('templates_treino').select('*').eq('id', templateId).single();
+        .from('templates_treino').select('*').eq('id', templateId).maybeSingle();
       if (tErr || !tpl) return { data: null, error: tErr };
       
       const { data: tes, error: teErr } = await supabase
@@ -1340,7 +1349,7 @@ export const dbService = {
         .from('alunos')
         .select('meta_hidratacao_ml')
         .eq('id', alunoId)
-        .single();
+        .maybeSingle();
       if (error) return { data: 2000, error };
       return { data: data?.meta_hidratacao_ml ?? 2000, error: null };
     }

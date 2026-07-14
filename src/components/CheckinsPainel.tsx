@@ -34,7 +34,10 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
   };
 
   const chartData = [...checkins].reverse().map(c => ({
-    semana: new Date(c.semana).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+    semana: (() => {
+      const [ano, mes, dia] = c.semana.split("-").map(Number);
+      return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    })(),
     Energia: c.energia,
     Sono: c.qualidade_sono,
     Estresse: c.nivel_estresse
@@ -98,7 +101,10 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-ink-3" />
                 <span className="text-xs font-mono font-bold text-ink-2">
-                  Semana: {new Date(c.semana).toLocaleDateString('pt-BR')}
+                  Semana: {(() => {
+                    const [ano, mes, dia] = c.semana.split("-").map(Number);
+                    return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                  })()}
                 </span>
               </div>
               <span className="text-[10px] font-mono text-ink-3">

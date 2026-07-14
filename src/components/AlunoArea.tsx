@@ -349,6 +349,23 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       }
     };
     loadObjetivo();
+
+    const fetchPersonalId = async () => {
+      try {
+        const pid = await dbService.getPersonalId(userId);
+        if (pid) {
+          setPersonalId(pid);
+          const { data: prof } = await dbService.getProfile(pid);
+          if (prof) {
+            setPersonalName(prof.nome);
+            setPersonalAvatar(prof.avatar_url);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao buscar personal_id:', err);
+      }
+    };
+    fetchPersonalId();
   }, [userId]);
 
   const loadStudentWorkouts = async () => {
@@ -714,7 +731,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {workouts.map((workout) => {
-                      const dateFormatted = new Date(workout.data_treino + 'T00:00:00').toLocaleDateString('pt-BR');
+                      const dateFormatted = (() => {
+                        const [ano, mes, dia] = workout.data_treino.split("-").map(Number);
+                        return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                      })();
                       const isWorkoutConcluido = workout.status === 'concluido';
                       return (
                         <div
@@ -810,7 +830,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           <div className="flex items-center gap-3 mt-1.5 text-xs text-ink-2 font-mono">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3.5 h-3.5 text-violet" />
-                              {new Date(selectedWorkout.data_treino + 'T00:00:00').toLocaleDateString('pt-BR')}
+                              {(() => {
+                                const [ano, mes, dia] = selectedWorkout.data_treino.split("-").map(Number);
+                                return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                              })()}
                               {selectedWorkout.hora_treino ? ` às ${selectedWorkout.hora_treino.substring(0, 5)}` : ''}
                             </span>
                             <span>·</span>
@@ -1287,11 +1310,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   }
                 });
                 return Object.entries(maxByDate)
-                  .map(([date, load]) => ({
-                    date: new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-                    rawDate: date,
-                    Carga: load
-                  }))
+                  .map(([date, load]) => {
+                    const [ano, mes, dia] = date.split("-").map(Number);
+                    return {
+                      date: new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                      rawDate: date,
+                      Carga: load
+                    };
+                  })
                   .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime());
               };
 
@@ -1307,10 +1333,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     const totalPrescribed = w.exercicios?.reduce((acc: number, item: any) => acc + (Number(item.series) || 0), 0) || 0;
                     const completedCount = detailedSeries.filter((s: any) => s.treino_id === w.id && s.concluida).length;
                     const pct = totalPrescribed > 0 ? Math.min(100, Math.round((completedCount / totalPrescribed) * 100)) : 0;
+                    const [ano, mes, dia] = w.data_treino.split("-").map(Number);
                     return {
                       id: w.id,
                       titulo: w.titulo,
-                      date: new Date(w.data_treino + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                      date: new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
                       rawDate: w.data_treino,
                       Aderência: pct
                     };
@@ -1332,11 +1359,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   volByDate[dateStr] = (volByDate[dateStr] || 0) + vol;
                 });
                 return Object.entries(volByDate)
-                  .map(([date, vol]) => ({
-                    date: new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-                    rawDate: date,
-                    Volume: vol
-                  }))
+                  .map(([date, vol]) => {
+                    const [ano, mes, dia] = date.split("-").map(Number);
+                    return {
+                      date: new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                      rawDate: date,
+                      Volume: vol
+                    };
+                  })
                   .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime());
               };
 

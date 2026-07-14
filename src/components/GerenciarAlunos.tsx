@@ -705,7 +705,10 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                   ) : (
                     <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
                       {workouts.map((workout) => {
-                        const dateFormatted = new Date(workout.data_treino + 'T00:00:00').toLocaleDateString('pt-BR');
+                        const dateFormatted = (() => {
+                          const [ano, mes, dia] = workout.data_treino.split("-").map(Number);
+                          return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                        })();
                         const isPublished = workout.status === 'publicado';
                         return (
                           <div

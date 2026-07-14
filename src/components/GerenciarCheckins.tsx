@@ -74,7 +74,11 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
       if (!critA && critB) return 1;
 
       // Ordenação secundária por data (mais recente primeiro)
-      return new Date(checkB!.semana).getTime() - new Date(checkA!.semana).getTime();
+      const [yA, mA, dA] = checkA!.semana.split("-").map(Number);
+      const dateA = new Date(yA, mA - 1, dA).getTime();
+      const [yB, mB, dB] = checkB!.semana.split("-").map(Number);
+      const dateB = new Date(yB, mB - 1, dB).getTime();
+      return dateB - dateA;
     });
   };
 
@@ -167,7 +171,10 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                     {aluno.ultimoCheckin ? (
                       <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono text-ink-3">
                         <Calendar className="w-3 h-3" />
-                        <span>Semana: {new Date(aluno.ultimoCheckin.semana).toLocaleDateString('pt-BR')}</span>
+                        <span>Semana: {(() => {
+                          const [ano, mes, dia] = aluno.ultimoCheckin.semana.split("-").map(Number);
+                          return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                        })()}</span>
                       </div>
                     ) : (
                       <p className="text-[10px] font-mono text-rose-400/70 mt-1 uppercase">Sem check-in ainda</p>

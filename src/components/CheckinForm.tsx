@@ -33,7 +33,14 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
   const loadExistingCheckin = async () => {
     setLoading(true);
     try {
-      const { data } = await dbService.getCheckinDaSemana(alunoId, semana);
+      const { data, error } = await dbService.getCheckinDaSemana(alunoId, semana);
+      
+      if (error) {
+        console.error('Erro ao carregar check-in existente:', error);
+        // Não lançamos erro aqui para não travar o formulário; 
+        // se não houver dados, o formulário abrirá com os valores padrão (3)
+      }
+
       if (data) {
         setEnergia(data.energia || 3);
         setSono(data.qualidade_sono || 3);
@@ -42,6 +49,8 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
         setPeso(data.peso_kg?.toString() || '');
         setObservacoes(data.observacoes || '');
       }
+    } catch (err) {
+      console.error('Falha crítica ao carregar check-in:', err);
     } finally {
       setLoading(false);
     }

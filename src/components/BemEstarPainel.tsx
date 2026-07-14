@@ -41,13 +41,15 @@ export default function BemEstarPainel({ alunoId }: BemEstarPainelProps) {
     current.setHours(0, 0, 0, 0);
 
     for (const dateStr of dates) {
-      const date = new Date(dateStr as string);
+      const [y, m, d] = (dateStr as string).split("-").map(Number);
+      const date = new Date(y, m - 1, d);
       date.setHours(24, 0, 0, 0); // Normalize to end of day to match current comparison logic
       const diff = Math.floor((current.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
       
       if (diff <= 1) {
         streak++;
-        current = new Date(dateStr as string);
+        const [cy, cm, cd] = (dateStr as string).split("-").map(Number);
+        current = new Date(cy, cm - 1, cd);
         current.setHours(0, 0, 0, 0);
       } else {
         break;
@@ -157,7 +159,10 @@ export default function BemEstarPainel({ alunoId }: BemEstarPainelProps) {
                   <p className="text-xs text-ink font-bold uppercase tracking-widest">
                     {sessao.tipo === 'respiracao' ? 'Respiração' : 'Meditação'}
                   </p>
-                  <p className="text-[10px] font-mono text-ink-3">{new Date(sessao.data).toLocaleDateString()}</p>
+                  <p className="text-[10px] font-mono text-ink-3">{(() => {
+                    const [y, m, d] = (sessao.data as string).split("-").map(Number);
+                    return new Date(y, m - 1, d).toLocaleDateString();
+                  })()}</p>
                 </div>
               </div>
               <div className="text-sm font-mono font-bold text-ink">
