@@ -7,6 +7,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase } from '../lib/supabase';
 import { Agendamento, StatusAgendamento, TipoSessao } from '../types';
+import DetalheSessaoModal from './DetalheSessaoModal';
 
 interface AgendamentoPainelProps {
   alunoId: string;
@@ -41,6 +42,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
   const [loading, setLoading] = useState(true);
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -196,7 +198,8 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 key={agendamento.id}
-                className="group relative bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+                onClick={() => setSelectedAgendamento(agendamento)}
+                className="group relative bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
               >
                 <div className="flex items-center gap-6">
                   <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-bold ${
@@ -353,6 +356,14 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
           </motion.div>
         )}
       </AnimatePresence>
+
+      <DetalheSessaoModal
+        agendamento={selectedAgendamento}
+        onClose={() => setSelectedAgendamento(null)}
+        isProfessor={false}
+        onCancelar={loadAgendamentos}
+        onRemarcar={loadAgendamentos}
+      />
     </div>
   );
 }

@@ -227,6 +227,7 @@ export interface Agendamento {
   tipo: TipoSessao;
   status: StatusAgendamento;
   observacao: string | null;
+  duracao_min?: number;
   criado_em: string;
   aluno?: Aluno;
   aluno_nome?: string;

@@ -1544,6 +1544,20 @@ export const dbService = {
     return { error: null };
   },
 
+  async remarcarAgendamento(id: number | string, novaDataHora: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('agendamentos').update({ data_hora: novaDataHora }).eq('id', id);
+      return { error };
+    }
+    const agenda = load('zenite_agenda', []);
+    const idx = agenda.findIndex((a: any) => a.id === (typeof id === 'string' ? parseInt(id) : id));
+    if (idx >= 0) { 
+      agenda[idx].data_hora = novaDataHora;
+      save('zenite_agenda', agenda); 
+    }
+    return { error: null };
+  },
+
   async deleteFotoProgresso(id: string | number): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
       // Busca o caminho pra apagar do storage também

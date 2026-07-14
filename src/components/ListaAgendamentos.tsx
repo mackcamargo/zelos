@@ -6,6 +6,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Agendamento, StatusAgendamento } from '../types';
+import DetalheSessaoModal from './DetalheSessaoModal';
 
 interface ListaAgendamentosProps {
   agendamentos: Agendamento[];
@@ -100,6 +101,7 @@ export function useAgendamentos(personalId?: string) {
 
 export default function ListaAgendamentos({ agendamentos, carregando, erro }: ListaAgendamentosProps) {
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [selectedAgendamento, setSelectedAgendamento] = useState<Agendamento | null>(null);
 
   const handleUpdateStatus = async (agenda: Agendamento, newStatus: StatusAgendamento) => {
     setProcessingId(agenda.id);
@@ -158,7 +160,8 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
               exit={{ opacity: 0, x: 20 }}
               transition={{ delay: index * 0.05 }}
               key={agenda.id}
-              className="group bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+              onClick={() => setSelectedAgendamento(agenda)}
+              className="group bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
               <div className="flex items-center gap-6">
                 <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-bold shrink-0 ${
@@ -198,13 +201,13 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                 ) : agenda.status === 'solicitado' ? (
                   <>
                     <button 
-                      onClick={() => handleUpdateStatus(agenda, 'confirmado')}
+                      onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
                       className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-green-500/20 hover:bg-green-500/20 transition-all"
                     >
                       <Check className="w-4 h-4" /> Confirmar
                     </button>
                     <button 
-                      onClick={() => handleUpdateStatus(agenda, 'cancelado')}
+                      onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
                       className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-red-500/20 hover:bg-red-500/20 transition-all"
                     >
                       <X className="w-4 h-4" /> Recusar
@@ -214,7 +217,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                    <div className="flex gap-2">
                      {agenda.status !== 'cancelado' && (
                        <button 
-                         onClick={() => handleUpdateStatus(agenda, 'cancelado')}
+                         onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
                          className="p-2 bg-white/5 text-ink-3 hover:text-red-500 rounded-xl transition-colors"
                        >
                          <X className="w-4 h-4" />
@@ -222,7 +225,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                      )}
                      {agenda.status === 'cancelado' && (
                         <button 
-                          onClick={() => handleUpdateStatus(agenda, 'confirmado')}
+                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
                           className="p-2 bg-white/5 text-ink-3 hover:text-green-500 rounded-xl transition-colors"
                         >
                           <RefreshCw className="w-4 h-4" />
@@ -235,6 +238,14 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
           );
         })}
       </AnimatePresence>
+
+      <DetalheSessaoModal
+        agendamento={selectedAgendamento}
+        onClose={() => setSelectedAgendamento(null)}
+        isProfessor={true}
+        onCancelar={() => window.dispatchEvent(new CustomEvent('agendamentos-changed'))}
+        onRemarcar={() => window.dispatchEvent(new CustomEvent('agendamentos-changed'))}
+      />
     </div>
   );
 }
