@@ -51,31 +51,44 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
 
   const sortAlunos = (list: AlunoComCheckin[]) => {
     return [...list].sort((a, b) => {
-      // Prioridade 1: Tem dor relatada no último check-in
-      if (a.ultimoCheckin?.dores && !b.ultimoCheckin?.dores) return -1;
-      if (!a.ultimoCheckin?.dores && b.ultimoCheckin?.dores) return 1;
+      const checkA = a.ultimoCheckin;
+      const checkB = b.ultimoCheckin;
 
-      // Prioridade 2: Indicadores baixos (média de energia, sono, estresse < 3)
-      const mediaA = a.ultimoCheckin ? (a.ultimoCheckin.energia + a.ultimoCheckin.qualidade_sono + (6 - a.ultimoCheckin.nivel_estresse)) / 3 : 0;
-      const mediaB = b.ultimoCheckin ? (b.ultimoCheckin.energia + b.ultimoCheckin.qualidade_sono + (6 - b.ultimoCheckin.nivel_estresse)) / 3 : 0;
-      
-      if (a.ultimoCheckin && b.ultimoCheckin) {
-        return mediaA - mediaB;
-      }
-      
       // Se um não tem checkin, fica por último
-      if (a.ultimoCheckin && !b.ultimoCheckin) return -1;
-      if (!a.ultimoCheckin && b.ultimoCheckin) return 1;
-      
-      return 0;
+      if (checkA && !checkB) return -1;
+      if (!checkA && checkB) return 1;
+      if (!checkA && !checkB) return 0;
+
+      // Prioridade 1: Tem dor relatada
+      if (checkA!.dores && !checkB!.dores) return -1;
+      if (!checkA!.dores && checkB!.dores) return 1;
+
+      // Prioridade 2: Indicadores críticos (Energia 1-2, Sono 1-2, Estresse 4-5)
+      const isCritico = (c: Checkin) => 
+        c.energia <= 2 || c.qualidade_sono <= 2 || c.nivel_estresse >= 4;
+
+      const critA = isCritico(checkA!);
+      const critB = isCritico(checkB!);
+
+      if (critA && !critB) return -1;
+      if (!critA && critB) return 1;
+
+      // Ordenação secundária por data (mais recente primeiro)
+      return new Date(checkB!.semana).getTime() - new Date(checkA!.semana).getTime();
     });
   };
 
-  const getIndicatorColor = (val: number, inverse = false) => {
-    const score = inverse ? 6 - val : val;
-    if (score >= 4) return 'text-emerald-400';
-    if (score >= 3) return 'text-amber-400';
-    return 'text-rose-400';
+  const getIndicatorColor = (val: number, type: 'normal' | 'inverted') => {
+    if (type === 'normal') {
+      if (val >= 4) return 'text-emerald-400';
+      if (val >= 3) return 'text-amber-400';
+      return 'text-rose-400';
+    } else {
+      // Estresse (Invertido): 1-2 Verde, 3 Amarelo, 4-5 Vermelho
+      if (val <= 2) return 'text-emerald-400';
+      if (val === 3) return 'text-amber-400';
+      return 'text-rose-400';
+    }
   };
 
   const alunosFiltrados = alunos.filter(a => 
@@ -174,17 +187,17 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                 <>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="bg-void/50 p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
-                      <Zap className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.energia)}`} />
+                      <Zap className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.energia, 'normal')}`} />
                       <span className="text-sm font-mono font-black text-ink">{aluno.ultimoCheckin.energia}/5</span>
                       <span className="text-[7px] font-mono uppercase text-ink-3">Energia</span>
                     </div>
                     <div className="bg-void/50 p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
-                      <Moon className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.qualidade_sono)}`} />
+                      <Moon className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.qualidade_sono, 'normal')}`} />
                       <span className="text-sm font-mono font-black text-ink">{aluno.ultimoCheckin.qualidade_sono}/5</span>
                       <span className="text-[7px] font-mono uppercase text-ink-3">Sono</span>
                     </div>
                     <div className="bg-void/50 p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
-                      <Flame className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.nivel_estresse, true)}`} />
+                      <Flame className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.nivel_estresse, 'inverted')}`} />
                       <span className="text-sm font-mono font-black text-ink">{aluno.ultimoCheckin.nivel_estresse}/5</span>
                       <span className="text-[7px] font-mono uppercase text-ink-3">Estresse</span>
                     </div>
@@ -225,7 +238,7 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                 </>
               ) : (
                 <div className="py-6 flex flex-col items-center justify-center bg-void/20 rounded-2xl border border-dashed border-white/5">
-                  <p className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Aguardando primeiro envio</p>
+                  <p className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Aguardando check-in do aluno</p>
                 </div>
               )}
             </motion.div>

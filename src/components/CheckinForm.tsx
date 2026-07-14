@@ -81,21 +81,28 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
 
   const RatingField = ({ 
     label, 
+    subtitle,
     value, 
     onChange, 
     icon: Icon, 
     colorClass 
   }: { 
     label: string, 
+    subtitle?: string,
     value: number, 
     onChange: (v: number) => void, 
     icon: any,
     colorClass: string
   }) => (
     <div className="space-y-3">
-      <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
-        {label}
-      </label>
+      <div className="flex flex-col gap-0.5">
+        <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+          {label}
+        </label>
+        {subtitle && (
+          <span className="text-[9px] font-mono text-ink-3 italic">{subtitle}</span>
+        )}
+      </div>
       <div className="flex items-center gap-3">
         {[1, 2, 3, 4, 5].map((num) => (
           <button
@@ -151,27 +158,30 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
           ) : (
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 gap-8">
-                <RatingField 
-                  label="Nível de Energia" 
-                  value={energia} 
-                  onChange={setEnergia} 
-                  icon={Zap}
-                  colorClass="bg-amber-500"
-                />
-                <RatingField 
-                  label="Qualidade do Sono" 
-                  value={sono} 
-                  onChange={setSono} 
-                  icon={Moon}
-                  colorClass="bg-violet"
-                />
-                <RatingField 
-                  label="Nível de Estresse" 
-                  value={estresse} 
-                  onChange={setEstresse} 
-                  icon={Flame}
-                  colorClass="bg-flame"
-                />
+            <RatingField 
+              label="Nível de Energia" 
+              subtitle="1 = sem energia / 5 = muita energia"
+              value={energia} 
+              onChange={setEnergia} 
+              icon={Zap}
+              colorClass="bg-amber-500"
+            />
+            <RatingField 
+              label="Qualidade do Sono" 
+              subtitle="1 = dormi mal / 5 = dormi muito bem"
+              value={sono} 
+              onChange={setSono} 
+              icon={Moon}
+              colorClass="bg-violet"
+            />
+            <RatingField 
+              label="Nível de Estresse" 
+              subtitle="1 = tranquilo / 5 = muito estressado"
+              value={estresse} 
+              onChange={setEstresse} 
+              icon={Flame}
+              colorClass="bg-flame"
+            />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
