@@ -13,6 +13,24 @@ interface AgendamentoPainelProps {
   personalId: string | null;
 }
 
+const parseDataHora = (dataHoraStr: string): Date => {
+  if (!dataHoraStr) return new Date();
+  let str = dataHoraStr;
+  if (typeof str === 'string') {
+    str = str.trim();
+    if (!str.endsWith('Z') && !str.includes('+') && !/-\d{2}:\d{2}$/.test(str)) {
+      if (str.includes('T') || str.includes(' ')) {
+        str = str.replace(' ', 'T');
+        if (!str.endsWith('Z')) {
+          str += 'Z';
+        }
+      }
+    }
+  }
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? new Date(dataHoraStr) : d;
+};
+
 const STATUS_CONFIG: Record<StatusAgendamento, { label: string, color: string, icon: any }> = {
   solicitado: { label: 'Solicitado', color: 'text-amber bg-amber/10 border-amber/20', icon: AlertCircle },
   confirmado: { label: 'Confirmado', color: 'text-green-500 bg-green-500/10 border-green-500/20', icon: CheckCircle2 },
@@ -56,36 +74,28 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
     setSuccessMsg(null);
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setErrorMsg("Usuário não autenticado. Faça login.");
-        return;
-      }
-
-      // buscar o personal_id do aluno logado:
-      const { data: alunoRow, error: alunoError } = await supabase
-        .from("alunos")
-        .select("personal_id")
-        .eq("id", user.id)
-        .single();
-
-      if (alunoError || !alunoRow?.personal_id) {
+      if (!personalId) {
         setErrorMsg("Erro ao buscar seu treinador (Personal Trainer). Certifique-se de estar vinculado a um personal.");
         return;
       }
 
-      const { error } = await supabase.from("agendamentos").insert({
-        personal_id: alunoRow.personal_id, // o treinador do aluno
-        aluno_id: user.id,                 // o próprio aluno
-        data_hora: new Date(`${formData.data}T${formData.horario}:00`).toISOString(),
+      // Constrói data_hora de forma robusta no fuso local antes de enviar
+      const [year, month, day] = formData.data.split('-').map(Number);
+      const [hour, minute] = formData.horario.split(':').map(Number);
+      const localDate = new Date(year, month - 1, day, hour, minute);
+
+      const { error } = await dbService.saveAgendamento({
+        personal_id: personalId,
+        aluno_id: alunoId,
+        data_hora: localDate.toISOString(),
         duracao_min: 60,
         tipo: formData.tipo,
-        status: "solicitado",              // pedido do aluno nasce como solicitado
+        status: "solicitado",
         observacao: formData.observacao?.trim() || null,
       });
 
       if (error) {
-        setErrorMsg(error.message);
+        setErrorMsg(error.message || "Erro ao salvar solicitação.");
       } else {
         setSuccessMsg("Solicitação enviada!");
         setShowModal(false);
@@ -106,8 +116,8 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
   };
 
   const proximaSessao = agendamentos
-    .filter(a => a.status === 'confirmado' && new Date(a.data_hora) >= new Date())
-    .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime())[0];
+    .filter(a => a.status === 'confirmado' && parseDataHora(a.data_hora) >= new Date())
+    .sort((a, b) => parseDataHora(a.data_hora).getTime() - parseDataHora(b.data_hora).getTime())[0];
 
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-flame animate-spin" /></div>;
@@ -134,12 +144,12 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
 
             <div className="space-y-2">
               <h2 className="text-4xl md:text-5xl font-display font-black tracking-tighter leading-none text-void">
-                {new Date(proximaSessao.data_hora).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {parseDataHora(proximaSessao.data_hora).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </h2>
               <div className="flex flex-wrap items-center gap-6 text-xl font-bold opacity-90 italic">
                 <div className="flex items-center gap-2">
                   <Clock className="w-6 h-6" />
-                  {new Date(proximaSessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {parseDataHora(proximaSessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-2">
                   {proximaSessao.tipo === 'presencial' ? <MapPin className="w-6 h-6" /> : <Video className="w-6 h-6" />}
@@ -193,17 +203,17 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     agendamento.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
                   }`}>
                     <span className="text-[10px] uppercase opacity-70">
-                      {new Date(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
+                      {parseDataHora(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
                     </span>
                     <span className="text-2xl leading-none">
-                      {new Date(agendamento.data_hora).getDate()}
+                      {parseDataHora(agendamento.data_hora).getDate()}
                     </span>
                   </div>
                   
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <h4 className="text-lg font-bold text-ink leading-none">
-                        {new Date(agendamento.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        {parseDataHora(agendamento.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </h4>
                       <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest ${config.color}`}>
                         <StatusIcon className="w-3 h-3" />

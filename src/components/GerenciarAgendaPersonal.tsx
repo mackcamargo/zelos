@@ -21,6 +21,11 @@ const STATUS_CONFIG: Record<StatusAgendamento, { label: string, color: string, r
   cancelado: { label: 'Cancelado', color: 'text-ink-3 bg-white/5 border-white/10', ring: 'ring-white/10' }
 };
 
+const isUUID = (val: any): boolean => {
+  if (typeof val !== 'string') return false;
+  return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val) || (val.length > 25 && (val.includes('-') || /^[0-9a-fA-F]+$/.test(val)));
+};
+
 export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaPersonalProps) {
   const { agendamentos, carregando, erro, loadAgendamentos } = useAgendamentos(personalId);
   const [selectedFilter, setSelectedFilter] = useState<StatusAgendamento | 'todos'>('todos');
@@ -77,7 +82,9 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
                     <User className="w-6 h-6 text-ink-3" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-ink leading-none">{req.aluno_nome || 'Aluno'}</h4>
+                    {req.aluno_nome && !isUUID(req.aluno_nome) && (
+                      <h4 className="font-bold text-ink leading-none">{req.aluno_nome}</h4>
+                    )}
                     <p className="text-[10px] font-mono text-ink-3 uppercase mt-1">
                       {new Date(req.data_hora).toLocaleDateString('pt-BR')} • {new Date(req.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
@@ -142,7 +149,9 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <h5 className="font-bold text-ink leading-tight">{s.aluno_nome || 'Aluno'}</h5>
+                    {s.aluno_nome && !isUUID(s.aluno_nome) && (
+                      <h5 className="font-bold text-ink leading-tight">{s.aluno_nome}</h5>
+                    )}
                     <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mt-1">
                       {new Date(s.data_hora).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} • {new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>

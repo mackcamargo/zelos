@@ -19,6 +19,11 @@ const STATUS_CONFIG: Record<StatusAgendamento, { label: string, color: string, r
   cancelado: { label: 'Cancelado', color: 'text-ink-3 bg-white/5 border-white/10', ring: 'ring-white/10' }
 };
 
+const isUUID = (val: any): boolean => {
+  if (typeof val !== 'string') return false;
+  return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val) || (val.length > 25 && (val.includes('-') || /^[0-9a-fA-F]+$/.test(val)));
+};
+
 export function useAgendamentos(personalId?: string) {
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -171,7 +176,9 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                   <div className="flex items-center gap-3">
                     <h4 className="font-bold text-ink">{isNaN(d.getTime()) ? 'Horário' : horaFmt}</h4>
                     <span className="text-[10px] font-mono text-ink-3 uppercase">({isNaN(d.getTime()) ? 'Data' : dataFmt})</span>
-                    <span className="text-[10px] font-mono text-flame uppercase tracking-widest">• {agenda.aluno_nome || 'Aluno'}</span>
+                    {agenda.aluno_nome && !isUUID(agenda.aluno_nome) && (
+                      <span className="text-[10px] font-mono text-flame uppercase tracking-widest">• {agenda.aluno_nome}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-4 text-[10px] text-ink-3 font-mono uppercase tracking-widest">
                      <span className="flex items-center gap-1">

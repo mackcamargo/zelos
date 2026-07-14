@@ -888,10 +888,24 @@ export const dbService = {
           .eq(campo, targetUserId)
           .order('data_hora', { ascending: true });
         if (error) return { data: [], error };
-        const mapped = (data || []).map((row: any) => ({
-          ...row,
-          aluno_nome: row.aluno?.profiles?.nome ?? "Aluno"
-        }));
+        const mapped = (data || []).map((row: any) => {
+          let name = "Aluno";
+          if (row.aluno) {
+            const profilesObj = Array.isArray(row.aluno.profiles) 
+              ? row.aluno.profiles[0] 
+              : row.aluno.profiles;
+            if (profilesObj?.nome && typeof profilesObj.nome === 'string') {
+              const isUUIDString = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(profilesObj.nome) || (profilesObj.nome.length > 25 && (profilesObj.nome.includes('-') || /^[0-9a-fA-F]+$/.test(profilesObj.nome)));
+              if (!isUUIDString) {
+                name = profilesObj.nome;
+              }
+            }
+          }
+          return {
+            ...row,
+            aluno_nome: name
+          };
+        });
         return { data: mapped, error: null };
       } catch (err: any) {
         return { data: [], error: err };
@@ -902,10 +916,16 @@ export const dbService = {
     const alunos = loadMockAlunos();
     const mappedDemo = filtered.map((row: any) => {
       const aluno = alunos.find((al: any) => al.id === row.aluno_id);
-      const name = aluno?.profile?.nome || "Aluno";
+      let name = aluno?.profile?.nome || "Aluno";
+      const isNameUUID = (val: any) => typeof val === 'string' && (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val) || (val.length > 25 && (val.includes('-') || /^[0-9a-fA-F]+$/.test(val))));
+      
+      let finalName = row.aluno_nome;
+      if (!finalName || isNameUUID(finalName)) {
+        finalName = isNameUUID(name) ? "Aluno" : name;
+      }
       return {
         ...row,
-        aluno_nome: row.aluno_nome || name
+        aluno_nome: finalName
       };
     });
     return { data: mappedDemo, error: null };
