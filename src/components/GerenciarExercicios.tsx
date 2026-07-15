@@ -49,6 +49,7 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
   const [videoPreviewMasc, setVideoPreviewMasc] = useState<string | null>(null);
   const [videoPreviewFem, setVideoPreviewFem] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const fileInputMascRef = useRef<HTMLInputElement>(null);
   const fileInputFemRef = useRef<HTMLInputElement>(null);
@@ -201,11 +202,11 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
             .from('exercicios')
             .insert({
               nome: nome.trim() || 'Novo Exercício',
-              categoria_id: categoriaId,
+              categoria_id: Number(categoriaId),
               personal_id: personalId,
-              musculo_primario: musculoPrimario,
-              musculo_secundario: musculoSecundario,
-              dicas: dicas
+              musculo_primario: musculoPrimario || [],
+              musculo_secundario: musculoSecundario || [],
+              dicas: dicas || []
             })
             .select()
             .single();
@@ -224,11 +225,11 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
             .from('exercicios')
             .update({
               nome: nome.trim() || 'Novo Exercício',
-              categoria_id: categoriaId,
+              categoria_id: Number(categoriaId),
               personal_id: personalId,
-              musculo_primario: musculoPrimario,
-              musculo_secundario: musculoSecundario,
-              dicas: dicas
+              musculo_primario: musculoPrimario || [],
+              musculo_secundario: musculoSecundario || [],
+              dicas: dicas || []
             })
             .eq('id', id_exercicio);
         }
@@ -379,36 +380,122 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
   };
 
   // Save Exercise
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!nome.trim() || !categoriaId) return;
 
     setSaving(true);
     setUploadError(null);
+    setFeedback(null);
     try {
-      const payload: Partial<Exercicio> = {
-        id: selectedExercicio?.id || undefined,
-        nome: nome.trim(),
-        categoria_id: categoriaId,
-        personal_id: selectedExercicio?.personal_id || null,
-        video_url_masc: videoUrlMasc,
-        video_url_fem: videoUrlFem,
-        musculo_primario: musculoPrimario,
-        musculo_secundario: musculoSecundario,
-        dicas: dicas
-      };
-
-      const { data, error } = await dbService.saveExercicio(payload);
-      if (error) {
-        setUploadError(`Erro ao salvar exercício: ${error.message || 'Conexão indisponível'}`);
-      } else {
-        // Success
-        await loadData();
-        setSelectedExercicio(null);
+      // Append any pending text that was not added to the lists yet
+      let primarios = [...(musculoPrimario || [])];
+      if (newPrimario.trim()) {
+        const pTrimmed = newPrimario.trim();
+        if (!primarios.includes(pTrimmed)) {
+          primarios.push(pTrimmed);
+        }
+        setNewPrimario('');
+        setMusculoPrimario(prev => {
+          if (!prev.includes(pTrimmed)) return [...prev, pTrimmed];
+          return prev;
+        });
       }
+
+      let auxiliares = [...(musculoSecundario || [])];
+      if (newSecundario.trim()) {
+        const sTrimmed = newSecundario.trim();
+        if (!auxiliares.includes(sTrimmed)) {
+          auxiliares.push(sTrimmed);
+        }
+        setNewSecundario('');
+        setMusculoSecundario(prev => {
+          if (!prev.includes(sTrimmed)) return [...prev, sTrimmed];
+          return prev;
+        });
+      }
+
+      let dicasArray = [...(dicas || [])];
+      if (newDica.trim()) {
+        const dTrimmed = newDica.trim();
+        dicasArray.push(dTrimmed);
+        setNewDica('');
+        setDicas(prev => [...prev, dTrimmed]);
+      }
+
+      if (isSupabaseConfigured && supabase) {
+        const isNew = !selectedExercicio?.id || String(selectedExercicio.id).startsWith('ex-');
+        
+        let query;
+        if (isNew) {
+          const { data: userData } = await supabase.auth.getUser();
+          const personalId = userData?.user?.id || null;
+
+          query = supabase.from("exercicios").insert({
+            nome: nome.trim(),
+            categoria_id: Number(categoriaId),
+            musculo_primario: primarios,
+            musculo_secundario: auxiliares,
+            dicas: dicasArray,
+            video_url_masc: videoUrlMasc || null,
+            video_url_fem: videoUrlFem || null,
+            personal_id: personalId
+          });
+        } else {
+          query = supabase.from("exercicios").update({
+            nome: nome.trim(),
+            categoria_id: Number(categoriaId),
+            musculo_primario: primarios,
+            musculo_secundario: auxiliares,
+            dicas: dicasArray,
+            video_url_masc: videoUrlMasc || null,
+            video_url_fem: videoUrlFem || null,
+          }).eq("id", selectedExercicio.id);
+        }
+
+        const { data, error } = await query.select();
+
+        if (error) {
+          console.error(error);
+          setUploadError(`Erro ao salvar no banco: ${error.message}`);
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          setUploadError("Nenhum registro foi alterado ou retornado.");
+          return;
+        }
+      } else {
+        // Fallback for Mock Mode
+        const payload: Partial<Exercicio> = {
+          id: selectedExercicio?.id || undefined,
+          nome: nome.trim(),
+          categoria_id: categoriaId,
+          personal_id: selectedExercicio?.personal_id || null,
+          video_url_masc: videoUrlMasc,
+          video_url_fem: videoUrlFem,
+          musculo_primario: primarios,
+          musculo_secundario: auxiliares,
+          dicas: dicasArray
+        };
+
+        const { error } = await dbService.saveExercicio(payload);
+        if (error) {
+          setUploadError(`Erro ao salvar exercício localmente: ${error.message || 'Conexão indisponível'}`);
+          return;
+        }
+      }
+
+      // Success
+      await loadData();
+      setSelectedExercicio(null);
+      setFeedback("Exercício salvo!");
+      // Automatically clear feedback after 5 seconds
+      setTimeout(() => setFeedback(null), 5000);
+
     } catch (err: any) {
       console.error(err);
-      setUploadError('Erro interno ao tentar persistir alterações.');
+      setUploadError(`Erro interno ao tentar persistir alterações: ${err.message || err}`);
     } finally {
       setSaving(false);
     }
@@ -469,6 +556,13 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                 <span>Novo Exercício</span>
               </button>
             </div>
+
+            {feedback && (
+              <div id="success-feedback-banner" className="p-4 bg-emerald-500/15 border border-emerald-500/20 rounded-2xl flex gap-3 text-xs text-emerald-400">
+                <Check className="w-5 h-5 shrink-0 text-emerald-400" />
+                <span>{feedback}</span>
+              </div>
+            )}
 
             {/* Quick stats & Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -740,6 +834,11 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                         +
                       </button>
                     </div>
+                    {newPrimario.trim() && (
+                      <span className="text-[10px] text-[#F26A1B] font-mono animate-pulse block mt-1">
+                        Pressione Enter ou + para adicionar
+                      </span>
+                    )}
                   </div>
 
                   {/* Secundários */}
@@ -794,6 +893,11 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                         +
                       </button>
                     </div>
+                    {newSecundario.trim() && (
+                      <span className="text-[10px] text-[#F26A1B] font-mono animate-pulse block mt-1">
+                        Pressione Enter ou + para adicionar
+                      </span>
+                    )}
                   </div>
 
                   {/* Muscle suggestions helper */}
@@ -870,6 +974,11 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                       + Dica
                     </button>
                   </div>
+                  {newDica.trim() && (
+                    <span className="text-[10px] text-[#F26A1B] font-mono animate-pulse block mt-1">
+                      Pressione Enter ou + para adicionar
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -1063,7 +1172,8 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
 
                   <button
                     id="btn-save-exercise-submit"
-                    type="submit"
+                    type="button"
+                    onClick={handleSave}
                     disabled={saving}
                     className="w-full py-4 rounded-2xl brand-gradient-bg text-void text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none shadow-[0_4px_20px_rgba(245,51,79,0.3)]"
                   >
