@@ -19,10 +19,7 @@ import GamificationDisplay from './GamificationDisplay';
 import FotoProgressoUpload from './FotoProgressoUpload';
 import FotoProgressoGaleria from './FotoProgressoGaleria';
 import NutricaoPainel from './NutricaoPainel';
-import BemEstarPainel from './BemEstarPainel';
-import FeedConteudo from './FeedConteudo';
 import AgendamentoPainel from './AgendamentoPainel';
-import { RelatorioBemEstar } from './RelatorioBemEstar';
 import { Checkin } from '../types';
 
 interface AlunoAreaProps {
@@ -33,7 +30,7 @@ interface AlunoAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'treino' | 'progresso' | 'perfil' | 'nutricao' | 'bemestar' | 'aprender' | 'agenda';
+type TabType = 'treino' | 'progresso' | 'perfil' | 'nutricao' | 'agenda';
 
 export default function AlunoArea(props: AlunoAreaProps) {
   return (
@@ -666,17 +663,22 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             <p className="text-xs text-ink-3 mt-1 font-mono tracking-wider">WORKSPACE · ÁREA DE ATIVAÇÃO</p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setActiveTab('perfil')}
+            className="flex items-center gap-3 text-right hover:opacity-85 active:scale-[0.97] transition-all focus:outline-none cursor-pointer group"
+            id="header-avatar-btn"
+          >
             <div className="hidden sm:flex flex-col items-end">
-              <span className="text-sm font-semibold text-ink">{profile.nome}</span>
-              <span className="text-[10px] text-ink-2 font-mono">ID: {userId.substring(0, 8)}</span>
+              <span className="text-sm font-semibold text-ink group-hover:text-flame transition-colors">{profile.nome}</span>
+              <span className="text-[10px] text-ink-2 font-mono group-hover:text-ink-3 transition-colors">ID: {userId.substring(0, 8)}</span>
             </div>
-            <div className="w-10 h-10 rounded-full border border-white/10 p-[1px]">
+            <div className="w-10 h-10 rounded-full border border-white/10 p-[1px] group-hover:border-flame/30 transition-colors">
               <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-ink">
                 {isFemale ? '👩' : '👨'}
               </div>
             </div>
-          </div>
+          </button>
         </div>
       </header>
 
@@ -1699,37 +1701,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           </div>
         )}
 
-        {/* TAB: BEM-ESTAR */}
-        {activeTab === 'bemestar' && (
-          <div id="tab-content-bemestar" className="pb-12">
-            <div className="mb-8">
-              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic">
-                Bem-<span className="text-flame">Estar</span>
-              </h2>
-              <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Mente & Equilíbrio</p>
-            </div>
-            
-            {/* Integrated Wellbeing Report */}
-            <div className="mb-10">
-              <RelatorioBemEstar alunoId={userId} />
-            </div>
 
-            <BemEstarPainel alunoId={userId} />
-          </div>
-        )}
-
-        {/* TAB: APRENDER */}
-        {activeTab === 'aprender' && (
-          <div id="tab-content-aprender" className="pb-12">
-            <div className="mb-8">
-              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic">
-                Apren<span className="text-flame">der</span>
-              </h2>
-              <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Biblioteca de Conhecimento</p>
-            </div>
-            <FeedConteudo personalId={personalId} />
-          </div>
-        )}
 
         {/* TAB: AGENDA */}
         {activeTab === 'agenda' && (
@@ -2075,9 +2047,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </AnimatePresence>
 
       {/* Bottom Navigation Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-3 px-1 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
-        <div className="max-w-6xl h-full mx-auto grid grid-cols-7 gap-0.5 items-center">
-          {/* Tab 1 */}
+      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-2 px-4 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
+        <div className="max-w-md md:max-w-lg h-full mx-auto grid grid-cols-4 gap-2 items-center">
+          {/* Tab 1 - Treino */}
           <button
             id="tab-btn-treino"
             type="button"
@@ -2085,110 +2057,62 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               setActiveTab('treino');
               setSelectedWorkout(null);
             }}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'treino' ? 'text-flame' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'treino' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
-            <Dumbbell className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Treino</span>
+            <Dumbbell className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Treino</span>
             {activeTab === 'treino' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
 
-          {/* Tab 2 */}
+          {/* Tab 2 - Progresso */}
           <button
             id="tab-btn-progresso"
             type="button"
             onClick={() => setActiveTab('progresso')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'progresso' ? 'text-flame' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'progresso' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
-            <TrendingUp className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Progresso</span>
+            <TrendingUp className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Progresso</span>
             {activeTab === 'progresso' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
 
-          {/* Tab: Nutrição */}
+          {/* Tab 3 - Nutrição */}
           <button
             id="tab-btn-nutricao"
             type="button"
             onClick={() => setActiveTab('nutricao')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'nutricao' ? 'text-flame' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'nutricao' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
-            <Utensils className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Nutri</span>
+            <Utensils className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Nutri</span>
             {activeTab === 'nutricao' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
 
-          {/* Tab: Bem-estar */}
-          <button
-            id="tab-btn-bemestar"
-            type="button"
-            onClick={() => setActiveTab('bemestar')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'bemestar' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <Heart className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Zen</span>
-            {activeTab === 'bemestar' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Agenda */}
+          {/* Tab 4 - Agenda */}
           <button
             id="tab-btn-agenda"
             type="button"
             onClick={() => setActiveTab('agenda')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'agenda' ? 'text-flame' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'agenda' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
-            <Calendar className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Agenda</span>
+            <Calendar className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Agenda</span>
             {activeTab === 'agenda' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Aprender */}
-          <button
-            id="tab-btn-aprender"
-            type="button"
-            onClick={() => setActiveTab('aprender')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'aprender' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Aprender</span>
-            {activeTab === 'aprender' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Perfil */}
-          <button
-            id="tab-btn-perfil"
-            type="button"
-            onClick={() => setActiveTab('perfil')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'perfil' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <User className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Perfil</span>
-            {activeTab === 'perfil' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
         </div>
