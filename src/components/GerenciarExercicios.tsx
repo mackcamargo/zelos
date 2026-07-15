@@ -821,6 +821,7 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
+                            e.stopPropagation();
                             addMuscleTag('primario', newPrimario);
                           }
                         }}
@@ -880,6 +881,7 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
+                            e.stopPropagation();
                             addMuscleTag('secundario', newSecundario);
                           }
                         }}
@@ -961,6 +963,7 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
+                          e.stopPropagation();
                           addDica();
                         }
                       }}
