@@ -7,6 +7,7 @@ import {
   ChevronRight, Filter, SortAsc, LayoutGrid, List
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import HistoricoCheckinModal from './HistoricoCheckinModal';
 
 interface AlunoComCheckin extends Aluno {
   profile: Profile;
@@ -18,6 +19,7 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedAluno, setSelectedAluno] = useState<{ id: string; nome: string } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -151,7 +153,16 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`bg-surface border border-white/5 rounded-3xl p-5 space-y-4 hover:border-white/10 transition-all ${!aluno.ultimoCheckin ? 'opacity-60' : ''}`}
+              onClick={() => {
+                if (aluno.ultimoCheckin) {
+                  setSelectedAluno({ id: aluno.id, nome: aluno.profile.nome });
+                }
+              }}
+              className={`bg-surface border border-white/5 rounded-3xl p-5 space-y-4 hover:border-white/10 transition-all ${
+                !aluno.ultimoCheckin 
+                  ? 'opacity-60' 
+                  : 'cursor-pointer hover:bg-white/[0.02] active:scale-[0.99]'
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -246,8 +257,16 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
               )}
             </motion.div>
           ))}
-        </AnimatePresence>
+        </ AnimatePresence>
       </div>
+
+      {selectedAluno && (
+        <HistoricoCheckinModal 
+          alunoId={selectedAluno.id}
+          alunoNome={selectedAluno.nome}
+          onClose={() => setSelectedAluno(null)}
+        />
+      )}
 
       {alunosFiltrados.length === 0 && (
         <div className="bg-surface border border-white/5 rounded-3xl p-12 text-center">
