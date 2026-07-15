@@ -20,6 +20,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
   const [sono, setSono] = useState(3);
   const [estresse, setEstresse] = useState(3);
   const [dores, setDores] = useState('');
+  const [senteDor, setSenteDor] = useState(false);
   const [peso, setPeso] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [loading, setLoading] = useState(true);
@@ -37,17 +38,22 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
       
       if (error) {
         console.error('Erro ao carregar check-in existente:', error);
-        // Não lançamos erro aqui para não travar o formulário; 
-        // se não houver dados, o formulário abrirá com os valores padrão (3)
       }
 
       if (data) {
         setEnergia(data.energia || 3);
         setSono(data.qualidade_sono || 3);
         setEstresse(data.nivel_estresse || 3);
-        setDores(data.dores || '');
         setPeso(data.peso_kg?.toString() || '');
         setObservacoes(data.observacoes || '');
+        
+        if (data.dores && data.dores.trim() !== '') {
+          setSenteDor(true);
+          setDores(data.dores);
+        } else {
+          setSenteDor(false);
+          setDores('');
+        }
       }
     } catch (err) {
       console.error('Falha crítica ao carregar check-in:', err);
@@ -69,7 +75,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
         energia,
         qualidade_sono: sono,
         nivel_estresse: estresse,
-        dores: dores.trim() || null,
+        dores: senteDor ? (dores.trim() || null) : null,
         peso_kg: peso ? parseFloat(peso) : null,
         observacoes: observacoes.trim() || null
       };
@@ -210,20 +216,53 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
-                      Sentiu Dores?
-                    </label>
-                    <div className="relative">
-                      <AlertCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
-                      <input
-                        type="text"
-                        value={dores}
-                        onChange={(e) => setDores(e.target.value)}
-                        placeholder="Sente alguma dor? Onde?"
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
-                      />
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+                        Sente alguma dor ou lesão?
+                      </label>
+                      <div className="flex bg-void rounded-xl p-1 border border-white/5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSenteDor(false);
+                            setDores('');
+                          }}
+                          className={`px-4 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all ${
+                            !senteDor ? 'bg-white/10 text-ink shadow-sm' : 'text-ink-3'
+                          }`}
+                        >
+                          Não
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSenteDor(true)}
+                          className={`px-4 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all ${
+                            senteDor ? 'bg-rose-500/20 text-rose-400 shadow-sm border border-rose-500/20' : 'text-ink-3'
+                          }`}
+                        >
+                          Sim
+                        </button>
+                      </div>
                     </div>
+
+                    {senteDor && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="relative"
+                      >
+                        <AlertCircle className="absolute left-3.5 top-4 w-4 h-4 text-rose-400" />
+                        <textarea
+                          value={dores}
+                          onChange={(e) => setDores(e.target.value)}
+                          placeholder="Onde? Descreva a dor ou desconforto..."
+                          required={senteDor}
+                          rows={2}
+                          className="w-full bg-void border border-white/5 focus:border-rose-500/30 rounded-xl pt-3 pl-10 pr-4 text-xs text-ink outline-none resize-none"
+                        />
+                      </motion.div>
+                    )}
                   </div>
                 </div>
 

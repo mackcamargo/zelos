@@ -59,19 +59,15 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
       if (!checkA && checkB) return 1;
       if (!checkA && !checkB) return 0;
 
-      // Prioridade 1: Tem dor relatada
-      if (checkA!.dores && !checkB!.dores) return -1;
-      if (!checkA!.dores && checkB!.dores) return 1;
+      // Alunos que precisam de atenção (energia 1-2, sono 1-2, estresse 4-5 OU com dor)
+      const isAttentionNeeded = (c: Checkin) => 
+        (c.dores && c.dores.trim() !== '') || c.energia <= 2 || c.qualidade_sono <= 2 || c.nivel_estresse >= 4;
 
-      // Prioridade 2: Indicadores críticos (Energia 1-2, Sono 1-2, Estresse 4-5)
-      const isCritico = (c: Checkin) => 
-        c.energia <= 2 || c.qualidade_sono <= 2 || c.nivel_estresse >= 4;
+      const attA = isAttentionNeeded(checkA!);
+      const attB = isAttentionNeeded(checkB!);
 
-      const critA = isCritico(checkA!);
-      const critB = isCritico(checkB!);
-
-      if (critA && !critB) return -1;
-      if (!critA && critB) return 1;
+      if (attA && !attB) return -1;
+      if (!attA && attB) return 1;
 
       // Ordenação secundária por data (mais recente primeiro)
       const [yA, mA, dA] = checkA!.semana.split("-").map(Number);
