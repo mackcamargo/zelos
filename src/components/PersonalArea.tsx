@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarConteudo from './GerenciarConteudo';
@@ -23,40 +23,301 @@ type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | '
 
 export default function PersonalArea({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
+    { id: 'alunos', label: 'Alunos', icon: Users },
+    { id: 'exercicios', label: 'Treinos', icon: Activity },
+    { id: 'agenda', label: 'Agenda', icon: Calendar },
+    { id: 'checkins', label: 'Check-ins', icon: MessageSquare },
+    { id: 'conteudo', label: 'Biblioteca', icon: BookOpen },
+    { id: 'templates', label: 'Modelos', icon: FolderHeart },
+    { id: 'perfil', label: 'Perfil', icon: User },
+  ];
 
   return (
-    <div id="personal-area-root" className="min-h-screen bg-void text-ink font-sans flex flex-col pb-24">
-      {/* Top Header */}
-      <header className="sticky top-0 bg-void/90 backdrop-blur-md z-40 border-b border-white/5 py-5 px-6">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-display font-black text-2xl tracking-tight">
-                ZÊNI<span className="brand-gradient-text">TE</span>
-              </span>
-              <span className="text-[10px] font-mono uppercase bg-flame/15 text-flame px-2 py-0.5 rounded-full border border-flame/20">
-                Personal
-              </span>
+    <div id="personal-area-root" className="min-h-screen bg-void text-ink font-sans flex overflow-hidden">
+      
+      {/* SIDEBAR: Desktop */}
+      <aside 
+        id="desktop-sidebar"
+        className={`hidden md:flex flex-col bg-[#141414] border-r border-white/10 h-screen sticky top-0 transition-all duration-300 z-30 shrink-0 ${
+          isCollapsed ? 'w-16' : 'w-60'
+        }`}
+      >
+        {/* Top bar logo */}
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-white/5 h-16 shrink-0`}>
+          {isCollapsed ? (
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(false)}
+              className="font-display font-black text-2xl tracking-tight text-[#F26A1B] hover:scale-110 transition-transform focus:outline-none cursor-pointer"
+              title="Expandir menu"
+            >
+              Z
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setActiveTab('dashboard')}
+                className="font-display font-black text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
+              >
+                ZÊNI<span className="text-[#F26A1B]">TE</span>
+                <span className="text-[9px] font-mono uppercase bg-[#F26A1B]/15 text-[#F26A1B] px-1.5 py-0.5 rounded-full border border-[#F26A1B]/20 ml-1.5 align-middle">
+                  Pro
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCollapsed(true)}
+                className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-white/5 transition-colors cursor-pointer"
+                title="Recolher menu"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Navigation links */}
+        <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <div key={item.id} className="relative group/tooltip">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(item.id as TabType);
+                  }}
+                  className={`w-full flex items-center ${
+                    isCollapsed ? 'justify-center px-2' : 'px-4'
+                  } py-3 gap-3 rounded-xl transition-all duration-200 relative group/btn cursor-pointer ${
+                    isActive 
+                      ? 'text-[#F26A1B] bg-white/[0.04] font-semibold' 
+                      : 'text-ink-2 hover:text-ink hover:bg-white/[0.02]'
+                  }`}
+                >
+                  {isActive && (
+                    <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-[#F26A1B] rounded-r-full" />
+                  )}
+                  <Icon className={`w-5 h-5 transition-transform duration-200 group-hover/btn:scale-105 ${
+                    isActive ? 'text-[#F26A1B]' : 'text-ink-2 group-hover/btn:text-ink'
+                  }`} />
+                  {!isCollapsed && <span className="text-sm font-sans truncate">{item.label}</span>}
+                </button>
+
+                {/* Tooltip on Collapsed hover */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-[#1a1a1a] border border-white/10 text-xs font-semibold text-ink rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 whitespace-nowrap pointer-events-none shadow-xl">
+                    {item.label}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer profile & logout */}
+        <div className="p-2 border-t border-white/5 shrink-0 relative group/footer">
+          <button
+            type="button"
+            onClick={() => setActiveTab('perfil')}
+            className={`w-full flex items-center ${
+              isCollapsed ? 'justify-center p-2' : 'p-2'
+            } gap-3 text-left hover:bg-white/[0.03] rounded-xl transition-all group/btn cursor-pointer`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
+                <div className="w-full h-full rounded-full bg-[#1c1d22] flex items-center justify-center font-display font-bold text-ink text-xs">
+                  {profile.nome.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              {!isCollapsed && (
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-ink group-hover/btn:text-[#F26A1B] transition-colors truncate">
+                    {profile.nome}
+                  </p>
+                  <p className="text-[9px] text-ink-3 font-mono truncate">ID: {userId.substring(0, 8)}</p>
+                </div>
+              )}
             </div>
-            <p className="text-xs text-ink-3 mt-1 font-mono tracking-wider">WORKSPACE · ÁREA DE COMANDO</p>
+            
+            {!isCollapsed && (
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLogout();
+                }}
+                className="p-1.5 rounded-lg text-ink-3 hover:text-ember hover:bg-white/5 transition-colors shrink-0 ml-auto cursor-pointer"
+                title="Sair da conta"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </button>
+
+          {/* Footer Tooltip on Collapsed */}
+          {isCollapsed && (
+            <div className="absolute left-full ml-3 bottom-4 px-2.5 py-1.5 bg-[#1a1a1a] border border-white/10 text-xs font-semibold text-ink rounded-lg opacity-0 invisible group-hover/footer:opacity-100 group-hover/footer:visible transition-all duration-200 z-50 whitespace-nowrap pointer-events-none shadow-xl">
+              {profile.nome} (Sair)
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* MOBILE DRAWER: Sidebar drawer */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-all duration-300"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+      <aside 
+        id="mobile-sidebar"
+        className={`fixed top-0 bottom-0 left-0 bg-[#141414] border-r border-white/10 w-60 z-50 transition-transform duration-300 md:hidden flex flex-col ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-white/5 h-16 shrink-0">
+          <span className="font-display font-black text-xl tracking-tight">
+            ZÊNI<span className="text-[#F26A1B]">TE</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsMobileOpen(false)}
+            className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-white/5 transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Nav Items */}
+        <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(item.id as TabType);
+                  setIsMobileOpen(false);
+                }}
+                className={`w-full flex items-center px-4 py-3 gap-3 rounded-xl transition-all duration-200 relative cursor-pointer ${
+                  isActive 
+                    ? 'text-[#F26A1B] bg-white/[0.04] font-semibold' 
+                    : 'text-ink-2 hover:text-ink hover:bg-white/[0.02]'
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-[#F26A1B] rounded-r-full" />
+                )}
+                <Icon className={`w-5 h-5 ${isActive ? 'text-[#F26A1B]' : 'text-ink-2'}`} />
+                <span className="text-sm font-sans">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-white/5 shrink-0">
+          <div className="w-full flex items-center justify-between gap-3 p-2 rounded-xl bg-white/[0.02]">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('perfil');
+                setIsMobileOpen(false);
+              }}
+              className="flex items-center gap-3 min-w-0 text-left cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
+                <div className="w-full h-full rounded-full bg-[#1c1d22] flex items-center justify-center font-display font-bold text-ink text-xs">
+                  {profile.nome.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-ink truncate">{profile.nome}</p>
+                <p className="text-[9px] text-ink-3 font-mono truncate">ID: {userId.substring(0, 8)}</p>
+              </div>
+            </button>
+            <button 
+              type="button"
+              onClick={onLogout}
+              className="p-1.5 rounded-lg text-ink-3 hover:text-ember hover:bg-white/5 transition-colors shrink-0 cursor-pointer"
+              title="Sair da conta"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-sm font-semibold text-ink">{profile.nome}</span>
-              <span className="text-[10px] text-ink-2 font-mono">ID: {userId.substring(0, 8)}</span>
+        </div>
+      </aside>
+
+      {/* CONTENT CONTAINER */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
+        
+        {/* Top Header */}
+        <header className="sticky top-0 bg-void/90 backdrop-blur-md z-20 border-b border-white/5 py-4 px-6 shrink-0">
+          <div className="max-w-5xl mx-auto flex justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* Hamburger button on Mobile */}
+              <button
+                type="button"
+                onClick={() => setIsMobileOpen(true)}
+                className="md:hidden p-2 -ml-2 text-ink-2 hover:text-ink hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+
+              <div>
+                <h1 className="font-display font-black text-xl text-ink tracking-tight uppercase italic flex items-center gap-2">
+                  {activeTab === 'dashboard' && <>Dash<span className="text-[#F26A1B]">board</span></>}
+                  {activeTab === 'alunos' && <>Alu<span className="text-[#F26A1B]">nos</span></>}
+                  {activeTab === 'exercicios' && <>Exer<span className="text-[#F26A1B]">cícios</span></>}
+                  {activeTab === 'agenda' && <>Agen<span className="text-[#F26A1B]">da</span></>}
+                  {activeTab === 'checkins' && <>Check-<span className="text-[#F26A1B]">ins</span></>}
+                  {activeTab === 'conteudo' && <>Biblio<span className="text-[#F26A1B]">teca</span></>}
+                  {activeTab === 'templates' && <>Mode<span className="text-[#F26A1B]">los</span></>}
+                  {activeTab === 'perfil' && <>Per<span className="text-[#F26A1B]">fil</span></>}
+                  {activeTab === 'gerenciar' && <>Admin <span className="text-[#F26A1B]">Exercícios</span></>}
+                </h1>
+                <p className="text-ink-3 text-[10px] font-mono uppercase tracking-widest mt-0.5">
+                  {activeTab === 'dashboard' && 'Visão Geral de Bem-estar'}
+                  {activeTab === 'alunos' && 'Gestão de Alunos'}
+                  {activeTab === 'exercicios' && 'Biblioteca de Movimentos'}
+                  {activeTab === 'agenda' && 'Horários & Compromissos'}
+                  {activeTab === 'checkins' && 'Mensagens & Feedback'}
+                  {activeTab === 'conteudo' && 'Artigos & Postagens'}
+                  {activeTab === 'templates' && 'Modelos de Ficha de Treino'}
+                  {activeTab === 'perfil' && 'Dados Cadastrais'}
+                  {activeTab === 'gerenciar' && 'Painel Administrativo'}
+                </p>
+              </div>
             </div>
-            <div className="w-10 h-10 rounded-full brand-gradient-bg p-[1px]">
-              <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-ink">
-                {profile.nome.charAt(0).toUpperCase()}
+
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-sm font-semibold text-ink">{profile.nome}</span>
+                <span className="text-[10px] text-ink-2 font-mono">Personal</span>
+              </div>
+              <div className="w-9 h-9 rounded-full brand-gradient-bg p-[1px]">
+                <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-ink text-sm">
+                  {profile.nome.charAt(0).toUpperCase()}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main View Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 pt-8 pb-32 md:pb-8">
+        {/* Main View Area */}
+        <main className="flex-1 max-w-5xl w-full mx-auto px-6 pt-8 pb-16">
         
         {/* TAB 0: DASHBOARD */}
         {activeTab === 'dashboard' && (
@@ -223,139 +484,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
           </div>
         )}
       </main>
-
-      {/* Bottom Navigation Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-3 px-1 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
-        <div className="max-w-5xl h-full mx-auto grid grid-cols-8 gap-0.5 items-center">
-          {/* Tab 0: Dashboard */}
-          <button
-            id="tab-btn-dashboard"
-            type="button"
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'dashboard' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Dash</span>
-            {activeTab === 'dashboard' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab 1 */}
-          <button
-            id="tab-btn-alunos"
-            type="button"
-            onClick={() => setActiveTab('alunos')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'alunos' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <Users className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Alunos</span>
-            {activeTab === 'alunos' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Exercicios */}
-          <button
-            id="tab-btn-exercicios"
-            type="button"
-            onClick={() => setActiveTab('exercicios')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'exercicios' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <Activity className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Treinos</span>
-            {activeTab === 'exercicios' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Agenda */}
-          <button
-            id="tab-btn-agenda"
-            type="button"
-            onClick={() => setActiveTab('agenda')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'agenda' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <Calendar className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Agenda</span>
-            {activeTab === 'agenda' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Check-ins */}
-          <button
-            id="tab-btn-checkins"
-            type="button"
-            onClick={() => setActiveTab('checkins')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'checkins' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Checks</span>
-            {activeTab === 'checkins' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Conteudo */}
-          <button
-            id="tab-btn-conteudo"
-            type="button"
-            onClick={() => setActiveTab('conteudo')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'conteudo' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Biblio</span>
-            {activeTab === 'conteudo' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab: Modelos */}
-          <button
-            id="tab-btn-templates"
-            type="button"
-            onClick={() => setActiveTab('templates')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'templates' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <FolderHeart className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Models</span>
-            {activeTab === 'templates' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-
-          {/* Tab 3 */}
-          <button
-            id="tab-btn-perfil"
-            type="button"
-            onClick={() => setActiveTab('perfil')}
-            className={`flex flex-col items-center gap-1 py-1 rounded-xl transition-all duration-300 relative h-full justify-center ${
-              activeTab === 'perfil' ? 'text-flame' : 'text-ink-2 hover:text-ink'
-            }`}
-          >
-            <User className="w-5 h-5" />
-            <span className="text-[7px] font-bold tracking-tighter uppercase">Perfil</span>
-            {activeTab === 'perfil' && (
-              <span className="absolute bottom-0 w-6 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
-            )}
-          </button>
-        </div>
-      </nav>
+      </div>
     </div>
   );
 }
