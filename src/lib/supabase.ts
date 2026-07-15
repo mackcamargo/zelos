@@ -1503,15 +1503,31 @@ export const dbService = {
         .eq('aluno_id', alunoId)
         .order('registrado_em', { ascending: false });
       if (error) return { data: [], error };
-      // Gera signed URL para cada foto (bucket privado)
-      const withUrls = await Promise.all((data || []).map(async (f: any) => {
+
+      const photos = data || [];
+      const paths = photos
+        .map((f: any) => f.foto_url)
+        .filter((path: string) => path && !path.startsWith('http') && !path.startsWith('data:'));
+
+      let signedUrls: { path: string; signedUrl: string }[] = [];
+      if (paths.length > 0) {
+        const { data: signedData, error: signedErr } = await supabase.storage
+          .from('zenite_fotos_progresso')
+          .createSignedUrls(paths, 3600);
+        if (!signedErr && signedData) {
+          signedUrls = signedData;
+        }
+      }
+
+      const withUrls = photos.map((f: any) => {
         let url = f.foto_url;
-        if (url && !url.startsWith('http') && !url.startsWith('data:')) {
-          const { data: signed } = await supabase.storage.from('zenite_fotos_progresso').createSignedUrl(url, 3600);
-          url = signed?.signedUrl || f.foto_url;
+        const signed = signedUrls.find(s => s.path === f.foto_url);
+        if (signed) {
+          url = signed.signedUrl;
         }
         return { ...f, signed_url: url, foto_url_display: url };
-      }));
+      });
+
       return { data: withUrls, error: null };
     }
     const fotos = load('zenite_fotos_progresso', []);
