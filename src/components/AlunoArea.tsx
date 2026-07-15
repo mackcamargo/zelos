@@ -5,7 +5,8 @@ import {
   Dumbbell, TrendingUp, User, LogOut, Calendar, Target, 
   ShieldCheck, Heart, ArrowLeft, CheckCircle, Play, Sparkles, 
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
-  Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen
+  Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
+  Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -92,6 +93,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [selectedExIdProgress, setSelectedExIdProgress] = useState<string | null>(null);
   const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
+  const [evolucaoCargaData, setEvolucaoCargaData] = useState<any[]>([]);
+  const [selectedExForEvolution, setSelectedExForEvolution] = useState<string>('');
   
   // Modal states for manual metrics registration
   const [showAddMetricaModal, setShowAddMetricaModal] = useState(false);
@@ -222,6 +225,56 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
       setDetailedSeries(seriesData || []);
       setMetricas(metricsData || []);
+
+      let loadEvolucaoData: any[] = [];
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const { data: dbEvolucao, error: dbError } = await supabase
+            .from("series_realizadas")
+            .select("carga_kg, repeticoes, concluida_em, treino_exercicios!inner(exercicio_id, exercicios!inner(nome), treinos!inner(data_treino))")
+            .eq("aluno_id", userId)
+            .eq("concluida", true)
+            .not("carga_kg", "is", null)
+            .order("concluida_em", { ascending: true });
+
+          if (!dbError && dbEvolucao) {
+            loadEvolucaoData = dbEvolucao.map((item: any) => {
+              const te = item.treino_exercicios || {};
+              const ex = te.exercicios || {};
+              const tr = te.treinos || {};
+              return {
+                carga_kg: Number(item.carga_kg) || 0,
+                repeticoes: Number(item.repeticoes) || 0,
+                concluida_em: item.concluida_em,
+                exercicio_id: te.exercicio_id,
+                exercicio_nome: ex.nome || 'Exercício',
+                data_treino: tr.data_treino
+              };
+            });
+          } else {
+            console.error("Erro na busca de evolucao de carga de Supabase:", dbError);
+          }
+        } catch (queryErr) {
+          console.error("Erro ao executar query de evolucao de carga:", queryErr);
+        }
+      }
+
+      // Fallback/Demo mode
+      if (loadEvolucaoData.length === 0) {
+        const seriesToUse = seriesData || [];
+        loadEvolucaoData = seriesToUse
+          .filter((s: any) => s.concluida && s.carga_kg !== null && s.carga_kg !== undefined)
+          .map((s: any) => ({
+            carga_kg: Number(s.carga_kg) || 0,
+            repeticoes: Number(s.repeticoes) || 0,
+            concluida_em: s.concluida_em,
+            exercicio_id: s.exercicio_id,
+            exercicio_nome: s.exercicio_nome || 'Exercício',
+            data_treino: s.data_treino
+          }));
+      }
+
+      setEvolucaoCargaData(loadEvolucaoData);
     } catch (err) {
       console.error('Erro ao carregar dados de progresso:', err);
     } finally {
@@ -1642,6 +1695,279 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     </div>
 
                   </div>
+
+                  {/* EVOLUÇÃO DE CARGA - SYSTEM CALCULATION */}
+                  {(() => {
+                    // Helper to format PR Date as dd/MM
+                    const formatPRDate = (dateStr: string) => {
+                      if (!dateStr) return '';
+                      const date = new Date(dateStr);
+                      const day = String(date.getDate()).padStart(2, '0');
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      return `${day}/${month}`;
+                    };
+
+                    // Helper to get Monday of a date
+                    const getMondayOfDate = (d: Date) => {
+                      const date = new Date(d);
+                      const day = date.getDay();
+                      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                      const monday = new Date(date.setDate(diff));
+                      monday.setHours(0, 0, 0, 0);
+                      return monday;
+                    };
+
+                    // Filter entries that have loads registered
+                    const validCargas = (evolucaoCargaData || []).filter((s: any) => {
+                      const load = Number(s.carga_kg) || 0;
+                      return load > 0;
+                    });
+
+                    // 1. Group by exercise name and find max carga_kg (A. Recordes Pessoais - PRs)
+                    const prsMap: Record<string, { exercise: string; maxCarga: number; dateStr: string }> = {};
+                    validCargas.forEach((s: any) => {
+                      const carga = Number(s.carga_kg) || 0;
+                      const name = s.exercicio_nome || 'Exercício';
+                      if (!prsMap[name] || carga > prsMap[name].maxCarga) {
+                        prsMap[name] = {
+                          exercise: name,
+                          maxCarga: carga,
+                          dateStr: s.concluida_em
+                        };
+                      }
+                    });
+                    const prsList = Object.values(prsMap).sort((a, b) => b.maxCarga - a.maxCarga);
+
+                    // 2. Dropdown exercise selection (B. Gráfico de evolução por exercício)
+                    const exercisesWithCarga = Array.from(new Set(validCargas.map(s => s.exercicio_nome))).filter(Boolean);
+                    const activeEx = selectedExForEvolution || (exercisesWithCarga[0] || '');
+
+                    // Extract maximum load per date for active exercise
+                    const getEvolutionChartData = () => {
+                      if (!activeEx) return [];
+                      const filtered = validCargas.filter(s => s.exercicio_nome === activeEx);
+                      const maxByDate: Record<string, { maxCarga: number; dateObject: Date }> = {};
+                      filtered.forEach(s => {
+                        let dateObj: Date;
+                        let dateKey: string;
+                        if (s.data_treino) {
+                          const [a, m, d] = s.data_treino.split("-").map(Number);
+                          dateObj = new Date(a, m - 1, d);
+                          dateKey = s.data_treino;
+                        } else if (s.concluida_em) {
+                          dateObj = new Date(s.concluida_em);
+                          dateKey = dateObj.toISOString().split('T')[0];
+                        } else {
+                          dateObj = new Date();
+                          dateKey = dateObj.toISOString().split('T')[0];
+                        }
+                        const carga = Number(s.carga_kg) || 0;
+                        if (!maxByDate[dateKey] || carga > maxByDate[dateKey].maxCarga) {
+                          maxByDate[dateKey] = {
+                            maxCarga: carga,
+                            dateObject: dateObj
+                          };
+                        }
+                      });
+
+                      return Object.entries(maxByDate)
+                        .map(([dateKey, val]) => ({
+                          rawDate: val.dateObject,
+                          label: val.dateObject.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                          Carga: Number(val.maxCarga) || 0
+                        }))
+                        .sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime());
+                    };
+                    const evolutionChartData = getEvolutionChartData();
+
+                    // 3. Volume semanal grouped by Monday (C. Volume semanal)
+                    const volumeByMonday: Record<string, { monday: Date; volume: number }> = {};
+                    validCargas.forEach(s => {
+                      let dateObj: Date;
+                      if (s.data_treino) {
+                        const [a, m, d] = s.data_treino.split("-").map(Number);
+                        dateObj = new Date(a, m - 1, d);
+                      } else if (s.concluida_em) {
+                        dateObj = new Date(s.concluida_em);
+                      } else {
+                        dateObj = new Date();
+                      }
+                      const monday = getMondayOfDate(dateObj);
+                      const mondayKey = monday.toISOString().split('T')[0];
+                      const carga = Number(s.carga_kg) || 0;
+                      const reps = Number(s.repeticoes) || 0;
+                      const vol = carga * reps;
+
+                      if (!volumeByMonday[mondayKey]) {
+                        volumeByMonday[mondayKey] = {
+                          monday: monday,
+                          volume: 0
+                        };
+                      }
+                      volumeByMonday[mondayKey].volume += vol;
+                    });
+
+                    const sortedWeeks = Object.values(volumeByMonday)
+                      .sort((a, b) => a.monday.getTime() - b.monday.getTime());
+                    
+                    const last8Weeks = sortedWeeks.slice(-8);
+
+                    const volumeSemanalData = last8Weeks.map(item => {
+                      const monday = item.monday;
+                      const day = String(monday.getDate()).padStart(2, '0');
+                      const month = String(monday.getMonth() + 1).padStart(2, '0');
+                      return {
+                        rawDate: monday,
+                        semana: `${day}/${month}`,
+                        "Volume total (kg levantados)": Math.round(Number(item.volume) || 0)
+                      };
+                    });
+
+                    return (
+                      <div className="bg-[#0F1218] border border-white/5 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-[#F26A1B]/5 blur-3xl pointer-events-none rounded-full" />
+                        
+                        <div className="mb-6">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-ink-3">Performance & Sobrecarga</span>
+                          <h2 className="font-display font-bold text-xl text-ink mt-0.5">Evolução de Carga</h2>
+                          <p className="text-xs text-ink-2 mt-1 font-sans">Sua trajetória e conquistas com sobrecarga progressiva.</p>
+                        </div>
+
+                        {validCargas.length === 0 ? (
+                          <div className="bg-void/40 border border-white/5 rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
+                            <Trophy className="w-10 h-10 text-ink-3 mb-3 opacity-40" />
+                            <p className="text-sm text-ink-2 font-medium max-w-md">
+                              Registre a carga dos seus treinos para acompanhar sua evolução
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-8">
+                            {/* Block A: Recordes Pessoais */}
+                            <div>
+                              <h3 className="text-sm font-bold text-ink uppercase tracking-wider font-display mb-4 flex items-center gap-2">
+                                <Trophy className="w-4 h-4 text-[#F26A1B]" />
+                                <span>Recordes Pessoais (PRs)</span>
+                              </h3>
+                              {prsList.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                  {prsList.map((pr) => (
+                                    <div key={pr.exercise} className="bg-surface-3/30 border border-white/5 rounded-2xl p-4 flex items-center gap-3.5 hover:border-[#F26A1B]/30 transition-all">
+                                      <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center shrink-0">
+                                        <Trophy className="w-4.5 h-4.5 text-[#F26A1B]" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-ink truncate">{pr.exercise}</p>
+                                        <p className="text-xs text-ink-3 font-mono mt-0.5">
+                                          Recorde: <span className="text-[#F26A1B] font-bold">{(Number(pr.maxCarga) || 0).toFixed(1)} kg</span> · {formatPRDate(pr.dateStr)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-ink-3 italic">Nenhum recorde registrado ainda.</p>
+                              )}
+                            </div>
+
+                            {/* Block B & C Grid */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {/* Block B: Gráfico de evolução por exercício */}
+                              <div className="bg-surface-3/20 border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
+                                <div className="mb-4">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                      <span className="text-[9px] font-mono uppercase tracking-wider text-ink-3">Evolução do Exercício</span>
+                                      <h4 className="font-display font-bold text-base text-ink mt-0.5">Evolução Histórica</h4>
+                                    </div>
+                                    {exercisesWithCarga.length > 0 && (
+                                      <div className="relative shrink-0">
+                                        <select
+                                          value={activeEx}
+                                          onChange={(e) => setSelectedExForEvolution(e.target.value)}
+                                          className="w-full sm:w-auto bg-surface-2 text-xs font-semibold text-ink border border-white/10 rounded-xl py-2 px-3 pr-8 appearance-none focus:outline-none focus:border-[#F26A1B] cursor-pointer transition-colors"
+                                        >
+                                          {exercisesWithCarga.map((name) => (
+                                            <option key={name} value={name}>{name}</option>
+                                          ))}
+                                        </select>
+                                        <ChevronDown className="w-4 h-4 text-ink-2 absolute right-2.5 top-2.5 pointer-events-none" />
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {evolutionChartData.length >= 2 ? (
+                                  <div className="h-56 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <LineChart data={evolutionChartData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
+                                        <XAxis dataKey="label" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
+                                        <Tooltip 
+                                          contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
+                                          labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
+                                          itemStyle={{ color: '#F26A1B', fontSize: '12px', fontWeight: 'bold' }}
+                                          formatter={(value: any) => [`${value} kg`, 'Carga']}
+                                        />
+                                        <Line 
+                                          type="monotone" 
+                                          dataKey="Carga" 
+                                          stroke="#F26A1B" 
+                                          strokeWidth={3} 
+                                          dot={{ fill: '#F26A1B', strokeWidth: 1 }} 
+                                          activeDot={{ r: 6, strokeWidth: 1 }}
+                                        />
+                                      </LineChart>
+                                    </ResponsiveContainer>
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-48 flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5 p-4">
+                                    <TrendingUp className="w-8 h-8 text-[#F26A1B]/50 mb-2 animate-pulse" />
+                                    <p className="text-xs text-ink-2 font-semibold">Poucos dados ainda — continue treinando</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Block C: Volume semanal */}
+                              <div className="bg-surface-3/20 border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
+                                <div className="mb-4">
+                                  <span className="text-[9px] font-mono uppercase tracking-wider text-ink-3">Sobrecarga Acumulada</span>
+                                  <h4 className="font-display font-bold text-base text-ink mt-0.5">Volume Semanal</h4>
+                                </div>
+
+                                <div className="h-56 w-full">
+                                  {volumeSemanalData.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <BarChart data={volumeSemanalData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
+                                        <XAxis dataKey="semana" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <Tooltip 
+                                          contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
+                                          labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
+                                          itemStyle={{ color: '#F26A1B', fontSize: '12px', fontWeight: 'bold' }}
+                                        />
+                                        <Bar 
+                                          dataKey="Volume total (kg levantados)" 
+                                          fill="#F26A1B" 
+                                          radius={[4, 4, 0, 0]} 
+                                          maxBarSize={30}
+                                        />
+                                      </BarChart>
+                                    </ResponsiveContainer>
+                                  ) : (
+                                    <div className="w-full h-48 flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5">
+                                      <p className="text-xs text-ink-2 font-sans">Sem histórico de volume registrado.</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* BIOMETRICS LISTING SECTIONS */}
                   <div className="space-y-4">
