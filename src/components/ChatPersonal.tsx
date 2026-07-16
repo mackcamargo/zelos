@@ -241,6 +241,22 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
     return conv?.aluno.profile;
   };
 
+  const isUUID = (str: string) => {
+    return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str);
+  };
+
+  const getFirstName = (fullName: string) => {
+    const trimmed = fullName.trim();
+    if (!trimmed) return 'Aluno';
+    return trimmed.split(' ')[0];
+  };
+
+  const getActiveStudentProfileName = () => {
+    const nome = getActiveStudentProfile()?.nome;
+    if (nome && !isUUID(nome)) return nome;
+    return 'Aluno';
+  };
+
   const formatTime = (isoString?: string) => {
     if (!isoString) return '';
     try {
@@ -375,7 +391,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
 
               <div className="min-w-0 flex-1">
                 <h4 className="font-display font-bold text-sm text-ink truncate">
-                  {getActiveStudentProfile()?.nome || 'Aluno'}
+                  {getActiveStudentProfileName()}
                 </h4>
                 <p className="text-[10px] text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-1">
                   <span className="w-1 h-1 bg-emerald-400 rounded-full animate-ping" />
@@ -383,7 +399,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                 </p>
               </div>
 
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 rounded-full text-[9px] font-mono font-bold uppercase">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[9px] font-mono font-bold uppercase">
                 Realtime Ativo
               </div>
             </div>
@@ -401,14 +417,23 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                   <p className="text-xs max-w-xs mt-1">Diga olá para iniciar o contato com este aluno.</p>
                 </div>
               ) : (
-                activeMessages.map((msg) => {
+                activeMessages.map((msg, index) => {
                   const isOwn = msg.autor_id === personalId;
+                  const showSenderName = !isOwn && (index === 0 || activeMessages[index - 1].autor_id !== msg.autor_id);
+                  const studentName = getActiveStudentProfileName();
+                  const studentFirstName = getFirstName(studentName);
+
                   return (
                     <div
                       key={msg.id}
                       className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-fade-in`}
                     >
                       <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                        {showSenderName && (
+                          <span className="text-[11px] font-bold text-[#F26A1B] mb-1 font-mono uppercase tracking-wider">
+                            {studentFirstName}
+                          </span>
+                        )}
                         <div
                           className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                             isOwn
@@ -439,7 +464,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Escreva sua resposta..."
+                placeholder={`Mensagem para ${getFirstName(getActiveStudentProfileName())}...`}
                 className="flex-1 bg-[#141414] text-ink border border-white/5 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26A1B]/40 transition-colors placeholder:text-ink-3"
               />
               <button

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Mensagem } from '../types';
-import { Send, MessageSquare, Shield, Clock } from 'lucide-react';
+import { Send, MessageSquare, Clock } from 'lucide-react';
 
 interface ChatAlunoProps {
   userId: string;
@@ -11,6 +11,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   const [messages, setMessages] = useState<Mensagem[]>([]);
   const [inputText, setInputText] = useState('');
   const [personalId, setPersonalId] = useState<string | null>(null);
+  const [personalProfile, setPersonalProfile] = useState<{ nome: string; avatar_tipo: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -28,8 +29,15 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   useEffect(() => {
     const initChat = async () => {
       setLoading(true);
+      // Fetch personal trainer profile (including 1-step and 2-step fallbacks)
+      const { data: prof } = await dbService.getPersonalProfileForAluno(userId);
+      if (prof) {
+        setPersonalProfile(prof);
+      }
+      
       const { data: pId } = await dbService.getPersonalIdForAluno(userId);
       setPersonalId(pId);
+      
       await loadMessages();
       await dbService.marcarMensagensLidas(userId, userId);
       setLoading(false);
@@ -115,21 +123,37 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
     }
   };
 
+  const isUUID = (str: string) => {
+    return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(str);
+  };
+
+  const rawName = personalProfile?.nome || '';
+  const personalName = rawName && !isUUID(rawName) ? rawName : 'Seu Personal';
+  const isFemale = personalProfile?.avatar_tipo === 'feminino';
+
+  const getFirstName = (fullName: string) => {
+    const trimmed = fullName.trim();
+    if (!trimmed) return 'Personal';
+    return trimmed.split(' ')[0];
+  };
+
+  const personalFirstName = getFirstName(personalName);
+
   return (
     <div id="chat-aluno-container" className="flex flex-col h-[calc(100vh-14rem)] md:h-[600px] bg-surface-2 rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
       {/* Header */}
       <div className="bg-surface-3 px-6 py-4 border-b border-white/5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/20">
-            <Shield className="w-5 h-5 text-[#F26A1B]" />
+          <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-2xl bg-surface-2 shadow-inner">
+            {isFemale ? '👩' : '👨'}
           </div>
           <div>
-            <h3 className="font-display font-bold text-base text-ink">Canal Direto</h3>
-            <p className="text-[10px] text-[#F26A1B] font-mono uppercase tracking-wider">Fale com seu Personal Trainer</p>
+            <h3 className="font-display font-bold text-base text-ink leading-tight">{personalName}</h3>
+            <p className="text-[10px] text-ink-3 font-mono uppercase tracking-wider mt-0.5">Seu Personal Trainer</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 rounded-full text-[10px] font-mono font-bold uppercase">
-          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
+        <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[10px] font-mono font-bold uppercase">
+          <span className="w-1.5 h-1.5 bg-[#F26A1B] rounded-full animate-ping" />
           Realtime Ativo
         </div>
       </div>
@@ -147,14 +171,21 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
             <p className="text-xs mt-1 max-w-xs">Envie uma mensagem abaixo para iniciar sua conversa com o seu personal trainer.</p>
           </div>
         ) : (
-          messages.map((msg) => {
+          messages.map((msg, index) => {
             const isOwn = msg.autor_id === userId;
+            const showSenderName = !isOwn && (index === 0 || messages[index - 1].autor_id !== msg.autor_id);
+            
             return (
               <div
                 key={msg.id}
                 className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                  {showSenderName && (
+                    <span className="text-[11px] font-bold text-[#F26A1B] mb-1 font-mono uppercase tracking-wider">
+                      {personalFirstName}
+                    </span>
+                  )}
                   <div
                     className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                       isOwn
@@ -185,7 +216,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Digite sua mensagem para o personal..."
+          placeholder={`Mensagem para ${personalFirstName}...`}
           className="flex-1 bg-surface-2 text-ink border border-white/5 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26A1B]/40 transition-colors placeholder:text-ink-3"
         />
         <button

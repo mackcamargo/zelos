@@ -1917,6 +1917,66 @@ export const dbService = {
     return { data: a ? a.personal_id : null, error: null };
   },
 
+  async getPersonalProfileForAluno(alunoId: string): Promise<{ data: { nome: string; avatar_tipo: string } | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: alunoRow, error } = await supabase
+          .from("alunos")
+          .select("personal_id, personais(profiles(nome, avatar_tipo))")
+          .eq("id", alunoId)
+          .maybeSingle();
+
+        if (!error && alunoRow) {
+          const personais = (alunoRow as any).personais;
+          if (personais) {
+            const personalObj = Array.isArray(personais) ? personais[0] : personais;
+            const profileObj = personalObj?.profiles;
+            if (profileObj) {
+              const finalProfile = Array.isArray(profileObj) ? profileObj[0] : profileObj;
+              if (finalProfile?.nome) {
+                return { data: { nome: finalProfile.nome, avatar_tipo: finalProfile.avatar_tipo || 'masculino' }, error: null };
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Embed personal fetch failed, trying 2-step", e);
+      }
+
+      const { data: pId, error: pIdError } = await this.getPersonalIdForAluno(alunoId);
+      if (pIdError || !pId) return { data: null, error: pIdError };
+
+      const { data: profile, error: profError } = await supabase
+        .from("profiles")
+        .select("nome, avatar_tipo")
+        .eq("id", pId)
+        .maybeSingle();
+
+      if (profError) return { data: null, error: profError };
+      if (profile) {
+        return { data: { nome: profile.nome, avatar_tipo: profile.avatar_tipo || 'masculino' }, error: null };
+      }
+      return { data: null, error: null };
+    }
+
+    const alunos = loadMockAlunos();
+    const a = alunos.find(al => al.id === alunoId);
+    if (!a || !a.personal_id) return { data: null, error: null };
+
+    const users = load('zenite_mock_users', []);
+    const personalUser = users.find((u: any) => u.id === a.personal_id);
+    if (personalUser && personalUser.profile) {
+      return {
+        data: {
+          nome: personalUser.profile.nome,
+          avatar_tipo: personalUser.profile.avatar_tipo || 'masculino'
+        },
+        error: null
+      };
+    }
+    return { data: { nome: 'Marcelo Camargo', avatar_tipo: 'masculino' }, error: null };
+  },
+
   async getMensagens(alunoId: string): Promise<{ data: Mensagem[]; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.from('mensagens').select('*').eq('aluno_id', alunoId).order('criado_em', { ascending: true });
