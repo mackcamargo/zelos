@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { dbService } from '../lib/supabase';
 import { RegistroHidratacao } from '../types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { tocar } from '../lib/som';
 
 interface HidratacaoCardProps {
   alunoId: string;
@@ -61,6 +62,13 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
     setSaving(true);
     try {
       const novoTotal = consumido + incremento;
+      
+      if (novoTotal >= meta && consumido < meta) {
+        tocar('celebracao');
+      } else {
+        tocar('toggleOn');
+      }
+
       const { error } = await dbService.saveRegistroHidratacao({
         aluno_id: alunoId,
         ml: novoTotal,
@@ -92,6 +100,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   const handleSaveMeta = async () => {
     setSaving(true);
     try {
+      tocar('sucesso');
       const valor = Number(meta) || 2000;
       await dbService.setMetaHidratacao(alunoId, valor);
       setShowSettings(false);
@@ -137,7 +146,10 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
               <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Acompanhamento Diário</p>
             </div>
             <button 
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={() => {
+                setShowSettings(!showSettings);
+                tocar('tap');
+              }}
               className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-ink-3 transition-colors"
             >
               <Settings className="w-4 h-4" />

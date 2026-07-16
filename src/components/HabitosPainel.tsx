@@ -6,6 +6,7 @@ import {
   Trophy, TrendingUp, Loader2, Sparkles
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { tocar } from '../lib/som';
 
 interface HabitosPainelProps {
   alunoId: string;
@@ -85,6 +86,23 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
 
   const handleToggleHabito = async (h: Habito, currentStatus: boolean) => {
     const novoValor = !currentStatus;
+
+    // Sound logic
+    if (novoValor) {
+      const totalHabitos = habitos.length;
+      const concluidoHoje = habitos.filter(item => {
+        const registros = item.habitos_registros || item.registros || [];
+        return registros.some(r => r.data === hoje && r.concluido);
+      }).length;
+
+      if (concluidoHoje + 1 === totalHabitos) {
+        tocar('celebracao');
+      } else {
+        tocar('toggleOn');
+      }
+    } else {
+      tocar('toggleOff');
+    }
     
     // Optimistic update
     setHabitos(prev => prev.map(item => {

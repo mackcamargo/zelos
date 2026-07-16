@@ -5,6 +5,7 @@ import Auth from './components/Auth';
 import PersonalArea from './components/PersonalArea';
 import AlunoArea from './components/AlunoArea';
 import { Sparkles, Terminal } from 'lucide-react';
+import { initSom } from './lib/som';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -12,6 +13,10 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [showConviteConflict, setShowConviteConflict] = useState(false);
   const [conviteCode, setConviteCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    initSom();
+  }, []);
 
   // Initialize and check current session
   const checkSession = async () => {

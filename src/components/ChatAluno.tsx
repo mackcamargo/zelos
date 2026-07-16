@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Mensagem } from '../types';
 import { Send, MessageSquare, Clock, Pencil, Trash2, X, Check, MoreVertical } from 'lucide-react';
+import { tocar } from '../lib/som';
 
 interface ChatAlunoProps {
   userId: string;
@@ -69,6 +70,9 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
           (payload) => {
             if (payload.eventType === 'INSERT') {
               const newMsg = payload.new as Mensagem;
+              if (newMsg.autor_id !== userId) {
+                tocar('receber');
+              }
               setMessages((prev) => {
                 // Avoid duplicate messages
                 if (prev.some((m) => m.id === newMsg.id)) return prev;
@@ -101,11 +105,19 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
 
     window.addEventListener('zenite_mensagem_enviada', handleMockMsg);
 
+    const handleMockReceive = (e: any) => {
+      if (e.detail?.aluno_id === userId && e.detail?.autor_id !== userId) {
+        tocar('receber');
+      }
+    };
+    window.addEventListener('zenite_mensagem_enviada', handleMockReceive);
+
     return () => {
       if (canal) {
         supabase.removeChannel(canal);
       }
       window.removeEventListener('zenite_mensagem_enviada', handleMockMsg);
+      window.removeEventListener('zenite_mensagem_enviada', handleMockReceive);
     };
   }, [userId]);
 
@@ -120,6 +132,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
 
     const currentText = inputText.trim();
     setInputText('');
+    tocar('enviar');
 
     const targetPersonalId = personalId || '00000000-0000-0000-0000-000000000000'; // fallback
     const { data: newMsg, error } = await dbService.enviarMensagem(targetPersonalId, userId, userId, currentText);

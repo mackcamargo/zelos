@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Aluno, Mensagem } from '../types';
 import { Send, MessageSquare, Search, ArrowLeft, Clock, Sparkles, Pencil, Trash2, X, Check, MoreVertical } from 'lucide-react';
+import { tocar } from '../lib/som';
 
 interface ChatPersonalProps {
   personalId: string;
@@ -163,6 +164,11 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
           (payload) => {
             const newMsg = payload.new as Mensagem;
             if (!newMsg) return;
+
+            if (newMsg.autor_id !== personalId) {
+              tocar('receber');
+            }
+
             // Update preview and unread count in conversations list
             setConversations((prev) => {
               const idx = prev.findIndex((c) => c.aluno.id === newMsg.aluno_id);
@@ -263,6 +269,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
 
     const currentText = inputText.trim();
     setInputText('');
+    tocar('enviar');
 
     const { data: newMsg } = await dbService.enviarMensagem(personalId, selectedAlunoId, personalId, currentText);
     if (newMsg) {
@@ -283,6 +290,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
   };
 
   const handleSelectAluno = (alunoId: string) => {
+    tocar('tap');
     setSelectedAlunoId(alunoId);
     loadActiveChat(alunoId);
   };

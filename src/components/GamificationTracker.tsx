@@ -3,6 +3,7 @@ import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Conquista, AlunoConquista, RecordePessoal } from '../types';
 import CelebrationModal from './CelebrationModal';
 import { AnimatePresence } from 'motion/react';
+import { tocar } from '../lib/som';
 
 interface GamificationContextType {
   checkPR: (exercicioId: number, exercicioNome: string, cargaKg: number) => Promise<boolean>;
@@ -115,6 +116,7 @@ export default function GamificationProvider({ alunoId, children }: { alunoId: s
     const { isNewPR, data } = await dbService.checkAndSavePR(alunoId, exercicioId as any, exercicioNome as any, cargaKg as any);
     
     if (isNewPR && data) {
+      tocar('recorde');
       setCelebration({
         type: 'pr',
         title: `${exercicioNome} — ${cargaKg} kg`,
@@ -138,6 +140,7 @@ export default function GamificationProvider({ alunoId, children }: { alunoId: s
   const unlockBadge = async (slug: string) => {
     const { data, error } = await dbService.desbloquearConquista(alunoId, slug);
     if (data && !error) {
+      tocar('celebracao');
       setCelebration({
         type: 'conquista',
         title: data.conquista?.nome || 'Nova Conquista!',

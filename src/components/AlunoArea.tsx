@@ -6,7 +6,8 @@ import {
   ShieldCheck, Heart, ArrowLeft, CheckCircle, Play, Sparkles, 
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
-  Trophy
+  Trophy,
+  Volume2, VolumeX
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -24,6 +25,7 @@ import AgendamentoPainel from './AgendamentoPainel';
 import ChatAluno from './ChatAluno';
 import { MessageSquare } from 'lucide-react';
 import { Checkin } from '../types';
+import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
 
 interface AlunoAreaProps {
   userId: string;
@@ -53,6 +55,19 @@ const getStartOfWeek = (d: Date = new Date()) => {
 function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: AlunoAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('treino');
   const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
+  const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
+
+  const toggleSom = () => {
+    const novo = !somHabilitado;
+    setSomLocal(novo);
+    setSomHabilitado(novo);
+    tocar('tap');
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    tocar('tap');
+  };
 
   const fetchUnreadCount = async () => {
     if (!userId) return;
@@ -598,6 +613,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
   const toggleSeriesDone = async (sKey: string, item: any, sNum: number) => {
     const isNowDone = !completedSeries[sKey];
+    
+    // Sound trigger
+    if (isNowDone) {
+      tocar('toggleOn');
+    } else {
+      tocar('toggleOff');
+    }
+
     const updatedCompleted = { ...completedSeries, [sKey]: isNowDone };
     setCompletedSeries(updatedCompleted);
 
@@ -641,6 +664,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
             // If trigger updated the status to 'concluido' on the database
             if (newStatus === 'concluido' && oldStatus !== 'concluido') {
+              tocar('celebracao');
               setExpandido(false);
               setShowCelebration(true);
               if (userId) {
@@ -1302,6 +1326,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   setNewMetricaError('');
                   setNewMetricaValor('');
                   setShowAddMetricaModal(true);
+                  tocar('abrir');
                 }}
                 className="self-start sm:self-center bg-flame hover:bg-flame-hover text-white font-semibold text-xs py-2.5 px-4 rounded-xl flex items-center gap-2 shadow-lg shadow-flame/20 cursor-pointer transition-colors font-sans border-0 outline-none"
               >
@@ -1351,7 +1376,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
               {!checkinDaSemana && (
                 <button
-                  onClick={() => setShowCheckinForm(true)}
+                  onClick={() => {
+                    setShowCheckinForm(true);
+                    tocar('abrir');
+                  }}
                   className="w-full sm:w-auto px-8 py-3 bg-white text-void rounded-xl font-display font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all z-10"
                 >
                   FAZER CHECK-IN
@@ -1369,7 +1397,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   <h3 className="font-display font-bold text-lg text-ink">Fotos de Evolução</h3>
                 </div>
                 <button
-                  onClick={() => setShowFotoUpload(true)}
+                  onClick={() => {
+                    setShowFotoUpload(true);
+                    tocar('abrir');
+                  }}
                   className="flex items-center gap-2 px-4 py-2 bg-surface-3 border border-white/10 rounded-xl text-[10px] font-mono font-bold text-ink hover:border-flame/30 transition-all uppercase tracking-widest"
                 >
                   <Plus className="w-3 h-3" /> REGISTRAR FOTO
@@ -1388,10 +1419,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 <FotoProgressoUpload
                   alunoId={userId}
                   personalId={personalId}
-                  onClose={() => setShowFotoUpload(false)}
+                  onClose={() => {
+                    setShowFotoUpload(false);
+                    tocar('fechar');
+                  }}
                   onSuccess={() => {
                     setFotoRefreshTrigger(prev => prev + 1);
                     setShowFotoUpload(false);
+                    tocar('sucesso');
                   }}
                 />
               )}
@@ -1404,10 +1439,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   alunoId={userId}
                   personalId={personalId}
                   semana={getStartOfWeek()}
-                  onClose={() => setShowCheckinForm(false)}
+                  onClose={() => {
+                    setShowCheckinForm(false);
+                    tocar('fechar');
+                  }}
                   onSuccess={async () => {
                     await fetchCheckinDaSemana();
                     setShowCheckinForm(false);
+                    tocar('sucesso');
                     await checkAchievements('checkin');
                   }}
                 />
@@ -2209,6 +2248,28 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 </div>
               </div>
 
+              {/* Sound Settings */}
+              <div className="p-5 bg-surface-2 border border-white/5 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-flame/10 rounded-xl">
+                      <Volume2 className="w-4 h-4 text-flame" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-ink">Sons do App</p>
+                      <p className="text-[10px] text-ink-3 uppercase font-mono">Feedback sonoro sintetizado</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleSom}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${somHabilitado ? 'bg-flame' : 'bg-white/10'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${somHabilitado ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
+              </div>
+
               {/* Sign out button */}
               <div className="pt-4">
                 <button
@@ -2456,7 +2517,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 <div className="pt-2 flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowAddMetricaModal(false)}
+                    onClick={() => {
+                      setShowAddMetricaModal(false);
+                      tocar('fechar');
+                    }}
                     className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-display font-bold text-ink text-xs transition-colors cursor-pointer"
                   >
                     Cancelar

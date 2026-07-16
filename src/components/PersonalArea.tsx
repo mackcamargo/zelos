@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarConteudo from './GerenciarConteudo';
@@ -12,6 +12,7 @@ import GerenciarCheckins from './GerenciarCheckins';
 import { DashPersonalBemEstar } from './DashPersonalBemEstar';
 import ChatPersonal from './ChatPersonal';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
 
 interface PersonalAreaProps {
   userId: string;
@@ -28,6 +29,20 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
+
+  const toggleSom = () => {
+    const novo = !somHabilitado;
+    setSomLocal(novo);
+    setSomHabilitado(novo);
+    tocar('tap');
+  };
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    tocar('tap');
+    if (isMobileOpen) setIsMobileOpen(false);
+  };
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
@@ -88,7 +103,10 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
           {isCollapsed ? (
             <button
               type="button"
-              onClick={() => setIsCollapsed(false)}
+              onClick={() => {
+                setIsCollapsed(false);
+                tocar('abrir');
+              }}
               className="font-display font-black text-2xl tracking-tight text-[#F26A1B] hover:scale-110 transition-transform focus:outline-none cursor-pointer"
               title="Expandir menu"
             >
@@ -98,7 +116,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
             <>
               <button
                 type="button"
-                onClick={() => setActiveTab('dashboard')}
+                onClick={() => handleTabChange('dashboard')}
                 className="font-display font-black text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
               >
                 ZÊNI<span className="text-[#F26A1B]">TE</span>
@@ -106,14 +124,27 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   Pro
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => setIsCollapsed(true)}
-                className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-white/5 transition-colors cursor-pointer"
-                title="Recolher menu"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={toggleSom}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-ink-3 hover:text-ink transition-colors"
+                  title={somHabilitado ? "Silenciar sons" : "Ativar sons"}
+                >
+                  {somHabilitado ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCollapsed(true);
+                    tocar('fechar');
+                  }}
+                  className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-white/5 transition-colors cursor-pointer"
+                  title="Recolher menu"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -127,9 +158,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
               <div key={item.id} className="relative group/tooltip">
                 <button
                   type="button"
-                  onClick={() => {
-                    setActiveTab(item.id as TabType);
-                  }}
+                  onClick={() => handleTabChange(item.id as TabType)}
                   className={`w-full flex items-center ${
                     isCollapsed ? 'justify-center px-2' : 'px-4'
                   } py-3 gap-3 rounded-xl transition-all duration-200 relative group/btn cursor-pointer ${
@@ -517,11 +546,33 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 <button
                   id="btn-goto-admin"
                   type="button"
-                  onClick={() => setActiveTab('gerenciar')}
+                  onClick={() => handleTabChange('gerenciar')}
                   className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-violet text-void text-xs font-bold transition-all hover:bg-violet/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
                 >
                   ⚙️ Gerenciar Exercícios
                 </button>
+              </div>
+
+              {/* Sound Settings */}
+              <div className="p-5 bg-surface-2 border border-white/5 rounded-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-flame/10 rounded-xl">
+                      <Volume2 className="w-4 h-4 text-flame" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-ink">Sons do App</p>
+                      <p className="text-[10px] text-ink-3 uppercase font-mono">Feedback sonoro sintetizado</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleSom}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${somHabilitado ? 'bg-flame' : 'bg-white/10'}`}
+                  >
+                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${somHabilitado ? 'left-7' : 'left-1'}`} />
+                  </button>
+                </div>
               </div>
 
               {/* Sign out button */}
