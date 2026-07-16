@@ -133,7 +133,7 @@ export default function App() {
           setProfile({
             id: currentUser.id,
             papel: currentUser.user_metadata?.papel || 'personal',
-            nome: currentUser.user_metadata?.nome || 'Membro Zênite',
+            nome: currentUser.user_metadata?.nome || 'Membro Zelos',
             avatar_url: currentUser.user_metadata?.avatar_url || null,
             avatar_tipo: currentUser.user_metadata?.avatar_tipo || 'masculino',
             criado_em: new Date().toISOString()
@@ -163,7 +163,7 @@ export default function App() {
         setProfile({
           id: authenticatedUser.id,
           papel: authenticatedUser.user_metadata?.papel || 'personal',
-          nome: authenticatedUser.user_metadata?.nome || 'Membro Zênite',
+          nome: authenticatedUser.user_metadata?.nome || 'Membro Zelos',
           avatar_url: authenticatedUser.user_metadata?.avatar_url || null,
           avatar_tipo: authenticatedUser.user_metadata?.avatar_tipo || 'masculino',
           criado_em: new Date().toISOString()
@@ -196,7 +196,7 @@ export default function App() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-gradient-to-tr from-[#F5334F]/10 via-[#FF6A2B]/5 to-transparent blur-3xl rounded-full pointer-events-none" />
         <div className="text-center relative z-10 space-y-4">
           <span className="font-display font-black text-5xl tracking-tight select-none">
-            ZÊNI<span className="brand-gradient-text">TE</span>
+            ZE<span className="brand-gradient-text">LOS</span>
           </span>
           <div className="flex justify-center items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full brand-gradient-bg animate-bounce [animation-delay:-0.3s]" />

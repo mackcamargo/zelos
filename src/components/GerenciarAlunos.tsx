@@ -1024,7 +1024,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
               <div className="flex justify-between items-start pb-4 border-b border-white/5 mb-6">
                 <div>
                   <h3 className="font-display font-bold text-lg text-ink">Adicionar Aluno à Equipe</h3>
-                  <p className="text-xs text-ink-2">Escolha o método para integrar o novo aluno ao Zênite.</p>
+                  <p className="text-xs text-ink-2">Escolha o método para integrar o novo aluno ao Zelos.</p>
                 </div>
                 <button
                   id="btn-close-add-modal"
@@ -1144,7 +1144,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                         <a
                           id="btn-whatsapp-share"
                           href={`https://wa.me/?text=${encodeURIComponent(
-                            `Olá ${conviteNome}! Aqui está o seu link exclusivo para se cadastrar no ZÊNITE: ${window.location.origin}/?convite=${generatedCode}\n\nCódigo de convite: ${generatedCode}`
+                            `Olá ${conviteNome}! Aqui está o seu link exclusivo para se cadastrar no ZELOS: ${window.location.origin}/?convite=${generatedCode}\n\nCódigo de convite: ${generatedCode}`
                           )}`}
                           target="_blank"
                           rel="noreferrer noopener"

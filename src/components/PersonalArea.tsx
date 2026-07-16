@@ -180,7 +180,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 data-sem-som
                 className="font-display font-black text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
               >
-                ZÊNI<span className="text-[#F26A1B]">TE</span>
+                ZE<span className="text-[#F26A1B]">LOS</span>
                 <span className="text-[9px] font-mono uppercase bg-[#F26A1B]/15 text-[#F26A1B] px-1.5 py-0.5 rounded-full border border-[#F26A1B]/20 ml-1.5 align-middle">
                   Pro
                 </span>
@@ -342,7 +342,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/5 h-16 shrink-0">
           <span className="font-display font-black text-xl tracking-tight">
-            ZÊNI<span className="text-[#F26A1B]">TE</span>
+            ZE<span className="text-[#F26A1B]">LOS</span>
           </span>
           <button
             type="button"

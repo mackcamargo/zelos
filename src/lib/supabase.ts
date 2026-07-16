@@ -72,7 +72,7 @@ const save = (key: string, data: any) => {
 const loadMockUsers = (): MockUser[] => load('zenite_mock_users', [
   {
     id: 'personal-demo-id',
-    email: 'personal@zenite.com',
+    email: 'personal@zelos.com',
     nome: 'Rodrigo Personal',
     papel: 'personal',
     avatar_tipo: 'masculino',
@@ -81,7 +81,7 @@ const loadMockUsers = (): MockUser[] => load('zenite_mock_users', [
   },
   {
     id: 'aluno-demo-id',
-    email: 'aluno@zenite.com',
+    email: 'aluno@zelos.com',
     nome: 'Juliana Aluna',
     papel: 'aluno',
     avatar_tipo: 'feminino',
@@ -125,7 +125,7 @@ const loadMockConvites = () => load('zenite_mock_convites', [
   {
     id: 1,
     personal_id: 'personal-demo-id',
-    codigo: 'ZEN-DEMO-123',
+    codigo: 'ZEL-DEMO-123',
     usado: false,
     criado_em: new Date().toISOString()
   }
@@ -230,6 +230,19 @@ export const authService = {
     if (isSupabaseConfigured && supabase) {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/?recuperar=1`,
+      });
+      return { error };
+    }
+    // Modo Demo: simula sucesso sempre
+    return { error: null };
+  },
+
+  async verifyOtp(email: string, token: string) {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: token.trim(),
+        type: 'recovery',
       });
       return { error };
     }

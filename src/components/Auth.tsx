@@ -11,12 +11,13 @@ interface AuthProps {
 }
 
 export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRecoveryComplete }: AuthProps) {
-  const [view, setView] = useState<'auth' | 'forgot' | 'reset'>(initialRecoveryMode ? 'reset' : 'auth');
+  const [view, setView] = useState<'auth' | 'forgot' | 'otp' | 'reset'>(initialRecoveryMode ? 'reset' : 'auth');
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [nome, setNome] = useState('');
   const [papel, setPapel] = useState<PapelUsuario>('personal');
   const [avatarTipo, setAvatarTipo] = useState<TipoAvatar>('masculino');
@@ -66,10 +67,35 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
       if (resetError) {
         setError(resetError.message);
       } else {
-        setSuccessMessage('Se este e-mail estiver cadastrado, enviamos um link de recuperação. Verifique sua caixa de entrada e o spam.');
+        setSuccessMessage('Se este e-mail estiver cadastrado, enviamos um link ou código de recuperação. Verifique sua caixa de entrada.');
+        // Transição automática para o campo de código para facilitar
+        setTimeout(() => {
+          setView('otp');
+          setSuccessMessage(null);
+        }, 3000);
       }
     } catch (err: any) {
       setError(err?.message || 'Ocorreu um erro ao enviar o e-mail de recuperação.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccessMessage(null);
+    setLoading(true);
+
+    try {
+      const { error: verifyError } = await authService.verifyOtp(email, otpCode);
+      if (verifyError) {
+        setError(verifyError.message);
+      } else {
+        setView('reset');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Erro ao validar o código.');
     } finally {
       setLoading(false);
     }
@@ -231,16 +257,18 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         {/* Wordmark Logo */}
         <div className="text-center mb-8">
           <span className="font-display font-extrabold text-5xl tracking-tight select-none">
-            ZÊNI<span className="brand-gradient-text">TE</span>
+            ZE<span className="brand-gradient-text">LOS</span>
           </span>
           <p className="text-ink-2 font-sans font-light text-sm mt-3 tracking-wide">
             {view === 'reset' 
               ? 'Defina sua nova credencial de acesso'
-              : view === 'forgot'
-                ? 'Recupere seu acesso à plataforma'
-                : isLogin 
-                  ? 'Ative o seu potencial máximo' 
-                  : 'Faça parte da elite do treinamento'
+              : view === 'otp'
+                ? 'Validação de Segurança'
+                : view === 'forgot'
+                  ? 'Recupere seu acesso à plataforma'
+                  : isLogin 
+                    ? 'Ative o seu potencial máximo' 
+                    : 'Faça parte da elite do treinamento'
             }
           </p>
         </div>
@@ -281,8 +309,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             <span className="font-semibold text-violet block mb-1">💡 MODO DEMO ATIVO</span>
             <p className="mb-1">Utilize qualquer e-mail e senha para testar. Sugestões:</p>
             <ul className="list-disc pl-4 space-y-1 font-mono text-[10px]">
-              <li>Personal: <span className="text-ink">personal@zenite.com</span></li>
-              <li>Aluno: <span className="text-ink">aluno@zenite.com</span></li>
+              <li>Personal: <span className="text-ink">personal@zelos.com</span></li>
+              <li>Aluno: <span className="text-ink">aluno@zelos.com</span></li>
             </ul>
           </div>
         )}
@@ -441,7 +469,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="exemplo@zenite.com"
+                  placeholder="exemplo@zelos.com"
                   className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
                 />
               </div>
@@ -514,7 +542,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="exemplo@zenite.com"
+                  placeholder="exemplo@zelos.com"
                   className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
                 />
               </div>
@@ -530,18 +558,77 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Enviar Link de Recuperação</span>
+                  <span>Enviar Link ou Código</span>
                   <Mail className="w-5 h-5" />
+                </>
+              )}
+            </button>
+
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => { setView('otp'); setError(null); setSuccessMessage(null); }}
+                className="w-full text-[10px] font-mono uppercase tracking-widest text-violet hover:text-ink transition-colors"
+              >
+                Já tenho um código de 6 dígitos
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => { setView('auth'); setError(null); setSuccessMessage(null); }}
+                className="w-full text-xs font-mono uppercase tracking-widest text-ink-3 hover:text-ink transition-colors"
+              >
+                Voltar para o Login
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* VIEW: OTP CODE ENTRY */}
+        {view === 'otp' && (
+          <form onSubmit={handleVerifyOtp} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Código de 6 dígitos</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
+                <input
+                  id="input-otp-code"
+                  type="text"
+                  required
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-center text-xl font-mono tracking-[0.5em] text-ink placeholder-ink-3 outline-none transition-all"
+                />
+              </div>
+              <p className="text-[10px] text-ink-3 font-sans leading-relaxed text-center">
+                Insira o código enviado para <span className="text-ink-2">{email || 'seu e-mail'}</span>
+              </p>
+            </div>
+
+            <button
+              id="btn-otp-submit"
+              type="submit"
+              disabled={loading || otpCode.length < 6}
+              className="w-full py-4 px-6 rounded-2xl brand-gradient-bg font-display font-semibold text-void hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.3)] disabled:opacity-50 disabled:pointer-events-none"
+            >
+              {loading ? (
+                <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>Validar Código</span>
+                  <Check className="w-5 h-5" />
                 </>
               )}
             </button>
 
             <button
               type="button"
-              onClick={() => { setView('auth'); setError(null); setSuccessMessage(null); }}
+              onClick={() => { setView('forgot'); setError(null); setSuccessMessage(null); }}
               className="w-full text-xs font-mono uppercase tracking-widest text-ink-3 hover:text-ink transition-colors"
             >
-              Voltar para o Login
+              Não recebi o código
             </button>
           </form>
         )}

@@ -809,7 +809,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           <div>
             <div className="flex items-center gap-2">
               <span className="font-display font-black text-2xl tracking-tight">
-                ZÊNI<span className="brand-gradient-text">TE</span>
+                ZE<span className="brand-gradient-text">LOS</span>
               </span>
               <span className="text-[10px] font-mono uppercase bg-violet/15 text-violet px-2.5 py-0.5 rounded-full border border-violet/20 font-bold">
                 Aluno
