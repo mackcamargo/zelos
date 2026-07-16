@@ -58,9 +58,14 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
   };
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior });
+    }
   };
 
   const loadConversations = async () => {
@@ -324,16 +329,17 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
   };
 
   const filteredConversations = conversations.filter((c) => {
+    if (c.aluno.ativo === false) return false;
     const nome = c.aluno.profile?.nome || '';
     return nome.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   return (
-    <div id="chat-personal-container" className="grid grid-cols-1 md:grid-cols-12 bg-surface rounded-3xl border border-white/5 overflow-hidden h-[calc(100vh-12rem)] shadow-2xl">
+    <div id="chat-personal-container" className="grid grid-cols-1 md:grid-cols-12 bg-surface rounded-3xl border border-white/5 overflow-hidden h-[calc(100vh-120px)] shadow-2xl">
       {/* LEFT COLUMN: Student Conversation List */}
-      <div className={`md:col-span-4 border-r border-white/5 flex flex-col bg-[#141414] ${selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`md:col-span-4 border-r border-white/5 flex flex-col bg-[#141414] h-full overflow-hidden ${selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
         {/* Search Header */}
-        <div className="p-4 border-b border-white/5 space-y-3">
+        <div className="p-4 border-b border-white/5 space-y-3 shrink-0">
           <div className="flex items-center justify-between">
             <h3 className="font-display font-bold text-lg text-ink uppercase tracking-tight italic">Alunos Ativos</h3>
             <span className="text-[10px] bg-[#F26A1B]/15 text-[#F26A1B] px-2 py-0.5 rounded-full font-mono font-bold uppercase">Chat</span>
@@ -351,7 +357,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-white/[0.02]">
+        <div className="flex-1 overflow-y-auto min-h-0 divide-y divide-white/[0.02]">
           {loadingList ? (
             <div className="h-48 flex items-center justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#F26A1B]" />
@@ -418,34 +424,36 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
       </div>
 
       {/* RIGHT COLUMN: Active Chat Frame */}
-      <div className={`md:col-span-8 flex flex-col bg-surface-2 ${!selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`md:col-span-8 flex flex-col bg-surface-2 h-full overflow-hidden ${!selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
         {selectedAlunoId ? (
           <>
             {/* Active chat header */}
-            <div className="px-6 py-4 bg-surface border-b border-white/5 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedAlunoId(null)}
-                className="md:hidden p-1.5 rounded-lg hover:bg-white/5 text-ink-2 active:scale-95 transition-all cursor-pointer"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              
-              <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-xl bg-surface-3">
-                {getActiveStudentProfile()?.avatar_tipo === 'feminino' ? '👩' : '👨'}
+            <div className="bg-surface px-6 py-4 border-b border-white/5 flex items-center justify-between shrink-0 z-10">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedAlunoId(null)}
+                  className="md:hidden p-1.5 rounded-lg hover:bg-white/5 text-ink-2 active:scale-95 transition-all cursor-pointer"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-2xl bg-surface-3 shadow-inner">
+                  {getActiveStudentProfile()?.avatar_tipo === 'feminino' ? '👩' : '👨'}
+                </div>
+
+                <div>
+                  <h3 className="font-display font-bold text-base text-ink leading-tight">
+                    {getActiveStudentProfileName()}
+                  </h3>
+                  <p className="text-[10px] text-ink-3 font-mono uppercase tracking-wider mt-0.5">
+                    Seu Aluno
+                  </p>
+                </div>
               </div>
 
-              <div className="min-w-0 flex-1">
-                <h4 className="font-display font-bold text-sm text-ink truncate">
-                  {getActiveStudentProfileName()}
-                </h4>
-                <p className="text-[10px] text-emerald-400 font-mono uppercase tracking-wider flex items-center gap-1">
-                  <span className="w-1 h-1 bg-emerald-400 rounded-full animate-ping" />
-                  Ativo na plataforma
-                </p>
-              </div>
-
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[9px] font-mono font-bold uppercase">
+              <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[10px] font-mono font-bold uppercase shrink-0">
+                <span className="w-1.5 h-1.5 bg-[#F26A1B] rounded-full animate-ping" />
                 Realtime Ativo
               </div>
             </div>
@@ -461,7 +469,10 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
             )}
 
             {/* Chat bubble list */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto min-h-0 p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent"
+            >
               {loadingChat ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#F26A1B]" />
@@ -618,7 +629,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSend} className="p-4 bg-surface border-t border-white/5 flex gap-2">
+            <form onSubmit={handleSend} className="p-4 bg-surface border-t border-white/5 flex gap-2 shrink-0">
               <input
                 type="text"
                 value={inputText}
@@ -636,7 +647,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
             </form>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-ink-3">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-ink-3 h-full justify-center">
             <MessageSquare className="w-16 h-16 text-[#F26A1B]/15 mb-4 animate-pulse" />
             <h3 className="font-display font-bold text-lg text-ink">Centro de Mensagens</h3>
             <p className="text-sm max-w-sm mt-1">Selecione um aluno na barra lateral esquerda para visualizar o histórico de conversas e enviar mensagens em tempo real.</p>

@@ -333,7 +333,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
               </button>
 
               <div>
-                <h1 className="font-display font-black text-xl text-ink tracking-tight uppercase italic flex items-center gap-2">
+                <h1 className="font-display font-black text-xl text-ink tracking-tight uppercase italic flex items-center gap-2 whitespace-nowrap">
                   {activeTab === 'dashboard' && <>Dash<span className="text-[#F26A1B]">board</span></>}
                   {activeTab === 'alunos' && <>Alu<span className="text-[#F26A1B]">nos</span></>}
                   {activeTab === 'exercicios' && <>Exer<span className="text-[#F26A1B]">cícios</span></>}
