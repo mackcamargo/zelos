@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { dbService } from '../lib/supabase';
+import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Conquista, AlunoConquista, RecordePessoal } from '../types';
 import CelebrationModal from './CelebrationModal';
 import { AnimatePresence } from 'motion/react';
@@ -33,10 +33,80 @@ export default function GamificationProvider({ alunoId, children }: { alunoId: s
   }, [alunoId]);
 
   const loadStreak = async () => {
-    // Simplified streak calculation for mock
-    const key = `zenite_mock_streak_${alunoId}`;
-    const s = parseInt(localStorage.getItem(key) || '0');
-    setStreak(s);
+    try {
+      let habits: any[] = [];
+      let registrations: any[] = [];
+
+      if (isSupabaseConfigured && supabase) {
+        const { data: hData } = await supabase.from("habitos").select("id").eq("aluno_id", alunoId).eq("ativo", true);
+        const { data: rData } = await supabase.from("habitos_registros").select("data, habito_id, concluido").eq("aluno_id", alunoId);
+        habits = hData || [];
+        registrations = rData || [];
+      } else {
+        const hMock = JSON.parse(localStorage.getItem('zenite_mock_habitos') || '[]');
+        habits = hMock.filter((h: any) => h.aluno_id === alunoId && h.ativo);
+        registrations = JSON.parse(localStorage.getItem('zenite_habitos_registros') || '[]');
+        registrations = registrations.filter((r: any) => r.aluno_id === alunoId);
+      }
+
+      if (habits.length === 0) {
+        setStreak(0);
+        return;
+      }
+
+      const activeHabitIds = habits.map(h => h.id);
+      
+      const isDayComplete = (dateStr: string) => {
+        const dayRegs = registrations.filter(r => r.data === dateStr && r.concluido);
+        const completedIds = dayRegs.map(r => r.habito_id);
+        return activeHabitIds.every(id => completedIds.includes(id));
+      };
+
+      const today = new Date().toISOString().slice(0, 10);
+      let currentStreak = 0;
+      let checkDate = new Date();
+      
+      // Start checking from today
+      const todayStr = checkDate.toISOString().slice(0, 10);
+      const isTodayComplete = isDayComplete(todayStr);
+      
+      if (isTodayComplete) {
+        currentStreak++;
+        // Go back from yesterday
+        checkDate.setDate(checkDate.getDate() - 1);
+        while (true) {
+          const dStr = checkDate.toISOString().slice(0, 10);
+          if (isDayComplete(dStr)) {
+            currentStreak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      } else {
+        // Today not complete, check if yesterday was
+        checkDate.setDate(checkDate.getDate() - 1);
+        const yesterdayStr = checkDate.toISOString().slice(0, 10);
+        if (isDayComplete(yesterdayStr)) {
+          currentStreak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+          while (true) {
+            const dStr = checkDate.toISOString().slice(0, 10);
+            if (isDayComplete(dStr)) {
+              currentStreak++;
+              checkDate.setDate(checkDate.getDate() - 1);
+            } else {
+              break;
+            }
+          }
+        }
+      }
+
+      setStreak(currentStreak);
+      localStorage.setItem(`zenite_mock_streak_${alunoId}`, currentStreak.toString());
+    } catch (err) {
+      console.error("Erro ao calcular streak real:", err);
+    }
   };
 
   const checkPR = useCallback(async (exercicioId: number, exercicioNome: string, cargaKg: number) => {

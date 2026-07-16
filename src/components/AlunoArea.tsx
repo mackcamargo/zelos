@@ -152,6 +152,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   // States for student progress dashboard
   const [detailedSeries, setDetailedSeries] = useState<any[]>([]);
   const [metricas, setMetricas] = useState<any[]>([]);
+  const [workoutsWithProgress, setWorkoutsWithProgress] = useState<Set<string>>(new Set());
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [selectedExIdProgress, setSelectedExIdProgress] = useState<string | null>(null);
   const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
@@ -483,16 +484,27 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const loadStudentWorkouts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await dbService.getTreinosParaAluno(userId);
+      const { data: treinos, error } = await dbService.getTreinosParaAluno(userId);
+      const { data: seriesRealizadas } = await dbService.getSeriesRealizadas(userId);
+      
+      if (seriesRealizadas) {
+        const progressIds = new Set<string>();
+        seriesRealizadas.forEach((sr: any) => {
+          const wId = sr.treino_exercicios?.treino_id;
+          if (wId) progressIds.add(wId);
+        });
+        setWorkoutsWithProgress(progressIds);
+      }
+
       if (error) {
         console.error('Erro ao carregar treinos:', error);
-      } else if (data && data.length > 0) {
-        setWorkouts(data);
+      } else if (treinos && treinos.length > 0) {
+        setWorkouts(treinos);
         
         // Find today's workout (YYYY-MM-DD) or get the most recent one
         const todayStr = new Date().toISOString().split('T')[0];
-        const todayWorkout = data.find((w: any) => w.data_treino === todayStr);
-        const workoutToLoad = todayWorkout || data[0]; // de hoje ou o mais recente
+        const todayWorkout = treinos.find((w: any) => w.data_treino === todayStr);
+        const workoutToLoad = todayWorkout || treinos[0]; // de hoje ou o mais recente
 
         await handleSelectWorkout(workoutToLoad.id);
       } else {
@@ -808,21 +820,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {activeTab === 'treino' && (
           <div id="tab-content-treino" className="space-y-6">
             
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex-1 w-full">
-                <HabitosPainel alunoId={userId} onHabitComplete={() => checkAchievements('habit')} />
-              </div>
-              {streak > 0 && (
-                <div className="shrink-0 flex flex-col items-center md:items-end w-full md:w-auto">
-                  <div className="flex items-center gap-2 bg-flame/10 px-4 py-2 rounded-2xl border border-flame/20 shadow-[0_0_20px_rgba(245,51,79,0.1)]">
-                    <Flame className="w-5 h-5 text-flame animate-pulse" />
-                    <span className="text-lg font-mono font-black text-flame">{streak} DIAS DE STREAK</span>
-                  </div>
-                  <p className="text-[10px] font-mono text-ink-3 uppercase mt-1">Mantenha o ritmo!</p>
-                </div>
-              )}
-            </div>
-
             {/* WORKOUT LIST (If no active workout is selected) */}
             {!selectedWorkout ? (
               <div className="space-y-6">
@@ -857,12 +854,22 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
                       })();
                       const isWorkoutConcluido = workout.status === 'concluido';
+                      const hasProgress = workoutsWithProgress.has(workout.id);
+                      const isNew = workout.status === 'publicado' && !hasProgress;
+                      const inProgress = workout.status === 'publicado' && hasProgress;
+
                       return (
                         <div
                           key={workout.id}
                           onClick={() => handleSelectWorkout(workout.id)}
                           className={`bg-surface border rounded-2xl p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden ${
-                            isWorkoutConcluido ? 'border-emerald-500/20 bg-emerald-500/[0.01]' : 'border-white/5 hover:border-white/10'
+                            isWorkoutConcluido 
+                              ? 'border-emerald-500/20 bg-emerald-500/[0.01]' 
+                              : inProgress
+                                ? 'border-[#F26A1B]/40 bg-[#F26A1B]/[0.02] shadow-[0_0_15px_rgba(242,106,27,0.05)]'
+                                : isNew
+                                  ? 'border-[#F26A1B] shadow-[0_0_20px_rgba(242,106,27,0.15)] animate-pulse motion-reduce:animate-none'
+                                  : 'border-white/5 hover:border-white/10'
                           }`}
                         >
                           <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full" />
@@ -871,6 +878,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                 {isWorkoutConcluido ? (
                                   <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
                                     <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
+                                  </span>
+                                ) : inProgress ? (
+                                  <span className="text-[10px] font-mono bg-[#F26A1B]/10 text-[#F26A1B] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-[#F26A1B]/20">
+                                    EM ANDAMENTO
+                                  </span>
+                                ) : isNew ? (
+                                  <span className="text-[10px] font-mono bg-[#F26A1B]/10 text-[#F26A1B] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-[#F26A1B]/20">
+                                    NOVO
                                   </span>
                                 ) : (
                                   <span className="text-[10px] font-mono bg-flame/10 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/20">
@@ -1249,6 +1264,21 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               );
             })()}
 
+            {/* HABITS SECTION (Moved below workout) */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-6 border-t border-white/5">
+              <div className="flex-1 w-full">
+                <HabitosPainel alunoId={userId} onHabitComplete={() => checkAchievements('habit')} />
+              </div>
+              {streak >= 2 && (
+                <div className="shrink-0 flex flex-col items-center md:items-end w-full md:w-auto">
+                  <div className="flex items-center gap-2 bg-flame/10 px-4 py-2 rounded-2xl border border-flame/20 shadow-[0_0_20px_rgba(245,51,79,0.1)]">
+                    <Flame className="w-5 h-5 text-flame animate-pulse" />
+                    <span className="text-lg font-mono font-black text-flame">{streak} DIAS DE STREAK</span>
+                  </div>
+                  <p className="text-[10px] font-mono text-ink-3 uppercase mt-1">Mantenha o ritmo!</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

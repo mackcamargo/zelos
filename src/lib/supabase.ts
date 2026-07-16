@@ -724,7 +724,7 @@ export const dbService = {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('series_realizadas')
-        .select('*')
+        .select('*, treino_exercicios(treino_id)')
         .eq('aluno_id', alunoId);
       if (error) return { data: [], error };
       return { data: data || [], error: null };
