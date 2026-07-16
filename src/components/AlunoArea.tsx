@@ -797,7 +797,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const userStreak = totalCompletedCount > 0 ? 5 : 0; // standard display
 
   return (
-    <div id="aluno-area-root" className="min-h-screen bg-void text-ink font-sans flex flex-col pb-24">
+    <div 
+      id="aluno-area-root" 
+      className={`bg-void text-ink font-sans flex flex-col ${
+        activeTab === 'chat' ? 'h-[100dvh] overflow-hidden pb-0' : 'min-h-screen pb-24'
+      }`}
+    >
       {/* Top Header */}
       <header className="sticky top-0 bg-void/90 backdrop-blur-md z-40 border-b border-b-white/5 py-5 px-6">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
@@ -837,7 +842,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </header>
 
       {/* Main View Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 pt-8 pb-32 md:pb-8">
+      <main className={`flex-1 max-w-4xl w-full mx-auto px-6 ${
+        activeTab === 'chat' 
+          ? 'pt-4 pb-[88px] flex flex-col min-h-0 overflow-hidden' 
+          : 'pt-8 pb-32 md:pb-8'
+      }`}>
         
         {/* TAB 1: TREINO */}
         {activeTab === 'treino' && (
@@ -2166,12 +2175,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
         {/* TAB: CHAT */}
         {activeTab === 'chat' && (
-          <div id="tab-content-chat" className="pb-12">
-            <div className="mb-8">
-              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic">
+          <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0 h-full">
+            <div className="mb-4 shrink-0">
+              <h2 className="font-display font-black text-2xl text-ink tracking-tighter uppercase italic">
                 Chat <span className="text-flame">Personal</span>
               </h2>
-              <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Converse diretamente com seu treinador</p>
+              <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-0.5">Converse diretamente com seu treinador</p>
             </div>
             <ChatAluno userId={userId} />
           </div>
