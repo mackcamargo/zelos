@@ -10,6 +10,8 @@ import GerenciarAlunos from './GerenciarAlunos';
 import GerenciarTemplates from './GerenciarTemplates';
 import GerenciarCheckins from './GerenciarCheckins';
 import { DashPersonalBemEstar } from './DashPersonalBemEstar';
+import ChatPersonal from './ChatPersonal';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 interface PersonalAreaProps {
   userId: string;
@@ -19,12 +21,13 @@ interface PersonalAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar';
+type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar' | 'chat';
 
 export default function PersonalArea({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
@@ -34,8 +37,41 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
     { id: 'checkins', label: 'Check-ins', icon: MessageSquare },
     { id: 'conteudo', label: 'Biblioteca', icon: BookOpen },
     { id: 'templates', label: 'Modelos', icon: FolderHeart },
+    { id: 'chat', label: 'Mensagens', icon: MessageSquare },
     { id: 'perfil', label: 'Perfil', icon: User },
   ];
+
+  useEffect(() => {
+    const fetchUnreads = async () => {
+      const { data } = await dbService.getPersonalUnreadCount(userId);
+      setUnreadCount(data || 0);
+    };
+
+    fetchUnreads();
+
+    window.addEventListener('zenite_mensagem_enviada', fetchUnreads);
+    window.addEventListener('zenite_mensagem_lida', fetchUnreads);
+
+    let canal: any = null;
+    if (isSupabaseConfigured && supabase) {
+      canal = supabase.channel('personal-unreads')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'mensagens', filter: `personal_id=eq.${userId}` },
+          () => {
+            fetchUnreads();
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      window.removeEventListener('zenite_mensagem_enviada', fetchUnreads);
+      window.removeEventListener('zenite_mensagem_lida', fetchUnreads);
+      if (canal) {
+        supabase.removeChannel(canal);
+      }
+    };
+  }, [userId]);
 
   return (
     <div id="personal-area-root" className="min-h-screen bg-void text-ink font-sans flex overflow-hidden">
@@ -105,10 +141,20 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   {isActive && (
                     <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-[#F26A1B] rounded-r-full" />
                   )}
-                  <Icon className={`w-5 h-5 transition-transform duration-200 group-hover/btn:scale-105 ${
-                    isActive ? 'text-[#F26A1B]' : 'text-ink-2 group-hover/btn:text-ink'
-                  }`} />
+                  <div className="relative">
+                    <Icon className={`w-5 h-5 transition-transform duration-200 group-hover/btn:scale-105 ${
+                      isActive ? 'text-[#F26A1B]' : 'text-ink-2 group-hover/btn:text-ink'
+                    }`} />
+                    {item.id === 'chat' && unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                    )}
+                  </div>
                   {!isCollapsed && <span className="text-sm font-sans truncate">{item.label}</span>}
+                  {!isCollapsed && item.id === 'chat' && unreadCount > 0 && (
+                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                      {unreadCount}
+                    </span>
+                  )}
                 </button>
 
                 {/* Tooltip on Collapsed hover */}
@@ -220,8 +266,18 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 {isActive && (
                   <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-[#F26A1B] rounded-r-full" />
                 )}
-                <Icon className={`w-5 h-5 ${isActive ? 'text-[#F26A1B]' : 'text-ink-2'}`} />
+                <div className="relative">
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-[#F26A1B]' : 'text-ink-2'}`} />
+                  {item.id === 'chat' && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                  )}
+                </div>
                 <span className="text-sm font-sans">{item.label}</span>
+                {item.id === 'chat' && unreadCount > 0 && (
+                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -285,6 +341,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   {activeTab === 'checkins' && <>Check-<span className="text-[#F26A1B]">ins</span></>}
                   {activeTab === 'conteudo' && <>Biblio<span className="text-[#F26A1B]">teca</span></>}
                   {activeTab === 'templates' && <>Mode<span className="text-[#F26A1B]">los</span></>}
+                  {activeTab === 'chat' && <>Mensa<span className="text-[#F26A1B]">gens</span></>}
                   {activeTab === 'perfil' && <>Per<span className="text-[#F26A1B]">fil</span></>}
                   {activeTab === 'gerenciar' && <>Admin <span className="text-[#F26A1B]">Exercícios</span></>}
                 </h1>
@@ -296,6 +353,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   {activeTab === 'checkins' && 'Mensagens & Feedback'}
                   {activeTab === 'conteudo' && 'Artigos & Postagens'}
                   {activeTab === 'templates' && 'Modelos de Ficha de Treino'}
+                  {activeTab === 'chat' && 'Centro de Comunicação Realtime'}
                   {activeTab === 'perfil' && 'Dados Cadastrais'}
                   {activeTab === 'gerenciar' && 'Painel Administrativo'}
                 </p>
@@ -379,6 +437,13 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {activeTab === 'templates' && (
           <div id="tab-content-templates" className="space-y-6">
             <GerenciarTemplates personalId={userId} />
+          </div>
+        )}
+
+        {/* TAB: CHAT / MENSAGENS */}
+        {activeTab === 'chat' && (
+          <div id="tab-content-chat" className="space-y-6">
+            <ChatPersonal personalId={userId} />
           </div>
         )}
 

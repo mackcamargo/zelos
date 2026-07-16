@@ -280,3 +280,16 @@ export interface FotoProgresso {
   signed_url?: string; // Temporary URL for display
 }
 
+export interface Mensagem {
+  id: string | number;
+  personal_id: string;
+  aluno_id: string;
+  autor_id: string;
+  tipo: 'texto' | 'arquivo';
+  conteudo: string;
+  arquivo_url?: string | null;
+  lida: boolean;
+  criado_em: string;
+}
+
+

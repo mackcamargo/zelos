@@ -3,7 +3,7 @@ import {
   TemplateTreino, TemplateExercicio, Checkin, Habito, HabitoRegistro, 
   Conquista, AlunoConquista, RecordePessoal, FotoProgresso, AnguloFoto, 
   PlanoAlimentar, RegistroNutricao, RegistroHidratacao, SessaoBemEstar, 
-  ConteudoEducativo, Agendamento, ResumoBemEstar, Treino, TreinoExercicio 
+  ConteudoEducativo, Agendamento, ResumoBemEstar, Treino, TreinoExercicio, Mensagem 
 } from '../types';
 
 // Mock values for video placeholders
@@ -1904,5 +1904,130 @@ export const dbService = {
   async getSessoesBemEstar(alunoId: string): Promise<{ data: SessaoBemEstar[]; error: any }> {
     const sessoes = load('zenite_bem_estar', []);
     return { data: sessoes.filter((s: any) => s.aluno_id === alunoId), error: null };
+  },
+
+  async getPersonalIdForAluno(alunoId: string): Promise<{ data: string | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('alunos').select('personal_id').eq('id', alunoId).maybeSingle();
+      if (error) return { data: null, error };
+      return { data: data ? data.personal_id : null, error: null };
+    }
+    const alunos = loadMockAlunos();
+    const a = alunos.find(al => al.id === alunoId);
+    return { data: a ? a.personal_id : null, error: null };
+  },
+
+  async getMensagens(alunoId: string): Promise<{ data: Mensagem[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('mensagens').select('*').eq('aluno_id', alunoId).order('criado_em', { ascending: true });
+      if (error) return { data: [], error };
+      return { data: data || [], error: null };
+    }
+    const msgs = load('zenite_mensagens', []);
+    const filtered = msgs.filter((m: any) => m.aluno_id === alunoId);
+    filtered.sort((a: any, b: any) => new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime());
+    return { data: filtered, error: null };
+  },
+
+  async enviarMensagem(personalId: string, alunoId: string, autorId: string, conteudo: string): Promise<{ data: Mensagem | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('mensagens').insert({
+        personal_id: personalId,
+        aluno_id: alunoId,
+        autor_id: autorId,
+        tipo: 'texto',
+        conteudo: conteudo.trim(),
+        lida: false
+      }).select().single();
+      return { data, error };
+    }
+    const msgs = load('zenite_mensagens', []);
+    const newMsg: Mensagem = {
+      id: 'msg-' + Math.random().toString(36).substr(2, 9),
+      personal_id: personalId,
+      aluno_id: alunoId,
+      autor_id: autorId,
+      tipo: 'texto',
+      conteudo: conteudo.trim(),
+      lida: false,
+      criado_em: new Date().toISOString()
+    };
+    msgs.push(newMsg);
+    save('zenite_mensagens', msgs);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('zenite_mensagem_enviada', { detail: { aluno_id: alunoId } }));
+    }
+    return { data: newMsg, error: null };
+  },
+
+  async marcarMensagensLidas(alunoId: string, viewerId: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from('mensagens')
+        .update({ lida: true })
+        .eq('aluno_id', alunoId)
+        .neq('autor_id', viewerId)
+        .eq('lida', false);
+      return { error };
+    }
+    const msgs = load('zenite_mensagens', []);
+    let changed = false;
+    msgs.forEach((m: any) => {
+      if (m.aluno_id === alunoId && m.autor_id !== viewerId && !m.lida) {
+        m.lida = true;
+        changed = true;
+      }
+    });
+    if (changed) {
+      save('zenite_mensagens', msgs);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('zenite_mensagem_enviada', { detail: { aluno_id: alunoId } }));
+      }
+    }
+    return { error: null };
+  },
+
+  async getMensagensCountNaoLidas(alunoId: string, viewerId: string): Promise<{ data: number; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { count, error } = await supabase.from('mensagens')
+        .select('*', { count: 'exact', head: true })
+        .eq('aluno_id', alunoId)
+        .neq('autor_id', viewerId)
+        .eq('lida', false);
+      return { data: count || 0, error };
+    }
+    const msgs = load('zenite_mensagens', []);
+    const count = msgs.filter((m: any) => m.aluno_id === alunoId && m.autor_id !== viewerId && !m.lida).length;
+    return { data: count, error: null };
+  },
+
+  async getUltimaMensagem(alunoId: string): Promise<{ data: Mensagem | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from('mensagens')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return { data, error };
+    }
+    const msgs = load('zenite_mensagens', []);
+    const filtered = msgs.filter((m: any) => m.aluno_id === alunoId);
+    if (filtered.length === 0) return { data: null, error: null };
+    filtered.sort((a: any, b: any) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime());
+    return { data: filtered[0], error: null };
+  },
+
+  async getPersonalUnreadCount(personalId: string): Promise<{ data: number; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { count, error } = await supabase.from('mensagens')
+        .select('*', { count: 'exact', head: true })
+        .eq('personal_id', personalId)
+        .neq('autor_id', personalId)
+        .eq('lida', false);
+      return { data: count || 0, error };
+    }
+    const msgs = load('zenite_mensagens', []);
+    const count = msgs.filter((m: any) => m.personal_id === personalId && m.autor_id !== personalId && !m.lida).length;
+    return { data: count, error: null };
   }
 };

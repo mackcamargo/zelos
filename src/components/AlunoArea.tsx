@@ -21,6 +21,8 @@ import FotoProgressoUpload from './FotoProgressoUpload';
 import FotoProgressoGaleria from './FotoProgressoGaleria';
 import NutricaoPainel from './NutricaoPainel';
 import AgendamentoPainel from './AgendamentoPainel';
+import ChatAluno from './ChatAluno';
+import { MessageSquare } from 'lucide-react';
 import { Checkin } from '../types';
 
 interface AlunoAreaProps {
@@ -31,7 +33,7 @@ interface AlunoAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'treino' | 'progresso' | 'perfil' | 'nutricao' | 'agenda';
+type TabType = 'treino' | 'progresso' | 'perfil' | 'nutricao' | 'chat' | 'agenda';
 
 export default function AlunoArea(props: AlunoAreaProps) {
   return (
@@ -2027,7 +2029,18 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           </div>
         )}
 
-
+        {/* TAB: CHAT */}
+        {activeTab === 'chat' && (
+          <div id="tab-content-chat" className="pb-12">
+            <div className="mb-8">
+              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic">
+                Chat <span className="text-flame">Personal</span>
+              </h2>
+              <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Converse diretamente com seu treinador</p>
+            </div>
+            <ChatAluno userId={userId} />
+          </div>
+        )}
 
         {/* TAB: AGENDA */}
         {activeTab === 'agenda' && (
@@ -2374,7 +2387,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
       {/* Bottom Navigation Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-1 px-4 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
-        <div className="max-w-md md:max-w-lg h-full mx-auto grid grid-cols-4 gap-2 items-center">
+        <div className="max-w-md md:max-w-lg h-full mx-auto grid grid-cols-5 gap-1 items-center">
           {/* Tab 1 - Treino */}
           <button
             id="tab-btn-treino"
@@ -2390,7 +2403,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             <Dumbbell className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
             <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Treino</span>
             {activeTab === 'treino' && (
-              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
 
@@ -2406,7 +2419,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             <TrendingUp className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
             <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Progresso</span>
             {activeTab === 'progresso' && (
-              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
 
@@ -2422,11 +2435,27 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             <Utensils className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
             <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Nutri</span>
             {activeTab === 'nutricao' && (
-              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
 
-          {/* Tab 4 - Agenda */}
+          {/* Tab 4 - Chat */}
+          <button
+            id="tab-btn-chat"
+            type="button"
+            onClick={() => setActiveTab('chat')}
+            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'chat' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
+            }`}
+          >
+            <MessageSquare className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Chat</span>
+            {activeTab === 'chat' && (
+              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+            )}
+          </button>
+
+          {/* Tab 5 - Agenda */}
           <button
             id="tab-btn-agenda"
             type="button"
@@ -2438,7 +2467,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             <Calendar className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
             <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Agenda</span>
             {activeTab === 'agenda' && (
-              <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
           </button>
         </div>
