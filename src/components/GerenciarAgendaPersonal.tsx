@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Calendar as CalendarIcon, Clock, MapPin, 
   Video, Check, X, Loader2, User, 
-  Info, Sparkles, Filter, ChevronRight,
+  Sparkles, Filter, ChevronRight,
   Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -172,11 +172,7 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
             </button>
           </div>
 
-          <div className="bg-gradient-to-br from-violet to-indigo rounded-[40px] p-8 text-white space-y-4">
-            <Info className="w-8 h-8 opacity-40" />
-            <h4 className="text-xl font-display font-black uppercase italic tracking-tighter">Lembrete de <span className="text-ink">Gestão</span></h4>
-            <p className="text-xs opacity-80 leading-relaxed uppercase font-mono tracking-widest">Mantenha sua agenda atualizada para que seus alunos vejam seus horários reais.</p>
-          </div>
+
         </div>
       </div>
 
