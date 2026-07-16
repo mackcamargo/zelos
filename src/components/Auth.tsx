@@ -31,6 +31,14 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const [pendingUser, setPendingUser] = useState<any>(null);
 
   React.useEffect(() => {
+    const recoveryError = localStorage.getItem('zenite_recovery_error');
+    if (recoveryError) {
+      setView('forgot');
+      setError(recoveryError);
+      localStorage.removeItem('zenite_recovery_error');
+      return;
+    }
+
     if (initialRecoveryMode) {
       setView('reset');
     }

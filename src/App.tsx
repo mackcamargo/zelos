@@ -39,6 +39,24 @@ export default function App() {
       const hash = window.location.hash;
       const params = new URLSearchParams(window.location.search);
 
+      // Detecta erros no hash (link expirado ou inválido)
+      if (hash.includes("error=")) {
+        const h = new URLSearchParams(hash.substring(1));
+        const erro = h.get("error_code") || h.get("error");
+        if (erro) {
+          const desc = h.get("error_description")?.replace(/\+/g, " ") ?? "";
+          const msg = erro === "otp_expired" 
+            ? "Este link já foi usado ou expirou. Solicite um novo link de recuperação."
+            : (desc || "Link inválido. Solicite a recuperação novamente.");
+          
+          // Dispara evento customizado ou armazena erro para o componente Auth ler
+          localStorage.setItem('zenite_recovery_error', msg);
+          setModoRecuperacao(false);
+          window.history.replaceState({}, "", window.location.pathname);
+          return;
+        }
+      }
+
       // 1. PKCE: ?code=...
       const code = params.get("code");
       if (code) {
@@ -51,11 +69,18 @@ export default function App() {
         const h = new URLSearchParams(hash.substring(1));
         const access_token = h.get("access_token");
         const refresh_token = h.get("refresh_token");
+        let hasSession = false;
+
         if (access_token && refresh_token) {
           const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-          if (error) console.error("setSession error:", error.message);
+          if (error) {
+            console.error("setSession error:", error.message);
+          } else {
+            hasSession = true;
+          }
         }
-        if (h.get("type") === "recovery") {
+
+        if (h.get("type") === "recovery" && hasSession) {
           setModoRecuperacao(true);
         }
       }
