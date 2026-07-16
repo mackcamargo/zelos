@@ -462,17 +462,17 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
               </button>
 
               <div>
-                <h1 className="font-display font-black text-xl text-ink tracking-tight uppercase italic flex items-center gap-2 whitespace-nowrap">
-                  {activeTab === 'dashboard' && <>Dash<span className="text-[#F26A1B]">board</span></>}
-                  {activeTab === 'alunos' && <>Alu<span className="text-[#F26A1B]">nos</span></>}
-                  {activeTab === 'exercicios' && <>Exer<span className="text-[#F26A1B]">cícios</span></>}
-                  {activeTab === 'agenda' && <>Agen<span className="text-[#F26A1B]">da</span></>}
-                  {activeTab === 'checkins' && <>Check-<span className="text-[#F26A1B]">ins</span></>}
-                  {activeTab === 'conteudo' && <>Biblio<span className="text-[#F26A1B]">teca</span></>}
-                  {activeTab === 'templates' && <>Mode<span className="text-[#F26A1B]">los</span></>}
-                  {activeTab === 'chat' && <>Mensa<span className="text-[#F26A1B]">gens</span></>}
-                  {activeTab === 'perfil' && <>Per<span className="text-[#F26A1B]">fil</span></>}
-                  {activeTab === 'gerenciar' && <>Admin <span className="text-[#F26A1B]">Exercícios</span></>}
+                <h1 className="font-display font-black text-xl text-ink tracking-tight uppercase italic whitespace-nowrap">
+                  {activeTab === 'dashboard' && <><span className="flex items-center">Dash<span className="text-[#F26A1B]">board</span></span></>}
+                  {activeTab === 'alunos' && <><span className="flex items-center">Alu<span className="text-[#F26A1B]">nos</span></span></>}
+                  {activeTab === 'exercicios' && <><span className="flex items-center">Exer<span className="text-[#F26A1B]">cícios</span></span></>}
+                  {activeTab === 'agenda' && <><span className="flex items-center">Agen<span className="text-[#F26A1B]">da</span></span></>}
+                  {activeTab === 'checkins' && <><span className="flex items-center">Check-<span className="text-[#F26A1B]">ins</span></span></>}
+                  {activeTab === 'conteudo' && <><span className="flex items-center">Biblio<span className="text-[#F26A1B]">teca</span></span></>}
+                  {activeTab === 'templates' && <><span className="flex items-center">Mode<span className="text-[#F26A1B]">los</span></span></>}
+                  {activeTab === 'chat' && <><span className="flex items-center">Mensa<span className="text-[#F26A1B]">gens</span></span></>}
+                  {activeTab === 'perfil' && <><span className="flex items-center">Per<span className="text-[#F26A1B]">fil</span></span></>}
+                  {activeTab === 'gerenciar' && <><span className="flex items-center">Admin <span className="text-[#F26A1B]">Exercícios</span></span></>}
                 </h1>
                 <p className="text-ink-3 text-[10px] font-mono uppercase tracking-widest mt-0.5">
                   {activeTab === 'dashboard' && 'Visão Geral de Bem-estar'}
@@ -512,7 +512,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {activeTab === 'dashboard' && (
           <div id="tab-content-dashboard" className="space-y-6">
             <div className="mb-8">
-              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic">
+              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic flex items-center">
                 Dash<span className="text-flame">board</span>
               </h2>
               <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Visão Geral de Bem-estar</p>

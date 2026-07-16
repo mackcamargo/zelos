@@ -2164,7 +2164,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {activeTab === 'nutricao' && (
           <div id="tab-content-nutricao" className="pb-12">
             <div className="mb-8">
-              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic">
+              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic flex items-center">
                 Nutri<span className="text-flame">ção</span>
               </h2>
               <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Plano & Registros Alimentares</p>
@@ -2177,7 +2177,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {activeTab === 'chat' && (
           <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0 h-full">
             <div className="mb-4 shrink-0">
-              <h2 className="font-display font-black text-2xl text-ink tracking-tighter uppercase italic">
+              <h2 className="font-display font-black text-2xl text-ink tracking-tighter uppercase italic flex items-center">
                 Chat <span className="text-flame">Personal</span>
               </h2>
               <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-0.5">Converse diretamente com seu treinador</p>

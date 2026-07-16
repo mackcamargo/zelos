@@ -110,7 +110,7 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic">
+          <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic flex items-center">
             Check<span className="text-flame">-ins</span>
           </h2>
           <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Acompanhamento Semanal</p>
