@@ -2022,11 +2022,7 @@ export const dbService = {
 
   async marcarMensagensLidas(alunoId: string, viewerId: string): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('mensagens')
-        .update({ lida: true })
-        .eq('aluno_id', alunoId)
-        .neq('autor_id', viewerId)
-        .eq('lida', false);
+      const { error } = await supabase.rpc("marcar_mensagens_lidas", { p_aluno_id: alunoId });
       return { error };
     }
     const msgs = load('zenite_mensagens', []);
@@ -2044,6 +2040,52 @@ export const dbService = {
       }
     }
     return { error: null };
+  },
+
+  async editarMensagem(msgId: string | number, novoTexto: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from("mensagens")
+        .update({ conteudo: novoTexto.trim(), editado_em: new Date().toISOString() })
+        .eq("id", msgId)
+        .select()
+        .maybeSingle();
+      return { data, error };
+    }
+    const msgs = load('zenite_mensagens', []);
+    const idx = msgs.findIndex((m: any) => String(m.id) === String(msgId));
+    if (idx !== -1) {
+      msgs[idx].conteudo = novoTexto.trim();
+      msgs[idx].editado_em = new Date().toISOString();
+      save('zenite_mensagens', msgs);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('zenite_mensagem_enviada', { detail: { aluno_id: msgs[idx].aluno_id } }));
+      }
+      return { data: msgs[idx], error: null };
+    }
+    return { data: null, error: { message: "Mensagem não encontrada" } };
+  },
+
+  async excluirMensagem(msgId: string | number): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.from("mensagens")
+        .update({ excluida: true, conteudo: null })
+        .eq("id", msgId)
+        .select()
+        .maybeSingle();
+      return { data, error };
+    }
+    const msgs = load('zenite_mensagens', []);
+    const idx = msgs.findIndex((m: any) => String(m.id) === String(msgId));
+    if (idx !== -1) {
+      msgs[idx].excluida = true;
+      msgs[idx].conteudo = '';
+      save('zenite_mensagens', msgs);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('zenite_mensagem_enviada', { detail: { aluno_id: msgs[idx].aluno_id } }));
+      }
+      return { data: msgs[idx], error: null };
+    }
+    return { data: null, error: { message: "Mensagem não encontrada" } };
   },
 
   async getMensagensCountNaoLidas(alunoId: string, viewerId: string): Promise<{ data: number; error: any }> {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Mensagem } from '../types';
-import { Send, MessageSquare, Clock } from 'lucide-react';
+import { Send, MessageSquare, Clock, Pencil, Trash2, X, Check, MoreVertical } from 'lucide-react';
 
 interface ChatAlunoProps {
   userId: string;
@@ -13,6 +13,14 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   const [personalId, setPersonalId] = useState<string | null>(null);
   const [personalProfile, setPersonalProfile] = useState<{ nome: string; avatar_tipo: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Edit and Delete States
+  const [openMenuId, setOpenMenuId] = useState<string | number | null>(null);
+  const [editingMsgId, setEditingMsgId] = useState<string | number | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | number | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
@@ -57,17 +65,27 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
       canal = supabase.channel(`mensagens-${userId}`)
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `aluno_id=eq.${userId}` },
+          { event: '*', schema: 'public', table: 'mensagens', filter: `aluno_id=eq.${userId}` },
           (payload) => {
-            const newMsg = payload.new as Mensagem;
-            setMessages((prev) => {
-              // Avoid duplicate messages
-              if (prev.some((m) => m.id === newMsg.id)) return prev;
-              return [...prev, newMsg];
-            });
-            // Mark as read if not authored by this user
-            if (newMsg.autor_id !== userId) {
-              dbService.marcarMensagensLidas(userId, userId);
+            if (payload.eventType === 'INSERT') {
+              const newMsg = payload.new as Mensagem;
+              setMessages((prev) => {
+                // Avoid duplicate messages
+                if (prev.some((m) => m.id === newMsg.id)) return prev;
+                return [...prev, newMsg];
+              });
+              // Mark as read if not authored by this user
+              if (newMsg.autor_id !== userId) {
+                dbService.marcarMensagensLidas(userId, userId);
+              }
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedMsg = payload.new as Mensagem;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === updatedMsg.id ? updatedMsg : m))
+              );
+            } else if (payload.eventType === 'DELETE') {
+              const deletedId = payload.old.id;
+              setMessages((prev) => prev.filter((m) => m.id !== deletedId));
             }
           }
         )
@@ -104,13 +122,37 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
     setInputText('');
 
     const targetPersonalId = personalId || '00000000-0000-0000-0000-000000000000'; // fallback
-    const { data: newMsg } = await dbService.enviarMensagem(targetPersonalId, userId, userId, currentText);
+    const { data: newMsg, error } = await dbService.enviarMensagem(targetPersonalId, userId, userId, currentText);
     
-    if (newMsg) {
+    if (error) {
+      setErrorMsg(error.message || 'Erro ao enviar mensagem');
+    } else if (newMsg) {
       setMessages((prev) => {
         if (prev.some((m) => m.id === newMsg.id)) return prev;
         return [...prev, newMsg];
       });
+    }
+  };
+
+  const handleSaveEdit = async (msgId: string | number) => {
+    if (!editingText.trim()) return;
+    const { error } = await dbService.editarMensagem(msgId, editingText.trim());
+    if (error) {
+      setErrorMsg(error.message || 'Erro ao editar mensagem');
+    } else {
+      setEditingMsgId(null);
+      setEditingText('');
+      loadMessages();
+    }
+  };
+
+  const handleDelete = async (msgId: string | number) => {
+    const { error } = await dbService.excluirMensagem(msgId);
+    if (error) {
+      setErrorMsg(error.message || 'Erro ao excluir mensagem');
+    } else {
+      setConfirmingDeleteId(null);
+      loadMessages();
     }
   };
 
@@ -140,9 +182,9 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   const personalFirstName = getFirstName(personalName);
 
   return (
-    <div id="chat-aluno-container" className="flex flex-col h-[calc(100vh-14rem)] md:h-[600px] bg-surface-2 rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
+    <div id="chat-aluno-container" className="flex flex-col h-[calc(100vh-14rem)] md:h-[600px] bg-surface-2 rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative">
       {/* Header */}
-      <div className="bg-surface-3 px-6 py-4 border-b border-white/5 flex items-center justify-between">
+      <div className="bg-surface-3 px-6 py-4 border-b border-white/5 flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-2xl bg-surface-2 shadow-inner">
             {isFemale ? '👩' : '👨'}
@@ -157,6 +199,16 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
           Realtime Ativo
         </div>
       </div>
+
+      {/* Error Alert Box */}
+      {errorMsg && (
+        <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs px-4 py-3 rounded-2xl flex justify-between items-center gap-2 animate-fade-in mx-6 mt-4 shrink-0 z-10">
+          <span>{errorMsg}</span>
+          <button type="button" onClick={() => setErrorMsg(null)} className="text-rose-400 hover:text-rose-300 transition-colors cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Message Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent">
@@ -174,30 +226,133 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
           messages.map((msg, index) => {
             const isOwn = msg.autor_id === userId;
             const showSenderName = !isOwn && (index === 0 || messages[index - 1].autor_id !== msg.autor_id);
-            
+            const isMessageExcluded = msg.excluida;
+            const isEditing = editingMsgId === msg.id;
+            const isConfirmingDelete = confirmingDeleteId === msg.id;
+
             return (
               <div
                 key={msg.id}
-                className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-fade-in group`}
               >
-                <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'} relative`}>
                   {showSenderName && (
                     <span className="text-[11px] font-bold text-[#F26A1B] mb-1 font-mono uppercase tracking-wider">
                       {personalFirstName}
                     </span>
                   )}
-                  <div
-                    className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                      isOwn
-                        ? 'bg-[#F26A1B] text-white rounded-tr-none shadow-[0_4px_12px_rgba(242,106,27,0.2)]'
-                        : 'bg-surface-3 text-ink-2 rounded-tl-none border border-white/5'
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.conteudo}</p>
+                  
+                  <div className="flex items-center gap-1.5 max-w-full group-hover:translate-x-0 transition-transform">
+                    {/* Menu Trigger for Own Message (Not Excluded) */}
+                    {isOwn && !isMessageExcluded && !isEditing && !isConfirmingDelete && (
+                      <div className="relative shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setOpenMenuId(openMenuId === msg.id ? null : msg.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-white/10 text-ink-3 hover:text-ink transition-all cursor-pointer"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        
+                        {openMenuId === msg.id && (
+                          <div className="absolute right-0 bottom-full mb-1 z-50 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl p-1 flex flex-col min-w-[100px] divide-y divide-white/5 animate-fade-in">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingMsgId(msg.id);
+                                setEditingText(msg.conteudo);
+                                setOpenMenuId(null);
+                              }}
+                              className="px-3 py-1.5 text-xs text-ink hover:bg-white/5 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
+                            >
+                              <Pencil className="w-3 h-3 text-[#F26A1B]" />
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setConfirmingDeleteId(msg.id);
+                                setOpenMenuId(null);
+                              }}
+                              className="px-3 py-1.5 text-xs text-rose-500 hover:bg-rose-500/10 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Excluir
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Message Bubble */}
+                    <div
+                      className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                        isOwn
+                          ? 'bg-[#F26A1B] text-white rounded-tr-none shadow-[0_4px_12px_rgba(242,106,27,0.2)]'
+                          : 'bg-surface-3 text-ink-2 rounded-tl-none border border-white/5'
+                      }`}
+                    >
+                      {isMessageExcluded ? (
+                        <p className="italic text-ink-3 text-xs">Mensagem apagada</p>
+                      ) : isConfirmingDelete ? (
+                        <div className="flex flex-col gap-2 p-1 min-w-[150px]">
+                          <p className="text-xs font-semibold text-white">Excluir esta mensagem?</p>
+                          <div className="flex justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setConfirmingDeleteId(null)}
+                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                            >
+                              Não
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(msg.id)}
+                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors cursor-pointer"
+                            >
+                              Sim
+                            </button>
+                          </div>
+                        </div>
+                      ) : isEditing ? (
+                        <div className="flex flex-col gap-2 min-w-[200px]">
+                          <textarea
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            className="bg-black/35 text-white text-sm border border-[#F26A1B]/40 rounded-xl p-2 focus:outline-none focus:border-white w-full resize-none placeholder:text-white/40"
+                            rows={2}
+                          />
+                          <div className="flex justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setEditingMsgId(null)}
+                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-white/70 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <X className="w-3 h-3" />
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSaveEdit(msg.id)}
+                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-[#F26A1B] bg-white hover:bg-white/90 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Check className="w-3 h-3" />
+                              Salvar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.conteudo}</p>
+                      )}
+                    </div>
                   </div>
+
                   <span className="text-[10px] text-ink-3 font-mono mt-1 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     {formatTime(msg.criado_em)}
+                    {msg.editado_em && !isMessageExcluded && (
+                      <span className="text-[9px] text-ink-3 italic ml-1">(editada)</span>
+                    )}
                     {!isOwn && !msg.lida && (
                       <span className="w-1.5 h-1.5 bg-[#F26A1B] rounded-full ml-1" />
                     )}
@@ -211,7 +366,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="p-4 bg-surface-3 border-t border-white/5 flex gap-2">
+      <form onSubmit={handleSend} className="p-4 bg-surface-3 border-t border-white/5 flex gap-2 z-10">
         <input
           type="text"
           value={inputText}

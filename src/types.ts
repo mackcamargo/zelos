@@ -290,6 +290,8 @@ export interface Mensagem {
   arquivo_url?: string | null;
   lida: boolean;
   criado_em: string;
+  editado_em?: string | null;
+  excluida?: boolean;
 }
 
 
