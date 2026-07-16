@@ -804,7 +804,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       }`}
     >
       {/* Top Header */}
-      <header className="sticky top-0 bg-void/90 backdrop-blur-md z-40 border-b border-b-white/5 py-5 px-6">
+      <header className="sticky top-0 bg-void/90 backdrop-blur-md z-40 border-b border-b-white/5 py-5 px-6 shrink-0">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <div className="flex items-center gap-2">

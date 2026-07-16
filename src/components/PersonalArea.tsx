@@ -444,7 +444,9 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
       </aside>
 
       {/* CONTENT CONTAINER */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
+      <div className={`flex-1 flex flex-col min-w-0 ${
+        activeTab === 'chat' ? 'h-screen md:h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'
+      }`}>
         
         {/* Top Header */}
         <header className="sticky top-0 bg-void/90 backdrop-blur-md z-20 border-b border-white/5 py-4 px-6 shrink-0">
@@ -502,7 +504,9 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         </header>
 
         {/* Main View Area */}
-        <main className="flex-1 max-w-5xl w-full mx-auto px-6 pt-8 pb-16">
+        <main className={`flex-1 max-w-5xl w-full mx-auto px-6 ${
+          activeTab === 'chat' ? 'pt-4 pb-4 flex flex-col min-h-0 overflow-hidden h-full' : 'pt-8 pb-16'
+        }`}>
         
         {/* TAB 0: DASHBOARD */}
         {activeTab === 'dashboard' && (
@@ -569,7 +573,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
 
         {/* TAB: CHAT / MENSAGENS */}
         {activeTab === 'chat' && (
-          <div id="tab-content-chat" className="space-y-6">
+          <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0 h-full">
             <ChatPersonal personalId={userId} />
           </div>
         )}
