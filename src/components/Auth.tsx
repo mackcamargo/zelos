@@ -595,6 +595,16 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 </>
               )}
             </button>
+
+            {error && (error.includes('expirado') || error.includes('inválido')) && (
+              <button
+                type="button"
+                onClick={() => { setView('forgot'); setError(null); }}
+                className="w-full text-xs font-mono uppercase tracking-widest text-ink-3 hover:text-flame transition-colors mt-4"
+              >
+                Voltar para solicitar novo link
+              </button>
+            )}
           </form>
         )}
       </div>

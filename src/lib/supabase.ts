@@ -36,7 +36,14 @@ console.log('DEBUG KEY existe?:', !!supabaseAnonKey);
 console.log('DEBUG modo demo?:', !isSupabaseConfigured);
 
 export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true,
+        flowType: "implicit",
+      },
+    })
   : null;
 
 interface MockUser {
@@ -232,6 +239,12 @@ export const authService = {
 
   async updatePassword(password: string) {
     if (isSupabaseConfigured && supabase) {
+      // Verifica se existe sessão antes de tentar o update
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        return { error: { message: 'Link expirado ou inválido. Solicite a recuperação novamente.' } };
+      }
+      
       const { error } = await supabase.auth.updateUser({ password });
       return { error };
     }

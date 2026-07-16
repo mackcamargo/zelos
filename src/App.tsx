@@ -31,6 +31,41 @@ export default function App() {
 
     // Listener para recuperação de senha
     let authSub: any = null;
+    
+    // Tratamento de tokens de recuperação no boot
+    (async () => {
+      if (!isSupabaseConfigured || !supabase) return;
+
+      const hash = window.location.hash;
+      const params = new URLSearchParams(window.location.search);
+
+      // 1. PKCE: ?code=...
+      const code = params.get("code");
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) console.error("exchangeCodeForSession error:", error.message);
+      }
+
+      // 2. Implícito: #access_token=...&type=recovery
+      if (hash.includes("access_token")) {
+        const h = new URLSearchParams(hash.substring(1));
+        const access_token = h.get("access_token");
+        const refresh_token = h.get("refresh_token");
+        if (access_token && refresh_token) {
+          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+          if (error) console.error("setSession error:", error.message);
+        }
+        if (h.get("type") === "recovery") {
+          setModoRecuperacao(true);
+        }
+      }
+
+      // Limpa a URL depois de consumir o token para evitar re-processamento
+      if (code || hash.includes("access_token")) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    })();
+
     if (isSupabaseConfigured && supabase) {
       const { data } = supabase.auth.onAuthStateChange((event) => {
         if (event === "PASSWORD_RECOVERY") {
