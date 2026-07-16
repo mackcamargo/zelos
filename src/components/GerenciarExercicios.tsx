@@ -382,45 +382,42 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
   // Save Exercise
   const handleSave = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) e.preventDefault();
-    if (!nome.trim() || !categoriaId) return;
+    if (!nome.trim() || !categoriaId) {
+      setUploadError("Nome e Categoria são obrigatórios.");
+      return;
+    }
 
     setSaving(true);
     setUploadError(null);
     setFeedback(null);
     try {
-      // Append any pending text that was not added to the lists yet
-      let primarios = [...(musculoPrimario || [])];
+      // 1. Commit any pending text from inputs to the final arrays
+      let finalPrimarios = [...musculoPrimario];
       if (newPrimario.trim()) {
-        const pTrimmed = newPrimario.trim();
-        if (!primarios.includes(pTrimmed)) {
-          primarios.push(pTrimmed);
+        const val = newPrimario.trim();
+        if (!finalPrimarios.includes(val)) {
+          finalPrimarios.push(val);
         }
+        setMusculoPrimario(prev => !prev.includes(val) ? [...prev, val] : prev);
         setNewPrimario('');
-        setMusculoPrimario(prev => {
-          if (!prev.includes(pTrimmed)) return [...prev, pTrimmed];
-          return prev;
-        });
       }
 
-      let auxiliares = [...(musculoSecundario || [])];
+      let finalAuxiliares = [...musculoSecundario];
       if (newSecundario.trim()) {
-        const sTrimmed = newSecundario.trim();
-        if (!auxiliares.includes(sTrimmed)) {
-          auxiliares.push(sTrimmed);
+        const val = newSecundario.trim();
+        if (!finalAuxiliares.includes(val)) {
+          finalAuxiliares.push(val);
         }
+        setMusculoSecundario(prev => !prev.includes(val) ? [...prev, val] : prev);
         setNewSecundario('');
-        setMusculoSecundario(prev => {
-          if (!prev.includes(sTrimmed)) return [...prev, sTrimmed];
-          return prev;
-        });
       }
 
-      let dicasArray = [...(dicas || [])];
+      let finalDicas = [...dicas];
       if (newDica.trim()) {
-        const dTrimmed = newDica.trim();
-        dicasArray.push(dTrimmed);
+        const val = newDica.trim();
+        finalDicas.push(val);
+        setDicas(prev => [...prev, val]);
         setNewDica('');
-        setDicas(prev => [...prev, dTrimmed]);
       }
 
       if (isSupabaseConfigured && supabase) {
@@ -434,9 +431,9 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
           query = supabase.from("exercicios").insert({
             nome: nome.trim(),
             categoria_id: Number(categoriaId),
-            musculo_primario: primarios,
-            musculo_secundario: auxiliares,
-            dicas: dicasArray,
+            musculo_primario: finalPrimarios,
+            musculo_secundario: finalAuxiliares,
+            dicas: finalDicas,
             video_url_masc: videoUrlMasc || null,
             video_url_fem: videoUrlFem || null,
             personal_id: personalId
@@ -445,9 +442,9 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
           query = supabase.from("exercicios").update({
             nome: nome.trim(),
             categoria_id: Number(categoriaId),
-            musculo_primario: primarios,
-            musculo_secundario: auxiliares,
-            dicas: dicasArray,
+            musculo_primario: finalPrimarios,
+            musculo_secundario: finalAuxiliares,
+            dicas: finalDicas,
             video_url_masc: videoUrlMasc || null,
             video_url_fem: videoUrlFem || null,
           }).eq("id", selectedExercicio.id);
@@ -456,27 +453,24 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
         const { data, error } = await query.select();
 
         if (error) {
-          console.error(error);
-          setUploadError(`Erro ao salvar no banco: ${error.message}`);
-          return;
+          throw error;
         }
 
         if (!data || data.length === 0) {
-          setUploadError("Nenhum registro foi alterado ou retornado.");
-          return;
+          throw new Error("Nenhum registro foi alterado ou retornado.");
         }
       } else {
         // Fallback for Mock Mode
         const payload: Partial<Exercicio> = {
-          id: selectedExercicio?.id || undefined,
+          id: selectedExercicio?.id || `ex-${Date.now()}`,
           nome: nome.trim(),
           categoria_id: categoriaId,
           personal_id: selectedExercicio?.personal_id || null,
           video_url_masc: videoUrlMasc,
           video_url_fem: videoUrlFem,
-          musculo_primario: primarios,
-          musculo_secundario: auxiliares,
-          dicas: dicasArray
+          musculo_primario: finalPrimarios,
+          musculo_secundario: finalAuxiliares,
+          dicas: finalDicas
         };
 
         const { error } = await dbService.saveExercicio(payload);
