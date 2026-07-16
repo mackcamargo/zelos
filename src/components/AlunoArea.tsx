@@ -2175,7 +2175,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
         {/* TAB: CHAT */}
         {activeTab === 'chat' && (
-          <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0 h-full">
+          <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0">
             <div className="mb-4 shrink-0">
               <h2 className="font-display font-black text-2xl text-ink tracking-tighter uppercase italic flex items-center">
                 Chat <span className="text-flame">Personal</span>

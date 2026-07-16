@@ -148,7 +148,12 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
   }, [userId, activeTab]);
 
   return (
-    <div id="personal-area-root" className="min-h-screen bg-void text-ink font-sans flex overflow-hidden">
+    <div 
+      id="personal-area-root" 
+      className={`bg-void text-ink font-sans flex overflow-hidden ${
+        activeTab === 'chat' ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'
+      }`}
+    >
       
       {/* SIDEBAR: Desktop */}
       <aside 
@@ -445,7 +450,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
 
       {/* CONTENT CONTAINER */}
       <div className={`flex-1 flex flex-col min-w-0 ${
-        activeTab === 'chat' ? 'h-screen md:h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'
+        activeTab === 'chat' ? 'h-[100dvh] md:h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'
       }`}>
         
         {/* Top Header */}
@@ -505,7 +510,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
 
         {/* Main View Area */}
         <main className={`flex-1 max-w-5xl w-full mx-auto px-6 ${
-          activeTab === 'chat' ? 'pt-4 pb-4 flex flex-col min-h-0 overflow-hidden h-full' : 'pt-8 pb-16'
+          activeTab === 'chat' ? 'pt-4 pb-4 flex flex-col min-h-0 overflow-hidden' : 'pt-8 pb-16'
         }`}>
         
         {/* TAB 0: DASHBOARD */}
@@ -573,7 +578,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
 
         {/* TAB: CHAT / MENSAGENS */}
         {activeTab === 'chat' && (
-          <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0 h-full">
+          <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0">
             <ChatPersonal personalId={userId} />
           </div>
         )}

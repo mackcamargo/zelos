@@ -198,7 +198,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   const personalFirstName = getFirstName(personalName);
 
   return (
-    <div id="chat-aluno-container" className="flex flex-col flex-1 min-h-0 h-full bg-surface-2 rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative">
+    <div id="chat-aluno-container" className="flex flex-col flex-1 min-h-0 bg-surface-2 rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative">
       {/* Header */}
       <div className="bg-surface-3 px-6 py-4 border-b border-white/5 flex items-center justify-between z-10">
         <div className="flex items-center gap-3">

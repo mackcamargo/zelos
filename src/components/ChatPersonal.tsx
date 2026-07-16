@@ -348,7 +348,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
   });
 
   return (
-    <div id="chat-personal-container" className="grid grid-cols-1 md:grid-cols-12 bg-surface rounded-3xl border border-white/5 overflow-hidden flex-1 min-h-0 h-full shadow-2xl">
+    <div id="chat-personal-container" className="grid grid-cols-1 md:grid-cols-12 bg-surface rounded-3xl border border-white/5 overflow-hidden flex-1 min-h-0 shadow-2xl">
       {/* LEFT COLUMN: Student Conversation List */}
       <div className={`md:col-span-4 border-r border-white/5 flex flex-col bg-[#141414] h-full overflow-hidden ${selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
         {/* Search Header */}
