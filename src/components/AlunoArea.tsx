@@ -2373,7 +2373,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </AnimatePresence>
 
       {/* Bottom Navigation Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-2 px-4 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
+      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-1 px-4 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
         <div className="max-w-md md:max-w-lg h-full mx-auto grid grid-cols-4 gap-2 items-center">
           {/* Tab 1 - Treino */}
           <button
@@ -2383,12 +2383,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               setActiveTab('treino');
               setSelectedWorkout(null);
             }}
-            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
               activeTab === 'treino' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <Dumbbell className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Treino</span>
+            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Treino</span>
             {activeTab === 'treino' && (
               <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
@@ -2399,12 +2399,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             id="tab-btn-progresso"
             type="button"
             onClick={() => setActiveTab('progresso')}
-            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
               activeTab === 'progresso' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <TrendingUp className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Progresso</span>
+            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Progresso</span>
             {activeTab === 'progresso' && (
               <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
@@ -2415,12 +2415,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             id="tab-btn-nutricao"
             type="button"
             onClick={() => setActiveTab('nutricao')}
-            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
               activeTab === 'nutricao' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <Utensils className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Nutri</span>
+            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Nutri</span>
             {activeTab === 'nutricao' && (
               <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
@@ -2431,12 +2431,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             id="tab-btn-agenda"
             type="button"
             onClick={() => setActiveTab('agenda')}
-            className={`flex flex-col items-center gap-1.5 py-2 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
               activeTab === 'agenda' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <Calendar className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-[10px] md:text-xs font-semibold tracking-wider uppercase font-display">Agenda</span>
+            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Agenda</span>
             {activeTab === 'agenda' && (
               <span className="absolute bottom-0 w-12 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
             )}
