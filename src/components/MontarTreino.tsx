@@ -132,7 +132,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
         try {
           const { data, error } = await dbService.getTreinoCompleto(treinoId);
           if (error) {
-            showToast('Erro ao carregar treino existente');
+            console.error('Erro ao carregar treino:', error);
+            showToast(`Erro ao carregar treino: ${error.message}`);
           } else if (data) {
             setTitulo(data.titulo);
             setDataTreino(data.data_treino);
@@ -264,7 +265,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
         const { error } = await dbService.saveTemplate(templatePayload, exercisesPayload);
         if (error) {
-          showToast('Erro ao salvar modelo de treino');
+          console.error('Erro ao salvar modelo de treino:', error);
+          showToast(`Erro ao salvar modelo: ${error.message}`);
         } else {
           showToast('Modelo de treino salvo com sucesso!');
           onBack();
@@ -359,7 +361,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
     try {
       const { data: full, error } = await dbService.getTemplateCompleto(template.id);
       if (error || !full) {
-        showToast('Erro ao carregar o modelo.');
+        console.error('Erro ao carregar o modelo:', error);
+        showToast(`Erro ao carregar o modelo: ${error?.message || 'Dados não encontrados'}`);
         return;
       }
       const exs = full.exercicios || [];
@@ -373,8 +376,9 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
       setTitulo(full.titulo || template.titulo);
       showToast(`Modelo "${full.titulo || template.titulo}" aplicado.`);
       setShowTemplatesModal(false);
-    } catch (e) {
-      showToast('Erro ao carregar o modelo.');
+    } catch (e: any) {
+      console.error('Erro ao carregar o modelo:', e);
+      showToast(`Erro ao carregar o modelo: ${e.message || 'Erro inesperado'}`);
     }
   };
 
@@ -814,7 +818,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                         id={`lib-exercise-item-${ex.id}`}
                         key={ex.id}
                         onClick={() => handleAddExercise(ex)}
-                        className="flex items-center justify-between p-2.5 bg-void rounded-xl border border-white/5 hover:border-white/10 hover:bg-surface-2 transition-all cursor-pointer group"
+                        className="flex items-center justify-between p-2.5 bg-void rounded-xl border border-white/5 hover:border-white/10 hover:bg-surface-2 transition-all cursor-pointer group clicavel"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {/* Small Media thumbnail preview */}

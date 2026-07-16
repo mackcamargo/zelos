@@ -1028,14 +1028,7 @@ export const dbService = {
 
   async salvarMetrica(metrica: any): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('metricas').insert({
-        aluno_id: metrica.aluno_id,
-        personal_id: metrica.personal_id || null,
-        tipo: metrica.tipo,
-        valor: metrica.valor,
-        unidade: metrica.unidade,
-        registrado_em: metrica.registrado_em || new Date().toISOString()
-      });
+      const { error } = await supabase.from('metricas').insert(metrica);
       return { error };
     }
     const metricas = load('zenite_metricas', []);

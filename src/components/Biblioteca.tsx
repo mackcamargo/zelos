@@ -199,7 +199,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino' }: Bib
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: index * 0.05 }}
                       onClick={() => setSelectedExercicio(ex)}
-                      className="bg-surface border border-white/5 rounded-2xl p-4 hover:border-white/15 hover:bg-surface-2 transition-all cursor-pointer group flex flex-col gap-4 overflow-hidden"
+                      className="bg-surface border border-white/5 rounded-2xl p-4 hover:border-white/15 hover:bg-surface-2 transition-all cursor-pointer group flex flex-col gap-4 overflow-hidden clicavel"
                     >
                       {/* Video loop preview */}
                       <div className="aspect-video w-full rounded-xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">

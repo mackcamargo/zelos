@@ -158,7 +158,7 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                   setSelectedAluno({ id: aluno.id, nome: aluno.profile.nome });
                 }
               }}
-              className={`bg-surface border border-white/5 rounded-3xl p-5 space-y-4 hover:border-white/10 transition-all ${
+              className={`bg-surface border border-white/5 rounded-3xl p-5 space-y-4 hover:border-white/10 transition-all clicavel ${
                 !aluno.ultimoCheckin 
                   ? 'opacity-60' 
                   : 'cursor-pointer hover:bg-white/[0.02] active:scale-[0.99]'

@@ -382,24 +382,23 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
       const { error } = await dbService.salvarMetrica({
         aluno_id: userId,
-        personal_id: pId,
         tipo: newMetricaTipo,
         valor: val,
-        unidade: unit,
-        registrado_em: new Date().toISOString()
+        unidade: unit
       });
 
       if (error) {
-        setNewMetricaError('Falha ao salvar métrica no banco de dados.');
+        console.error('Erro ao salvar métrica:', error);
+        setNewMetricaError(`Erro ao salvar: ${error.message || 'Erro desconhecido'}`);
       } else {
         // Success
         setNewMetricaValor('');
         setShowAddMetricaModal(false);
         await loadProgressData();
       }
-    } catch (err) {
-      console.error(err);
-      setNewMetricaError('Erro inesperado ao registrar medida.');
+    } catch (err: any) {
+      console.error('Erro inesperado ao registrar medida:', err);
+      setNewMetricaError(`Erro inesperado: ${err.message || 'Erro desconhecido'}`);
     } finally {
       setSavingMetrica(false);
     }
@@ -886,7 +885,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         <div
                           key={workout.id}
                           onClick={() => handleSelectWorkout(workout.id)}
-                          className={`bg-surface border rounded-2xl p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden ${
+                          className={`bg-surface border rounded-2xl p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden clicavel ${
                             isWorkoutConcluido 
                               ? 'border-emerald-500/20 bg-emerald-500/[0.01]' 
                               : inProgress
@@ -1088,7 +1087,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           {/* Card Header (Clickable to Expand/Collapse) */}
                           <div
                             onClick={() => setExpandedExerciseId(isExpanded ? null : item.id)}
-                            className="p-4 flex items-center justify-between gap-4 cursor-pointer select-none"
+                            className="p-4 flex items-center justify-between gap-4 cursor-pointer select-none clicavel"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               {/* Checkbox circle to check completion of the ENTIRE exercise */}
@@ -1328,6 +1327,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   setShowAddMetricaModal(true);
                   tocar('abrir');
                 }}
+                data-sem-som
                 className="self-start sm:self-center bg-flame hover:bg-flame-hover text-white font-semibold text-xs py-2.5 px-4 rounded-xl flex items-center gap-2 shadow-lg shadow-flame/20 cursor-pointer transition-colors font-sans border-0 outline-none"
               >
                 <Plus className="w-4 h-4" />
@@ -1380,6 +1380,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     setShowCheckinForm(true);
                     tocar('abrir');
                   }}
+                  data-sem-som
                   className="w-full sm:w-auto px-8 py-3 bg-white text-void rounded-xl font-display font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all z-10"
                 >
                   FAZER CHECK-IN
@@ -1401,6 +1402,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     setShowFotoUpload(true);
                     tocar('abrir');
                   }}
+                  data-sem-som
                   className="flex items-center gap-2 px-4 py-2 bg-surface-3 border border-white/10 rounded-xl text-[10px] font-mono font-bold text-ink hover:border-flame/30 transition-all uppercase tracking-widest"
                 >
                   <Plus className="w-3 h-3" /> REGISTRAR FOTO
@@ -2225,11 +2227,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               )}
 
               {/* Additional Account Metadata details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Credencial ID</span>
-                  <p className="text-xs font-mono text-ink truncate">{userId}</p>
-                </div>
+              <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-1">
                   <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Criado Em</span>
                   <p className="text-xs font-mono text-ink flex items-center gap-1.5">
@@ -2243,8 +2241,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               <div className="p-4 bg-white/5 rounded-2xl flex gap-3 text-xs text-ink-2 leading-relaxed">
                 <ShieldCheck className="w-5 h-5 text-violet shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-ink font-semibold">Row Level Security Ativa</p>
-                  <p className="mt-0.5 text-ink-3">Sua segurança é prioridade. Todos os treinos e dados que seu personal publicar são criptografados e acessíveis estritamente por você através da segurança real do banco de dados.</p>
+                  <p className="text-ink font-semibold">Privacidade Protegida</p>
+                  <p className="mt-0.5 text-ink-3">Seus dados são privados e visíveis somente para você e seu personal trainer.</p>
                 </div>
               </div>
 

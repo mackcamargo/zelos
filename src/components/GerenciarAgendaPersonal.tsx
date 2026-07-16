@@ -37,6 +37,7 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
     try {
       await dbService.updateStatusAgendamento(agendamento.id, newStatus);
       loadAgendamentos();
+      window.dispatchEvent(new CustomEvent('zenite_agenda_updated'));
     } finally {
       setProcessingId(null);
     }

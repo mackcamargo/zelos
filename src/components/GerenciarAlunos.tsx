@@ -202,7 +202,8 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
     try {
       const { data, error } = await dbService.createConvite(personalId, conviteNome.trim(), conviteObjetivo.trim() || null);
       if (error) {
-        showToast('Erro ao gerar código de convite');
+        console.error('Erro ao gerar código de convite:', error);
+        showToast(`Erro ao gerar convite: ${error.message}`);
       } else if (data) {
         setGeneratedCode(data.codigo);
         showToast('Código de convite gerado!');
@@ -281,7 +282,8 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
     try {
       const { data, error } = await dbService.updateAlunoObjetivo(selectedAluno.id, editObjetivo);
       if (error) {
-        showToast('Erro ao atualizar objetivo');
+        console.error('Erro ao atualizar objetivo:', error);
+        showToast(`Erro ao salvar: ${error.message}`);
       } else {
         showToast('Objetivo atualizado com sucesso!');
         setSelectedAluno({
@@ -307,7 +309,8 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
     try {
       const { data, error } = await dbService.updateAlunoAtivo(selectedAluno.id, newStatus);
       if (error) {
-        showToast('Erro ao alterar status');
+        console.error('Erro ao alterar status:', error);
+        showToast(`Erro ao alterar status: ${error.message}`);
       } else {
         setSelectedAluno({
           ...selectedAluno,
@@ -330,7 +333,8 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
     try {
       const { error } = await dbService.removeAluno(selectedAluno.id);
       if (error) {
-        showToast('Erro ao desvincular aluno');
+        console.error('Erro ao desvincular aluno:', error);
+        showToast(`Erro ao desvincular: ${error.message}`);
       } else {
         showToast(`Aluno desvinculado com sucesso!`);
         setSelectedAluno(null);
@@ -492,7 +496,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                         setSelectedAluno(aluno);
                         setEditObjetivo(aluno.objetivo || '');
                       }}
-                      className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative overflow-hidden"
+                      className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative overflow-hidden clicavel"
                     >
                       {/* Premium subtle light leak on hover */}
                       <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -716,7 +720,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                               setEditingTreinoId(workout.id);
                               setIsMontandoTreino(true);
                             }}
-                            className="p-3 bg-void border border-white/5 rounded-xl hover:border-white/10 hover:bg-surface-2 transition-all cursor-pointer flex items-center justify-between group"
+                            className="p-3 bg-void border border-white/5 rounded-xl hover:border-white/10 hover:bg-surface-2 transition-all cursor-pointer flex items-center justify-between group clicavel"
                           >
                             <div className="min-w-0">
                               <h4 className="font-display font-bold text-xs text-ink group-hover:text-white transition-colors truncate">

@@ -99,6 +99,7 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
       });
 
       if (error) {
+        console.error('Erro ao aplicar template:', error);
         showToast(error.message || 'Erro ao aplicar template');
       } else {
         showToast('Treino aplicado com sucesso!');
@@ -108,6 +109,7 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
         setCustomTitle('');
       }
     } catch (err: any) {
+      console.error('Erro inesperado ao aplicar template:', err);
       showToast(err.message || 'Erro inesperado ao aplicar template');
     } finally {
       setApplying(false);
@@ -121,7 +123,8 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
     try {
       const { error } = await dbService.deleteTemplate(id);
       if (error) {
-        showToast('Erro ao excluir modelo');
+        console.error('Erro ao excluir modelo:', error);
+        showToast(`Erro ao excluir: ${error.message}`);
       } else {
         showToast('Modelo excluído com sucesso');
         loadTemplates();
@@ -249,7 +252,7 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
                 setSelectedTemplateId(template.id);
                 setIsEditing(true);
               }}
-              className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative overflow-hidden h-full"
+              className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative overflow-hidden h-full clicavel"
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-violet/5 blur-2xl pointer-events-none rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
               

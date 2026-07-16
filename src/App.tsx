@@ -5,7 +5,7 @@ import Auth from './components/Auth';
 import PersonalArea from './components/PersonalArea';
 import AlunoArea from './components/AlunoArea';
 import { Sparkles, Terminal } from 'lucide-react';
-import { initSom } from './lib/som';
+import { initSom, tocar } from './lib/som';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -16,6 +16,18 @@ export default function App() {
 
   useEffect(() => {
     initSom();
+    
+    // Listener Global de Cliques para Sonoplastia
+    const handler = (e: MouseEvent) => {
+      const alvo = (e.target as HTMLElement)?.closest(
+        'button, a, [role="button"], input[type="checkbox"], input[type="radio"], select, summary, .clicavel'
+      );
+      if (alvo && !alvo.hasAttribute("data-sem-som")) {
+        tocar("tap");
+      }
+    };
+    document.addEventListener("click", handler, true); // fase de captura
+    return () => document.removeEventListener("click", handler, true);
   }, []);
 
   // Initialize and check current session

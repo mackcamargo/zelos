@@ -29,6 +29,8 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [agendaPendingCount, setAgendaPendingCount] = useState<number>(0);
+  const [checkinsPendingCount, setCheckinsPendingCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
 
   const toggleSom = () => {
@@ -62,18 +64,73 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
       setUnreadCount(Math.max(0, Number(data) || 0));
     };
 
+    const fetchPendingCounts = async () => {
+      if (!isSupabaseConfigured || !supabase) return;
+
+      // 1. Agenda Pending
+      const { count: agendaCount } = await supabase
+        .from("agendamentos")
+        .select("id", { count: "exact", head: true })
+        .eq("personal_id", userId)
+        .eq("status", "solicitado");
+      
+      setAgendaPendingCount(Math.max(0, Number(agendaCount) || 0));
+
+      // 2. Check-ins Pending (Attention needed)
+      const getMonday = () => {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d.setDate(diff));
+        monday.setHours(0, 0, 0, 0);
+        return monday.toISOString().split('T')[0];
+      };
+
+      const segundaFeiraAtual = getMonday();
+      const { data: checkinsData } = await supabase
+        .from("checkins")
+        .select("energia, qualidade_sono, nivel_estresse, dores")
+        .eq("personal_id", userId)
+        .eq("semana", segundaFeiraAtual);
+
+      if (checkinsData) {
+        const attentionCount = checkinsData.filter(c => 
+          (c.dores && c.dores.trim() !== '') || 
+          c.energia <= 2 || 
+          c.qualidade_sono <= 2 || 
+          c.nivel_estresse >= 4
+        ).length;
+        setCheckinsPendingCount(Math.max(0, Number(attentionCount) || 0));
+      }
+    };
+
     fetchUnreads();
+    fetchPendingCounts();
 
     window.addEventListener('zenite_mensagem_enviada', fetchUnreads);
     window.addEventListener('zenite_mensagem_lida', fetchUnreads);
+    window.addEventListener('zenite_agenda_updated', fetchPendingCounts);
+    window.addEventListener('zenite_checkin_updated', fetchPendingCounts);
 
     let canal: any = null;
     if (isSupabaseConfigured && supabase) {
-      canal = supabase.channel('personal-unreads')
+      canal = supabase.channel('personal-notifications')
         .on('postgres_changes',
           { event: '*', schema: 'public', table: 'mensagens', filter: `personal_id=eq.${userId}` },
           () => {
             fetchUnreads();
+          }
+        )
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'agendamentos', filter: `personal_id=eq.${userId}` },
+          () => {
+            fetchPendingCounts();
+          }
+        )
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'checkins', filter: `personal_id=eq.${userId}` },
+          () => {
+            fetchPendingCounts();
           }
         )
         .subscribe();
@@ -82,11 +139,13 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
     return () => {
       window.removeEventListener('zenite_mensagem_enviada', fetchUnreads);
       window.removeEventListener('zenite_mensagem_lida', fetchUnreads);
+      window.removeEventListener('zenite_agenda_updated', fetchPendingCounts);
+      window.removeEventListener('zenite_checkin_updated', fetchPendingCounts);
       if (canal) {
         supabase.removeChannel(canal);
       }
     };
-  }, [userId]);
+  }, [userId, activeTab]);
 
   return (
     <div id="personal-area-root" className="min-h-screen bg-void text-ink font-sans flex overflow-hidden">
@@ -107,6 +166,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 setIsCollapsed(false);
                 tocar('abrir');
               }}
+              data-sem-som
               className="font-display font-black text-2xl tracking-tight text-[#F26A1B] hover:scale-110 transition-transform focus:outline-none cursor-pointer"
               title="Expandir menu"
             >
@@ -117,6 +177,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
               <button
                 type="button"
                 onClick={() => handleTabChange('dashboard')}
+                data-sem-som
                 className="font-display font-black text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
               >
                 ZÊNI<span className="text-[#F26A1B]">TE</span>
@@ -128,6 +189,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 <button
                   type="button"
                   onClick={toggleSom}
+                  data-sem-som
                   className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-ink-3 hover:text-ink transition-colors"
                   title={somHabilitado ? "Silenciar sons" : "Ativar sons"}
                 >
@@ -139,6 +201,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                     setIsCollapsed(true);
                     tocar('fechar');
                   }}
+                  data-sem-som
                   className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-white/5 transition-colors cursor-pointer"
                   title="Recolher menu"
                 >
@@ -159,6 +222,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 <button
                   type="button"
                   onClick={() => handleTabChange(item.id as TabType)}
+                  data-sem-som
                   className={`w-full flex items-center ${
                     isCollapsed ? 'justify-center px-2' : 'px-4'
                   } py-3 gap-3 rounded-xl transition-all duration-200 relative group/btn cursor-pointer ${
@@ -177,11 +241,27 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                     {item.id === 'chat' && unreadCount > 0 && (
                       <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
                     )}
+                    {item.id === 'agenda' && agendaPendingCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                    )}
+                    {item.id === 'checkins' && checkinsPendingCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                    )}
                   </div>
                   {!isCollapsed && <span className="text-sm font-sans truncate">{item.label}</span>}
                   {!isCollapsed && item.id === 'chat' && unreadCount > 0 && (
                     <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
                       {unreadCount}
+                    </span>
+                  )}
+                  {!isCollapsed && item.id === 'agenda' && agendaPendingCount > 0 && (
+                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                      {agendaPendingCount}
+                    </span>
+                  )}
+                  {!isCollapsed && item.id === 'checkins' && checkinsPendingCount > 0 && (
+                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                      {checkinsPendingCount}
                     </span>
                   )}
                 </button>
@@ -202,6 +282,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
           <button
             type="button"
             onClick={() => setActiveTab('perfil')}
+            data-sem-som
             className={`w-full flex items-center ${
               isCollapsed ? 'justify-center p-2' : 'p-2'
             } gap-3 text-left hover:bg-white/[0.03] rounded-xl transition-all group/btn cursor-pointer`}
@@ -248,7 +329,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
       {/* MOBILE DRAWER: Sidebar drawer */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-all duration-300"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-all duration-300 clicavel"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
@@ -284,7 +365,9 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 onClick={() => {
                   setActiveTab(item.id as TabType);
                   setIsMobileOpen(false);
+                  tocar('tap');
                 }}
+                data-sem-som
                 className={`w-full flex items-center px-4 py-3 gap-3 rounded-xl transition-all duration-200 relative cursor-pointer ${
                   isActive 
                     ? 'text-[#F26A1B] bg-white/[0.04] font-semibold' 
@@ -299,11 +382,27 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   {item.id === 'chat' && unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
                   )}
+                  {item.id === 'agenda' && agendaPendingCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                  )}
+                  {item.id === 'checkins' && checkinsPendingCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                  )}
                 </div>
                 <span className="text-sm font-sans">{item.label}</span>
                 {item.id === 'chat' && unreadCount > 0 && (
                   <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
                     {unreadCount}
+                  </span>
+                )}
+                {item.id === 'agenda' && agendaPendingCount > 0 && (
+                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                    {agendaPendingCount}
+                  </span>
+                )}
+                {item.id === 'checkins' && checkinsPendingCount > 0 && (
+                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                    {checkinsPendingCount}
                   </span>
                 )}
               </button>
@@ -320,6 +419,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 setActiveTab('perfil');
                 setIsMobileOpen(false);
               }}
+              data-sem-som
               className="flex items-center gap-3 min-w-0 text-left cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
@@ -508,11 +608,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
               </div>
 
               {/* Additional Account Metadata details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Credencial ID</span>
-                  <p className="text-xs font-mono text-ink truncate">{userId}</p>
-                </div>
+              <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-1">
                   <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Criado Em</span>
                   <p className="text-xs font-mono text-ink flex items-center gap-1.5">
@@ -526,8 +622,8 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
               <div className="p-4 bg-white/5 rounded-2xl flex gap-3 text-xs text-ink-2 leading-relaxed">
                 <ShieldCheck className="w-5 h-5 text-flame shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-ink font-semibold">Segurança & RLS Habilitada</p>
-                  <p className="mt-0.5">Suas conexões e dados de alunos estão totalmente protegidos pelas políticas de Row Level Security (RLS) do Supabase real.</p>
+                  <p className="text-ink font-semibold">Privacidade Protegida</p>
+                  <p className="mt-0.5">Seus dados são privados e visíveis somente para você e seu personal trainer.</p>
                 </div>
               </div>
 
@@ -547,6 +643,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   id="btn-goto-admin"
                   type="button"
                   onClick={() => handleTabChange('gerenciar')}
+                  data-sem-som
                   className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-violet text-void text-xs font-bold transition-all hover:bg-violet/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
                 >
                   ⚙️ Gerenciar Exercícios
@@ -568,6 +665,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   <button
                     type="button"
                     onClick={toggleSom}
+                    data-sem-som
                     className={`w-12 h-6 rounded-full transition-colors relative ${somHabilitado ? 'bg-flame' : 'bg-white/10'}`}
                   >
                     <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${somHabilitado ? 'left-7' : 'left-1'}`} />

@@ -235,7 +235,8 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
         }
 
         if (!id_exercicio) {
-          alert('Erro: ID do exercício inválido para persistência de vídeo.');
+          console.error('ID do exercício inválido para persistência de vídeo.');
+          setUploadError('Erro: Identificador do exercício inválido para salvar o vídeo.');
           setProgress(null);
           clearInterval(interval);
           return;
@@ -334,8 +335,8 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
       setTimeout(() => setProgress(null), 1500);
     } catch (err: any) {
       clearInterval(interval);
-      console.error(err);
-      setUploadError('Ocorreu uma exceção inesperada durante o upload.');
+      console.error('Erro no upload de vídeo:', err);
+      setUploadError(`Erro no upload: ${err.message || 'Ocorreu uma exceção inesperada'}`);
       setProgress(null);
     }
   };
@@ -488,8 +489,8 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
       setTimeout(() => setFeedback(null), 5000);
 
     } catch (err: any) {
-      console.error(err);
-      setUploadError(`Erro interno ao tentar persistir alterações: ${err.message || err}`);
+      console.error('Erro ao salvar exercício:', err);
+      setUploadError(`Erro ao salvar: ${err.message || 'Erro desconhecido'}`);
     } finally {
       setSaving(false);
     }

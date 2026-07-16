@@ -138,7 +138,8 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
     const { data: newMsg, error } = await dbService.enviarMensagem(targetPersonalId, userId, userId, currentText);
     
     if (error) {
-      setErrorMsg(error.message || 'Erro ao enviar mensagem');
+      console.error('Erro ao enviar mensagem:', error);
+      setErrorMsg(`Erro ao enviar: ${error.message || 'Erro desconhecido'}`);
     } else if (newMsg) {
       setMessages((prev) => {
         if (prev.some((m) => m.id === newMsg.id)) return prev;
@@ -151,7 +152,8 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
     if (!editingText.trim()) return;
     const { error } = await dbService.editarMensagem(msgId, editingText.trim());
     if (error) {
-      setErrorMsg(error.message || 'Erro ao editar mensagem');
+      console.error('Erro ao editar mensagem:', error);
+      setErrorMsg(`Erro ao editar: ${error.message || 'Erro desconhecido'}`);
     } else {
       setEditingMsgId(null);
       setEditingText('');
@@ -162,7 +164,8 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   const handleDelete = async (msgId: string | number) => {
     const { error } = await dbService.excluirMensagem(msgId);
     if (error) {
-      setErrorMsg(error.message || 'Erro ao excluir mensagem');
+      console.error('Erro ao excluir mensagem:', error);
+      setErrorMsg(`Erro ao excluir: ${error.message || 'Erro desconhecido'}`);
     } else {
       setConfirmingDeleteId(null);
       loadMessages();

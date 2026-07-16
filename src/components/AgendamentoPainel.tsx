@@ -97,7 +97,8 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
       });
 
       if (error) {
-        setErrorMsg(error.message || "Erro ao salvar solicitação.");
+        console.error('Erro ao salvar solicitação de agendamento:', error);
+        setErrorMsg(`Erro ao salvar: ${error.message || 'Erro desconhecido'}`);
       } else {
         setSuccessMsg("Solicitação enviada!");
         setShowModal(false);
@@ -199,7 +200,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 transition={{ delay: index * 0.05 }}
                 key={agendamento.id}
                 onClick={() => setSelectedAgendamento(agendamento)}
-                className="group relative bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+                className="group relative bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 clicavel"
               >
                 <div className="flex items-center gap-6">
                   <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-bold ${

@@ -34,7 +34,8 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
     if (!editingText.trim()) return;
     const { error } = await dbService.editarMensagem(msgId, editingText.trim());
     if (error) {
-      setErrorMsg(error.message || 'Erro ao editar mensagem');
+      console.error('Erro ao editar mensagem:', error);
+      setErrorMsg(`Erro ao editar: ${error.message || 'Erro desconhecido'}`);
     } else {
       setEditingMsgId(null);
       setEditingText('');
@@ -48,7 +49,8 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
   const handleDelete = async (msgId: string | number) => {
     const { error } = await dbService.excluirMensagem(msgId);
     if (error) {
-      setErrorMsg(error.message || 'Erro ao excluir mensagem');
+      console.error('Erro ao excluir mensagem:', error);
+      setErrorMsg(`Erro ao excluir: ${error.message || 'Erro desconhecido'}`);
     } else {
       setConfirmingDeleteId(null);
       if (selectedAlunoId) {
@@ -271,8 +273,11 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
     setInputText('');
     tocar('enviar');
 
-    const { data: newMsg } = await dbService.enviarMensagem(personalId, selectedAlunoId, personalId, currentText);
-    if (newMsg) {
+    const { data: newMsg, error } = await dbService.enviarMensagem(personalId, selectedAlunoId, personalId, currentText);
+    if (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      setErrorMsg(`Erro ao enviar: ${error.message || 'Erro desconhecido'}`);
+    } else if (newMsg) {
       setActiveMessages((prev) => {
         if (prev.some((m) => m.id === newMsg.id)) return prev;
         return [...prev, newMsg];
@@ -382,14 +387,15 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
               const isFemale = c.aluno.profile?.avatar_tipo === 'feminino';
               
               return (
-                <button
-                  key={c.aluno.id}
-                  type="button"
-                  onClick={() => handleSelectAluno(c.aluno.id)}
-                  className={`w-full text-left p-4 flex gap-3 transition-colors cursor-pointer hover:bg-white/[0.01] ${
-                    isSelected ? 'bg-white/[0.03]' : ''
-                  }`}
-                >
+                      <button
+                        key={c.aluno.id}
+                        type="button"
+                        onClick={() => handleSelectAluno(c.aluno.id)}
+                        data-sem-som
+                        className={`w-full text-left p-4 flex gap-3 transition-colors cursor-pointer hover:bg-white/[0.01] ${
+                          isSelected ? 'bg-white/[0.03]' : ''
+                        }`}
+                      >
                   {/* Avatar */}
                   <div className="relative shrink-0">
                     <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-2xl bg-surface">

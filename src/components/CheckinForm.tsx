@@ -82,7 +82,8 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
 
       const { error } = await dbService.salvarCheckin(payload);
       if (error) {
-        alert('Erro ao salvar check-in. Tente novamente.');
+        console.error('Erro ao salvar check-in:', error);
+        alert(`Erro ao salvar check-in: ${error.message || 'Tente novamente.'}`);
       } else {
         setSuccess(true);
         setTimeout(() => {

@@ -71,12 +71,14 @@ export function useAgendamentos(personalId?: string) {
     try {
       const { data, error } = await dbService.getAgendamentosPersonal(targetId);
       if (error) {
+        console.error('Erro ao carregar agendamentos:', error);
         setErro(error.message || 'Erro ao carregar agendamentos');
       } else {
         setAgendamentos(data || []);
       }
     } catch (err: any) {
-      setErro('Falha na comunicação com o servidor');
+      console.error('Falha na comunicação com o servidor:', err);
+      setErro(`Falha na comunicação: ${err.message || 'Erro inesperado'}`);
     } finally {
       setCarregando(false);
     }
@@ -161,7 +163,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
               transition={{ delay: index * 0.05 }}
               key={agenda.id}
               onClick={() => setSelectedAgendamento(agenda)}
-              className="group bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6"
+              className="group bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 clicavel"
             >
               <div className="flex items-center gap-6">
                 <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-bold shrink-0 ${

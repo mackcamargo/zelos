@@ -63,10 +63,12 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
         setSalvo(true);
         setTimeout(() => setSalvo(false), 3000);
       } else {
-        setErro(error.message || "Erro ao salvar a meta.");
+        console.error('Erro ao salvar meta de hidratação:', error);
+        setErro(`Erro ao salvar: ${error.message || 'Erro desconhecido'}`);
       }
     } catch (err: any) {
-      setErro(err?.message || "Erro de conexão ao salvar.");
+      console.error('Erro inesperado ao salvar meta:', err);
+      setErro(`Erro: ${err?.message || 'Erro de conexão ao salvar'}`);
     } finally {
       setSalvando(false);
     }

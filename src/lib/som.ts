@@ -69,17 +69,17 @@ export function tocar(tipo: TipoSom) {
   if (!habilitado) return;
   try {
     switch (tipo) {
-      case "tap":        nota(N.A5, 0, 0.04, 0.05, "sine"); break;
-      case "toggleOn":   nota(N.E5, 0, 0.05, 0.07); nota(N.G5, 0.05, 0.08, 0.07); break;
-      case "toggleOff":  nota(N.G5, 0, 0.05, 0.05); nota(N.D5, 0.05, 0.08, 0.05); break;
-      case "sucesso":    nota(N.C5, 0, 0.06, 0.07); nota(N.E5, 0.06, 0.06, 0.07); nota(N.G5, 0.12, 0.12, 0.07); break;
-      case "celebracao": nota(N.C5, 0, 0.08, 0.08); nota(N.E5, 0.08, 0.08, 0.08); nota(N.G5, 0.16, 0.08, 0.08); nota(N.C6, 0.24, 0.25, 0.09); break;
-      case "recorde":    nota(N.G5, 0, 0.07, 0.08); nota(N.C6, 0.07, 0.07, 0.09); nota(N.E6, 0.14, 0.30, 0.10); break;
-      case "enviar":     glide(600, 1000, 0.07, 0.05); break;
-      case "receber":    nota(N.D5, 0, 0.05, 0.05); nota(N.A5, 0.07, 0.10, 0.05); break;
-      case "erro":       nota(N.G4, 0, 0.10, 0.06, "triangle"); nota(320, 0.10, 0.14, 0.06, "triangle"); break;
-      case "abrir":      glide(500, 800, 0.06, 0.04); break;
-      case "fechar":     glide(800, 500, 0.06, 0.04); break;
+      case "tap":        nota(N.A5, 0, 0.04, 0.10, "sine"); break;
+      case "toggleOn":   nota(N.E5, 0, 0.05, 0.14); nota(N.G5, 0.05, 0.08, 0.14); break;
+      case "toggleOff":  nota(N.G5, 0, 0.05, 0.10); nota(N.D5, 0.05, 0.08, 0.10); break;
+      case "sucesso":    nota(N.C5, 0, 0.06, 0.14); nota(N.E5, 0.06, 0.06, 0.14); nota(N.G5, 0.12, 0.12, 0.14); break;
+      case "celebracao": nota(N.C5, 0, 0.08, 0.16); nota(N.E5, 0.08, 0.08, 0.16); nota(N.G5, 0.16, 0.08, 0.16); nota(N.C6, 0.24, 0.25, 0.18); break;
+      case "recorde":    nota(N.G5, 0, 0.07, 0.16); nota(N.C6, 0.07, 0.07, 0.18); nota(N.E6, 0.14, 0.30, 0.20); break;
+      case "enviar":     glide(600, 1000, 0.07, 0.10); break;
+      case "receber":    nota(N.D5, 0, 0.05, 0.10); nota(N.A5, 0.07, 0.10, 0.10); break;
+      case "erro":       nota(N.G4, 0, 0.10, 0.12, "triangle"); nota(320, 0.10, 0.14, 0.12, "triangle"); break;
+      case "abrir":      glide(500, 800, 0.06, 0.08); break;
+      case "fechar":     glide(800, 500, 0.06, 0.08); break;
     }
   } catch { /* som nunca pode quebrar a UI */ }
 }

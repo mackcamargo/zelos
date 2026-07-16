@@ -47,15 +47,17 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
     try {
       const { data, error } = await dbService.getAlunos(personalId);
       if (error) {
-        setErro('Erro ao carregar lista de alunos.');
+        console.error('Erro ao carregar alunos:', error);
+        setErro(`Erro ao carregar alunos: ${error.message}`);
       } else {
         setAlunos(data || []);
         if (data && data.length > 0) {
           setFormData(prev => ({ ...prev, aluno_id: data[0].id }));
         }
       }
-    } catch (err) {
-      setErro('Falha na comunicação com o banco.');
+    } catch (err: any) {
+      console.error('Falha na comunicação com o banco:', err);
+      setErro(`Falha na comunicação: ${err.message || 'Erro de conexão'}`);
     } finally {
       setLoadingAlunos(false);
     }
@@ -90,7 +92,8 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
         onFechar();
       }
     } catch (err: any) {
-      setErro('Erro interno ao processar requisição.');
+      console.error('Erro ao salvar agendamento:', err);
+      setErro(`Erro ao salvar: ${err.message || 'Erro inesperado'}`);
     } finally {
       setSaving(false);
     }
