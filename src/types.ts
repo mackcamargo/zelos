@@ -107,6 +107,7 @@ export interface Habito {
   ativo: boolean;
   criado_em: string;
   registros?: HabitoRegistro[];
+  habitos_registros?: HabitoRegistro[];
 }
 
 export interface HabitoRegistro {

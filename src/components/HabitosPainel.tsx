@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dbService } from '../lib/supabase';
+import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Habito, HabitoRegistro } from '../types';
 import { 
   CheckCircle2, Circle, Flame, 
@@ -15,7 +15,7 @@ interface HabitosPainelProps {
 export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPainelProps) {
   const [habitos, setHabitos] = useState<Habito[]>([]);
   const [loading, setLoading] = useState(true);
-  const today = new Date().toISOString().split('T')[0];
+  const hoje = new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     loadHabitos();
@@ -24,84 +24,137 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
   const loadHabitos = async () => {
     setLoading(true);
     try {
-      const { data } = await dbService.getHabitos(alunoId);
-      if (data) setHabitos(data);
+      if (isSupabaseConfigured && supabase) {
+        const { data: userResponse } = await supabase.auth.getUser();
+        const user = userResponse?.user;
+        if (user) {
+          const { data, error } = await supabase.from("habitos")
+            .select("*, habitos_registros(concluido, data)")
+            .eq("aluno_id", user.id)
+            .eq("ativo", true);
+          
+          if (data) {
+            setHabitos(data);
+          }
+        }
+      } else {
+        const { data } = await dbService.getHabitos(alunoId);
+        if (data) setHabitos(data);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar hábitos do aluno:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleToggleHabito = async (habitoId: number, currentStatus: boolean) => {
-    const newStatus = !currentStatus;
+  const getHabitStreak = (h: any, hojeStr: string) => {
+    const registros = h.habitos_registros || h.registros || [];
+    const [a, m, d] = hojeStr.split("-").map(Number);
     
-    // Optimistic update
-    setHabitos(prev => prev.map(h => {
-      if (h.id === habitoId) {
-        const registros = [...(h.registros || [])];
-        const idx = registros.findIndex(r => r.data === today);
-        if (idx >= 0) {
-          registros[idx] = { ...registros[idx], concluido: newStatus };
-        } else {
-          registros.push({ id: 0, habito_id: habitoId, aluno_id: alunoId, data: today, concluido: newStatus });
-        }
-        return { ...h, registros };
-      }
-      return h;
-    }));
+    const isDoneOnDate = (dateStr: string) => {
+      return registros.some((r: any) => r.data === dateStr && r.concluido);
+    };
 
-    await dbService.toggleHabitoRegistro(habitoId, alunoId, today, newStatus);
-    
-    if (newStatus) {
-      const allDone = habitos.every(h => {
-        if (h.id === habitoId) return true;
-        return h.registros?.some(r => r.data === today && r.concluido);
-      });
-      if (allDone && onHabitComplete) {
-        await onHabitComplete();
-      }
-    }
-  };
-
-  const concluidoHoje = habitos.filter(h => 
-    h.registros?.some(r => r.data === today && r.concluido)
-  ).length;
-  
-  const totalHabitos = habitos.length;
-  const progressPercent = totalHabitos > 0 ? (concluidoHoje / totalHabitos) * 100 : 0;
-
-  // Calculate streak (simplified)
-  const calculateStreak = () => {
-    if (habitos.length === 0) return 0;
     let streak = 0;
-    let checkDate = new Date();
+    
+    const todayDone = isDoneOnDate(hojeStr);
+    const yesterdayDate = new Date(a, m - 1, d - 1);
+    const yesterdayStr = yesterdayDate.toISOString().slice(0, 10);
+    const yesterdayDone = isDoneOnDate(yesterdayStr);
+    
+    if (!todayDone && !yesterdayDone) {
+      return 0;
+    }
+    
+    let daysAgo = todayDone ? 0 : 1;
     
     while (true) {
-      const dateStr = checkDate.toISOString().split('T')[0];
-      const allDone = habitos.every(h => 
-        h.registros?.some(r => r.data === dateStr && r.concluido)
-      );
-      
-      if (allDone) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
+      const checkDate = new Date(a, m - 1, d - daysAgo);
+      const checkStr = checkDate.toISOString().slice(0, 10);
+      if (isDoneOnDate(checkStr)) {
+        streak = (Number(streak) || 0) + 1;
+        daysAgo = (Number(daysAgo) || 0) + 1;
       } else {
         break;
       }
     }
-    return streak;
+    
+    return Number(streak) || 0;
   };
 
-  const streak = calculateStreak();
+  const handleToggleHabito = async (h: Habito, currentStatus: boolean) => {
+    const novoValor = !currentStatus;
+    
+    // Optimistic update
+    setHabitos(prev => prev.map(item => {
+      if (item.id === h.id) {
+        const registros = [...(item.habitos_registros || item.registros || [])];
+        const idx = registros.findIndex(r => r.data === hoje);
+        if (idx >= 0) {
+          registros[idx] = { ...registros[idx], concluido: novoValor };
+        } else {
+          registros.push({ id: 0, habito_id: h.id, aluno_id: alunoId, data: hoje, concluido: novoValor });
+        }
+        // update both keys for safety
+        return { ...item, habitos_registros: registros, registros };
+      }
+      return item;
+    }));
+
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { error } = await supabase.from("habitos_registros").upsert(
+          { habito_id: h.id, aluno_id: user.id, data: hoje, concluido: novoValor },
+          { onConflict: "habito_id,aluno_id,data" }
+        );
+        if (error) throw error;
+      } else {
+        // Fallback for demo mode
+        const registrosMock = JSON.parse(localStorage.getItem('zenite_habitos_registros') || '[]');
+        const idx = registrosMock.findIndex((r: any) => r.habito_id === h.id && r.data === hoje && r.aluno_id === alunoId);
+        if (idx >= 0) {
+          registrosMock[idx].concluido = novoValor;
+        } else {
+          registrosMock.push({
+            id: Math.floor(Math.random() * 1000000),
+            habito_id: h.id,
+            aluno_id: alunoId,
+            data: hoje,
+            concluido: novoValor
+          });
+        }
+        localStorage.setItem('zenite_habitos_registros', JSON.stringify(registrosMock));
+      }
+      
+      if (novoValor && onHabitComplete) {
+        await onHabitComplete();
+      }
+    } catch (err) {
+      console.error("Erro ao salvar registro de hábito:", err);
+      // Revert on error
+      loadHabitos();
+    }
+  };
+
+  const totalHabitos = Number(habitos.length) || 0;
+  const concluidoHoje = Number(habitos.filter(h => {
+    const registros = h.habitos_registros || h.registros || [];
+    return registros.some(r => r.data === hoje && r.concluido);
+  }).length) || 0;
+  
+  const progressPercent = totalHabitos > 0 ? (concluidoHoje / totalHabitos) * 100 : 0;
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex justify-center py-12 bg-surface-2 border border-white/5 rounded-3xl p-6">
         <Loader2 className="w-6 h-6 text-flame animate-spin" />
       </div>
     );
   }
-
-  if (habitos.length === 0) return null;
 
   return (
     <div className="w-full bg-surface-2 border border-white/5 rounded-3xl p-6 space-y-6 overflow-hidden relative group">
@@ -115,79 +168,90 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
             Mantenha sua disciplina
           </p>
         </div>
-        
-        {streak > 0 && (
-          <div className="flex items-center gap-2 bg-flame/10 px-3 py-1.5 rounded-xl border border-flame/20 shadow-[0_0_20px_rgba(245,51,79,0.1)]">
-            <Flame className="w-4 h-4 text-flame animate-pulse" />
-            <span className="text-xs font-mono font-bold text-flame">🔥 {streak} DIAS</span>
+      </div>
+
+      {totalHabitos === 0 ? (
+        <div className="py-6 flex flex-col items-center justify-center text-center">
+          <Sparkles className="w-8 h-8 text-ink-3 opacity-20 mb-2" />
+          <p className="text-sm text-ink-3">Seu personal ainda não definiu hábitos.</p>
+        </div>
+      ) : (
+        <>
+          {/* Progress Bar */}
+          <div className="space-y-2 relative z-10">
+            <div className="flex justify-between text-[10px] font-mono text-ink-3">
+              <span>Progresso Diário</span>
+              <span>{concluidoHoje} de {totalHabitos} concluídos hoje</span>
+            </div>
+            <div className="h-2 bg-void rounded-full overflow-hidden border border-white/5">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                className="h-full brand-gradient-bg shadow-[0_0_15px_rgba(245,51,79,0.3)]"
+              />
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Progress Bar */}
-      <div className="space-y-2 relative z-10">
-        <div className="flex justify-between text-[10px] font-mono text-ink-3">
-          <span>Progresso Diário</span>
-          <span>{concluidoHoje} de {totalHabitos} concluídos</span>
-        </div>
-        <div className="h-2 bg-void rounded-full overflow-hidden border border-white/5">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            className="h-full brand-gradient-bg shadow-[0_0_15px_rgba(245,51,79,0.3)]"
-          />
-        </div>
-      </div>
+          {/* Habits List */}
+          <div className="grid grid-cols-1 gap-2 relative z-10">
+            {habitos.map((h) => {
+              const registros = h.habitos_registros || h.registros || [];
+              const isDone = registros.some(r => r.data === hoje && r.concluido);
+              const streak = getHabitStreak(h, hoje);
+              
+              return (
+                <button
+                  key={h.id}
+                  onClick={() => handleToggleHabito(h, !!isDone)}
+                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 text-left cursor-pointer ${
+                    isDone 
+                      ? 'bg-emerald-500/5 border-emerald-500/10' 
+                      : 'bg-surface-3 border-white/5 hover:border-white/10'
+                  }`}
+                >
+                  <span className="text-2xl shrink-0">{h.icone || '⚡'}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center">
+                      <p className={`text-sm font-bold truncate ${isDone ? 'line-through text-ink-3' : 'text-ink'}`}>
+                        {h.nome}
+                      </p>
+                      {streak >= 2 && (
+                        <span className="text-[10px] font-mono font-bold text-[#F26A1B] ml-2 bg-[#F26A1B]/10 px-1.5 py-0.5 rounded-md flex items-center shrink-0">
+                          🔥 {streak} dias
+                        </span>
+                      )}
+                    </div>
+                    {h.meta_diaria && (
+                      <p className="text-[10px] text-ink-3 font-mono truncate mt-0.5">{h.meta_diaria}</p>
+                    )}
+                  </div>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                    isDone 
+                      ? 'bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]' 
+                      : 'bg-void border border-white/10 text-ink-3'
+                  }`}>
+                    {isDone ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Habits List */}
-      <div className="grid grid-cols-1 gap-2 relative z-10">
-        {habitos.map((h) => {
-          const isDone = h.registros?.some(r => r.data === today && r.concluido);
-          
-          return (
-            <button
-              key={h.id}
-              onClick={() => handleToggleHabito(h.id, !!isDone)}
-              className={`flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 ${
-                isDone 
-                  ? 'bg-flame/10 border-flame/20' 
-                  : 'bg-surface-3 border-white/5 hover:border-white/10'
-              }`}
+          {concluidoHoje === totalHabitos && totalHabitos > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3"
             >
-              <span className="text-2xl">{h.icone}</span>
-              <div className="flex-1 text-left min-w-0">
-                <p className={`text-sm font-bold truncate ${isDone ? 'text-flame' : 'text-ink'}`}>
-                  {h.nome}
-                </p>
-                {h.meta_diaria && (
-                  <p className="text-[10px] text-ink-3 font-mono truncate">{h.meta_diaria}</p>
-                )}
+              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg">
+                <Trophy className="w-4 h-4 text-white" />
               </div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                isDone 
-                  ? 'bg-flame text-white shadow-lg' 
-                  : 'bg-void border border-white/10 text-ink-3'
-              }`}>
-                {isDone ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {concluidoHoje === totalHabitos && totalHabitos > 0 && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3"
-        >
-          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-            <Trophy className="w-4 h-4 text-white" />
-          </div>
-          <p className="text-xs text-emerald-400 font-medium">
-            Sensacional! Você completou todos os hábitos de hoje.
-          </p>
-        </motion.div>
+              <p className="text-xs text-emerald-400 font-medium">
+                Sensacional! Você completou todos os hábitos de hoje.
+              </p>
+            </motion.div>
+          )}
+        </>
       )}
     </div>
   );
