@@ -188,7 +188,6 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                   <p className="text-xs font-semibold text-ink group-hover/btn:text-[#F26A1B] transition-colors truncate">
                     {profile.nome}
                   </p>
-                  <p className="text-[9px] text-ink-3 font-mono truncate">ID: {userId.substring(0, 8)}</p>
                 </div>
               )}
             </div>
@@ -301,7 +300,6 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-ink truncate">{profile.nome}</p>
-                <p className="text-[9px] text-ink-3 font-mono truncate">ID: {userId.substring(0, 8)}</p>
               </div>
             </button>
             <button 

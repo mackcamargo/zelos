@@ -786,7 +786,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           >
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-sm font-semibold text-ink group-hover:text-flame transition-colors">{profile.nome}</span>
-              <span className="text-[10px] text-ink-2 font-mono group-hover:text-ink-3 transition-colors">ID: {userId.substring(0, 8)}</span>
+              {objetivo && objetivo !== 'A definir' && (
+                <span className="text-[10px] text-ink-3 font-mono uppercase tracking-wider group-hover:text-ink-2 transition-colors">
+                  {objetivo}
+                </span>
+              )}
             </div>
             <div className="w-10 h-10 rounded-full border border-white/10 p-[1px] group-hover:border-flame/30 transition-colors">
               <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-ink">

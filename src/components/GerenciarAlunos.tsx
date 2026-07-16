@@ -578,7 +578,6 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                     <h2 className="font-display font-bold text-xl text-ink leading-tight">
                       {selectedAluno.profile?.nome || 'Aluno'}
                     </h2>
-                    <p className="text-xs text-ink-3 font-mono mt-1">ID: {selectedAluno.id}</p>
                   </div>
                 </div>
 

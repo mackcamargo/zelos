@@ -721,7 +721,7 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
               </button>
 
               <span className="text-xs font-mono text-ink-3">
-                {selectedExercicio.id ? `EDITANDO: ${selectedExercicio.id}` : 'NOVO EXERCÍCIO'}
+                {selectedExercicio.id ? 'EDITANDO EXERCÍCIO' : 'NOVO EXERCÍCIO'}
               </span>
             </div>
 
