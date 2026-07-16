@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authService, dbService, isSupabaseConfigured } from './lib/supabase';
+import { authService, dbService, isSupabaseConfigured, supabase } from './lib/supabase';
 import { Profile } from './types';
 import Auth from './components/Auth';
 import PersonalArea from './components/PersonalArea';
@@ -13,6 +13,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [showConviteConflict, setShowConviteConflict] = useState(false);
   const [conviteCode, setConviteCode] = useState<string | null>(null);
+  const [modoRecuperacao, setModoRecuperacao] = useState(false);
 
   useEffect(() => {
     initSom();
@@ -27,7 +28,24 @@ export default function App() {
       }
     };
     document.addEventListener("click", handler, true); // fase de captura
-    return () => document.removeEventListener("click", handler, true);
+
+    // Listener para recuperação de senha
+    let authSub: any = null;
+    if (isSupabaseConfigured && supabase) {
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          setModoRecuperacao(true);
+        }
+      });
+      authSub = data;
+    }
+
+    return () => {
+      document.removeEventListener("click", handler, true);
+      if (authSub?.subscription) {
+        authSub.subscription.unsubscribe();
+      }
+    };
   }, []);
 
   // Initialize and check current session
@@ -147,7 +165,11 @@ export default function App() {
             </div>
           </div>
         )}
-        <Auth onAuthSuccess={handleAuthSuccess} />
+        <Auth 
+          onAuthSuccess={handleAuthSuccess} 
+          initialRecoveryMode={modoRecuperacao}
+          onRecoveryComplete={() => setModoRecuperacao(false)}
+        />
       </div>
     );
   }

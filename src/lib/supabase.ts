@@ -217,6 +217,26 @@ export const authService = {
     const convites = loadMockConvites();
     const c = convites.find((x: any) => x.codigo.trim().toUpperCase() === codigo.trim().toUpperCase() && !x.usado);
     return { valido: !!c, personalId: c?.personal_id ?? null };
+  },
+
+  async resetPassword(email: string) {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/?recuperar=1`,
+      });
+      return { error };
+    }
+    // Modo Demo: simula sucesso sempre
+    return { error: null };
+  },
+
+  async updatePassword(password: string) {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.updateUser({ password });
+      return { error };
+    }
+    // Modo Demo: simula sucesso sempre
+    return { error: null };
   }
 };
 
