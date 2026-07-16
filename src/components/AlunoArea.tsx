@@ -52,6 +52,66 @@ const getStartOfWeek = (d: Date = new Date()) => {
 
 function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: AlunoAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('treino');
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
+
+  const fetchUnreadCount = async () => {
+    if (!userId) return;
+    if (isSupabaseConfigured && supabase) {
+      const { count, error } = await supabase
+        .from("mensagens")
+        .select("id", { count: "exact", head: true })
+        .eq("aluno_id", userId)
+        .neq("autor_id", userId)
+        .eq("lida", false)
+        .eq("excluida", false);
+      if (error) {
+        console.error("Erro ao carregar mensagens não lidas:", error);
+      }
+      setUnreadMessagesCount(Math.max(0, Number(count) || 0));
+    } else {
+      const msgs = JSON.parse(localStorage.getItem('zenite_mensagens') || '[]');
+      const count = msgs.filter((m: any) => m.aluno_id === userId && m.autor_id !== userId && !m.lida && !m.excluida).length;
+      setUnreadMessagesCount(Math.max(0, Number(count) || 0));
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchUnreadCount();
+
+    window.addEventListener('zenite_mensagem_enviada', fetchUnreadCount);
+    window.addEventListener('zenite_mensagem_lida', fetchUnreadCount);
+
+    let canal: any = null;
+    if (isSupabaseConfigured && supabase) {
+      canal = supabase.channel(`aluno-mensagens-unreads-${userId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'mensagens', filter: `aluno_id=eq.${userId}` },
+          () => {
+            fetchUnreadCount();
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      window.removeEventListener('zenite_mensagem_enviada', fetchUnreadCount);
+      window.removeEventListener('zenite_mensagem_lida', fetchUnreadCount);
+      if (canal) {
+        supabase.removeChannel(canal);
+      }
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      setUnreadMessagesCount(0);
+    } else {
+      fetchUnreadCount();
+    }
+  }, [activeTab]);
+
   const { streak, checkPR, checkAchievements } = useGamification();
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -2448,7 +2508,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               activeTab === 'chat' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
-            <MessageSquare className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+            <div className="relative">
+              <MessageSquare className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+              {unreadMessagesCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#F26A1B] rounded-full ring-2 ring-void animate-pulse" />
+              )}
+            </div>
             <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Chat</span>
             {activeTab === 'chat' && (
               <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />

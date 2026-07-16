@@ -44,7 +44,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
   useEffect(() => {
     const fetchUnreads = async () => {
       const { data } = await dbService.getPersonalUnreadCount(userId);
-      setUnreadCount(data || 0);
+      setUnreadCount(Math.max(0, Number(data) || 0));
     };
 
     fetchUnreads();

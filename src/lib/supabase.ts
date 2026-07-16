@@ -2022,7 +2022,16 @@ export const dbService = {
 
   async marcarMensagensLidas(alunoId: string, viewerId: string): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.rpc("marcar_mensagens_lidas", { p_aluno_id: alunoId });
+      const { data, error } = await supabase.rpc("marcar_mensagens_lidas", {
+        p_aluno_id: alunoId,
+      });
+      if (error) {
+        console.error("Erro ao marcar lidas:", error);
+      } else {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('zenite_mensagem_lida'));
+        }
+      }
       return { error };
     }
     const msgs = load('zenite_mensagens', []);
@@ -2037,6 +2046,7 @@ export const dbService = {
       save('zenite_mensagens', msgs);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('zenite_mensagem_enviada', { detail: { aluno_id: alunoId } }));
+        window.dispatchEvent(new CustomEvent('zenite_mensagem_lida'));
       }
     }
     return { error: null };
