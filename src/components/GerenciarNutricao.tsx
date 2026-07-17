@@ -150,51 +150,51 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
       {/* METAS DIÁRIAS */}
       <div className="bg-surface-2 border border-white/5 rounded-3xl p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h4 className="font-display font-bold text-ink flex items-center gap-2">
+          <h4 className="font-display font-medium text-base text-ink flex items-center gap-2">
             <Target className="w-5 h-5 text-flame" />
-            Metas Diárias
+            Metas diárias
           </h4>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Calorias (kcal)</label>
+            <label className="text-[12px] text-ink-3">Calorias (kcal)</label>
             <input 
               type="number"
               value={plano.meta_calorias}
               disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_calorias: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm text-ink focus:border-flame/30 outline-none disabled:opacity-50 num"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Proteína (g)</label>
+            <label className="text-[12px] text-ink-3">Proteína (g)</label>
             <input 
               type="number"
               value={plano.meta_proteina}
               disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_proteina: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm text-ink focus:border-flame/30 outline-none disabled:opacity-50 num"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Carbo (g)</label>
+            <label className="text-[12px] text-ink-3">Carbo (g)</label>
             <input 
               type="number"
               value={plano.meta_carboidrato}
               disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_carboidrato: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm text-ink focus:border-flame/30 outline-none disabled:opacity-50 num"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Gordura (g)</label>
+            <label className="text-[12px] text-ink-3">Gordura (g)</label>
             <input 
               type="number"
               value={plano.meta_gordura}
               disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_gordura: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm text-ink focus:border-flame/30 outline-none disabled:opacity-50 num"
             />
           </div>
         </div>
@@ -202,22 +202,22 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
         {/* COMPARATIVO META VS SOMA */}
         <div className="p-4 bg-void/50 rounded-2xl border border-white/5 grid grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-[10px] font-mono text-ink-3 uppercase">Total Plano</div>
-            <div className={`text-sm font-mono font-bold ${totals.cal > (plano.meta_calorias || 0) ? 'text-flame' : 'text-ink'}`}>
+            <div className="text-[12px] text-ink-3">Total plano</div>
+            <div className={`text-[16px] font-semibold num ${totals.cal > (plano.meta_calorias || 0) ? 'text-flame' : 'text-ink'}`}>
               {totals.cal} / {plano.meta_calorias}
             </div>
           </div>
           <div className="text-center">
-            <div className="text-[10px] font-mono text-ink-3 uppercase">Prot</div>
-            <div className="text-sm font-mono font-bold text-violet">{totals.prot}g</div>
+            <div className="text-[12px] text-ink-3">Prot</div>
+            <div className="text-[16px] font-semibold text-violet num">{totals.prot}g</div>
           </div>
           <div className="text-center">
-            <div className="text-[10px] font-mono text-ink-3 uppercase">Carb</div>
-            <div className="text-sm font-mono font-bold text-amber">{totals.carb}g</div>
+            <div className="text-[12px] text-ink-3">Carb</div>
+            <div className="text-[16px] font-semibold text-amber num">{totals.carb}g</div>
           </div>
           <div className="text-center">
-            <div className="text-[10px] font-mono text-ink-3 uppercase">Gord</div>
-            <div className="text-sm font-mono font-bold text-orange-500">{totals.fat}g</div>
+            <div className="text-[12px] text-ink-3">Gord</div>
+            <div className="text-[16px] font-semibold text-orange-500 num">{totals.fat}g</div>
           </div>
         </div>
       </div>
@@ -225,13 +225,13 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
       {/* REFEIÇÕES */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="font-display font-bold text-ink uppercase tracking-widest text-xs">Refeições</h4>
+          <h4 className="font-display font-medium text-base text-ink">Refeições</h4>
           {!isReadOnly && (
             <button
               onClick={handleAddRefeicao}
-              className="flex items-center gap-2 px-4 py-2 bg-flame text-void rounded-xl text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-flame text-void rounded-xl text-xs font-semibold hover:scale-105 transition-all"
             >
-              <Plus className="w-3.5 h-3.5" /> Adicionar Refeição
+              <Plus className="w-3.5 h-3.5" /> Adicionar refeição
             </button>
           )}
         </div>
@@ -255,7 +255,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                         ...prev,
                         refeicoes: prev.refeicoes?.map(r => r.id === ref.id ? { ...r, nome: e.target.value } : r)
                       }))}
-                      className="bg-transparent font-display font-bold text-ink outline-none border-b border-white/10 focus:border-flame disabled:opacity-50"
+                      className="bg-transparent font-display font-semibold text-ink outline-none border-b border-white/10 focus:border-flame disabled:opacity-50"
                     />
                     <div className="flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5 text-ink-3" />
@@ -267,7 +267,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                           ...prev,
                           refeicoes: prev.refeicoes?.map(r => r.id === ref.id ? { ...r, horario: e.target.value } : r)
                         }))}
-                        className="bg-transparent font-mono text-xs text-ink outline-none disabled:opacity-50"
+                        className="bg-transparent text-[12px] text-ink outline-none disabled:opacity-50 num"
                       />
                     </div>
                   </div>
@@ -290,7 +290,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             value={ali.nome}
                             placeholder="Alimento"
                             onChange={(e) => handleUpdateAlimento(ref.id, ali.id, 'nome', e.target.value)}
-                            className="w-full bg-void border border-white/5 rounded-lg px-3 py-2 text-[10px] text-ink outline-none"
+                            className="w-full bg-void border border-white/5 rounded-lg px-3 py-2 text-[12px] text-ink outline-none"
                           />
                         </div>
                         <div className="col-span-2">
@@ -298,7 +298,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             value={ali.quantidade}
                             placeholder="Qtd"
                             onChange={(e) => handleUpdateAlimento(ref.id, ali.id, 'quantidade', e.target.value)}
-                            className="w-full bg-void border border-white/5 rounded-lg px-2 py-2 text-[10px] text-ink outline-none"
+                            className="w-full bg-void border border-white/5 rounded-lg px-2 py-2 text-[12px] text-ink outline-none num"
                           />
                         </div>
                         <div className="col-span-1">
@@ -307,7 +307,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             value={ali.calorias}
                             placeholder="Kcal"
                             onChange={(e) => handleUpdateAlimento(ref.id, ali.id, 'calorias', Number(e.target.value))}
-                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[10px] text-ink font-mono outline-none text-center"
+                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[12px] text-ink outline-none text-center num"
                           />
                         </div>
                         <div className="col-span-1">
@@ -316,7 +316,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             value={ali.proteina}
                             placeholder="P"
                             onChange={(e) => handleUpdateAlimento(ref.id, ali.id, 'proteina', Number(e.target.value))}
-                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[10px] text-violet font-mono outline-none text-center"
+                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[12px] text-violet outline-none text-center num"
                           />
                         </div>
                         <div className="col-span-1">
@@ -325,7 +325,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             value={ali.carboidrato}
                             placeholder="C"
                             onChange={(e) => handleUpdateAlimento(ref.id, ali.id, 'carboidrato', Number(e.target.value))}
-                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[10px] text-amber font-mono outline-none text-center"
+                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[12px] text-amber outline-none text-center num"
                           />
                         </div>
                         <div className="col-span-1">
@@ -334,7 +334,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             value={ali.gordura}
                             placeholder="G"
                             onChange={(e) => handleUpdateAlimento(ref.id, ali.id, 'gordura', Number(e.target.value))}
-                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[10px] text-orange-500 font-mono outline-none text-center"
+                            className="w-full bg-void border border-white/5 rounded-lg px-1 py-2 text-[12px] text-orange-500 outline-none text-center num"
                           />
                         </div>
                         <div className="col-span-1 flex justify-center">
@@ -351,9 +351,9 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                   {!isReadOnly && (
                     <button
                       onClick={() => handleAddAlimento(ref.id)}
-                      className="w-full py-2 bg-void border border-dashed border-white/10 rounded-xl text-[9px] font-bold text-ink-3 hover:text-ink hover:border-white/20 transition-all flex items-center justify-center gap-2"
+                      className="w-full py-2 bg-void border border-dashed border-white/10 rounded-xl text-xs font-semibold text-ink-3 hover:text-ink hover:border-white/20 transition-all flex items-center justify-center gap-2"
                     >
-                      <Plus className="w-3 h-3" /> ADICIONAR ALIMENTO
+                      <Plus className="w-3 h-3" /> Adicionar alimento
                     </button>
                   )}
                 </div>
@@ -368,10 +368,10 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full py-4 brand-gradient-bg rounded-2xl font-display font-bold text-void uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+            className="w-full py-4 brand-gradient-bg rounded-2xl font-display font-semibold text-void flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-            SALVAR PLANO ALIMENTAR
+            Salvar plano alimentar
           </button>
         )}
       </div>

@@ -43,10 +43,10 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-display font-black text-ink uppercase italic tracking-tighter">
-          Escolha o seu <span className="text-flame">Plano</span>
+        <h2 className="text-[28px] font-semibold text-ink">
+          Escolha o seu <span className="text-flame">plano</span>
         </h2>
-        <p className="text-ink-3 font-mono text-xs uppercase tracking-widest">
+        <p className="text-ink-3 text-[12px] font-medium">
           Potencialize sua consultoria com as melhores ferramentas
         </p>
       </div>
@@ -65,8 +65,8 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
               }`}
             >
               {isCurrent && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-flame text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">
-                  Seu Plano
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-flame text-white text-[12px] font-semibold px-4 py-1.5 rounded-full shadow-lg">
+                  Seu plano
                 </div>
               )}
 
@@ -75,7 +75,7 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                   {getIcon(plano.id.toLowerCase())}
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-display font-black text-ink italic uppercase tracking-tighter">
+                  <div className="text-[20px] font-semibold text-ink">
                     {plano.nome}
                   </div>
                 </div>
@@ -83,11 +83,11 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
 
               <div className="mb-8">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-bold text-ink-3">R$</span>
-                  <span className="text-4xl font-mono font-black text-ink tracking-tighter">
+                  <span className="text-sm font-semibold text-ink-3">R$</span>
+                  <span className="text-[28px] font-semibold text-ink num">
                     {(plano.preco_centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>
-                  <span className="text-xs text-ink-3 font-medium">/mês</span>
+                  <span className="text-[12px] text-ink-3 font-medium">/mês</span>
                 </div>
               </div>
 
@@ -113,7 +113,7 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
               <button
                 disabled={isCurrent || !isAvailable}
                 onClick={() => handleAssinar(plano.id.toLowerCase())}
-                className={`w-full py-4 rounded-2xl font-display font-black uppercase tracking-widest transition-all duration-300 ${
+                className={`w-full py-4 rounded-2xl font-semibold text-xs transition-all duration-300 ${
                   isCurrent 
                     ? 'bg-white/5 text-ink-3 cursor-not-allowed'
                     : isAvailable
@@ -121,7 +121,7 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                       : 'bg-white/5 text-ink-3 cursor-not-allowed'
                 }`}
               >
-                {isCurrent ? 'Plano Atual' : isAvailable ? 'Assinar Agora' : 'Em breve'}
+                {isCurrent ? 'Plano atual' : isAvailable ? 'Assinar agora' : 'Em breve'}
               </button>
             </div>
           );

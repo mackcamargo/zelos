@@ -95,7 +95,7 @@ export const SubscriptionProvider: React.FC<{ personalId: string; children: Reac
       {errorModal && (
         <div className="fixed inset-0 bg-void/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-surface border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-display font-black text-ink uppercase italic tracking-tighter mb-4">
+            <h2 className="text-xl font-semibold text-ink mb-4">
               {errorModal.title}
             </h2>
             <p className="text-sm text-ink-2 leading-relaxed mb-8">
@@ -110,13 +110,13 @@ export const SubscriptionProvider: React.FC<{ personalId: string; children: Reac
                   // Ou simplesmente feche o modal e o usuário clica em "Assinatura" no menu.
                   window.dispatchEvent(new CustomEvent('changeTab', { detail: 'planos' }));
                 }}
-                className="w-full py-4 bg-flame text-white rounded-2xl font-display font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-flame/20"
+                className="w-full py-4 bg-flame text-white rounded-2xl font-semibold hover:bg-orange-600 transition-all shadow-lg shadow-flame/20"
               >
-                {errorModal.type === 'upgrade' ? 'Fazer Upgrade' : 'Reativar Plano'}
+                {errorModal.type === 'upgrade' ? 'Fazer upgrade' : 'Reativar plano'}
               </button>
               <button
                 onClick={() => setErrorModal(null)}
-                className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl font-display font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl font-semibold hover:bg-white/10 transition-all"
               >
                 Fechar
               </button>

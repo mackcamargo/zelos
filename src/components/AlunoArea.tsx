@@ -805,7 +805,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     >
       {/* Top Header */}
       <header className="sticky top-0 bg-void/90 backdrop-blur-md z-40 border-b border-b-white/5 py-5 px-6 shrink-0">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="max-w-[1200px] mx-auto flex justify-between items-center">
           <div>
             <div className="flex items-center gap-2">
               <span className="font-display font-black text-2xl tracking-tight">
@@ -842,7 +842,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </header>
 
       {/* Main View Area */}
-      <main className={`flex-1 max-w-4xl w-full mx-auto px-6 ${
+      <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 ${
         activeTab === 'chat' 
           ? 'pt-4 pb-[88px] flex flex-col min-h-0 overflow-hidden' 
           : 'pt-8 pb-32 md:pb-8'
@@ -855,9 +855,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             {/* WORKOUT LIST (If no active workout is selected) */}
             {!selectedWorkout ? (
               <div className="space-y-6">
-                <div>
-                  <h1 className="font-display font-bold text-2xl text-ink tracking-tight">Meu Treino de Hoje</h1>
-                  <p className="text-sm text-ink-2">Seus treinos, cargas e exercícios personalizados publicados pelo seu Personal.</p>
+                <div className="flex flex-col md:flex-row md:items-baseline gap-x-3 gap-y-1">
+                  <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight leading-none">Meu Treino de Hoje</h1>
+                  <p className="text-sm text-ink-2 leading-none">Seus treinos, cargas e exercícios personalizados publicados pelo seu Personal</p>
                 </div>
 
                 {loading ? (
@@ -865,18 +865,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     <span className="w-8 h-8 border-2 border-flame border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : workouts.length === 0 ? (
-                  <div className="bg-surface rounded-3xl p-12 text-center border border-white/5 flex flex-col justify-center items-center">
-                    <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center mb-5 border border-white/5">
-                      <Dumbbell className="w-8 h-8 text-ink-3 stroke-1" />
-                    </div>
-                    <span className="font-display font-medium text-lg text-ink mb-1">Nenhum treino publicado ainda</span>
-                    <p className="text-sm text-ink-2 max-w-md mb-6 leading-relaxed">
+                  <div className="py-12 flex flex-col items-center justify-center text-center">
+                    <Dumbbell className="w-8 h-8 text-ink-3 stroke-[1.2] mb-3" />
+                    <p className="text-sm text-ink-2 max-w-md">
                       Seu personal trainer ainda não publicou uma planilha de treinos para você. Assim que ele criar e liberar sua rotina, ela aparecerá aqui completa.
                     </p>
-                    <div className="text-xs font-mono text-ink-3 bg-void px-4 py-2 rounded-full border border-white/5 flex items-center gap-2">
-                      <Heart className="w-4 h-4 text-flame animate-pulse" />
-                      <span>Mantenha o foco. O progresso está a caminho!</span>
-                    </div>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1318,15 +1311,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {activeTab === 'progresso' && (
           <div id="tab-content-progresso" className="space-y-6">
             {/* Tab Header with Register button */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="font-display font-bold text-2xl text-ink tracking-tight flex items-center gap-2">
-                  <span>Meu Progresso</span>
-                  <span className="text-xs font-mono bg-flame/15 text-flame px-2 py-0.5 rounded-full border border-flame/20 font-bold uppercase tracking-wider">
-                    Performance
-                  </span>
-                </h1>
-                <p className="text-sm text-ink-2 font-sans">Acompanhe seu progresso de força, consistência e métricas corporais.</p>
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-baseline gap-x-3 gap-y-1">
+                <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight leading-none">Meu Progresso</h1>
+                <p className="text-sm text-ink-2 leading-none">Acompanhe seu progresso de força, consistência e métricas corporais</p>
               </div>
               <button
                 id="btn-register-metric"
@@ -2196,9 +2184,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {/* TAB 3: PERFIL */}
         {activeTab === 'perfil' && (
           <div id="tab-content-perfil" className="space-y-6">
-            <div>
-              <h1 className="font-display font-bold text-2xl text-ink tracking-tight">Seu Perfil</h1>
-              <p className="text-sm text-ink-2">Seus dados cadastrais de aluno e tipo de avatar de ativação.</p>
+            <div className="flex flex-col md:flex-row md:items-baseline gap-x-3 gap-y-1">
+              <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight leading-none">Seu Perfil</h1>
+              <p className="text-sm text-ink-2 leading-none">Seus dados cadastrais de aluno e tipo de avatar de ativação</p>
             </div>
 
             {/* Premium Profile Card */}
@@ -2412,28 +2400,30 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {showCelebration && (
           <div id="celebration-modal-overlay" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/90 backdrop-blur-md">
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-surface border border-white/10 rounded-3xl max-w-sm w-full p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-center space-y-5"
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-surface border border-white/5 rounded-xl max-w-sm w-full p-8 text-center space-y-5"
             >
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto text-3xl">
-                🏆
+              <div className="w-12 h-12 rounded-lg bg-[#F26A1B]/5 border border-[#F26A1B]/10 flex items-center justify-center mx-auto">
+                <Trophy className="w-6 h-6 text-[#F26A1B]" />
               </div>
 
               <div className="space-y-1.5">
-                <h3 className="font-display font-black text-xl text-ink">Treino Concluído!</h3>
+                <h3 className="font-semibold text-xl text-ink">Treino concluído!</h3>
                 <p className="text-xs text-ink-2">Você executou com consistência e dedicação hoje.</p>
               </div>
 
-              <div className="py-3 bg-void/40 border border-white/5 rounded-2xl grid grid-cols-2 gap-4">
+              <div className="py-3 bg-void/40 border border-white/5 rounded-lg grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-[10px] font-mono text-ink-3 block uppercase">Streak Semanal</span>
-                  <span className="text-sm font-mono font-bold text-flame">5 Dias 🔥</span>
+                  <span className="text-[12px] text-ink-3 block">Streak semanal</span>
+                  <span className="text-sm font-semibold text-[#F26A1B] num flex items-center justify-center gap-1">
+                    5 dias <Flame className="w-4 h-4 text-[#F26A1B]" />
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-ink-3 block uppercase">Histórico Geral</span>
-                  <span className="text-sm font-mono font-bold text-violet">{totalCompletedCount} sessões</span>
+                  <span className="text-[12px] text-ink-3 block">Histórico geral</span>
+                  <span className="text-sm font-semibold text-ink num">{totalCompletedCount} sessões</span>
                 </div>
               </div>
 
@@ -2445,9 +2435,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 id="btn-close-celebration"
                 type="button"
                 onClick={handleCloseCelebration}
-                className="w-full py-3.5 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs shadow-md"
+                className="w-full py-3 bg-[#F26A1B] font-semibold text-ink text-xs rounded-lg transition-all"
               >
-                Retornar ao Dashboard
+                Retornar ao dashboard
               </button>
             </motion.div>
           </div>
@@ -2465,9 +2455,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               className="bg-[#0F1218] border border-white/10 rounded-3xl max-w-sm w-full p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] space-y-6"
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-display font-black text-lg text-ink flex items-center gap-2">
+                <h3 className="font-semibold text-lg text-ink flex items-center gap-2">
                   <Scale className="w-5 h-5 text-flame" />
-                  <span className="font-sans">Nova Medida</span>
+                  <span className="font-sans">Nova medida</span>
                 </h3>
                 <button
                   type="button"
@@ -2480,7 +2470,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
               <form onSubmit={handleAddMetricaSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Tipo de Medida</label>
+                  <label className="text-[12px] font-medium text-ink-3 block">Tipo de medida</label>
                   <div className="relative">
                     <select
                       value={newMetricaTipo}
@@ -2500,7 +2490,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Valor Registrado</label>
+                  <label className="text-[12px] font-medium text-ink-3 block">Valor registrado</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -2509,9 +2499,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                       placeholder="Ex: 72.5"
                       value={newMetricaValor}
                       onChange={(e) => setNewMetricaValor(e.target.value)}
-                      className="w-full bg-void text-base text-ink border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-flame transition-colors font-mono font-bold"
+                      className="w-full bg-void text-base text-ink border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-flame transition-colors num font-semibold"
                     />
-                    <span className="absolute right-4 top-3.5 text-xs font-mono font-bold text-ink-3">
+                    <span className="absolute right-4 top-3.5 text-xs font-semibold text-ink-3 num">
                       {newMetricaTipo === 'peso' ? 'kg' : newMetricaTipo === 'gordura_pct' ? '%' : 'cm'}
                     </span>
                   </div>
@@ -2562,13 +2552,13 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               setSelectedWorkout(null);
             }}
             className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
-              activeTab === 'treino' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
+              activeTab === 'treino' ? 'text-[#F26A1B] font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <Dumbbell className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Treino</span>
+            <span className="text-xs md:text-sm font-semibold">Treino</span>
             {activeTab === 'treino' && (
-              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-[#F26A1B] rounded-t-full" />
             )}
           </button>
 
@@ -2577,14 +2567,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             id="tab-btn-progresso"
             type="button"
             onClick={() => setActiveTab('progresso')}
-            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
-              activeTab === 'progresso' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1 py-3 rounded-lg transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'progresso' ? 'text-[#F26A1B] font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <TrendingUp className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Progresso</span>
+            <span className="text-xs md:text-sm font-semibold">Progresso</span>
             {activeTab === 'progresso' && (
-              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-[#F26A1B] rounded-t-full" />
             )}
           </button>
 
@@ -2593,14 +2583,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             id="tab-btn-nutricao"
             type="button"
             onClick={() => setActiveTab('nutricao')}
-            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
-              activeTab === 'nutricao' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1 py-3 rounded-lg transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'nutricao' ? 'text-[#F26A1B] font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <Utensils className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Nutri</span>
+            <span className="text-xs md:text-sm font-semibold">Nutri</span>
             {activeTab === 'nutricao' && (
-              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-[#F26A1B] rounded-t-full" />
             )}
           </button>
 
@@ -2609,8 +2599,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             id="tab-btn-chat"
             type="button"
             onClick={() => setActiveTab('chat')}
-            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
-              activeTab === 'chat' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1 py-3 rounded-lg transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'chat' ? 'text-[#F26A1B] font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <div className="relative">
@@ -2619,9 +2609,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#F26A1B] rounded-full ring-2 ring-void animate-pulse" />
               )}
             </div>
-            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Chat</span>
+            <span className="text-xs md:text-sm font-semibold">Chat</span>
             {activeTab === 'chat' && (
-              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-[#F26A1B] rounded-t-full" />
             )}
           </button>
 
@@ -2630,14 +2620,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             id="tab-btn-agenda"
             type="button"
             onClick={() => setActiveTab('agenda')}
-            className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
-              activeTab === 'agenda' ? 'text-flame font-bold' : 'text-ink-2 hover:text-ink'
+            className={`flex flex-col items-center gap-1 py-3 rounded-lg transition-all duration-300 relative h-full justify-center cursor-pointer hover:bg-white/[0.02] active:scale-95 ${
+              activeTab === 'agenda' ? 'text-[#F26A1B] font-bold' : 'text-ink-2 hover:text-ink'
             }`}
           >
             <Calendar className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
-            <span className="text-xs md:text-sm font-semibold tracking-wider uppercase font-display">Agenda</span>
+            <span className="text-xs md:text-sm font-semibold">Agenda</span>
             {activeTab === 'agenda' && (
-              <span className="absolute bottom-0 w-10 h-1 bg-gradient-to-r from-ember via-flame to-amber rounded-t-full shadow-[0_-4px_10px_rgba(245,51,79,0.5)]" />
+              <span className="absolute bottom-0 w-10 h-1 bg-[#F26A1B] rounded-t-full" />
             )}
           </button>
         </div>

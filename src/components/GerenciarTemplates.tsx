@@ -178,13 +178,13 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display font-bold text-2xl text-ink tracking-tight flex items-center gap-2">
-            <span>Modelos de Treino</span>
-            <span className="text-xs font-mono font-normal bg-white/5 text-ink-2 px-2.5 py-1 rounded-full border border-white/5">
+          <h2 className="font-display font-semibold text-[28px] text-ink flex items-center gap-2">
+            <span>Modelos de treino</span>
+            <span className="text-[12px] font-medium bg-white/5 text-ink-2 px-2.5 py-1 rounded-full border border-white/5 num">
               {templates.length}
             </span>
           </h2>
-          <p className="text-sm text-ink-2 mt-1">
+          <p className="text-[14px] text-ink-2 mt-1">
             Crie bases de treino prontas para aplicar em qualquer aluno com um clique.
           </p>
         </div>
@@ -240,9 +240,9 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="py-3 px-8 rounded-xl bg-violet text-white text-xs font-bold transition-all hover:bg-violet/90 active:scale-[0.98]"
+              className="py-3 px-8 rounded-xl bg-violet text-white text-xs font-semibold transition-all hover:bg-violet/90 active:scale-[0.98]"
             >
-              Criar Primeiro Modelo
+              Criar primeiro modelo
             </button>
           )}
         </div>
@@ -295,31 +295,31 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                 </div>
 
                 <div>
-                  <h3 className="font-display font-bold text-base text-ink group-hover:text-white transition-colors truncate">
+                  <h3 className="font-semibold text-base text-ink group-hover:text-white transition-colors truncate">
                     {template.titulo}
                   </h3>
                   {template.descricao && (
-                    <p className="text-xs text-ink-2 mt-1 line-clamp-2 leading-relaxed">
+                    <p className="text-[12px] text-ink-2 mt-1 line-clamp-2 leading-relaxed">
                       {template.descricao}
                     </p>
                   )}
                 </div>
 
                 <div className="pt-2 flex flex-wrap gap-2">
-                  <div className="flex items-center gap-1 text-[10px] font-mono text-ink-3 bg-void/50 px-2 py-0.5 rounded-md border border-white/5">
+                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-void/50 px-2 py-0.5 rounded-md border border-white/5 num">
                     <Dumbbell className="w-3 h-3" />
                     <span>{template.exercicios?.length || 0} exercícios</span>
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] font-mono text-ink-3 bg-void/50 px-2 py-0.5 rounded-md border border-white/5">
+                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-void/50 px-2 py-0.5 rounded-md border border-white/5 num">
                     <Clock className="w-3 h-3" />
                     <span>{new Date(template.criado_em).toLocaleDateString('pt-BR')}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-5 pt-3.5 border-t border-white/5 flex justify-between items-center text-[10px] font-mono">
-                <span className="text-violet-400 uppercase tracking-wider font-bold">Base Reutilizável</span>
-                <span className="text-ink-3 group-hover:text-ink transition-colors">Abrir Editor →</span>
+              <div className="mt-5 pt-3.5 border-t border-white/5 flex justify-between items-center text-[12px]">
+                <span className="text-violet-400 font-semibold">Base reutilizável</span>
+                <span className="text-ink-3 group-hover:text-ink transition-colors">Abrir editor →</span>
               </div>
             </div>
           ))}
@@ -354,8 +354,8 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-display font-bold text-lg text-ink">Aplicar Modelo</h3>
-                      <p className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">
+                      <h3 className="font-display font-semibold text-lg text-ink">Aplicar modelo</h3>
+                      <p className="text-[12px] text-ink-3">
                         {templateToApply?.titulo}
                       </p>
                     </div>
@@ -370,7 +370,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Selecionar Aluno</label>
+                    <label className="text-[12px] text-ink-3 block">Selecionar aluno</label>
                     <select
                       id="select-apply-aluno"
                       value={selectedStudentId}
@@ -387,7 +387,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Título do Treino (Opcional)</label>
+                    <label className="text-[12px] text-ink-3 block">Título do treino (opcional)</label>
                     <input
                       id="input-apply-titulo"
                       type="text"
@@ -400,7 +400,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-mono uppercase tracking-wider text-white/50 block font-bold">DATA</label>
+                      <label className="text-[12px] text-white/50 block">Data</label>
                       <div className="relative">
                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input
@@ -408,13 +408,13 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                           type="date"
                           value={applyDate}
                           onChange={(e) => setApplyDate(e.target.value)}
-                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark]"
+                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark] num"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-mono uppercase tracking-wider text-white/50 block font-bold">HORA</label>
+                      <label className="text-[12px] text-white/50 block">Hora</label>
                       <div className="relative">
                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input
@@ -422,7 +422,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                           type="time"
                           value={applyTime}
                           onChange={(e) => setApplyTime(e.target.value)}
-                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark]"
+                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark] num"
                         />
                       </div>
                     </div>
@@ -432,7 +432,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                 <div className="pt-2 flex gap-3">
                   <button
                     onClick={() => setIsApplyModalOpen(false)}
-                    className="flex-1 py-3.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-ink text-xs font-bold transition-all"
+                    className="flex-1 py-3.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-ink text-xs font-semibold transition-all"
                   >
                     Cancelar
                   </button>
@@ -440,14 +440,14 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                     id="btn-confirm-apply"
                     onClick={handleApplyTemplate}
                     disabled={applying || !selectedStudentId}
-                    className="flex-[2] py-3.5 px-4 rounded-xl bg-[#F26A1B] hover:bg-[#FF7A2B] text-white text-xs font-bold transition-all shadow-[0_4px_15px_rgba(242,106,27,0.3)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                    className="flex-[2] py-3.5 px-4 rounded-xl bg-[#F26A1B] hover:bg-[#FF7A2B] text-white text-xs font-semibold transition-all shadow-[0_4px_15px_rgba(242,106,27,0.3)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                   >
                     {applying ? (
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>Aplicar Treino</span>
+                        <span>Aplicar treino</span>
                       </>
                     )}
                   </button>

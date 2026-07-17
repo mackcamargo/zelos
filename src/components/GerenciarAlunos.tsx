@@ -413,12 +413,12 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="font-display font-bold text-2xl text-ink tracking-tight flex items-center gap-2">
-                    <span>Meus Alunos</span>
+                  <h2 className="font-display font-semibold text-xl text-ink tracking-tight flex items-center gap-2">
+                    <span>Meus alunos</span>
                   </h2>
                   <div className="text-right">
-                    <span className="text-[10px] font-mono font-bold text-ink-3 uppercase tracking-widest">
-                      Capacidade do Plano
+                    <span className="text-[12px] text-ink-3">
+                      Capacidade do plano
                     </span>
                   </div>
                 </div>
@@ -426,12 +426,12 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 {/* Contador de alunos com barra de progresso */}
                 <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-ink">
+                    <span className="text-sm font-medium text-ink">
                       {assinatura?.limite_alunos && assinatura.limite_alunos >= 999999 
-                        ? 'Alunos Ilimitados' 
+                        ? 'Alunos ilimitados' 
                         : `${studentCount} de ${assinatura?.limite_alunos || 0} alunos`}
                     </span>
-                    <span className="text-xs font-mono text-ink-3">
+                    <span className="text-sm text-ink-3 num">
                       {assinatura?.limite_alunos && assinatura.limite_alunos >= 999999 
                         ? '∞' 
                         : `${Math.round((studentCount / (assinatura?.limite_alunos || 1)) * 100)}%`}
@@ -459,15 +459,15 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     handleGenerateCode();
                   }
                 }}
-                className={`py-3 px-5 rounded-xl font-display font-bold text-void text-xs flex items-center justify-center gap-2 transition-all self-start sm:self-center shrink-0 cursor-pointer ${
+                className={`py-3 px-5 rounded-xl font-display font-semibold text-void text-xs flex items-center justify-center gap-2 transition-all self-start sm:self-center shrink-0 cursor-pointer ${
                   isReadOnly 
                     ? 'bg-white/5 text-ink-3 cursor-not-allowed opacity-50' 
                     : 'brand-gradient-bg hover:opacity-95 active:scale-[0.98] shadow-[0_4px_15px_rgba(245,51,79,0.25)]'
                 }`}
-                title={isReadOnly ? "Sua assinatura não está ativa" : "Adicionar Aluno"}
+                title={isReadOnly ? "Sua assinatura não está ativa" : "Adicionar aluno"}
               >
                 <Plus className="w-4 h-4" />
-                <span>Adicionar Aluno</span>
+                <span>Adicionar aluno</span>
               </button>
             </div>
 
@@ -490,14 +490,11 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 <span className="w-8 h-8 border-2 border-flame border-t-transparent rounded-full animate-spin" />
               </div>
             ) : filteredAlunos.length === 0 ? (
-              <div className="bg-surface rounded-2xl p-12 text-center border border-white/5 flex flex-col justify-center items-center">
-                <Users className="w-12 h-12 text-ink-3 mb-4 stroke-1" />
-                <span className="font-display font-medium text-lg text-ink mb-1">
-                  {search ? 'Nenhum resultado encontrado' : 'Nenhum aluno ainda'}
-                </span>
-                <p className="text-xs text-ink-2 max-w-sm mb-6 leading-relaxed">
+              <div className="py-12 flex flex-col items-center justify-center text-center">
+                <Users className="w-8 h-8 text-ink-3 stroke-[1.2] mb-3" />
+                <p className="text-sm text-ink-2 max-w-md mb-4">
                   {search 
-                    ? `Nenhum aluno cadastrado corresponde à busca por "${search}".`
+                    ? `Nenhum resultado encontrado para "${search}".`
                     : 'Seus alunos vinculados aparecerão aqui. Compartilhe o código de convite ou adicione-os manualmente.'
                   }
                 </p>
@@ -541,28 +538,28 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         {streak > 0 && (
                           <div className="flex items-center gap-1 px-2 py-0.5 bg-flame/10 text-flame rounded-full border border-flame/20 shadow-sm">
                             <Flame className="w-2.5 h-2.5 animate-pulse" />
-                            <span className="text-[9px] font-mono font-black">{streak}</span>
+                            <span className="text-[12px] font-semibold num">{streak}</span>
                           </div>
                         )}
 
                         {!hasCheckin && isAtivo && (
-                          <div className="flex items-center gap-1.5 bg-flame/10 text-flame text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-flame/20 animate-pulse">
+                          <div className="flex items-center gap-1.5 bg-flame/10 text-flame text-[12px] font-medium px-2 py-0.5 rounded-full border border-flame/20 animate-pulse">
                             <AlertCircle className="w-2.5 h-2.5" />
-                            <span>Check-in Pendente</span>
+                            <span>Check-in pendente</span>
                           </div>
                         )}
                       </div>
 
                       <div className="flex items-start gap-4">
                         {/* Avatar styling with initials/emojis */}
-                        <div className="w-12 h-12 rounded-xl bg-surface-2 border border-white/5 flex items-center justify-center font-display font-bold text-xl shrink-0 group-hover:scale-105 transition-transform">
+                        <div className="w-12 h-12 rounded-xl bg-surface-2 border border-white/5 flex items-center justify-center font-display font-semibold text-base shrink-0 group-hover:scale-105 transition-transform">
                           {isFemale ? '👩' : '👨'}
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-display font-semibold text-sm text-ink group-hover:text-white transition-colors truncate">
                             {name}
                           </h3>
-                          <div className="flex items-center gap-1.5 text-xs text-ink-2 mt-1">
+                          <div className="flex items-center gap-1.5 text-[12px] text-ink-2 mt-1">
                             <Target className="w-3.5 h-3.5 text-flame shrink-0" />
                             <span className="truncate">{aluno.objetivo || 'Foco geral / condicionamento'}</span>
                           </div>
@@ -570,12 +567,12 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                       </div>
 
                       {/* Status Row */}
-                      <div className="mt-5 pt-3.5 border-t border-white/5 flex justify-between items-center text-[10px] font-mono">
+                      <div className="mt-5 pt-3.5 border-t border-white/5 flex justify-between items-center text-[12px]">
                         <div className="flex items-center gap-1.5">
                           <span className={`w-2 h-2 rounded-full ${isAtivo ? 'bg-emerald-500 animate-pulse' : 'bg-ink-3'}`} />
-                          <span className="text-ink-2 uppercase tracking-wider">{isAtivo ? 'Ativo' : 'Inativo'}</span>
+                          <span className="text-ink-2">Ativo</span>
                         </div>
-                        <span className="text-ink-3">Ver Perfil →</span>
+                        <span className="text-ink-3">Ver perfil →</span>
                       </div>
                     </div>
                   );
@@ -599,10 +596,10 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               id="btn-back-to-alunos"
               type="button"
               onClick={() => setSelectedAluno(null)}
-              className="flex items-center gap-2 text-xs text-ink-2 hover:text-ink transition-colors font-mono uppercase tracking-wider"
+              className="flex items-center gap-2 text-xs text-ink-2 hover:text-ink transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-flame" />
-              <span>Voltar para Meus Alunos</span>
+              <span>Voltar para meus alunos</span>
             </button>
 
             {/* Profile Overview Card */}
@@ -615,7 +612,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     {selectedAluno.profile?.avatar_tipo === 'feminino' ? '👩' : '👨'}
                   </div>
                   <div>
-                    <h2 className="font-display font-bold text-xl text-ink leading-tight">
+                    <h2 className="font-display font-semibold text-xl text-ink leading-tight">
                       {selectedAluno.profile?.nome || 'Aluno'}
                     </h2>
                   </div>
@@ -624,13 +621,13 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 {/* Status Switcher: Active/Inactive */}
                 <div className="flex items-center gap-2 self-start sm:self-auto">
                   <div className="flex items-center gap-3 bg-surface-2 px-4 py-2 rounded-xl border border-white/5">
-                    <span className="text-[10px] font-mono text-ink-2 uppercase tracking-wider">Status:</span>
+                    <span className="text-[12px] text-ink-2">Status:</span>
                     <button
                       id="btn-toggle-student-status"
                     type="button"
                     disabled={savingStatus}
                     onClick={handleToggleStatus}
-                    className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-lg text-[12px] font-semibold transition-all flex items-center gap-1 ${
                       selectedAluno.ativo !== false 
                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
                         : 'bg-white/5 text-ink-3 border border-white/5'
@@ -652,9 +649,9 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               {/* Editable Goal/Objective Field */}
               <div className="pt-6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 flex items-center gap-1.5">
+                  <label className="text-[12px] text-ink-2 flex items-center gap-1.5">
                     <Target className="w-3.5 h-3.5 text-flame" />
-                    <span>Foco & Objetivo do Aluno</span>
+                    <span>Foco e objetivo do aluno</span>
                   </label>
                   
                   {savedFeedback && (
@@ -707,10 +704,10 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                               setEditingTreinoId(null);
                               setIsMontandoTreino(true);
                             }}
-                            className="text-[10px] font-mono text-violet hover:text-violet/80 uppercase tracking-wider flex items-center gap-1"
+                            className="text-[12px] text-violet hover:text-violet/80 flex items-center gap-1"
                           >
                             <FolderHeart className="w-3 h-3" />
-                            <span>Usar Modelo</span>
+                            <span>Usar modelo</span>
                           </button>
                           <button
                             id="btn-add-new-workout"
@@ -720,10 +717,10 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                               setInitialTemplateId(null);
                               setIsMontandoTreino(true);
                             }}
-                            className="text-[10px] font-mono text-flame hover:text-flame/80 uppercase tracking-wider flex items-center gap-1"
+                            className="text-[12px] text-flame hover:text-flame/80 flex items-center gap-1"
                           >
                             <Plus className="w-3 h-3" />
-                            <span>Novo Treino</span>
+                            <span>Novo treino</span>
                           </button>
                         </>
                       )}
@@ -760,22 +757,22 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                             className="p-3 bg-void border border-white/5 rounded-xl hover:border-white/10 hover:bg-surface-2 transition-all cursor-pointer flex items-center justify-between group clicavel"
                           >
                             <div className="min-w-0">
-                              <h4 className="font-display font-bold text-xs text-ink group-hover:text-white transition-colors truncate">
+                              <h4 className="font-display font-medium text-sm text-ink group-hover:text-white transition-colors truncate">
                                 {workout.titulo}
                               </h4>
-                              <p className="text-[10px] text-ink-3 font-mono mt-0.5">
+                              <p className="text-[12px] text-ink-3 mt-0.5 num">
                                 Data: {dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}
                               </p>
                             </div>
-                            <div className="flex items-center gap-2 font-mono shrink-0">
-                              <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`text-[12px] font-semibold px-2 py-0.5 rounded-full ${
                                 workout.status === 'concluido'
                                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                   : workout.status === 'publicado'
                                     ? 'bg-flame/10 text-flame border border-flame/20'
                                     : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               }`}>
-                                {workout.status === 'concluido' ? 'CONCLUÍDO' : workout.status === 'publicado' ? 'A FAZER' : 'Rascunho'}
+                                {workout.status === 'concluido' ? 'Concluído' : workout.status === 'publicado' ? 'A fazer' : 'Rascunho'}
                               </span>
                               <span className="text-[10px] text-ink-3 group-hover:text-ink transition-colors">→</span>
                             </div>
@@ -794,10 +791,10 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                       setEditingTreinoId(null);
                       setIsMontandoTreino(true);
                     }}
-                    className="w-full py-3 px-4 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs transition-all shadow-[0_4px_15px_rgba(245,51,79,0.2)] hover:opacity-95 text-center flex items-center justify-center gap-1.5"
+                    className="w-full py-3 px-4 rounded-xl brand-gradient-bg font-display font-semibold text-void text-xs transition-all shadow-[0_4px_15px_rgba(245,51,79,0.2)] hover:opacity-95 text-center flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Montar Ficha de Treino</span>
+                    <span>Montar ficha de treino</span>
                   </button>
                 )}
               </div>
@@ -806,9 +803,9 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               <div className="bg-surface border border-white/5 rounded-2xl p-6 flex flex-col justify-between space-y-4">
                 <div className="space-y-4 flex-1">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-display font-bold text-sm text-ink flex items-center gap-2">
+                    <h3 className="font-display font-medium text-base text-ink flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-violet animate-pulse" />
-                      <span>Progresso & Biometria do Aluno</span>
+                      <span>Progresso e biometria do aluno</span>
                     </h3>
                     {loadingMetrics && (
                       <span className="w-3 h-3 border-2 border-violet border-t-transparent rounded-full animate-spin" />
@@ -825,8 +822,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                       <div className="grid grid-cols-2 gap-3">
                         {/* Weight tracking */}
                         <div className="p-3.5 bg-surface-2 border border-white/5 rounded-xl space-y-1">
-                          <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider flex items-center gap-1">
-                            <Scale className="w-3.5 h-3.5 text-flame" /> Peso Recente
+                          <span className="text-[12px] text-ink-3 flex items-center gap-1">
+                            <Scale className="w-3.5 h-3.5 text-flame" /> Peso recente
                           </span>
                           {(() => {
                             const pesoLogs = studentMetrics.filter(m => m.tipo === 'peso').sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -834,19 +831,19 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                               const latest = pesoLogs[pesoLogs.length - 1];
                               return (
                                 <div className="space-y-0.5">
-                                  <p className="text-base font-mono font-black text-ink">{latest.valor.toFixed(1)} kg</p>
-                                  <p className="text-[9px] text-ink-3">Em {latest.date}</p>
+                                  <p className="text-[20px] font-semibold text-ink num">{latest.valor.toFixed(1)} kg</p>
+                                  <p className="text-[12px] text-ink-3 num">Em {latest.date}</p>
                                 </div>
                               );
                             }
-                            return <p className="text-xs font-sans text-ink-3 italic mt-1">Sem registro</p>;
+                            return <p className="text-sm text-ink-3 italic mt-1">Sem registro</p>;
                           })()}
                         </div>
 
                         {/* Body fat */}
                         <div className="p-3.5 bg-surface-2 border border-white/5 rounded-xl space-y-1">
-                          <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider flex items-center gap-1">
-                            <Award className="w-3.5 h-3.5 text-violet" /> Gordura Corporal
+                          <span className="text-[12px] text-ink-3 flex items-center gap-1">
+                            <Award className="w-3.5 h-3.5 text-violet" /> Gordura corporal
                           </span>
                           {(() => {
                             const fatLogs = studentMetrics.filter(m => m.tipo === 'gordura_pct').sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -854,20 +851,20 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                               const latest = fatLogs[fatLogs.length - 1];
                               return (
                                 <div className="space-y-0.5">
-                                  <p className="text-base font-mono font-black text-ink">{latest.valor.toFixed(1)} %</p>
-                                  <p className="text-[9px] text-ink-3">Em {latest.date}</p>
+                                  <p className="text-[20px] font-semibold text-ink num">{latest.valor.toFixed(1)} %</p>
+                                  <p className="text-[12px] text-ink-3 num">Em {latest.date}</p>
                                 </div>
                               );
                             }
-                            return <p className="text-xs font-sans text-ink-3 italic mt-1">Sem registro</p>;
+                            return <p className="text-sm text-ink-3 italic mt-1">Sem registro</p>;
                           })()}
                         </div>
                       </div>
 
                       {/* Best lifts summary (Carga Máxima por Exercício) */}
                       <div className="p-4 bg-void/40 border border-white/5 rounded-xl space-y-2.5">
-                        <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider flex items-center gap-1">
-                          <Dumbbell className="w-3.5 h-3.5 text-violet" /> Recordes de Carga (Max Load)
+                        <span className="text-[12px] text-ink-3 flex items-center gap-1">
+                          <Dumbbell className="w-3.5 h-3.5 text-violet" /> Recordes de carga
                         </span>
                         {(() => {
                           // Calculate highest load per exercise name
@@ -889,9 +886,9 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                             return (
                               <div className="space-y-1.5 pt-0.5">
                                 {topLifts.map(([name, load]) => (
-                                  <div key={name} className="flex justify-between items-center text-xs">
+                                  <div key={name} className="flex justify-between items-center text-sm">
                                     <span className="text-ink-2 truncate pr-2 font-medium">{name}</span>
-                                    <span className="font-mono font-bold text-flame bg-flame/5 border border-flame/10 px-2 py-0.5 rounded-md text-[10px]">
+                                    <span className="font-semibold text-flame bg-flame/5 border border-flame/10 px-2 py-0.5 rounded-md text-[12px] num">
                                       {load} kg
                                     </span>
                                   </div>
@@ -900,7 +897,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                             );
                           }
                           return (
-                            <p className="text-xs font-sans text-ink-3 italic leading-relaxed pt-1">
+                            <p className="text-sm text-ink-3 leading-relaxed pt-1">
                               Nenhum exercício executado ainda. As cargas máximas do aluno aparecerão aqui assim que ele registrar as séries.
                             </p>
                           );
@@ -920,12 +917,12 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
 
                           return (
                             <div className="p-3.5 bg-surface-2 border border-white/5 rounded-xl space-y-2">
-                              <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Outras Medidas Corporais</span>
+                              <span className="text-[12px] text-ink-3 block">Outras medidas corporais</span>
                               <div className="grid grid-cols-2 gap-2 text-[11px]">
                                 {Object.entries(latestMeasures).map(([tipo, data]: [string, any]) => (
                                   <div key={tipo} className="flex justify-between items-center bg-void/30 p-1.5 rounded-lg border border-white/5">
                                     <span className="text-ink-3 capitalize">{tipo === 'gordura_pct' ? 'Gordura' : tipo}</span>
-                                    <span className="font-mono font-bold text-ink">{data.valor.toFixed(1)} cm</span>
+                                    <span className="font-semibold text-ink num">{data.valor.toFixed(1)} cm</span>
                                   </div>
                                 ))}
                               </div>
@@ -938,8 +935,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                   )}
                 </div>
 
-                <div className="text-center text-[10px] text-ink-3 font-mono border-t border-white/5 pt-3">
-                  Sincronizado automaticamente com o Aluno
+                <div className="text-center text-[12px] text-ink-3 border-t border-white/5 pt-3">
+                  Sincronizado automaticamente com o aluno
                 </div>
               </div>
 

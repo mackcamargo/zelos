@@ -212,7 +212,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="w-full max-w-sm bg-[#141414] border border-white/10 rounded-3xl p-8 relative shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+            className="w-full max-w-sm bg-surface border border-white/10 rounded-xl p-8 relative overflow-hidden"
           >
             {/* Background accent */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
@@ -220,14 +220,14 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             <div className="text-center space-y-6 relative z-10">
               <div className="flex justify-center">
                 <div className="w-20 h-20 bg-[#F26A1B]/10 rounded-full flex items-center justify-center border border-[#F26A1B]/20">
-                  <div className="w-12 h-12 bg-[#F26A1B] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(242,106,27,0.4)]">
+                  <div className="w-12 h-12 bg-[#F26A1B] rounded-full flex items-center justify-center">
                     <Check className="w-7 h-7 text-white stroke-[3px]" />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h2 className="font-display font-bold text-2xl text-ink leading-tight">
+                <h2 className="font-semibold text-2xl text-ink leading-tight">
                   Bem-vindo à sua jornada!
                 </h2>
                 <p className="text-sm text-ink-2 leading-relaxed font-sans">
@@ -239,7 +239,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 id="btn-welcome-start"
                 type="button"
                 onClick={handleStartApp}
-                className="w-full py-4 px-6 rounded-2xl bg-[#F26A1B] hover:bg-[#FF7A2B] text-white font-display font-bold text-base transition-all active:scale-[0.98] shadow-[0_4px_15px_rgba(242,106,27,0.3)]"
+                className="w-full py-4 px-6 rounded-lg bg-[#F26A1B] hover:bg-[#FF7A2B] text-white font-semibold text-base transition-all active:scale-[0.98]"
               >
                 Começar
               </button>
@@ -249,17 +249,16 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
       )}
 
       {/* Decorative ambient background glows */}
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-gradient-to-b from-[#F5334F]/10 via-[#FF6A2B]/5 to-transparent blur-3xl pointer-events-none rounded-full" />
-      <div className="absolute bottom-[-100px] left-1/4 w-[300px] h-[300px] bg-[#7B6CF6]/5 blur-3xl pointer-events-none rounded-full" />
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-[#F26A1B]/5 blur-3xl pointer-events-none rounded-full" />
 
       {/* Main card */}
-      <div className="w-full max-w-md bg-surface border border-white/5 rounded-3xl p-8 relative z-10 shadow-[0_30px_100px_rgba(0,0,0,0.8)]">
+      <div className="w-full max-w-md bg-surface border border-white/5 rounded-xl p-8 relative z-10">
         {/* Wordmark Logo */}
         <div className="text-center mb-8">
-          <span className="font-display font-extrabold text-5xl tracking-tight select-none">
+          <span className="font-semibold text-[28px] tracking-tight select-none">
             ZE<span className="brand-gradient-text">LOS</span>
           </span>
-          <p className="text-ink-2 font-sans font-light text-sm mt-3 tracking-wide">
+          <p className="text-ink-2 font-sans font-normal text-sm mt-3 tracking-normal">
             {view === 'reset' 
               ? 'Defina sua nova credencial de acesso'
               : view === 'otp'
@@ -275,14 +274,14 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
 
         {/* Tab switcher - Only show in auth view */}
         {view === 'auth' && (
-          <div className="grid grid-cols-2 bg-void/80 p-1.5 rounded-2xl mb-8 border border-white/5">
+          <div className="grid grid-cols-2 bg-void/80 p-1 rounded-lg mb-8 border border-white/5">
             <button
               id="tab-login"
               type="button"
               onClick={() => { setIsLogin(true); setError(null); }}
-              className={`py-3 text-sm font-medium rounded-xl transition-all duration-300 ${
+              className={`py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
                 isLogin 
-                  ? 'bg-surface-3 text-ink shadow-sm' 
+                  ? 'bg-surface-3 text-ink' 
                   : 'text-ink-2 hover:text-ink'
               }`}
             >
@@ -292,9 +291,9 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               id="tab-signup"
               type="button"
               onClick={() => { setIsLogin(false); setError(null); }}
-              className={`py-3 text-sm font-medium rounded-xl transition-all duration-300 ${
+              className={`py-2 text-sm font-medium rounded-lg transition-all duration-300 ${
                 !isLogin 
-                  ? 'bg-surface-3 text-ink shadow-sm' 
+                  ? 'bg-surface-3 text-ink' 
                   : 'text-ink-2 hover:text-ink'
               }`}
             >
@@ -305,25 +304,25 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
 
         {/* Demo Credentials Hint if in Login & Demo mode */}
         {view === 'auth' && isLogin && !isSupabaseConfigured && (
-          <div className="mb-6 p-4 bg-violet/10 rounded-2xl border border-violet/20 text-xs text-ink-2">
-            <span className="font-semibold text-violet block mb-1">💡 MODO DEMO ATIVO</span>
+          <div className="mb-6 p-4 bg-white/5 rounded-lg border border-white/5 text-xs text-ink-2">
+            <span className="font-semibold text-[#F26A1B] block mb-1">Modo demo ativo</span>
             <p className="mb-1">Utilize qualquer e-mail e senha para testar. Sugestões:</p>
-            <ul className="list-disc pl-4 space-y-1 font-mono text-[10px]">
-              <li>Personal: <span className="text-ink">personal@zelos.com</span></li>
-              <li>Aluno: <span className="text-ink">aluno@zelos.com</span></li>
+            <ul className="list-disc pl-4 space-y-1 text-[12px]">
+              <li>Personal: <span className="text-ink num">personal@zelos.com</span></li>
+              <li>Aluno: <span className="text-ink num">aluno@zelos.com</span></li>
             </ul>
           </div>
         )}
 
         {/* Error and Success Messages */}
         {error && (
-          <div className="mb-6 p-4 bg-ember/10 border border-ember/20 rounded-2xl text-sm text-ember/90 font-sans">
+          <div className="mb-6 p-4 bg-ember/10 border border-ember/20 rounded-lg text-sm text-ember/90 font-sans">
             {error}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-sm text-emerald-400 font-sans flex items-start gap-3">
+          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-400 font-sans flex items-start gap-3">
             <Check className="w-5 h-5 shrink-0 mt-0.5" />
             <span>{successMessage}</span>
           </div>
@@ -335,15 +334,15 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             {!isLogin && (
               <>
                 {isConviteLocked && (
-                  <div className="p-3 bg-violet/10 border border-violet/20 rounded-2xl text-xs text-ink-2 flex items-center gap-2 mb-4">
-                    <Sparkles className="w-4 h-4 text-violet shrink-0" />
+                  <div className="p-3 bg-white/5 border border-white/5 rounded-lg text-xs text-ink-2 flex items-center gap-2 mb-4">
+                    <Sparkles className="w-4 h-4 text-[#F26A1B] shrink-0" />
                     <span>Você está se cadastrando como Aluno via link de convite.</span>
                   </div>
                 )}
 
                 {/* Full Name */}
                 <div className="space-y-2">
-                  <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Nome Completo</label>
+                  <label className="text-[12px] font-medium text-ink-3 block">Nome completo</label>
                   <div className="relative">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
                     <input
@@ -353,14 +352,14 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
                       placeholder="Como prefere ser chamado"
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Profile/Role selector */}
                 <div className="space-y-2">
-                  <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Quem é você?</label>
+                  <label className="text-[12px] font-medium text-ink-3 block">Quem é você?</label>
                   <div className="grid grid-cols-2 gap-4">
                     {/* Personal Trainer Card */}
                     <button
@@ -368,15 +367,15 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       type="button"
                       disabled={isConviteLocked}
                       onClick={() => setPapel('personal')}
-                      className={`p-4 rounded-2xl border text-left flex flex-col items-start transition-all duration-300 ${
+                      className={`p-4 rounded-lg border text-left flex flex-col items-start transition-all duration-300 ${
                         papel === 'personal'
-                          ? 'bg-surface-3 border-flame shadow-[0_0_15px_rgba(255,106,43,0.15)]'
+                          ? 'bg-surface-3 border-[#F26A1B]'
                           : 'bg-void border-white/5 hover:border-white/10'
                       } disabled:opacity-40 disabled:cursor-not-allowed`}
                     >
                       <Dumbbell className={`w-6 h-6 mb-2 ${papel === 'personal' ? 'text-flame' : 'text-ink-3'}`} />
-                      <span className="font-display font-semibold text-sm text-ink">Sou Personal</span>
-                      <span className="text-[10px] text-ink-2 mt-1 leading-relaxed">Gerencie alunos e treinos</span>
+                      <span className="font-semibold text-sm text-ink">Sou personal</span>
+                      <span className="text-[12px] text-ink-2 mt-1 leading-relaxed">Gerencie alunos e treinos</span>
                     </button>
 
                     {/* Student/Aluno Card */}
@@ -385,29 +384,29 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       type="button"
                       disabled={isConviteLocked}
                       onClick={() => setPapel('aluno')}
-                      className={`p-4 rounded-2xl border text-left flex flex-col items-start transition-all duration-300 ${
+                      className={`p-4 rounded-lg border text-left flex flex-col items-start transition-all duration-300 ${
                         papel === 'aluno'
-                          ? 'bg-surface-3 border-violet shadow-[0_0_15px_rgba(123,108,246,0.15)]'
+                          ? 'bg-surface-3 border-[#F26A1B]'
                           : 'bg-void border-white/5 hover:border-white/10'
                       } disabled:opacity-75`}
                     >
-                      <User className={`w-6 h-6 mb-2 ${papel === 'aluno' ? 'text-violet' : 'text-ink-3'}`} />
-                      <span className="font-display font-semibold text-sm text-ink">Sou Aluno</span>
-                      <span className="text-[10px] text-ink-2 mt-1 leading-relaxed">Acompanhe sua ativação</span>
+                      <User className={`w-6 h-6 mb-2 ${papel === 'aluno' ? 'text-[#F26A1B]' : 'text-ink-3'}`} />
+                      <span className="font-semibold text-sm text-ink">Sou aluno</span>
+                      <span className="text-[12px] text-ink-2 mt-1 leading-relaxed">Acompanhe sua ativação</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Avatar Type Selector */}
                 <div className="space-y-2">
-                  <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Estilo do Avatar</label>
+                  <label className="text-[12px] font-medium text-ink-3 block">Estilo do avatar</label>
                   <div className="grid grid-cols-2 gap-4">
                     {/* Male Card */}
                     <button
                       id="avatar-masculino"
                       type="button"
                       onClick={() => setAvatarTipo('masculino')}
-                      className={`p-3 rounded-2xl border text-center transition-all ${
+                      className={`p-3 rounded-lg border text-center transition-all ${
                         avatarTipo === 'masculino'
                           ? 'bg-surface-3 border-white/20 text-ink font-semibold'
                           : 'bg-void border-white/5 text-ink-2 hover:border-white/10'
@@ -421,7 +420,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       id="avatar-feminino"
                       type="button"
                       onClick={() => setAvatarTipo('feminino')}
-                      className={`p-3 rounded-2xl border text-center transition-all ${
+                      className={`p-3 rounded-lg border text-center transition-all ${
                         avatarTipo === 'feminino'
                           ? 'bg-surface-3 border-white/20 text-ink font-semibold'
                           : 'bg-void border-white/5 text-ink-2 hover:border-white/10'
@@ -435,8 +434,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 {/* Optional invitation code for students */}
                 {papel === 'aluno' && (
                   <div className="space-y-2">
-                    <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">
-                      Código do Personal <span className="text-ink-3 text-[10px] font-sans lowercase italic">({isConviteLocked ? 'travado' : 'opcional'})</span>
+                    <label className="text-[12px] font-medium text-ink-3 block">
+                      Código do personal <span className="text-ink-3 text-[12px] font-sans lowercase italic">({isConviteLocked ? 'travado' : 'opcional'})</span>
                     </label>
                     <input
                       id="input-codigo-convite"
@@ -445,9 +444,9 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       onChange={(e) => setCodigoConvite(e.target.value.toUpperCase())}
                       disabled={isConviteLocked}
                       placeholder="Ex: ZEN-DEMO-123"
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 px-4 text-sm font-mono text-ink placeholder-ink-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed num"
                     />
-                    <p className="text-[10px] text-ink-3 font-sans leading-relaxed">
+                    <p className="text-[12px] text-ink-3 font-sans leading-relaxed">
                       {isConviteLocked 
                         ? 'Este código de convite vincula você automaticamente ao seu Personal Trainer após criar sua conta.' 
                         : 'Insira o código enviado pelo seu Personal Trainer para se vincular instantaneamente a ele. No modo Demo, use ZEN-DEMO-123.'
@@ -460,7 +459,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
 
             {/* Email */}
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">E-mail</label>
+              <label className="text-[12px] font-medium text-ink-3 block">E-mail</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
                 <input
@@ -470,7 +469,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="exemplo@zelos.com"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
                 />
               </div>
             </div>
@@ -478,12 +477,12 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             {/* Password */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-xs font-mono uppercase tracking-wider text-ink-3">Senha</label>
+                <label className="text-[12px] font-medium text-ink-3">Senha</label>
                 {isLogin && (
                   <button
                     type="button"
                     onClick={() => { setView('forgot'); setError(null); setSuccessMessage(null); }}
-                    className="text-[10px] font-mono uppercase tracking-widest text-ink-3 hover:text-flame transition-colors"
+                    className="text-[12px] text-ink-3 hover:text-[#F26A1B] transition-colors"
                   >
                     Esqueci minha senha
                   </button>
@@ -498,7 +497,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
                 />
                 <button
                   type="button"
@@ -515,13 +514,13 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               id="btn-auth-submit"
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-4 px-6 rounded-2xl brand-gradient-bg font-display font-semibold text-void hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.3)] disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full mt-2 py-4 px-6 rounded-lg bg-[#F26A1B] font-semibold text-ink hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
-                <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-ink border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>{isLogin ? 'Entrar na Plataforma' : 'Criar Conta de Elite'}</span>
+                  <span>{isLogin ? 'Entrar na plataforma' : 'Criar conta de elite'}</span>
                   <Sparkles className="w-5 h-5" />
                 </>
               )}
@@ -533,7 +532,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         {view === 'forgot' && (
           <form onSubmit={handleForgotPassword} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">E-mail de Recuperação</label>
+              <label className="text-[12px] font-medium text-ink-3 block">E-mail de recuperação</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
                 <input
@@ -543,7 +542,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="exemplo@zelos.com"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
                 />
               </div>
             </div>
@@ -552,13 +551,13 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               id="btn-forgot-submit"
               type="submit"
               disabled={loading}
-              className="w-full py-4 px-6 rounded-2xl brand-gradient-bg font-display font-semibold text-void hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.3)] disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full py-4 px-6 rounded-lg bg-[#F26A1B] font-semibold text-ink hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
-                <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-ink border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Enviar Link ou Código</span>
+                  <span>Enviar link ou código</span>
                   <Mail className="w-5 h-5" />
                 </>
               )}
@@ -568,7 +567,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               <button
                 type="button"
                 onClick={() => { setView('otp'); setError(null); setSuccessMessage(null); }}
-                className="w-full text-[10px] font-mono uppercase tracking-widest text-violet hover:text-ink transition-colors"
+                className="w-full text-[12px] text-[#F26A1B] hover:text-ink transition-colors"
               >
                 Já tenho um código de 6 dígitos
               </button>
@@ -576,9 +575,9 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               <button
                 type="button"
                 onClick={() => { setView('auth'); setError(null); setSuccessMessage(null); }}
-                className="w-full text-xs font-mono uppercase tracking-widest text-ink-3 hover:text-ink transition-colors"
+                className="w-full text-[12px] text-ink-3 hover:text-ink transition-colors"
               >
-                Voltar para o Login
+                Voltar para o login
               </button>
             </div>
           </form>
@@ -588,7 +587,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         {view === 'otp' && (
           <form onSubmit={handleVerifyOtp} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Código de 6 dígitos</label>
+              <label className="text-[12px] font-medium text-ink-3 block">Código de 6 dígitos</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
                 <input
@@ -599,11 +598,11 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-center text-xl font-mono tracking-[0.5em] text-ink placeholder-ink-3 outline-none transition-all"
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-center text-xl num tracking-[0.5em] text-ink placeholder-ink-3 outline-none transition-all font-semibold"
                 />
               </div>
-              <p className="text-[10px] text-ink-3 font-sans leading-relaxed text-center">
-                Insira o código enviado para <span className="text-ink-2">{email || 'seu e-mail'}</span>
+              <p className="text-[12px] text-ink-3 font-sans leading-relaxed text-center">
+                Insira o código enviado para <span className="text-ink-2 num">{email || 'seu e-mail'}</span>
               </p>
             </div>
 
@@ -611,13 +610,13 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               id="btn-otp-submit"
               type="submit"
               disabled={loading || otpCode.length < 6}
-              className="w-full py-4 px-6 rounded-2xl brand-gradient-bg font-display font-semibold text-void hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.3)] disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full py-4 px-6 rounded-lg bg-[#F26A1B] font-semibold text-ink hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
-                <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-ink border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Validar Código</span>
+                  <span>Validar código</span>
                   <Check className="w-5 h-5" />
                 </>
               )}
@@ -626,7 +625,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             <button
               type="button"
               onClick={() => { setView('forgot'); setError(null); setSuccessMessage(null); }}
-              className="w-full text-xs font-mono uppercase tracking-widest text-ink-3 hover:text-ink transition-colors"
+              className="w-full text-[12px] text-ink-3 hover:text-ink transition-colors"
             >
               Não recebi o código
             </button>
@@ -637,7 +636,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         {view === 'reset' && (
           <form onSubmit={handleResetPassword} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Nova Senha</label>
+              <label className="text-[12px] font-medium text-ink-3 block">Nova senha</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
                 <input
@@ -647,7 +646,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
                 />
                 <button
                   type="button"
@@ -660,7 +659,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-mono uppercase tracking-wider text-ink-3 block">Confirmar Nova Senha</label>
+              <label className="text-[12px] font-medium text-ink-3 block">Confirmar nova senha</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
                 <input
@@ -670,7 +669,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repita a nova senha"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-2xl py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
                 />
               </div>
             </div>
@@ -679,13 +678,13 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               id="btn-reset-submit"
               type="submit"
               disabled={loading}
-              className="w-full py-4 px-6 rounded-2xl brand-gradient-bg font-display font-semibold text-void hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.3)] disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full py-4 px-6 rounded-lg bg-[#F26A1B] font-semibold text-ink hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
-                <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-ink border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Definir Nova Senha</span>
+                  <span>Definir nova senha</span>
                   <Check className="w-5 h-5" />
                 </>
               )}
@@ -695,7 +694,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               <button
                 type="button"
                 onClick={() => { setView('forgot'); setError(null); }}
-                className="w-full text-xs font-mono uppercase tracking-widest text-ink-3 hover:text-flame transition-colors mt-4"
+                className="w-full text-[12px] text-ink-3 hover:text-[#F26A1B] transition-colors mt-4"
               >
                 Voltar para solicitar novo link
               </button>

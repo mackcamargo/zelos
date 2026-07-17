@@ -1,17 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
-import { Habito, HabitoRegistro } from '../types';
+import { Habito } from '../types';
 import { 
   CheckCircle2, Circle, Flame, 
-  Trophy, TrendingUp, Loader2, Sparkles
+  Trophy, Loader2, Sparkles,
+  Zap, Droplet, Utensils, Moon, Footprints, Activity, PhoneOff, Sun
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { tocar } from '../lib/som';
 
 interface HabitosPainelProps {
   alunoId: string;
   onHabitComplete?: () => Promise<void>;
 }
+
+const renderHabitoIcon = (icone: string) => {
+  const iconProps = { className: "w-5 h-5 text-ink-2 stroke-[1.5]" };
+  switch (icone) {
+    case '⚡': return <Zap {...iconProps} />;
+    case '💧': return <Droplet {...iconProps} />;
+    case '🥗': return <Utensils {...iconProps} />;
+    case '😴': return <Moon {...iconProps} />;
+    case '🚶': return <Footprints {...iconProps} />;
+    case '🧘': return <Activity {...iconProps} />;
+    case '📵': return <PhoneOff {...iconProps} />;
+    case '☀️': return <Sun {...iconProps} />;
+    default: return <Zap {...iconProps} />;
+  }
+};
 
 export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPainelProps) {
   const [habitos, setHabitos] = useState<Habito[]>([]);
@@ -29,104 +44,88 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
         const { data: userResponse } = await supabase.auth.getUser();
         const user = userResponse?.user;
         if (user) {
-          const { data, error } = await supabase.from("habitos")
-            .select("*, habitos_registros(concluido, data)")
-            .eq("aluno_id", user.id)
-            .eq("ativo", true);
-          
-          if (data) {
-            setHabitos(data);
-          }
+          const { data } = await dbService.getHabitos(alunoId);
+          setHabitos(data || []);
+        } else {
+          // Demo fallback
+          loadDemoHabitos();
         }
       } else {
-        const { data } = await dbService.getHabitos(alunoId);
-        if (data) setHabitos(data);
+        loadDemoHabitos();
       }
     } catch (err) {
-      console.error("Erro ao carregar hábitos do aluno:", err);
+      console.error("Erro ao carregar hábitos:", err);
+      loadDemoHabitos();
     } finally {
       setLoading(false);
     }
   };
 
-  const getHabitStreak = (h: any, hojeStr: string) => {
-    const registros = h.habitos_registros || h.registros || [];
-    const [a, m, d] = hojeStr.split("-").map(Number);
+  const loadDemoHabitos = () => {
+    const localHabitos = JSON.parse(localStorage.getItem('zenite_habitos') || '[]');
+    const localRegistros = JSON.parse(localStorage.getItem('zenite_habitos_registros') || '[]');
     
-    const isDoneOnDate = (dateStr: string) => {
-      return registros.some((r: any) => r.data === dateStr && r.concluido);
-    };
+    const filteredHabitos = localHabitos.filter((h: any) => h.aluno_id === alunoId);
+    const mapped = filteredHabitos.map((h: any) => ({
+      ...h,
+      habitos_registros: localRegistros.filter((r: any) => r.habito_id === h.id)
+    }));
+    setHabitos(mapped);
+  };
 
+  const getHabitStreak = (h: Habito, baseData: string): number => {
+    const registros = h.habitos_registros || h.registros || [];
+    const dates = new Set(registros.filter(r => r.concluido).map(r => r.data));
     let streak = 0;
+    const current = new Date(baseData);
     
-    const todayDone = isDoneOnDate(hojeStr);
-    const yesterdayDate = new Date(a, m - 1, d - 1);
-    const yesterdayStr = yesterdayDate.toISOString().slice(0, 10);
-    const yesterdayDone = isDoneOnDate(yesterdayStr);
-    
-    if (!todayDone && !yesterdayDone) {
-      return 0;
+    // Check current day
+    const currentStr = current.toISOString().slice(0, 10);
+    if (dates.has(currentStr)) {
+      streak++;
     }
     
-    let daysAgo = todayDone ? 0 : 1;
-    
+    // Check previous days
     while (true) {
-      const checkDate = new Date(a, m - 1, d - daysAgo);
-      const checkStr = checkDate.toISOString().slice(0, 10);
-      if (isDoneOnDate(checkStr)) {
-        streak = (Number(streak) || 0) + 1;
-        daysAgo = (Number(daysAgo) || 0) + 1;
+      current.setDate(current.getDate() - 1);
+      const prevStr = current.toISOString().slice(0, 10);
+      if (dates.has(prevStr)) {
+        streak++;
       } else {
         break;
       }
     }
-    
-    return Number(streak) || 0;
+    return streak;
   };
 
-  const handleToggleHabito = async (h: Habito, currentStatus: boolean) => {
-    const novoValor = !currentStatus;
-
-    // Sound logic
-    if (novoValor) {
-      const totalHabitos = habitos.length;
-      const concluidoHoje = habitos.filter(item => {
-        const registros = item.habitos_registros || item.registros || [];
-        return registros.some(r => r.data === hoje && r.concluido);
-      }).length;
-
-      if (concluidoHoje + 1 === totalHabitos) {
-        tocar('celebracao');
-      } else {
-        tocar('toggleOn');
-      }
-    } else {
-      tocar('toggleOff');
-    }
+  const handleToggleHabito = async (h: Habito, currentlyDone: boolean) => {
+    const novoValor = !currentlyDone;
     
-    // Optimistic update
+    // Optimistic UI
     setHabitos(prev => prev.map(item => {
       if (item.id === h.id) {
-        const registros = [...(item.habitos_registros || item.registros || [])];
-        const idx = registros.findIndex(r => r.data === hoje);
-        if (idx >= 0) {
-          registros[idx] = { ...registros[idx], concluido: novoValor };
+        const regs = item.habitos_registros || item.registros || [];
+        const existingIdx = regs.findIndex(r => r.data === hoje);
+        let updatedRegs = [...regs];
+        if (existingIdx >= 0) {
+          updatedRegs[existingIdx] = { ...updatedRegs[existingIdx], concluido: novoValor };
         } else {
-          registros.push({ id: 0, habito_id: h.id, aluno_id: alunoId, data: hoje, concluido: novoValor });
+          updatedRegs.push({ id: Math.random(), habito_id: h.id, aluno_id: alunoId, data: hoje, concluido: novoValor });
         }
-        // update both keys for safety
-        return { ...item, habitos_registros: registros, registros };
+        return { ...item, habitos_registros: updatedRegs, registros: updatedRegs };
       }
       return item;
     }));
 
     try {
       if (isSupabaseConfigured && supabase) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { error } = await supabase.from("habitos_registros").upsert(
-          { habito_id: h.id, aluno_id: user.id, data: hoje, concluido: novoValor },
+        const { error } = await supabase.from('habitos_registros').upsert(
+          {
+            habito_id: h.id,
+            aluno_id: alunoId,
+            data: hoje,
+            concluido: novoValor
+          },
           { onConflict: "habito_id,aluno_id,data" }
         );
         if (error) throw error;
@@ -168,22 +167,22 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12 bg-surface-2 border border-white/5 rounded-3xl p-6">
-        <Loader2 className="w-6 h-6 text-flame animate-spin" />
+      <div className="flex justify-center py-12 bg-surface border border-white/5 rounded-xl p-6">
+        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-surface-2 border border-white/5 rounded-3xl p-6 space-y-6 overflow-hidden relative group">
+    <div className="w-full bg-surface border border-white/5 rounded-xl p-6 space-y-6 overflow-hidden relative group">
       {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-flame/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
       <div className="flex items-center justify-between relative z-10">
         <div>
-          <h3 className="font-display font-bold text-lg text-ink">Hábitos de Hoje</h3>
-          <p className="text-[10px] font-mono text-ink-3 uppercase tracking-wider mt-0.5">
-            Mantenha sua disciplina
+          <h3 className="font-semibold text-lg text-ink">Hábitos de hoje</h3>
+          <p className="text-[12px] text-ink-3 mt-0.5">
+            Mantenha sua disciplina diária
           </p>
         </div>
       </div>
@@ -197,15 +196,15 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
         <>
           {/* Progress Bar */}
           <div className="space-y-2 relative z-10">
-            <div className="flex justify-between text-[10px] font-mono text-ink-3">
-              <span>Progresso Diário</span>
+            <div className="flex justify-between text-[12px] text-ink-3 num">
+              <span>Progresso diário</span>
               <span>{concluidoHoje} de {totalHabitos} concluídos hoje</span>
             </div>
             <div className="h-2 bg-void rounded-full overflow-hidden border border-white/5">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
-                className="h-full brand-gradient-bg shadow-[0_0_15px_rgba(245,51,79,0.3)]"
+                className="h-full bg-[#F26A1B]"
               />
             </div>
           </div>
@@ -220,35 +219,38 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
               return (
                 <button
                   key={h.id}
+                  type="button"
                   onClick={() => handleToggleHabito(h, !!isDone)}
-                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 text-left cursor-pointer ${
+                  className={`flex items-center gap-4 p-4 rounded-lg border transition-all duration-300 text-left cursor-pointer ${
                     isDone 
-                      ? 'bg-emerald-500/5 border-emerald-500/10' 
-                      : 'bg-surface-3 border-white/5 hover:border-white/10'
+                      ? 'bg-green-500/5 border-green-500/10' 
+                      : 'bg-[#1A1A1D] border-white/5 hover:border-white/10'
                   }`}
                 >
-                  <span className="text-2xl shrink-0">{h.icone || '⚡'}</span>
+                  <div className="shrink-0">
+                    {renderHabitoIcon(h.icone || '⚡')}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center">
-                      <p className={`text-sm font-bold truncate ${isDone ? 'line-through text-ink-3' : 'text-ink'}`}>
+                      <p className={`text-sm font-semibold truncate ${isDone ? 'line-through text-ink-3' : 'text-ink'}`}>
                         {h.nome}
                       </p>
                       {streak >= 2 && (
-                        <span className="text-[10px] font-mono font-bold text-[#F26A1B] ml-2 bg-[#F26A1B]/10 px-1.5 py-0.5 rounded-md flex items-center shrink-0">
-                          🔥 {streak} dias
+                        <span className="text-[10px] font-semibold text-[#F26A1B] ml-2 bg-[#F26A1B]/10 px-1.5 py-0.5 rounded flex items-center shrink-0 num gap-0.5">
+                          <Flame className="w-3 h-3 text-[#F26A1B]" /> {streak} dias
                         </span>
                       )}
                     </div>
                     {h.meta_diaria && (
-                      <p className="text-[10px] text-ink-3 font-mono truncate mt-0.5">{h.meta_diaria}</p>
+                      <p className="text-[12px] text-ink-3 truncate mt-0.5 num">{h.meta_diaria}</p>
                     )}
                   </div>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 ${
                     isDone 
-                      ? 'bg-emerald-500 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]' 
+                      ? 'bg-green-500 text-white' 
                       : 'bg-void border border-white/10 text-ink-3'
                   }`}>
-                    {isDone ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
+                    {isDone ? <CheckCircle2 className="w-5 h-5 text-void" /> : <Circle className="w-5 h-5" />}
                   </div>
                 </button>
               );
@@ -259,12 +261,12 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center gap-3"
+              className="bg-green-500/5 border border-green-500/10 p-4 rounded-lg flex items-center gap-3"
             >
-              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 shadow-lg">
-                <Trophy className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                <Trophy className="w-4 h-4 text-void" />
               </div>
-              <p className="text-xs text-emerald-400 font-medium">
+              <p className="text-xs text-green-500 font-semibold">
                 Sensacional! Você completou todos os hábitos de hoje.
               </p>
             </motion.div>

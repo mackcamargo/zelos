@@ -77,19 +77,19 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
     if (!assinatura) return null;
 
     if (assinatura.status === 'trial') {
-      const text = daysRemaining === 1 ? 'Último dia de trial' : `TRIAL — ${daysRemaining} dias restantes`;
+      const text = daysRemaining === 1 ? 'Último dia de trial' : `Trial — ${daysRemaining} dias restantes`;
       return (
         <div className="mx-4 mb-4 px-3 py-1.5 bg-amber text-void rounded-lg text-center shadow-lg shadow-amber/20">
-          <span className="text-[9px] font-black uppercase tracking-widest">{text}</span>
+          <span className="text-[9px] font-semibold num">{text}</span>
         </div>
       );
     }
 
     if (assinatura.status === 'ativa' || assinatura.plano === 'cortesia') {
-      const planoNome = (assinatura.plano === 'ilimitado') ? 'ILIMITADO' : (assinatura.plano === 'cortesia' ? 'PRO' : assinatura.plano.toUpperCase());
+      const planoNome = (assinatura.plano === 'ilimitado') ? 'Ilimitado' : (assinatura.plano === 'cortesia' ? 'Pro' : assinatura.plano.charAt(0).toUpperCase() + assinatura.plano.slice(1));
       return (
         <div className="mx-4 mb-4 px-3 py-1.5 bg-[#F26A1B] text-white rounded-lg text-center shadow-lg shadow-flame/20">
-          <span className="text-[9px] font-black uppercase tracking-widest">
+          <span className="text-[9px] font-semibold">
             {planoNome}
           </span>
         </div>
@@ -99,7 +99,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
     if (isReadOnly) {
       return (
         <div className="mx-4 mb-4 px-3 py-1.5 bg-red-500 text-white rounded-lg text-center shadow-lg shadow-red-500/20">
-          <span className="text-[9px] font-black uppercase tracking-widest">MODO LEITURA</span>
+          <span className="text-[9px] font-semibold">Modo leitura</span>
         </div>
       );
     }
@@ -232,7 +232,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 type="button"
                 onClick={() => handleTabChange('dashboard')}
                 data-sem-som
-                className="font-display font-black text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
+                className="font-display font-semibold text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
               >
                 ZE<span className="text-[#F26A1B]">LOS</span>
               </button>
@@ -307,17 +307,17 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   </div>
                   {!isCollapsed && <span className="text-sm font-sans truncate">{item.label}</span>}
                   {!isCollapsed && item.id === 'chat' && unreadCount > 0 && (
-                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
                       {unreadCount}
                     </span>
                   )}
                   {!isCollapsed && item.id === 'agenda' && agendaPendingCount > 0 && (
-                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
                       {agendaPendingCount}
                     </span>
                   )}
                   {!isCollapsed && item.id === 'checkins' && checkinsPendingCount > 0 && (
-                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
                       {checkinsPendingCount}
                     </span>
                   )}
@@ -448,17 +448,17 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 </div>
                 <span className="text-sm font-sans">{item.label}</span>
                 {item.id === 'chat' && unreadCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
                     {unreadCount}
                   </span>
                 )}
                 {item.id === 'agenda' && agendaPendingCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
                     {agendaPendingCount}
                   </span>
                 )}
                 {item.id === 'checkins' && checkinsPendingCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
                     {checkinsPendingCount}
                   </span>
                 )}
@@ -480,7 +480,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
               className="flex items-center gap-3 min-w-0 text-left cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                <div className="w-full h-full rounded-full bg-[#1c1d22] flex items-center justify-center font-display font-bold text-ink text-xs">
+                <div className="w-full h-full rounded-full bg-[#1c1d22] flex items-center justify-center font-display font-semibold text-ink text-xs">
                   {profile.nome.charAt(0).toUpperCase()}
                 </div>
               </div>
@@ -510,13 +510,13 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
           <div className="bg-red-500 text-white px-6 py-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 z-40 sticky top-0">
             <div className="flex items-center gap-2">
               <AlertCircle size={16} />
-              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-center">
+              <span className="text-[10px] sm:text-xs font-semibold text-center">
                 Sua assinatura não está ativa. Você pode ver seus dados, mas não criar ou editar.
               </span>
             </div>
             <button 
               onClick={() => handleTabChange('planos')}
-              className="px-3 py-1 bg-white text-red-500 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-ink-1 transition-colors whitespace-nowrap"
+              className="px-3 py-1 bg-white text-red-500 text-[10px] font-semibold rounded-full hover:bg-ink-1 transition-colors whitespace-nowrap"
             >
               Reativar plano
             </button>
@@ -528,22 +528,21 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
           <div className="bg-amber text-void px-6 py-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 z-40 sticky top-0">
             <div className="flex items-center gap-2">
               <AlertCircle size={16} />
-              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-center">
+              <span className="text-[10px] sm:text-xs font-semibold text-center">
                 Seu trial termina em {daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'}. Escolha um plano para continuar.
               </span>
             </div>
             <button 
               onClick={() => handleTabChange('planos')}
-              className="px-3 py-1 bg-void text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-ink-dark transition-colors whitespace-nowrap"
+              className="px-3 py-1 bg-void text-white text-[10px] font-semibold rounded-full hover:bg-ink-dark transition-colors whitespace-nowrap"
             >
-              Escolher Plano
+              Escolher plano
             </button>
           </div>
         )}
-        
-        {/* Top Header */}
+          {/* Top Header */}
         <header className="sticky top-0 bg-void/90 backdrop-blur-md z-20 border-b border-white/5 py-4 px-6 shrink-0">
-          <div className="max-w-5xl mx-auto flex justify-between items-center gap-4">
+          <div className="max-w-[1200px] mx-auto flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               {/* Hamburger button on Mobile */}
               <button
@@ -554,30 +553,30 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 <Menu className="w-5 h-5" />
               </button>
 
-              <div>
-                <h1 className="font-display font-black text-xl text-ink tracking-tight uppercase italic whitespace-nowrap">
-                  {activeTab === 'dashboard' && <><span className="flex items-center">Dash<span className="text-[#F26A1B]">board</span></span></>}
-                  {activeTab === 'alunos' && <><span className="flex items-center">Alu<span className="text-[#F26A1B]">nos</span></span></>}
-                  {activeTab === 'exercicios' && <><span className="flex items-center">Exer<span className="text-[#F26A1B]">cícios</span></span></>}
-                  {activeTab === 'agenda' && <><span className="flex items-center">Agen<span className="text-[#F26A1B]">da</span></span></>}
-                  {activeTab === 'checkins' && <><span className="flex items-center">Check-<span className="text-[#F26A1B]">ins</span></span></>}
-                  {activeTab === 'conteudo' && <><span className="flex items-center">Biblio<span className="text-[#F26A1B]">teca</span></span></>}
-                  {activeTab === 'templates' && <><span className="flex items-center">Mode<span className="text-[#F26A1B]">los</span></span></>}
-                  {activeTab === 'chat' && <><span className="flex items-center">Mensa<span className="text-[#F26A1B]">gens</span></span></>}
-                  {activeTab === 'perfil' && <><span className="flex items-center">Per<span className="text-[#F26A1B]">fil</span></span></>}
-                  {activeTab === 'gerenciar' && <><span className="flex items-center">Admin <span className="text-[#F26A1B]">Exercícios</span></span></>}
+              <div className="flex flex-col md:flex-row md:items-baseline gap-x-3 gap-y-1">
+                <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight whitespace-nowrap leading-none">
+                  {activeTab === 'dashboard' && `Olá, ${profile.nome.split(' ')[0]}`}
+                  {activeTab === 'alunos' && 'Seus alunos'}
+                  {activeTab === 'exercicios' && 'Exercícios'}
+                  {activeTab === 'agenda' && 'Sua agenda'}
+                  {activeTab === 'checkins' && 'Check-ins'}
+                  {activeTab === 'conteudo' && 'Biblioteca'}
+                  {activeTab === 'templates' && 'Modelos de treino'}
+                  {activeTab === 'chat' && 'Mensagens'}
+                  {activeTab === 'perfil' && 'Seu perfil'}
+                  {activeTab === 'gerenciar' && 'Gestão'}
                 </h1>
-                <p className="text-ink-3 text-[10px] font-mono uppercase tracking-widest mt-0.5">
-                  {activeTab === 'dashboard' && 'Visão Geral de Bem-estar'}
-                  {activeTab === 'alunos' && 'Gestão de Alunos'}
-                  {activeTab === 'exercicios' && 'Biblioteca de Movimentos'}
-                  {activeTab === 'agenda' && 'Horários & Compromissos'}
-                  {activeTab === 'checkins' && 'Mensagens & Feedback'}
-                  {activeTab === 'conteudo' && 'Artigos & Postagens'}
-                  {activeTab === 'templates' && 'Modelos de Ficha de Treino'}
-                  {activeTab === 'chat' && 'Centro de Comunicação Realtime'}
-                  {activeTab === 'perfil' && 'Dados Cadastrais'}
-                  {activeTab === 'gerenciar' && 'Painel Administrativo'}
+                <p className="text-sm text-ink-2 leading-none">
+                  {activeTab === 'dashboard' && 'Aqui está o resumo dos seus alunos hoje'}
+                  {activeTab === 'alunos' && 'Gerencie os alunos ativos e acompanhe os treinos'}
+                  {activeTab === 'exercicios' && 'Explore a biblioteca de movimentos e treinos de referência'}
+                  {activeTab === 'agenda' && 'Horários de atendimento e compromissos marcados'}
+                  {activeTab === 'checkins' && 'Monitore as respostas semanais e feedbacks recebidos'}
+                  {activeTab === 'conteudo' && 'Artigos educativos, postagens e guias que você publicou'}
+                  {activeTab === 'templates' && 'Fichas pré-estruturadas para agilizar a prescrição'}
+                  {activeTab === 'chat' && 'Converse com seus alunos e tire dúvidas em tempo real'}
+                  {activeTab === 'perfil' && 'Gerencie seus dados cadastrais e assinatura'}
+                  {activeTab === 'gerenciar' && 'Painel administrativo para adicionar e editar movimentos'}
                 </p>
               </div>
             </div>
@@ -585,10 +584,10 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-semibold text-ink">{profile.nome}</span>
-                <span className="text-[10px] text-ink-2 font-mono">Personal</span>
+                <span className="text-[12px] text-ink-2">Personal</span>
               </div>
               <div className="w-9 h-9 rounded-full brand-gradient-bg p-[1px]">
-                <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-ink text-sm">
+                <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-semibold text-ink text-sm">
                   {profile.nome.charAt(0).toUpperCase()}
                 </div>
               </div>
@@ -597,19 +596,13 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         </header>
 
         {/* Main View Area */}
-        <main className={`flex-1 max-w-5xl w-full mx-auto px-6 ${
+        <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 ${
           activeTab === 'chat' ? 'pt-4 pb-4 flex flex-col min-h-0 overflow-hidden' : 'pt-8 pb-16'
         }`}>
         
         {/* TAB 0: DASHBOARD */}
         {activeTab === 'dashboard' && (
           <div id="tab-content-dashboard" className="space-y-6">
-            <div className="mb-8">
-              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic flex items-center">
-                Dash<span className="text-flame">board</span>
-              </h2>
-              <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Visão Geral de Bem-estar</p>
-            </div>
             <DashPersonalBemEstar 
               personalId={userId} 
               onSelectAluno={(id) => {
@@ -685,20 +678,20 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
 
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-white/5">
                 <div className="w-20 h-20 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                  <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-3xl text-ink">
+                  <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-semibold text-[28px] text-ink">
                     {profile.nome.charAt(0).toUpperCase()}
                   </div>
                 </div>
 
                 <div className="text-center sm:text-left space-y-1">
-                  <h3 className="font-display font-bold text-xl text-ink">{profile.nome}</h3>
+                  <h3 className="font-display font-semibold text-xl text-ink">{profile.nome}</h3>
                   <p className="text-sm text-ink-2">{userEmail}</p>
                   <div className="pt-2 flex flex-wrap justify-center sm:justify-start gap-2">
-                    <span className="text-[10px] font-mono bg-violet/10 border border-violet/20 text-violet px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="text-[12px] bg-violet/10 border border-violet/20 text-violet px-2.5 py-0.5 rounded-full">
                       Plano Black
                     </span>
-                    <span className="text-[10px] font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                      Assinatura Ativa
+                    <span className="text-[12px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full">
+                      Assinatura ativa
                     </span>
                   </div>
                 </div>
@@ -707,8 +700,8 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
               {/* Additional Account Metadata details */}
               <div className="grid grid-cols-1 gap-4">
                 <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Criado Em</span>
-                  <p className="text-xs font-mono text-ink flex items-center gap-1.5">
+                  <span className="text-[12px] text-ink-3">Criado em</span>
+                  <p className="text-sm text-ink flex items-center gap-1.5 num">
                     <Calendar className="w-3.5 h-3.5 text-flame" />
                     <span>{new Date(profile.criado_em).toLocaleDateString('pt-BR')}</span>
                   </p>
@@ -730,8 +723,8 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   <span className="text-xl">⚙️</span>
                   <div>
                     <p className="text-ink font-semibold flex items-center gap-2">
-                      <span>Gerenciar Exercícios</span>
-                      <span className="text-[9px] font-mono uppercase bg-violet/20 text-violet px-2 py-0.5 rounded-full border border-violet/30 font-bold">Admin</span>
+                      <span>Gestão de exercícios</span>
+                      <span className="text-[9px] bg-violet/20 text-violet px-2 py-0.5 rounded-full border border-violet/30 font-semibold">Admin</span>
                     </p>
                     <p className="mt-0.5 text-[11px]">Adicione movimentos, dicas de execução e faça upload dos vídeos.</p>
                   </div>
@@ -755,8 +748,8 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                       <Volume2 className="w-4 h-4 text-flame" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-ink">Sons do App</p>
-                      <p className="text-[10px] text-ink-3 uppercase font-mono">Feedback sonoro sintetizado</p>
+                      <p className="text-sm font-semibold text-ink">Sons do app</p>
+                      <p className="text-[12px] text-ink-3">Feedback sonoro sintetizado</p>
                     </div>
                   </div>
                   <button

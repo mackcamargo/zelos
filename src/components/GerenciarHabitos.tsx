@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Habito, HabitoRegistro } from '../types';
 import { 
-  Plus, Trash2, TrendingUp, Calendar, 
-  Loader2, CheckCircle2, XCircle, ChevronRight, X, Sparkles
+  Plus, Trash2, TrendingUp, 
+  Loader2, X, Sparkles,
+  Zap, Droplet, Utensils, Moon, Footprints, Activity, PhoneOff, Sun
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -14,6 +15,21 @@ interface GerenciarHabitosProps {
 }
 
 const EMOJIS = ['⚡', '💧', '🥗', '😴', '🚶', '🧘', '📵', '☀️'];
+
+const renderHabitoIcon = (icone: string) => {
+  const iconProps = { className: "w-5 h-5 text-ink stroke-[1.5]" };
+  switch (icone) {
+    case '⚡': return <Zap {...iconProps} />;
+    case '💧': return <Droplet {...iconProps} />;
+    case '🥗': return <Utensils {...iconProps} />;
+    case '😴': return <Moon {...iconProps} />;
+    case '🚶': return <Footprints {...iconProps} />;
+    case '🧘': return <Activity {...iconProps} />;
+    case '📵': return <PhoneOff {...iconProps} />;
+    case '☀️': return <Sun {...iconProps} />;
+    default: return <Zap {...iconProps} />;
+  }
+};
 
 export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = false }: GerenciarHabitosProps) {
   const [habitos, setHabitos] = useState<Habito[]>([]);
@@ -52,15 +68,24 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
               .in('habito_id', ids);
             regs = regsData || [];
           }
-          const detailed = data.map((h: any) => ({
+
+          const mapped = data.map((h: any) => ({
             ...h,
             registros: regs.filter((r: any) => r.habito_id === h.id)
           }));
-          setHabitos(detailed);
+          setHabitos(mapped);
         }
       } else {
-        const { data } = await dbService.getHabitos(alunoId);
-        if (data) setHabitos(data);
+        // Fallback for demo mode
+        const localHabitos = JSON.parse(localStorage.getItem('zenite_habitos') || '[]');
+        const localRegistros = JSON.parse(localStorage.getItem('zenite_habitos_registros') || '[]');
+        
+        const filteredHabitos = localHabitos.filter((h: any) => h.aluno_id === alunoId && h.ativo !== false);
+        const mapped = filteredHabitos.map((h: any) => ({
+          ...h,
+          registros: localRegistros.filter((r: any) => r.habito_id === h.id)
+        }));
+        setHabitos(mapped);
       }
     } catch (err) {
       console.error("Erro ao carregar hábitos:", err);
@@ -69,33 +94,30 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
     }
   };
 
-  const handleAddHabito = async () => {
+  const handleSave = async () => {
     if (!newNome.trim()) return;
     setSaving(true);
     try {
+      const payload = {
+        aluno_id: alunoId,
+        personal_id: personalId,
+        nome: newNome.trim(),
+        icone: newIcone,
+        meta_diaria: newMeta.trim() || null,
+        ativo: true
+      };
+
       if (isSupabaseConfigured && supabase) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Usuário não autenticado");
-        const { error } = await supabase.from("habitos").insert({
-          personal_id: user.id,
-          aluno_id: alunoId,
-          nome: newNome.trim(),
-          icone: newIcone,
-          meta_diaria: newMeta.trim() || null,
-          ativo: true,
-        });
+        const { error } = await supabase
+          .from("habitos")
+          .insert(payload);
         if (error) throw error;
       } else {
         // Fallback for demo mode
         const habitosMock = JSON.parse(localStorage.getItem('zenite_habitos') || '[]');
         habitosMock.push({
           id: Math.floor(Math.random() * 1000000),
-          personal_id: personalId,
-          aluno_id: alunoId,
-          nome: newNome.trim(),
-          icone: newIcone,
-          meta_diaria: newMeta.trim() || null,
-          ativo: true,
+          ...payload,
           criado_em: new Date().toISOString()
         });
         localStorage.setItem('zenite_habitos', JSON.stringify(habitosMock));
@@ -152,8 +174,8 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
             <div 
               key={date}
               title={new Date(date).toLocaleDateString()}
-              className={`w-3.5 h-3.5 rounded-md border border-white/5 transition-colors ${
-                isDone ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-void'
+              className={`w-3.5 h-3.5 rounded border border-white/5 transition-colors ${
+                isDone ? 'bg-green-500' : 'bg-void'
               }`}
             />
           );
@@ -165,7 +187,7 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 text-flame animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
       </div>
     );
   }
@@ -174,21 +196,21 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-flame/10 rounded-xl">
-            <TrendingUp className="w-5 h-5 text-flame" />
+          <div className="p-2 bg-[#F26A1B]/10 rounded-lg">
+            <TrendingUp className="w-5 h-5 text-[#F26A1B]" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-lg text-ink">Hábitos do Aluno</h3>
-            <p className="text-xs text-ink-3">Defina e acompanhe a disciplina diária</p>
+            <h3 className="font-semibold text-lg text-ink">Hábitos do aluno</h3>
+            <p className="text-[12px] text-ink-3">Defina e acompanhe a disciplina diária</p>
           </div>
         </div>
         {!isReadOnly && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white text-void rounded-xl font-display font-bold text-xs hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#F26A1B] text-ink rounded-lg font-semibold text-xs transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-void" />
-            + Novo hábito
+            <Plus className="w-4 h-4 text-ink" />
+            Novo hábito
           </button>
         )}
       </div>
@@ -196,12 +218,12 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
       {/* Modal / Form to add habit */}
       <AnimatePresence>
         {showAddForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-2 border border-white/10 rounded-3xl p-6 w-full max-w-md space-y-6 shadow-2xl relative"
+              className="bg-surface border border-white/5 rounded-xl p-6 w-full max-w-md space-y-6 relative"
             >
               <button 
                 onClick={() => setShowAddForm(false)} 
@@ -211,38 +233,38 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
               </button>
 
               <div>
-                <h4 className="font-display font-bold text-lg text-ink">Atribuir Novo Hábito</h4>
-                <p className="text-xs text-ink-3">Insira os detalhes do hábito que o aluno deve cumprir diariamente.</p>
+                <h4 className="font-semibold text-lg text-ink">Atribuir novo hábito</h4>
+                <p className="text-[12px] text-ink-3">Insira os detalhes do hábito que o aluno deve cumprir diariamente.</p>
               </div>
 
               <div className="space-y-4">
                 {/* Nome */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono uppercase tracking-widest text-ink-3">Nome do Hábito</label>
+                  <label className="text-[12px] text-ink-3">Nome do hábito</label>
                   <input
                     value={newNome}
                     onChange={(e) => setNewNome(e.target.value)}
                     placeholder="Ex: Beber água"
-                    className="w-full bg-void border border-white/5 rounded-xl px-4 py-2.5 text-sm text-ink outline-none focus:border-flame/50 transition-colors"
+                    className="w-full bg-void border border-white/5 rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-[#F26A1B]/50 transition-colors"
                   />
                 </div>
 
                 {/* Emoji / Icon selector */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono uppercase tracking-widest text-ink-3">Selecione o Ícone</label>
+                  <label className="text-[12px] text-ink-3 block">Selecione o ícone</label>
                   <div className="grid grid-cols-8 gap-2">
                     {EMOJIS.map((emoji) => (
                       <button
                         key={emoji}
                         type="button"
                         onClick={() => setNewIcone(emoji)}
-                        className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all cursor-pointer ${
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all cursor-pointer border ${
                           newIcone === emoji
-                            ? 'bg-flame text-white shadow-[0_0_12px_rgba(242,106,27,0.4)] scale-110'
-                            : 'bg-surface-3 hover:bg-white/5 text-ink-2'
+                            ? 'bg-[#F26A1B]/10 border-[#F26A1B] text-[#F26A1B]'
+                            : 'bg-[#1A1A1D] border-white/5 hover:border-white/10 text-ink-3'
                         }`}
                       >
-                        {emoji}
+                        {renderHabitoIcon(emoji)}
                       </button>
                     ))}
                   </div>
@@ -250,34 +272,24 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
 
                 {/* Meta diária */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono uppercase tracking-widest text-ink-3">Meta diária (opcional)</label>
+                  <label className="text-[12px] text-ink-3">Meta diária (opcional)</label>
                   <input
                     value={newMeta}
                     onChange={(e) => setNewMeta(e.target.value)}
                     placeholder="Ex: 2L"
-                    className="w-full bg-void border border-white/5 rounded-xl px-4 py-2.5 text-sm text-ink outline-none focus:border-flame/50 transition-colors"
+                    className="w-full bg-void border border-white/5 rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-[#F26A1B]/50 transition-colors"
                   />
                 </div>
-              </div>
 
-              <div className="flex justify-end gap-3 pt-2">
                 <button
-                  type="button"
-                  onClick={() => setShowAddForm(false)}
-                  className="px-4 py-2.5 bg-surface-3 hover:bg-white/5 rounded-xl text-xs font-bold text-ink transition-all cursor-pointer"
-                >
-                  CANCELAR
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAddHabito}
+                  onClick={handleSave}
                   disabled={saving || !newNome.trim()}
-                  className="px-5 py-2.5 bg-flame hover:bg-flame-hover disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-lg"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#F26A1B] text-ink rounded-lg font-semibold text-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {saving ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    'SALVAR HÁBITO'
+                    'Salvar hábito'
                   )}
                 </button>
               </div>
@@ -289,18 +301,17 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {habitos.map((h) => {
           const registros = h.registros || [];
-          const count = registros.filter(r => r.concluido).length;
           
           return (
-            <div key={h.id} className="bg-surface-2 border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:border-white/10 transition-all">
+            <div key={h.id} className="bg-surface border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:border-white/10 transition-all">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-12 h-12 rounded-xl bg-surface-3 flex items-center justify-center text-2xl shrink-0">
-                  {h.icone || '⚡'}
+                <div className="w-10 h-10 rounded-lg bg-[#1A1A1D] border border-white/5 flex items-center justify-center shrink-0">
+                  {renderHabitoIcon(h.icone || '⚡')}
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-display font-bold text-sm text-ink truncate">{h.nome}</h4>
+                  <h4 className="font-semibold text-sm text-ink truncate">{h.nome}</h4>
                   {h.meta_diaria && (
-                    <p className="text-[10px] text-ink-3 font-mono mt-0.5">Meta: {h.meta_diaria}</p>
+                    <p className="text-[12px] text-ink-3 mt-0.5 num">Meta: {h.meta_diaria}</p>
                   )}
                   <div className="flex items-center gap-2 mt-1.5">
                     <AdherenceMiniChart registros={registros} />
@@ -312,7 +323,7 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
                 {!isReadOnly && (
                   <button
                     onClick={() => handleDesativar(h.id)}
-                    className="p-2 text-ink-3 hover:text-flame hover:bg-flame/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                    className="p-2 text-ink-3 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -323,7 +334,7 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
         })}
 
         {habitos.length === 0 && !showAddForm && (
-          <div className="col-span-full py-12 bg-void/30 rounded-3xl border border-dashed border-white/5 flex flex-col items-center justify-center">
+          <div className="col-span-full py-12 bg-void/30 rounded-xl border border-dashed border-white/5 flex flex-col items-center justify-center">
             <Sparkles className="w-10 h-10 text-ink-3 opacity-20 mb-3" />
             <p className="text-xs text-ink-3">Nenhum hábito atribuído a este aluno.</p>
           </div>

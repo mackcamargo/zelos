@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, Star, Zap, Flame, Award, X } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Trophy, Dumbbell, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface CelebrationModalProps {
@@ -11,7 +11,7 @@ interface CelebrationModalProps {
   onClose: () => void;
 }
 
-export default function CelebrationModal({ type, title, subtitle, icon, onClose }: CelebrationModalProps) {
+export default function CelebrationModal({ type, title, subtitle, onClose }: CelebrationModalProps) {
   useEffect(() => {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
@@ -39,20 +39,20 @@ export default function CelebrationModal({ type, title, subtitle, icon, onClose 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-void/90 backdrop-blur-xl"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-void/80 backdrop-blur-sm"
     >
       <motion.div
-        initial={{ scale: 0.8, y: 50, rotate: -5 }}
-        animate={{ scale: 1, y: 0, rotate: 0 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        className="w-full max-w-sm bg-surface border border-white/10 rounded-[40px] p-8 text-center relative overflow-hidden shadow-[0_0_50px_rgba(245,51,79,0.2)]"
+        initial={{ scale: 0.95, y: 10 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="w-full max-w-sm bg-surface border border-white/5 rounded-xl p-8 text-center relative overflow-hidden"
       >
         {/* Animated background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 brand-gradient-bg opacity-10 blur-[80px] rounded-full animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#F26A1B]/5 blur-[80px] rounded-full animate-pulse pointer-events-none" />
 
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full text-ink-3 transition-colors"
+          className="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full text-ink-3 transition-colors z-20"
         >
           <X className="w-5 h-5" />
         </button>
@@ -61,43 +61,47 @@ export default function CelebrationModal({ type, title, subtitle, icon, onClose 
           <div className="flex justify-center">
             <motion.div
               animate={{ 
-                scale: [1, 1.2, 1],
-                rotate: [0, 10, -10, 0]
+                scale: [1, 1.05, 1],
+                rotate: [0, 5, -5, 0]
               }}
               transition={{ 
                 duration: 2,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-              className={`w-24 h-24 rounded-3xl flex items-center justify-center text-5xl shadow-2xl ${
-                type === 'pr' ? 'bg-amber-500/20 border border-amber-500/30' : 'brand-gradient-bg'
+              className={`w-20 h-20 rounded-lg flex items-center justify-center border ${
+                type === 'pr' ? 'bg-white/5 border-white/10' : 'bg-[#F26A1B]/5 border-[#F26A1B]/10'
               }`}
             >
-              {icon || (type === 'pr' ? '💪' : '🏆')}
+              {type === 'pr' ? (
+                <Dumbbell className="w-10 h-10 text-[#F26A1B]" />
+              ) : (
+                <Trophy className="w-10 h-10 text-[#F26A1B]" />
+              )}
             </motion.div>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-center gap-2">
-              <span className={`text-[10px] font-mono font-black uppercase tracking-[0.3em] ${
-                type === 'pr' ? 'text-amber-400' : 'text-flame'
+              <span className={`text-[11px] font-mono font-semibold uppercase tracking-widest ${
+                type === 'pr' ? 'text-[#F26A1B]' : 'text-ink-2'
               }`}>
                 {type === 'pr' ? 'Novo Recorde' : 'Conquista Desbloqueada'}
               </span>
             </div>
-            <h2 className="text-3xl font-display font-black text-ink leading-tight">
+            <h2 className="text-xl font-semibold text-ink leading-tight">
               {title}
             </h2>
-            <p className="text-sm text-ink-2 leading-relaxed max-w-[200px] mx-auto">
+            <p className="text-sm text-ink-3 leading-relaxed max-w-[220px] mx-auto">
               {subtitle}
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="w-full py-4 bg-white text-void rounded-2xl font-display font-black text-sm tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
+            className="w-full py-3.5 bg-[#F26A1B] text-ink rounded-lg font-semibold text-sm hover:opacity-90 transition-all"
           >
-            SENSACIONAL!
+            SENSACIONAL
           </button>
         </div>
       </motion.div>

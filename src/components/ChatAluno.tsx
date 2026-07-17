@@ -206,13 +206,13 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
             {isFemale ? '👩' : '👨'}
           </div>
           <div>
-            <h3 className="font-display font-bold text-base text-ink leading-tight">{personalName}</h3>
-            <p className="text-[10px] text-ink-3 font-mono uppercase tracking-wider mt-0.5">Seu Personal Trainer</p>
+            <h3 className="font-semibold text-base text-ink leading-tight">{personalName}</h3>
+            <p className="text-[12px] text-ink-3 mt-0.5">Seu Personal Trainer</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[10px] font-mono font-bold uppercase">
+        <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[12px] font-semibold">
           <span className="w-1.5 h-1.5 bg-[#F26A1B] rounded-full animate-ping" />
-          Realtime Ativo
+          Realtime ativo
         </div>
       </div>
 
@@ -253,7 +253,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
               >
                 <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'} relative`}>
                   {showSenderName && (
-                    <span className="text-[11px] font-bold text-[#F26A1B] mb-1 font-mono uppercase tracking-wider">
+                    <span className="text-[12px] font-semibold text-[#F26A1B] mb-1">
                       {personalFirstName}
                     </span>
                   )}
@@ -317,14 +317,14 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                             <button
                               type="button"
                               onClick={() => setConfirmingDeleteId(null)}
-                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                              className="px-2.5 py-1 text-[12px] font-semibold text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
                             >
                               Não
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDelete(msg.id)}
-                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors cursor-pointer"
+                              className="px-2.5 py-1 text-[12px] font-semibold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors cursor-pointer"
                             >
                               Sim
                             </button>
@@ -342,7 +342,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                             <button
                               type="button"
                               onClick={() => setEditingMsgId(null)}
-                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-white/70 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                              className="px-2.5 py-1 text-[12px] font-semibold text-white/70 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                             >
                               <X className="w-3 h-3" />
                               Cancelar
@@ -350,7 +350,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                             <button
                               type="button"
                               onClick={() => handleSaveEdit(msg.id)}
-                              className="px-2.5 py-1 text-[10px] uppercase font-bold text-[#F26A1B] bg-white hover:bg-white/90 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                              className="px-2.5 py-1 text-[12px] font-semibold text-[#F26A1B] bg-white hover:bg-white/90 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                             >
                               <Check className="w-3 h-3" />
                               Salvar
@@ -363,11 +363,11 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                     </div>
                   </div>
 
-                  <span className="text-[10px] text-ink-3 font-mono mt-1 flex items-center gap-1">
+                  <span className="text-[12px] text-ink-3 mt-1 flex items-center gap-1 num">
                     <Clock className="w-3 h-3" />
                     {formatTime(msg.criado_em)}
                     {msg.editado_em && !isMessageExcluded && (
-                      <span className="text-[9px] text-ink-3 italic ml-1">(editada)</span>
+                      <span className="text-[12px] text-ink-3 italic ml-1">(editada)</span>
                     )}
                     {!isOwn && !msg.lida && (
                       <span className="w-1.5 h-1.5 bg-[#F26A1B] rounded-full ml-1" />

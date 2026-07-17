@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Droplets, Plus, Settings, Bell, 
-  CheckCircle2, TrendingUp, Loader2,
-  Trash2, AlertCircle
-} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Droplets, Plus, Settings, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, Tooltip } from 'recharts';
 import { dbService } from '../lib/supabase';
-import { RegistroHidratacao } from '../types';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { tocar } from '../lib/som';
 
 interface HidratacaoCardProps {
@@ -15,313 +10,349 @@ interface HidratacaoCardProps {
 }
 
 export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
-  const [loading, setLoading] = useState(true);
-  const [consumido, setConsumido] = useState(0);
+  const [consumido, setConsumido] = useState<number>(0);
+  const [meta, setMeta] = useState<number>(2000);
+  const [percent, setPercent] = useState<number>(0);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [celebrate, setCelebrate] = useState<boolean>(false);
   const [historico, setHistorico] = useState<{ data: string; total: number }[]>([]);
-  const [meta, setMeta] = useState(2000); // Meta padrão
-  const [showSettings, setShowSettings] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [celebrate, setCelebrate] = useState(false);
-  
-  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
 
   useEffect(() => {
-    loadData();
+    if (alunoId) {
+      loadData();
+    }
   }, [alunoId]);
 
   const loadData = async () => {
-    setLoading(true);
+    if (!alunoId) return;
     try {
-      const [regsRes, histRes, metaRes] = await Promise.all([
-        dbService.getHidratacaoHoje(alunoId, today),
-        dbService.getHistoricoHidratacao(alunoId),
-        dbService.getMetaHidratacao(alunoId)
-      ]);
-      
-      const con = Number(regsRes.data?.ml) || 0;
-      setConsumido(con);
-      
-      const formattedHistory = (histRes.data || []).map((row: any) => ({
-        data: row.data,
-        total: Number(row.ml) || 0
-      }));
-      setHistorico(formattedHistory);
-      
-      // Meta prescrita pelo personal (vem do banco ou default 2000)
-      setMeta(Number(metaRes.data) || 2000);
-    } catch (err) {
-      console.error("Erro ao carregar dados de hidratação:", err);
+      setLoading(true);
+      const hoje = new Date().toISOString().split('T')[0];
+
+      // 1. Get current meta
+      const metaRes = await dbService.getMetaHidratacao(alunoId);
+      const metaAtual = metaRes.data || 2000;
+      setMeta(metaAtual);
+
+      // 2. Get today's consumption
+      const consumoRes = await dbService.getHidratacaoHoje(alunoId, hoje);
+      const totalHoje = consumoRes.data?.ml || 0;
+      setConsumido(totalHoje);
+
+      const p = Math.min((totalHoje / metaAtual) * 100, 100);
+      setPercent(p);
+
+      // 3. Get history
+      const histRes = await dbService.getHistoricoHidratacao(alunoId);
+      const histRows = histRes.data || [];
+
+      // Build 7 days array
+      const array7Dias = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dataStr = d.toISOString().split('T')[0];
+        const match = histRows.find((r: any) => r.data === dataStr);
+        array7Dias.push({
+          data: dataStr,
+          total: match ? Number(match.ml || match.total || 0) : 0,
+        });
+      }
+      setHistorico(array7Dias);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const percent = meta > 0 ? Math.min(100, Math.round((consumido / meta) * 100)) : 0;
+  const handleAddWater = async (ml: number) => {
+    if (!alunoId) return;
 
-  const handleAddWater = async (incremento: number) => {
-    setSaving(true);
     try {
-      const novoTotal = consumido + incremento;
-      
-      if (novoTotal >= meta && consumido < meta) {
+      tocar('toggleOn');
+      setSaving(true);
+      const hoje = new Date().toISOString().split('T')[0];
+      const novoConsumo = consumido + ml;
+
+      // Save using dbService API
+      await dbService.saveRegistroHidratacao({
+        aluno_id: alunoId,
+        data: hoje,
+        ml: novoConsumo
+      });
+
+      setConsumido(novoConsumo);
+      const p = Math.min((novoConsumo / meta) * 100, 100);
+      setPercent(p);
+
+      if (p >= 100 && percent < 100) {
+        setCelebrate(true);
         tocar('celebracao');
-      } else {
-        tocar('toggleOn');
+        setTimeout(() => setCelebrate(false), 4000);
       }
 
-      const { error } = await dbService.saveRegistroHidratacao({
+      // Update chart locally
+      setHistorico(prev =>
+        prev.map(item =>
+          item.data === hoje ? { ...item, total: item.total + ml } : item
+        )
+      );
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!alunoId) return;
+    if (!confirm('Deseja zerar o consumo de água de hoje?')) return;
+
+    try {
+      setSaving(true);
+      const hoje = new Date().toISOString().split('T')[0];
+
+      await dbService.saveRegistroHidratacao({
         aluno_id: alunoId,
-        ml: novoTotal,
-        data: today
+        data: hoje,
+        ml: 0
       });
-      
-      if (!error) {
-        setConsumido(novoTotal);
-        if (novoTotal >= meta && consumido < meta) {
-          setCelebrate(true);
-          setTimeout(() => setCelebrate(false), 3000);
-        }
-        
-        // Recarregar histórico
-        const histRes = await dbService.getHistoricoHidratacao(alunoId);
-        const formattedHistory = (histRes.data || []).map((row: any) => ({
-          data: row.data,
-          total: Number(row.ml) || 0
-        }));
-        setHistorico(formattedHistory);
-      }
-    } catch (err) {
-      console.error("Erro ao salvar registro de hidratação:", err);
+
+      setConsumido(0);
+      setPercent(0);
+
+      setHistorico(prev =>
+        prev.map(item =>
+          item.data === hoje ? { ...item, total: 0 } : item
+        )
+      );
+    } catch (e) {
+      console.error(e);
     } finally {
       setSaving(false);
     }
   };
 
   const handleSaveMeta = async () => {
-    setSaving(true);
+    if (!alunoId) return;
     try {
-      tocar('sucesso');
-      const valor = Number(meta) || 2000;
-      await dbService.setMetaHidratacao(alunoId, valor);
+      setSaving(true);
+      await dbService.setMetaHidratacao(alunoId, meta);
+      const p = Math.min((consumido / meta) * 100, 100);
+      setPercent(p);
       setShowSettings(false);
-    } catch (err) {
-      console.error(err);
+      tocar('sucesso');
+    } catch (e) {
+      console.error(e);
     } finally {
       setSaving(false);
     }
   };
 
-  const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) {
-      alert("Este navegador não suporta notificações.");
-      return;
-    }
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") {
-      alert("Notificações ativadas! Lembrete simulado a cada 2 horas.");
-    }
-  };
-
   if (loading) {
     return (
-      <div className="bg-surface-2 border border-white/5 rounded-[32px] p-8 flex justify-center">
-        <Loader2 className="w-6 h-6 text-violet animate-spin" />
+      <div className="bg-surface border border-white/5 rounded-xl p-8 flex justify-center items-center">
+        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-surface-2 border border-white/5 rounded-[40px] p-8 relative overflow-hidden shadow-2xl">
-        {/* Background glow */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet/5 blur-[100px] pointer-events-none" />
-        
-        <div className="relative z-10 space-y-8">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="font-display font-bold text-lg text-ink flex items-center gap-2">
-                <Droplets className="w-5 h-5 text-violet" />
-                Hidratação
-              </h3>
-              <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Acompanhamento Diário</p>
+    <div className="bg-surface border border-white/5 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between group min-h-[350px]">
+      {/* Background Glow */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-[#F26A1B]/10 rounded-lg">
+              <Droplets className="w-5 h-5 text-[#F26A1B]" />
             </div>
-            <button 
-              onClick={() => {
-                setShowSettings(!showSettings);
-                tocar('tap');
-              }}
-              className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-ink-3 transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            {/* VIRTUAL BOTTLE / CUP */}
-            <div className="relative w-32 h-56 bg-void/50 border-4 border-white/10 rounded-[32px] overflow-hidden group">
-              {/* Water Layer */}
-              <motion.div 
-                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-violet via-blue-500 to-blue-400"
-                initial={{ height: 0 }}
-                animate={{ height: `${percent}%` }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-              >
-                {/* Wave animation effect */}
-                <div className="absolute -top-4 left-0 right-0 h-4 bg-white/20 animate-pulse blur-sm" />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/10" />
-              </motion.div>
-
-              {/* Progress Overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-mono font-black text-ink drop-shadow-lg">
-                  {Math.round(percent)}%
-                </span>
-              </div>
-            </div>
-
-            <div className="flex-1 w-full space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between items-end">
-                  <span className="text-3xl font-mono font-black text-ink tracking-tighter">
-                    {consumido} <span className="text-sm font-normal text-ink-3">/ {meta} ml</span>
-                  </span>
-                  <span className="text-sm font-mono text-ink-3">{percent}%</span>
-                </div>
-                <div className="h-1.5 bg-void rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percent}%` }}
-                    className="h-full bg-gradient-to-r from-violet to-blue-500 rounded-full"
-                  />
-                </div>
-              </div>
-
-              {/* QUICK ACTIONS */}
-              <div className="grid grid-cols-3 gap-3">
-                {[250, 500, 750].map((ml) => (
-                  <button
-                    key={ml}
-                    onClick={() => handleAddWater(ml)}
-                    disabled={saving}
-                    className="group relative bg-surface-3 border border-white/5 rounded-2xl p-4 flex flex-col items-center gap-2 hover:bg-violet/10 hover:border-violet/30 transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    <Plus className="w-4 h-4 text-violet group-hover:scale-125 transition-transform" />
-                    <span className="text-[10px] font-mono font-bold text-ink">{ml}ml</span>
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-violet rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={requestNotificationPermission}
-                className="w-full py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-bold text-ink-3 hover:text-violet hover:bg-violet/5 transition-all flex items-center justify-center gap-2"
-              >
-                <Bell className="w-3.5 h-3.5" /> LEMBRETES DE HIDRATAÇÃO
-              </button>
+            <div>
+              <h3 className="font-semibold text-base text-ink">Registro de Hidratação</h3>
+              <p className="text-[12px] text-ink-3">Acompanhe seu consumo diário</p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-ink-3 hover:text-ink transition-colors cursor-pointer"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Celebration Overlay */}
-        <AnimatePresence>
-          {celebrate && (
-            <motion.div 
+        <AnimatePresence mode="wait">
+          {showSettings ? (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 5 }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <label className="text-[12px] text-ink-3">Meta diária (ml)</label>
+                <input
+                  type="number"
+                  value={meta}
+                  onChange={(e) => setMeta(Math.max(0, Number(e.target.value)))}
+                  className="w-full bg-void border border-white/5 rounded-lg p-3 text-sm text-ink outline-none focus:border-[#F26A1B]/50"
+                  step="250"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(false)}
+                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-semibold text-ink-2 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveMeta}
+                  disabled={saving}
+                  className="flex-1 py-2.5 bg-[#F26A1B] text-ink rounded-lg text-xs font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                >
+                  {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Salvar
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="main"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 z-20 bg-violet/20 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center"
+              className="space-y-6"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="w-20 h-20 bg-ink rounded-full flex items-center justify-center mb-4"
-              >
-                <CheckCircle2 className="w-12 h-12 text-violet" />
-              </motion.div>
-              <h4 className="text-2xl font-display font-black text-ink italic uppercase tracking-tighter">Meta Atingida!</h4>
-              <p className="text-xs text-ink-2 font-mono mt-1 uppercase tracking-widest">Seu corpo agradece o cuidado</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {/* Progress Circle & Text */}
+              <div className="flex items-center gap-6">
+                <div className="relative w-20 h-20 flex-shrink-0">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-white/5"
+                      strokeWidth="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-[#F26A1B] transition-all duration-500 ease-out"
+                      strokeDasharray={`${percent}, 100`}
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xs font-bold text-ink num">{Math.round(percent)}%</span>
+                  </div>
+                </div>
 
-        {/* SETTINGS DRAWER-LIKE */}
-        <AnimatePresence>
-          {showSettings && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="mt-8 pt-8 border-t border-white/5 overflow-hidden"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-display font-bold text-ink uppercase tracking-widest">Ajustar Meta Diária</span>
-                  <button onClick={() => setShowSettings(false)} className="text-ink-3 hover:text-ink">
+                <div className="space-y-1">
+                  <p className="text-2xl font-bold text-ink num flex items-baseline gap-1">
+                    {consumido} <span className="text-xs font-normal text-ink-3">/ {meta}ml</span>
+                  </p>
+                  <p className="text-[12px] text-ink-3">
+                    {percent >= 100 ? 'Meta de água batida!' : 'Mantenha-se hidratado.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Water Adders */}
+              <div className="flex flex-wrap gap-2">
+                {[250, 500, 1000].map(ml => (
+                  <button
+                    key={ml}
+                    type="button"
+                    onClick={() => handleAddWater(ml)}
+                    disabled={saving}
+                    className="px-4 py-2 bg-[#1A1A1D] border border-white/5 hover:border-[#F26A1B]/30 rounded-lg text-xs font-semibold text-ink hover:text-[#F26A1B] transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> {ml}ml
+                  </button>
+                ))}
+                {consumido > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    disabled={saving}
+                    className="p-2 bg-[#1A1A1D] border border-white/5 hover:border-red-500/20 text-ink-3 hover:text-red-500 rounded-lg transition-all cursor-pointer"
+                    title="Zerar hoje"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                </div>
-                <div className="flex gap-4">
-                  <input 
-                    type="range"
-                    min="1000"
-                    max="5000"
-                    step="100"
-                    value={meta}
-                    onChange={(e) => setMeta(Number(e.target.value))}
-                    className="flex-1 accent-violet"
-                  />
-                  <span className="text-sm font-mono font-bold text-ink w-20 text-right">{meta}ml</span>
-                </div>
-                <button 
-                  onClick={handleSaveMeta}
-                  className="w-full py-3 bg-violet text-void rounded-2xl font-bold text-[10px] uppercase tracking-widest"
-                >
-                  Confirmar Nova Meta
-                </button>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* WEEKLY TREND */}
-      <div className="bg-surface-2 border border-white/5 rounded-[32px] p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h4 className="font-display font-bold text-ink text-sm flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-violet" />
-            Consumo Últimos 7 dias
-          </h4>
-        </div>
+      {/* Celebration animation overlay inside the card */}
+      <AnimatePresence>
+        {celebrate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-void/90 z-20 flex flex-col items-center justify-center text-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-6 h-6 text-green-500" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-semibold text-ink text-sm">Meta de hoje batida!</h4>
+                <p className="text-[11px] text-ink-3 max-w-[180px]">Hidratação completa para suas articulações e foco.</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className="h-40 w-full">
+      {/* Histograma minimalista nos últimos 7 dias */}
+      <div className="border-t border-white/5 pt-4 mt-6">
+        <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mb-3">Histórico de 7 dias</p>
+        <div className="h-12 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={historico}>
-              <XAxis 
-                dataKey="data" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#666', fontSize: 10, fontFamily: 'JetBrains Mono' }}
-                tickFormatter={(val) => val.split('-')[2]}
+            <BarChart data={historico} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const dataObj = payload[0].payload;
+                    return (
+                      <div className="bg-void/90 backdrop-blur-md border border-white/5 p-2 rounded-lg text-[10px] text-ink num">
+                        {dataObj.total}ml
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
               />
-              <YAxis hide />
-              <Tooltip 
-                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '12px' }}
-                itemStyle={{ color: '#8B5CF6', fontSize: '10px', fontFamily: 'JetBrains Mono' }}
-                labelStyle={{ display: 'none' }}
-                formatter={(val: number) => [`${val} ml`, 'Água']}
-              />
-              <Bar 
-                dataKey="total" 
-                radius={[6, 6, 0, 0]}
-                barSize={20}
-              >
-                {historico.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.total >= meta ? '#8B5CF6' : '#222'} 
-                  />
-                ))}
+              <Bar dataKey="total" radius={4}>
+                {historico.map((entry, index) => {
+                  const isDone = entry.total >= meta;
+                  return (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={isDone ? '#22C55E' : '#F26A1B'}
+                      opacity={entry.total === 0 ? 0.05 : 0.6}
+                    />
+                  );
+                })}
               </Bar>
             </BarChart>
           </ResponsiveContainer>

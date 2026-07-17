@@ -84,9 +84,9 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
           <Droplets className="w-5 h-5 text-violet" />
         </div>
         <div>
-          <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Média Semanal</p>
-          <p className="text-lg font-mono font-black text-ink tracking-tighter">
-            {average.toLocaleString()} <span className="text-xs font-normal">ml/dia</span>
+          <p className="text-[12px] text-ink-3">Média semanal</p>
+          <p className="text-[20px] font-semibold text-ink num">
+            {average.toLocaleString()} <span className="text-[14px] font-normal">ml/dia</span>
           </p>
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
       <div className="bg-void/50 p-4 rounded-2xl border border-white/5 space-y-3">
         <div className="flex items-center gap-2">
           <Target className="w-4 h-4 text-flame" />
-          <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Meta Diária Prescrita</p>
+          <p className="text-[12px] text-ink-3">Meta diária prescrita</p>
         </div>
         <form onSubmit={handleSalvarMeta} className="flex items-center gap-2">
           <input
@@ -109,10 +109,10 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
             step={250}
             min={500}
             max={8000}
-            className="flex-1 bg-void border border-white/10 rounded-xl px-4 py-2.5 text-ink font-mono text-sm focus:outline-none focus:border-flame/50"
+            className="flex-1 bg-void border border-white/10 rounded-xl px-4 py-2.5 text-ink text-sm focus:outline-none focus:border-flame/50 num"
             placeholder="Ex: 3000"
           />
-          <span className="text-xs text-ink-3 font-mono mr-2">ml</span>
+          <span className="text-xs text-ink-3 mr-2 num">ml</span>
           <button
             type="submit"
             onClick={handleSalvarMeta}
@@ -134,10 +134,10 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
           </button>
         </form>
         {erro && (
-          <p className="text-[10px] text-red-500 font-mono mt-1">{erro}</p>
+          <p className="text-[12px] text-red-500 mt-1">{erro}</p>
         )}
         {salvo && (
-          <p className="text-[10px] text-emerald-400 font-mono mt-1">✓ Meta salva com sucesso!</p>
+          <p className="text-[12px] text-emerald-400 mt-1">✓ Meta salva com sucesso!</p>
         )}
       </div>
     </div>

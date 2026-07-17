@@ -101,8 +101,8 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
         {!plano ? (
           <div className="relative z-10 flex flex-col items-center justify-center text-center py-6">
             <Utensils className="w-12 h-12 text-ink-3 mb-4 opacity-50 animate-pulse" />
-            <h3 className="font-display font-bold text-lg text-ink mb-2">Sem Plano Ativo</h3>
-            <p className="text-sm text-ink-3 max-w-md">
+            <h3 className="font-semibold text-lg text-ink mb-2">Sem plano ativo</h3>
+            <p className="text-[14px] text-ink-3 max-w-md">
               Nenhum plano alimentar ativo. Seu personal ainda não prescreveu suas metas.
             </p>
           </div>
@@ -141,14 +141,14 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4xl font-mono font-black text-ink tracking-tighter">
+                <span className="text-[28px] font-semibold text-ink num">
                   {consumidoCalorias}
                 </span>
-                <span className="text-[10px] font-mono text-ink-3 uppercase tracking-widest text-center px-4">
+                <span className="text-[12px] text-ink-3 text-center px-4">
                   kcal consumidas
                 </span>
-                <div className="mt-2 text-[10px] font-mono text-flame font-bold bg-flame/10 px-2 py-0.5 rounded-full border border-flame/20">
-                  META: {metaCalorias}
+                <div className="mt-2 text-[12px] text-flame font-semibold bg-flame/10 px-2 py-0.5 rounded-full border border-flame/20 num">
+                  Meta: {metaCalorias}
                 </div>
               </div>
             </div>
@@ -157,10 +157,10 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
             <div className="flex-1 w-full space-y-6">
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
-                  <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-violet" /> Proteína
                   </span>
-                  <span className="text-[10px] font-mono text-ink-3">{consumidoProteina} / {metaProteina}g</span>
+                  <span className="text-[12px] text-ink-3 num">{consumidoProteina} / {metaProteina}g</span>
                 </div>
                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                   <motion.div 
@@ -173,10 +173,10 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
-                  <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-amber" /> Carboidratos
                   </span>
-                  <span className="text-[10px] font-mono text-ink-3">{consumidoCarbo} / {metaCarbo}g</span>
+                  <span className="text-[12px] text-ink-3 num">{consumidoCarbo} / {metaCarbo}g</span>
                 </div>
                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                   <motion.div 
@@ -189,10 +189,10 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
-                  <span className="text-xs font-display font-bold text-ink flex items-center gap-2">
+                  <span className="text-xs font-semibold text-ink flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-orange-500" /> Gorduras
                   </span>
-                  <span className="text-[10px] font-mono text-ink-3">{consumidoGordura} / {metaGordura}g</span>
+                  <span className="text-[12px] text-ink-3 num">{consumidoGordura} / {metaGordura}g</span>
                 </div>
                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                   <motion.div 
@@ -214,9 +214,9 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
         {/* PLANO ALIMENTAR */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h4 className="font-display font-bold text-ink flex items-center gap-2">
+            <h4 className="font-semibold text-ink flex items-center gap-2">
               <Utensils className="w-5 h-5 text-flame" />
-              Plano de Hoje
+              Plano de hoje
             </h4>
           </div>
 
@@ -225,10 +225,10 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               <div key={ref.id} className="bg-surface-2 border border-white/5 rounded-3xl p-5 hover:bg-surface-3 transition-all group">
                 <div className="flex items-start justify-between mb-4">
                   <div className="space-y-1">
-                    <h5 className="font-display font-bold text-ink group-hover:text-flame transition-colors">{ref.nome}</h5>
+                    <h5 className="font-semibold text-ink group-hover:text-flame transition-colors">{ref.nome}</h5>
                     <div className="flex items-center gap-2 text-ink-3">
                       <Clock className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-mono">{ref.horario}</span>
+                      <span className="text-[12px] num">{ref.horario}</span>
                     </div>
                   </div>
                   <button className="p-2 bg-void/50 rounded-xl text-ink-3 hover:text-green-500 transition-colors">
@@ -241,9 +241,9 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                     <div key={ali.id} className="flex items-center justify-between py-2 border-t border-white/5">
                       <div className="space-y-0.5">
                         <p className="text-xs text-ink font-medium">{ali.nome}</p>
-                        <p className="text-[9px] text-ink-3 uppercase tracking-widest">{ali.quantidade}</p>
+                        <p className="text-[10px] text-ink-3">{ali.quantidade}</p>
                       </div>
-                      <div className="text-[10px] font-mono text-ink-2">
+                      <div className="text-[12px] text-ink-2 num">
                         {ali.calorias} kcal
                       </div>
                     </div>
@@ -263,18 +263,18 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
         <div className="space-y-8">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h4 className="font-display font-bold text-ink flex items-center gap-2">
+              <h4 className="font-semibold text-ink flex items-center gap-2">
                 <History className="w-5 h-5 text-flame" />
-                Registros do Dia
+                Registros do dia
               </h4>
               <button
                 onClick={() => {
                   setShowAddModal(true);
                   tocar('tap');
                 }}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold text-ink hover:bg-white/10 transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-semibold text-ink hover:bg-white/10 transition-all flex items-center gap-2"
               >
-                <Plus className="w-3.5 h-3.5" /> REGISTRAR
+                <Plus className="w-3.5 h-3.5" /> Registrar
               </button>
             </div>
 
@@ -282,10 +282,10 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               {registros.map((reg) => (
                 <div key={reg.id} className="bg-surface-2 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <p className="text-xs text-ink font-bold">{reg.nome}</p>
-                    <p className="text-[10px] font-mono text-ink-3">{new Date(reg.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    <p className="text-xs text-ink font-semibold">{reg.nome}</p>
+                    <p className="text-[12px] text-ink-3 num">{new Date(reg.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
-                  <div className="text-sm font-mono font-bold text-flame">
+                  <div className="text-[14px] font-semibold text-flame num">
                     +{reg.calorias} kcal
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               className="w-full max-w-sm bg-surface border border-white/10 rounded-[32px] p-6 shadow-2xl space-y-6"
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-display font-bold text-lg text-ink">Registrar Refeição</h3>
+                <h3 className="font-semibold text-lg text-ink">Registrar refeição</h3>
                 <button onClick={() => {
                   setShowAddModal(false);
                   tocar('tap');
@@ -360,7 +360,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">O que você comeu?</label>
+                  <label className="text-[12px] font-medium text-ink-3">O que você comeu?</label>
                   <input 
                     value={newMeal.nome}
                     onChange={(e) => setNewMeal(prev => ({ ...prev, nome: e.target.value }))}
@@ -369,13 +369,13 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Calorias Estimadas</label>
+                  <label className="text-[12px] font-medium text-ink-3">Calorias estimadas</label>
                   <input 
                     type="number"
                     value={newMeal.calorias}
                     onChange={(e) => setNewMeal(prev => ({ ...prev, calorias: e.target.value }))}
                     placeholder="400"
-                    className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink outline-none focus:border-flame/30"
+                    className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm text-ink outline-none focus:border-flame/30 num"
                   />
                 </div>
               </div>
@@ -383,10 +383,10 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               <button
                 onClick={handleAddMeal}
                 disabled={saving || !newMeal.nome || !newMeal.calorias}
-                className="w-full py-4 brand-gradient-bg rounded-2xl font-display font-bold text-void uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                className="w-full py-4 brand-gradient-bg rounded-2xl font-semibold text-void flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
               >
                 {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                SALVAR REGISTRO
+                <span>Salvar registro</span>
               </button>
             </motion.div>
           </div>

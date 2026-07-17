@@ -112,11 +112,11 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
   }) => (
     <div className="space-y-3">
       <div className="flex flex-col gap-0.5">
-        <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+        <label className="text-[12px] font-medium text-ink-2 block">
           {label}
         </label>
         {subtitle && (
-          <span className="text-[9px] font-mono text-ink-3 italic">{subtitle}</span>
+          <span className="text-[12px] text-ink-3 italic">{subtitle}</span>
         )}
       </div>
       <div className="flex items-center gap-3">
@@ -153,7 +153,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
         {/* Header */}
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <div>
-            <h2 className="font-display font-bold text-xl text-ink">Check-in Semanal</h2>
+            <h2 className="font-semibold text-xl text-ink">Check-in semanal</h2>
             <p className="text-xs text-ink-2 mt-1">Como foi sua semana de treinos?</p>
           </div>
           <button 
@@ -169,7 +169,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 className="w-8 h-8 text-flame animate-spin" />
-              <p className="text-xs text-ink-3 font-mono">Carregando dados da semana...</p>
+              <p className="text-xs text-ink-3">Carregando dados da semana...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -201,7 +201,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+                    <label className="text-[12px] font-medium text-ink-2 block">
                       Peso Atual (kg)
                     </label>
                     <div className="relative">
@@ -212,14 +212,14 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                         value={peso}
                         onChange={(e) => setPeso(e.target.value)}
                         placeholder="75.5"
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none num"
                       />
                     </div>
                   </div>
                   
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
+                      <label className="text-[12px] font-medium text-ink-2 block">
                         Sente alguma dor ou lesão?
                       </label>
                       <div className="flex bg-void rounded-xl p-1 border border-white/5">
@@ -229,7 +229,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                             setSenteDor(false);
                             setDores('');
                           }}
-                          className={`px-4 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all ${
+                          className={`px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
                             !senteDor ? 'bg-white/10 text-ink shadow-sm' : 'text-ink-3'
                           }`}
                         >
@@ -238,7 +238,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                         <button
                           type="button"
                           onClick={() => setSenteDor(true)}
-                          className={`px-4 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all ${
+                          className={`px-4 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
                             senteDor ? 'bg-rose-500/20 text-rose-400 shadow-sm border border-rose-500/20' : 'text-ink-3'
                           }`}
                         >
@@ -268,8 +268,8 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-ink-2 block">
-                    Observações Adicionais
+                  <label className="text-[12px] font-medium text-ink-2 block">
+                    Observações adicionais
                   </label>
                   <textarea
                     value={observacoes}

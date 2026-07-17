@@ -125,11 +125,11 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
         {/* Header */}
         <div className="p-6 border-b border-white/5 flex items-start justify-between">
           <div>
-            <h3 className="font-display font-black text-xl text-ink uppercase italic tracking-tight">
-              Histórico de <span className="text-flame">Check-ins</span>
+            <h3 className="font-semibold text-xl text-ink">
+              Histórico de <span className="text-flame">check-ins</span>
             </h3>
-            <p className="text-xs text-ink-3 font-mono uppercase tracking-wider mt-1">
-              Aluno: <span className="text-ink font-semibold">{alunoNome}</span> • {checkins.length} {checkins.length === 1 ? 'check-in enviado' : 'check-ins enviados'}
+            <p className="text-xs text-ink-3 mt-1">
+              Aluno: <span className="text-ink font-semibold">{alunoNome}</span> • <span className="num">{checkins.length}</span> {checkins.length === 1 ? 'check-in enviado' : 'check-ins enviados'}
             </p>
           </div>
           <button 
@@ -145,11 +145,11 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
           {loading ? (
             <div className="py-20 flex flex-col items-center justify-center gap-4">
               <Loader2 className="w-8 h-8 text-flame animate-spin" />
-              <p className="text-xs text-ink-3 font-mono uppercase tracking-widest">Carregando histórico...</p>
+              <p className="text-xs text-ink-3">Carregando histórico...</p>
             </div>
           ) : checkins.length === 0 ? (
             <div className="py-16 text-center">
-              <p className="text-ink-3 text-sm font-mono uppercase">Sem check-ins ainda</p>
+              <p className="text-ink-3 text-sm">Sem check-ins ainda</p>
             </div>
           ) : (
             <>
@@ -157,7 +157,7 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
               <div className="bg-void/40 border border-white/5 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <Scale className="w-4 h-4 text-flame" />
-                  <h4 className="font-display font-bold text-sm text-ink uppercase tracking-wide">Evolução do Peso</h4>
+                  <h4 className="font-semibold text-sm text-ink">Evolução do peso</h4>
                 </div>
                 {hasTwoWeightEntries ? (
                   <div className="h-52 w-full">
@@ -247,12 +247,12 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
                             
                             <div className="flex items-center gap-2">
                               {c.peso_kg && (
-                                <div className="flex items-center gap-1 bg-white/5 border border-white/5 text-ink-2 px-2 py-0.5 rounded-md text-[10px] font-mono">
+                                <div className="flex items-center gap-1 bg-white/5 border border-white/5 text-ink-2 px-2 py-0.5 rounded-md text-[12px] num">
                                   <Scale className="w-3 h-3 text-flame" />
                                   <span>{c.peso_kg} kg</span>
                                 </div>
                               )}
-                              <span className="text-[9px] font-mono text-ink-3">
+                              <span className="text-[12px] text-ink-3 num">
                                 Enviado em {new Date(c.criado_em).toLocaleDateString('pt-BR')}
                               </span>
                             </div>
@@ -260,15 +260,15 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
 
                           {/* 3 Indicators with ZÊNITE custom styling */}
                           <div className="grid grid-cols-3 gap-2">
-                            <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-bold ${energiaStyle.bg} ${energiaStyle.border} ${energiaStyle.text}`}>
+                            <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold num ${energiaStyle.bg} ${energiaStyle.border} ${energiaStyle.text}`}>
                               <Zap className="w-3.5 h-3.5" />
                               <span>Energia: {c.energia}/5</span>
                             </div>
-                            <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-bold ${sonoStyle.bg} ${sonoStyle.border} ${sonoStyle.text}`}>
+                            <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold num ${sonoStyle.bg} ${sonoStyle.border} ${sonoStyle.text}`}>
                               <Moon className="w-3.5 h-3.5" />
                               <span>Sono: {c.qualidade_sono}/5</span>
                             </div>
-                            <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-bold ${estresseStyle.bg} ${estresseStyle.border} ${estresseStyle.text}`}>
+                            <div className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold num ${estresseStyle.bg} ${estresseStyle.border} ${estresseStyle.text}`}>
                               <Flame className="w-3.5 h-3.5" />
                               <span>Estresse: {c.nivel_estresse}/5</span>
                             </div>
@@ -277,8 +277,8 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
                           {/* Dores */}
                           {c.dores && String(c.dores).trim() !== '' && (
                             <div className="bg-rose-500/5 border border-rose-500/10 p-3 rounded-xl">
-                              <p className="text-[10px] text-rose-400 font-bold uppercase mb-1 flex items-center gap-1">
-                                <AlertCircle className="w-3.5 h-3.5" /> ⚠ Dor
+                              <p className="text-[12px] text-rose-400 font-semibold mb-1 flex items-center gap-1">
+                                <AlertCircle className="w-3.5 h-3.5" /> Dor
                               </p>
                               <p className="text-xs text-rose-200/80 leading-relaxed italic">"{c.dores}"</p>
                             </div>
@@ -289,7 +289,7 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
                             <div className="bg-void/30 p-3 rounded-xl border border-white/5">
                               <div className="flex items-center gap-2 mb-1">
                                 <MessageSquare className="w-3.5 h-3.5 text-ink-3" />
-                                <span className="text-[10px] font-mono text-ink-3 uppercase">Observações:</span>
+                                <span className="text-[12px] text-ink-3 font-semibold">Observações:</span>
                               </div>
                               <p className="text-xs text-ink-2 italic leading-relaxed">"{c.observacoes}"</p>
                             </div>
@@ -308,7 +308,7 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
         <div className="p-4 bg-void/40 border-t border-white/5 flex justify-end">
           <button 
             onClick={onClose}
-            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-xs text-ink font-mono uppercase tracking-widest rounded-xl transition-all border border-white/5"
+            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-xs text-ink font-semibold rounded-xl transition-all border border-white/5"
           >
             Fechar
           </button>

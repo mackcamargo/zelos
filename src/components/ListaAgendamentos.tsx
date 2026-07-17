@@ -127,11 +127,11 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
 
   if (erro) {
     return (
-      <div className="p-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-[40px] flex items-center gap-4 text-xs font-mono uppercase" id="lista-agendamentos-error">
+      <div className="p-6 bg-red-500/10 border border-red-500/20 text-red-400 rounded-[40px] flex items-center gap-4 text-[12px]" id="lista-agendamentos-error">
         <AlertCircle className="w-6 h-6 shrink-0" />
         <div>
-          <p className="font-bold text-ink">Erro ao carregar a agenda</p>
-          <p className="text-[10px] opacity-70 mt-1">{erro}</p>
+          <p className="font-semibold text-ink">Erro ao carregar a agenda</p>
+          <p className="text-[12px] opacity-70 mt-1">{erro}</p>
         </div>
       </div>
     );
@@ -141,7 +141,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
     return (
       <div className="py-20 text-center space-y-4 border-2 border-dashed border-white/5 rounded-[40px]" id="lista-agendamentos-empty">
         <CalendarIcon className="w-8 h-8 text-ink-3 mx-auto" />
-        <p className="text-xs font-mono text-ink-3 uppercase tracking-widest">Nenhuma sessão encontrada.</p>
+        <p className="text-[12px] text-ink-3">Nenhuma sessão encontrada.</p>
       </div>
     );
   }
@@ -166,31 +166,31 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
               className="group bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 clicavel"
             >
               <div className="flex items-center gap-6">
-                <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-bold shrink-0 ${
+                <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-semibold shrink-0 ${
                   agenda.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
                 }`}>
-                  <span className="text-[10px] uppercase opacity-70">
+                  <span className="text-[10px] opacity-70 num">
                     {isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-BR', { month: 'short' })}
                   </span>
-                  <span className="text-xl leading-none">
+                  <span className="text-xl leading-none num">
                     {isNaN(d.getTime()) ? '-' : d.getDate()}
                   </span>
                 </div>
                 
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <h4 className="font-bold text-ink">{isNaN(d.getTime()) ? 'Horário' : horaFmt}</h4>
-                    <span className="text-[10px] font-mono text-ink-3 uppercase">({isNaN(d.getTime()) ? 'Data' : dataFmt})</span>
+                    <h4 className="font-semibold text-ink num">{isNaN(d.getTime()) ? 'Horário' : horaFmt}</h4>
+                    <span className="text-[12px] text-ink-3 num">({isNaN(d.getTime()) ? 'Data' : dataFmt})</span>
                     {agenda.aluno_nome && !isUUID(agenda.aluno_nome) && (
-                      <span className="text-[10px] font-mono text-flame uppercase tracking-widest">• {agenda.aluno_nome}</span>
+                      <span className="text-[12px] text-flame">• {agenda.aluno_nome}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 text-[10px] text-ink-3 font-mono uppercase tracking-widest">
+                  <div className="flex items-center gap-4 text-[12px] text-ink-3">
                      <span className="flex items-center gap-1">
                        {agenda.tipo === 'presencial' ? <MapPin className="w-3 h-3" /> : <Video className="w-3 h-3" />}
                        {agenda.tipo}
                      </span>
-                     <span className={`px-2 py-0.5 rounded-full border ${config.color} text-[8px] font-black`}>
+                     <span className={`px-2 py-0.5 rounded-full border ${config.color} text-[10px] font-semibold num`}>
                        {config.label}
                      </span>
                   </div>
@@ -204,13 +204,13 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                   <>
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-green-500/20 hover:bg-green-500/20 transition-all"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-xl text-xs font-semibold border border-green-500/20 hover:bg-green-500/20 transition-all"
                     >
                       <Check className="w-4 h-4" /> Confirmar
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-red-500/20 hover:bg-red-500/20 transition-all"
+                      className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-xs font-semibold border border-red-500/20 hover:bg-red-500/20 transition-all"
                     >
                       <X className="w-4 h-4" /> Recusar
                     </button>

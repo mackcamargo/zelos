@@ -354,8 +354,8 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
         {/* Search Header */}
         <div className="p-4 border-b border-white/5 space-y-3 shrink-0">
           <div className="flex items-center justify-between">
-            <h3 className="font-display font-bold text-lg text-ink uppercase tracking-tight italic">Alunos Ativos</h3>
-            <span className="text-[10px] bg-[#F26A1B]/15 text-[#F26A1B] px-2 py-0.5 rounded-full font-mono font-bold uppercase">Chat</span>
+            <h3 className="font-semibold text-lg text-ink">Alunos ativos</h3>
+            <span className="text-[12px] bg-[#F26A1B]/15 text-[#F26A1B] px-2 py-0.5 rounded-full font-semibold">Chat</span>
           </div>
           <div className="relative">
             <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -413,7 +413,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                         {c.aluno.profile?.nome || 'Aluno Sem Nome'}
                       </h4>
                       {c.lastMessage && (
-                        <span className="text-[9px] text-ink-3 font-mono shrink-0">
+                        <span className="text-[12px] text-ink-3 shrink-0 num">
                           {formatTime(c.lastMessage.criado_em)}
                         </span>
                       )}
@@ -424,7 +424,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                         {c.lastMessage ? c.lastMessage.conteudo : 'Nenhuma mensagem ainda'}
                       </p>
                       {hasUnread && (
-                        <span className="text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-mono font-bold">
+                        <span className="text-[12px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
                           {c.unreadCount}
                         </span>
                       )}
@@ -457,18 +457,18 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                 </div>
 
                 <div>
-                  <h3 className="font-display font-bold text-base text-ink leading-tight">
+                  <h3 className="font-semibold text-base text-ink leading-tight">
                     {getActiveStudentProfileName()}
                   </h3>
-                  <p className="text-[10px] text-ink-3 font-mono uppercase tracking-wider mt-0.5">
-                    Seu Aluno
+                  <p className="text-[12px] text-ink-3 mt-0.5">
+                    Seu aluno
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[10px] font-mono font-bold uppercase shrink-0">
+              <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[12px] font-semibold shrink-0">
                 <span className="w-1.5 h-1.5 bg-[#F26A1B] rounded-full animate-ping" />
-                Realtime Ativo
+                Realtime ativo
               </div>
             </div>
 
@@ -514,7 +514,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                     >
                       <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'} relative`}>
                         {showSenderName && (
-                          <span className="text-[11px] font-bold text-[#F26A1B] mb-1 font-mono uppercase tracking-wider">
+                          <span className="text-[12px] font-semibold text-[#F26A1B] mb-1">
                             {studentFirstName}
                           </span>
                         )}
@@ -603,7 +603,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                                   <button
                                     type="button"
                                     onClick={() => setEditingMsgId(null)}
-                                    className="px-2.5 py-1 text-[10px] uppercase font-bold text-white/70 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-[12px] font-semibold text-white/70 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                                   >
                                     <X className="w-3 h-3" />
                                     Cancelar
@@ -611,7 +611,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                                   <button
                                     type="button"
                                     onClick={() => handleSaveEdit(msg.id)}
-                                    className="px-2.5 py-1 text-[10px] uppercase font-bold text-[#F26A1B] bg-white hover:bg-white/90 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-[12px] font-semibold text-[#F26A1B] bg-white hover:bg-white/90 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                                   >
                                     <Check className="w-3 h-3" />
                                     Salvar
@@ -624,14 +624,14 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                           </div>
                         </div>
 
-                        <span className="text-[9px] text-ink-3 font-mono mt-1 flex items-center gap-1">
+                        <span className="text-[12px] text-ink-3 mt-1 flex items-center gap-1 num">
                           <Clock className="w-3 h-3" />
                           {formatTime(msg.criado_em)}
                           {msg.editado_em && !isMessageExcluded && (
-                            <span className="text-[8px] text-ink-3 italic ml-1">(editada)</span>
+                            <span className="text-[12px] text-ink-3 italic ml-1">(editada)</span>
                           )}
                           {isOwn && msg.lida && !isMessageExcluded && (
-                            <span className="text-emerald-400 text-[8px] font-bold ml-1 uppercase font-mono">Lida</span>
+                            <span className="text-emerald-400 text-[10px] font-semibold ml-1">Lida</span>
                           )}
                         </span>
                       </div>
@@ -663,7 +663,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-ink-3 h-full justify-center">
             <MessageSquare className="w-16 h-16 text-[#F26A1B]/15 mb-4 animate-pulse" />
-            <h3 className="font-display font-bold text-lg text-ink">Centro de Mensagens</h3>
+            <h3 className="font-semibold text-lg text-ink">Centro de mensagens</h3>
             <p className="text-sm max-w-sm mt-1">Selecione um aluno na barra lateral esquerda para visualizar o histórico de conversas e enviar mensagens em tempo real.</p>
           </div>
         )}

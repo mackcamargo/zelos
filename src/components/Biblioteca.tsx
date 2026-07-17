@@ -116,11 +116,11 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
             {/* Top Info */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-violet bg-violet/10 border border-violet/20 px-2.5 py-1 rounded-full">
+                <span className="text-[12px] font-medium text-violet bg-violet/10 border border-violet/20 px-2.5 py-1 rounded-full">
                   Biblioteca
                 </span>
-                <h1 className="font-display font-bold text-3xl text-ink tracking-tight mt-2">Exercícios</h1>
-                <p className="text-sm text-ink-2 mt-1">Busque movimentos e visualize a execução perfeita para os treinos.</p>
+                <h1 className="font-semibold text-[28px] text-ink mt-2">Exercícios</h1>
+                <p className="text-[14px] text-ink-2 mt-1">Busque movimentos e visualize a execução perfeita para os treinos.</p>
               </div>
 
               {/* Search Bar */}
@@ -175,16 +175,15 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
               <div className="flex justify-center py-20">
                 <div className="flex flex-col items-center gap-3">
                   <span className="w-8 h-8 border-2 border-flame border-t-transparent rounded-full animate-spin" />
-                  <span className="text-xs font-mono text-ink-3">Buscando movimentos...</span>
+                  <span className="text-xs text-ink-3">Buscando movimentos...</span>
                 </div>
               </div>
             ) : filteredExercicios.length === 0 ? (
-              <div className="bg-surface rounded-3xl p-12 text-center border border-white/5 flex flex-col justify-center items-center">
-                <BookOpen className="w-12 h-12 text-ink-3 mb-4 stroke-1" />
-                <span className="font-display font-medium text-lg text-ink mb-1">Nenhum exercício encontrado</span>
-                <p className="text-sm text-ink-2 max-w-sm">
+              <div className="py-12 flex flex-col items-center justify-center text-center">
+                <BookOpen className="w-8 h-8 text-ink-3 stroke-[1.2] mb-3" />
+                <p className="text-sm text-ink-2 max-w-md">
                   {searchTerm
-                    ? 'Experimente alterar o termo de busca ou escolha outra categoria.'
+                    ? 'Nenhum exercício encontrado. Experimente alterar o termo de busca ou escolha outra categoria.'
                     : 'Nenhum exercício cadastrado nesta categoria ainda.'}
                 </p>
               </div>
@@ -217,26 +216,26 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                         ) : (
                           <div className="flex flex-col items-center gap-2 text-ink-3">
                             <Play className="w-8 h-8 text-ink-3 stroke-1" />
-                            <span className="text-[10px] font-mono">Prévia em breve</span>
+                            <span className="text-[10px]">Prévia em breve</span>
                           </div>
                         )}
                         <div className="absolute top-3 right-3 bg-void/80 backdrop-blur-md border border-white/5 rounded-lg px-2 py-1 flex items-center gap-1">
                           <Flame className="w-3.5 h-3.5 text-flame" />
-                          <span className="text-[9px] font-mono text-ink-2 font-medium uppercase tracking-wider">Preview</span>
+                          <span className="text-[10px] text-ink-2 font-medium">Preview</span>
                         </div>
                       </div>
 
                       {/* Content block */}
                       <div className="space-y-2 flex-1 flex flex-col justify-between">
                         <div>
-                          <h3 className="font-display font-bold text-base text-ink group-hover:text-flame transition-colors">
+                          <h3 className="font-semibold text-base text-ink group-hover:text-flame transition-colors">
                             {ex.nome}
                           </h3>
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {ex.musculo_primario.map((musc) => (
                               <span
                                 key={musc}
-                                className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-violet/10 border border-violet/20 text-violet"
+                                className="text-[10px] font-medium px-2 py-0.5 rounded bg-violet/10 border border-violet/20 text-violet"
                               >
                                 {musc}
                               </span>
@@ -245,7 +244,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                         </div>
 
                         <div className="pt-2 flex justify-end">
-                          <span className="text-[10px] font-mono text-ink-3 group-hover:text-ink transition-colors flex items-center gap-1">
+                          <span className="text-[10px] text-ink-3 group-hover:text-ink transition-colors flex items-center gap-1">
                             Ver execução perfeita →
                           </span>
                         </div>
@@ -272,17 +271,17 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 id="btn-back-to-library"
                 type="button"
                 onClick={() => setSelectedExercicio(null)}
-                className="py-2.5 px-4 rounded-xl border border-white/5 hover:border-white/10 bg-surface-2 hover:bg-surface-3 text-xs font-mono font-medium flex items-center gap-2 text-ink-2 hover:text-ink transition-all cursor-pointer self-start"
+                className="py-2.5 px-4 rounded-xl border border-white/5 hover:border-white/10 bg-surface-2 hover:bg-surface-3 text-xs font-semibold flex items-center gap-2 text-ink-2 hover:text-ink transition-all cursor-pointer self-start"
               >
                 <ChevronLeft className="w-4 h-4 text-flame" />
-                <span>Voltar para Lista</span>
+                <span>Voltar para lista</span>
               </button>
 
               <div className="space-y-2">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-violet bg-violet/10 border border-violet/20 px-2.5 py-1 rounded-full inline-block">
+                <span className="text-[12px] font-medium text-violet bg-violet/10 border border-violet/20 px-2.5 py-1 rounded-full inline-block">
                   {selectedCategoria?.nome || 'Exercício'}
                 </span>
-                <h2 className="font-display font-bold text-2xl sm:text-3xl text-ink tracking-tight pt-1">
+                <h2 className="font-semibold text-[28px] text-ink tracking-tight pt-1">
                   {selectedExercicio.nome}
                 </h2>
               </div>
@@ -303,12 +302,12 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
               ) : (
                 <div className="text-center p-8 space-y-2">
                   <Play className="w-12 h-12 text-ink-3 stroke-1 mx-auto" />
-                  <p className="text-sm font-mono text-ink-2">Prévia em breve</p>
+                  <p className="text-[14px] text-ink-2">Prévia em breve</p>
                 </div>
               )}
-              <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-xs font-mono text-ink">
+              <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-xs text-ink">
                 <Sparkles className="w-4 h-4 text-flame animate-pulse" />
-                <span>Movimento Perfeito</span>
+                <span>Movimento perfeito</span>
               </div>
             </div>
 
@@ -316,17 +315,17 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
             <div className="bg-surface border border-white/5 rounded-2xl p-6 space-y-4">
               <div className="flex items-center gap-2 border-b border-white/5 pb-3">
                 <Award className="w-5 h-5 text-flame" />
-                <h4 className="font-display font-bold text-sm text-ink">Músculos Alvos</h4>
+                <h4 className="font-semibold text-sm text-ink">Músculos alvos</h4>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <span className="text-[10px] font-mono uppercase text-ink-3 block mb-1.5">Foco Primário</span>
+                  <span className="text-[12px] text-ink-3 block mb-1.5">Foco primário</span>
                   <div className="flex flex-wrap gap-2">
                     {selectedExercicio.musculo_primario.map((musc) => (
                       <span
                         key={musc}
-                        className="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-flame/10 border border-flame/20 text-flame"
+                        className="text-xs font-semibold px-3 py-1 rounded-full bg-flame/10 border border-flame/20 text-flame"
                       >
                         {musc}
                       </span>
@@ -336,12 +335,12 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
 
                 {selectedExercicio.musculo_secundario.length > 0 && (
                   <div>
-                    <span className="text-[10px] font-mono uppercase text-ink-3 block mb-1.5">Músculos Auxiliares</span>
+                    <span className="text-[12px] text-ink-3 block mb-1.5">Músculos auxiliares</span>
                     <div className="flex flex-wrap gap-2">
                       {selectedExercicio.musculo_secundario.map((musc) => (
                         <span
                           key={musc}
-                          className="text-xs font-mono px-3 py-1 rounded-full bg-white/5 border border-white/10 text-ink-2"
+                          className="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-ink-2"
                         >
                           {musc}
                         </span>
@@ -354,16 +353,16 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
 
             {/* Numbered tips block */}
             <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
-              <h3 className="font-display font-bold text-sm text-ink border-b border-white/5 pb-3 flex items-center gap-2">
+              <h3 className="font-semibold text-sm text-ink border-b border-white/5 pb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-violet" />
-                Dicas de Execução
+                Dicas de execução
               </h3>
 
               {selectedExercicio.dicas && selectedExercicio.dicas.length > 0 ? (
                 <ol className="space-y-4">
                   {selectedExercicio.dicas.map((dica, idx) => (
                     <li key={idx} className="flex gap-3 items-start">
-                      <span className="w-6 h-6 rounded-lg bg-surface-3 border border-white/5 flex items-center justify-center text-xs font-mono font-bold text-flame shrink-0 mt-0.5">
+                      <span className="w-6 h-6 rounded-lg bg-surface-3 border border-white/5 flex items-center justify-center text-[12px] font-semibold text-flame shrink-0 mt-0.5 num">
                         {idx + 1}
                       </span>
                       <p className="text-xs text-ink-2 leading-relaxed pt-0.5">

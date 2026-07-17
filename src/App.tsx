@@ -193,7 +193,7 @@ export default function App() {
   if (loading) {
     return (
       <div id="loader-view" className="min-h-screen bg-void flex flex-col justify-center items-center relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-gradient-to-tr from-[#F5334F]/10 via-[#FF6A2B]/5 to-transparent blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#F26A1B]/5 blur-3xl rounded-full pointer-events-none" />
         <div className="text-center relative z-10 space-y-4">
           <span className="font-display font-black text-5xl tracking-tight select-none">
             ZE<span className="brand-gradient-text">LOS</span>

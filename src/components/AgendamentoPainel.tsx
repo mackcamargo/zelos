@@ -133,29 +133,29 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[40px] p-8 bg-gradient-to-br from-ember via-flame to-amber text-void shadow-2xl"
+          className="relative overflow-hidden rounded-xl p-8 bg-surface border border-white/5"
         >
-          <div className="absolute top-0 right-0 p-8 opacity-20">
+          <div className="absolute top-0 right-0 p-8 opacity-10 text-[#F26A1B]">
             <CalendarIcon className="w-32 h-32" />
           </div>
           
           <div className="relative z-10 space-y-6">
-            <div className="flex items-center gap-2 px-3 py-1 bg-void/20 rounded-full w-fit">
+            <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full w-fit">
               <Sparkles className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sua Próxima Sessão</span>
+              <span className="text-[12px] font-semibold">Sua próxima sessão</span>
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-4xl md:text-5xl font-display font-black tracking-tighter leading-none text-void">
+              <h2 className="text-[28px] font-semibold tracking-tight leading-none text-ink">
                 {parseDataHora(proximaSessao.data_hora).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </h2>
-              <div className="flex flex-wrap items-center gap-6 text-xl font-bold opacity-90 italic">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-6 h-6" />
+              <div className="flex flex-wrap items-center gap-6 text-[20px] font-semibold text-ink-2">
+                <div className="flex items-center gap-2 num">
+                  <Clock className="w-6 h-6 text-[#F26A1B]" />
                   {parseDataHora(proximaSessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-2">
-                  {proximaSessao.tipo === 'presencial' ? <MapPin className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+                  {proximaSessao.tipo === 'presencial' ? <MapPin className="w-6 h-6 text-[#F26A1B]" /> : <Video className="w-6 h-6 text-[#F26A1B]" />}
                   {proximaSessao.tipo === 'presencial' ? 'Presencial' : 'Online'}
                 </div>
               </div>
@@ -165,7 +165,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
       )}
 
       {successMsg && (
-        <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-3xl text-xs font-mono uppercase flex items-center gap-2">
+        <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-3xl text-[12px] flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-green-400" />
           <span>{successMsg}</span>
         </div>
@@ -173,16 +173,16 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
 
       {/* ACTION BAR */}
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-display font-black text-ink uppercase italic tracking-tighter">Sua <span className="text-flame">Agenda</span></h3>
+        <h3 className="text-[28px] font-semibold text-ink">Sua <span className="text-flame">agenda</span></h3>
         <button 
           onClick={() => {
             setErrorMsg(null);
             setSuccessMsg(null);
             setShowModal(true);
           }}
-          className="flex items-center gap-2 px-6 py-3 bg-ink text-void rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-ink text-void rounded-2xl font-semibold text-xs shadow-lg hover:scale-105 active:scale-95 transition-all"
         >
-          <Plus className="w-4 h-4" /> Solicitar Sessão
+          <Plus className="w-4 h-4" /> Solicitar sessão
         </button>
       </div>
 
@@ -203,34 +203,34 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 className="group relative bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 clicavel"
               >
                 <div className="flex items-center gap-6">
-                  <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-bold ${
+                  <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-semibold ${
                     agendamento.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
                   }`}>
-                    <span className="text-[10px] uppercase opacity-70">
+                    <span className="text-[12px] opacity-70">
                       {parseDataHora(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
                     </span>
-                    <span className="text-2xl leading-none">
+                    <span className="text-2xl leading-none num">
                       {parseDataHora(agendamento.data_hora).getDate()}
                     </span>
                   </div>
                   
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <h4 className="text-lg font-bold text-ink leading-none">
+                      <h4 className="text-lg font-semibold text-ink leading-none num">
                         {parseDataHora(agendamento.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </h4>
-                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest ${config.color}`}>
+                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-semibold ${config.color}`}>
                         <StatusIcon className="w-3 h-3" />
                         {config.label}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-ink-3 font-mono uppercase tracking-widest">
+                    <div className="flex items-center gap-4 text-[12px] text-ink-3">
                       <span className="flex items-center gap-1.5">
                         {agendamento.tipo === 'presencial' ? <MapPin className="w-3.5 h-3.5 text-flame" /> : <Video className="w-3.5 h-3.5 text-flame" />}
-                        {agendamento.tipo}
+                        {agendamento.tipo.charAt(0).toUpperCase() + agendamento.tipo.slice(1)}
                       </span>
                       {agendamento.observacao && (
-                        <span className="flex items-center gap-1.5 italic text-[10px] opacity-60">
+                        <span className="flex items-center gap-1.5 italic text-[12px] opacity-60">
                            <Info className="w-3.5 h-3.5" /> {agendamento.observacao}
                         </span>
                       )}
@@ -240,13 +240,13 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
 
                 <div className="flex items-center gap-4">
                    {agendamento.status === 'confirmado' && (
-                     <div className="px-4 py-2 bg-green-500/5 text-green-500 rounded-xl text-[10px] font-bold uppercase tracking-widest">
-                       Sessão Confirmada
+                     <div className="px-4 py-2 bg-green-500/5 text-green-500 rounded-xl text-[12px] font-semibold">
+                       Sessão confirmada
                      </div>
                    )}
                    {agendamento.status === 'solicitado' && (
-                     <div className="px-4 py-2 bg-amber/5 text-amber rounded-xl text-[10px] font-bold uppercase tracking-widest italic animate-pulse">
-                       Aguardando Personal...
+                     <div className="px-4 py-2 bg-amber/5 text-amber rounded-xl text-[12px] font-semibold italic animate-pulse">
+                       Aguardando personal...
                      </div>
                    )}
                 </div>
@@ -258,7 +258,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
             <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto">
               <CalendarIcon className="w-8 h-8 text-ink-3" />
             </div>
-            <p className="text-sm font-mono text-ink-3 uppercase tracking-widest">Você ainda não tem sessões marcadas.</p>
+            <p className="text-[14px] text-ink-3">Você ainda não tem sessões marcadas.</p>
           </div>
         )}
       </div>
@@ -278,7 +278,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
               className="bg-surface border border-white/10 rounded-[40px] w-full max-w-md overflow-hidden"
             >
               <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                <h3 className="text-2xl font-display font-black text-ink uppercase italic">Solicitar <span className="text-flame">Sessão</span></h3>
+                <h3 className="text-[24px] font-semibold text-ink">Solicitar <span className="text-flame">sessão</span></h3>
                 <button onClick={() => setShowModal(false)} className="text-ink-3 hover:text-ink">
                    <Plus className="w-6 h-6 rotate-45" />
                 </button>
@@ -286,36 +286,36 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
 
               <div className="p-8 space-y-6">
                 {errorMsg && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-xs font-mono uppercase flex items-center gap-2">
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-[12px] flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 text-red-400" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Data</label>
+                  <label className="text-[12px] text-ink-3">Data</label>
                   <input 
                     type="date"
                     required
                     value={formData.data}
                     onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                    className="w-full bg-void border border-white/5 rounded-2xl p-4 text-ink outline-none focus:border-flame/50 transition-all"
+                    className="w-full bg-void border border-white/5 rounded-2xl p-4 text-ink outline-none focus:border-flame/50 transition-all num"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Horário</label>
+                  <label className="text-[12px] text-ink-3">Horário</label>
                   <input 
                     type="time"
                     required
                     value={formData.horario}
                     onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
-                    className="w-full bg-void border border-white/5 rounded-2xl p-4 text-ink outline-none focus:border-flame/50 transition-all"
+                    className="w-full bg-void border border-white/5 rounded-2xl p-4 text-ink outline-none focus:border-flame/50 transition-all num"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Tipo de Sessão</label>
+                  <label className="text-[12px] text-ink-3">Tipo de sessão</label>
                   <div className="flex gap-2">
                     {(['presencial', 'online'] as TipoSessao[]).map(t => (
                       <button
@@ -327,14 +327,14 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                         }`}
                       >
                         {t === 'presencial' ? <MapPin className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                        <span className="text-[10px] font-bold uppercase">{t}</span>
+                        <span className="text-xs font-semibold">{t.charAt(0).toUpperCase() + t.slice(1)}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Observações (Opcional)</label>
+                  <label className="text-[12px] text-ink-3">Observações (opcional)</label>
                   <textarea 
                     value={formData.observacao}
                     onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
@@ -347,10 +347,10 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                   type="button"
                   onClick={handleSolicitar}
                   disabled={saving}
-                  className="w-full py-4 bg-ink text-void rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-ink text-void rounded-2xl font-semibold text-xs shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                  Confirmar Solicitação
+                  Confirmar solicitação
                 </button>
               </div>
             </motion.div>

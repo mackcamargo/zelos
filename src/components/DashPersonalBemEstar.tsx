@@ -40,7 +40,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="w-12 h-12 rounded-full border-2 border-flame/20 border-t-flame animate-spin" />
-        <p className="text-[10px] font-mono text-ink-3 uppercase tracking-[0.2em]">Processando dados dos alunos...</p>
+        <p className="text-[12px] text-ink-3">Processando dados dos alunos...</p>
       </div>
     );
   }
@@ -54,14 +54,14 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
             <div className="p-2 rounded-lg bg-emerald/10 border border-emerald/20">
               <TrendingUp className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-3">Média Geral</span>
+            <span className="text-[12px] text-ink-3">Média geral</span>
           </div>
-          <h3 className="text-3xl font-black text-ink">
+          <h3 className="text-[28px] font-semibold text-ink num">
             {alunostats.length > 0 
               ? Math.round(alunostats.reduce((acc, a) => acc + (a.resumo?.indiceGeral || 0), 0) / alunostats.length) 
               : 0}
           </h3>
-          <p className="text-[10px] text-emerald font-bold mt-1 uppercase tracking-tighter flex items-center gap-1">
+          <p className="text-[12px] text-emerald font-semibold mt-1 flex items-center gap-1">
             <ArrowUpRight className="w-3 h-3" /> +4% vs semana passada
           </p>
         </div>
@@ -71,10 +71,10 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
             <div className="p-2 rounded-lg bg-flame/10 border border-flame/20">
               <AlertCircle className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-3">Sob Atenção</span>
+            <span className="text-[12px] text-ink-3">Sob atenção</span>
           </div>
-          <h3 className="text-3xl font-black text-ink">{alunosAtencao.length}</h3>
-          <p className="text-[10px] text-flame font-bold mt-1 uppercase tracking-tighter">
+          <h3 className="text-[28px] font-semibold text-ink num">{alunosAtencao.length}</h3>
+          <p className="text-[12px] text-flame font-semibold mt-1">
             Alunos com índice baixo
           </p>
         </div>
@@ -86,10 +86,10 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-flame" />
-              <h4 className="text-sm font-bold text-ink uppercase tracking-wider">Atenção Prioritária</h4>
+              <h4 className="text-[14px] font-semibold text-ink">Atenção prioritária</h4>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-flame/10 text-flame text-[10px] font-bold">
-              {alunosAtencao.length} ALUNOS
+            <span className="px-2 py-0.5 rounded-full bg-flame/10 text-flame text-[12px] font-semibold num">
+              {alunosAtencao.length} alunos
             </span>
           </div>
           
@@ -115,13 +115,13 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
                     </div>
                   </div>
                   <div className="text-left">
-                    <h5 className="font-bold text-ink leading-tight">{aluno.nome}</h5>
+                    <h5 className="font-semibold text-ink leading-tight">{aluno.nome}</h5>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[9px] font-mono text-flame uppercase font-bold tracking-widest">
+                      <span className="text-[12px] text-flame font-semibold num">
                         Índice: {aluno.resumo?.indiceGeral}%
                       </span>
-                      <span className="text-[9px] text-ink-3">•</span>
-                      <span className="text-[9px] font-mono text-ink-3 uppercase tracking-widest">
+                      <span className="text-[12px] text-ink-3">•</span>
+                      <span className="text-[12px] text-ink-3 num">
                         Treino: {aluno.resumo?.detalhes.treino.valor}%
                       </span>
                     </div>
@@ -137,7 +137,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
       {/* Main List */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-bold text-ink uppercase tracking-wider">Todos os Alunos</h4>
+          <h4 className="text-[14px] font-semibold text-ink">Todos os alunos</h4>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-3" />
             <input 
@@ -166,7 +166,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
                   </div>
                 )}
                 <div className="text-left">
-                  <h5 className="font-bold text-ink text-sm">{aluno.nome}</h5>
+                  <h5 className="font-semibold text-ink text-sm">{aluno.nome}</h5>
                   <div className="flex items-center gap-2 mt-0.5">
                     <div className="w-20 h-1 bg-white/5 rounded-full overflow-hidden">
                       <div 
@@ -178,7 +178,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
                         style={{ width: `${aluno.resumo?.indiceGeral || 0}%` }}
                       />
                     </div>
-                    <span className="text-[9px] font-mono text-ink-3 uppercase">
+                    <span className="text-[12px] text-ink-3 num">
                       {aluno.resumo?.indiceGeral || 0}%
                     </span>
                   </div>
