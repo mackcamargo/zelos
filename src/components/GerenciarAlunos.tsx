@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService } from '../lib/supabase';
-import { Aluno } from '../types';
+import { Aluno, Anamnese } from '../types';
+import { AnamneseForm } from './AnamneseForm';
 import { 
   ArrowLeft, Search, Plus, Target, Users, Check, Copy, 
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
@@ -15,7 +16,7 @@ import GamificationDisplay from './GamificationDisplay';
 import FotoProgressoGaleria from './FotoProgressoGaleria';
 import GerenciarNutricao from './GerenciarNutricao';
 import HidratacaoStats from './HidratacaoStats';
-import { Flame, Camera, Utensils, Droplets } from 'lucide-react';
+import { Flame, Camera, Utensils, Droplets, Heart } from 'lucide-react';
 import { useSubscription } from '../contexts/SubscriptionContext';
 
 interface GerenciarAlunosProps {
@@ -61,6 +62,11 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const [removendo, setRemovendo] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
+
+  // Anamnese states
+  const [studentAnamnese, setStudentAnamnese] = useState<Anamnese | null>(null);
+  const [loadingAnamnese, setLoadingAnamnese] = useState(false);
+  const [isPersonalEditingAnamnese, setIsPersonalEditingAnamnese] = useState(false);
 
   // Workouts states
   const [isMontandoTreino, setIsMontandoTreino] = useState(false);
@@ -184,14 +190,29 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
     }
   };
 
+  const loadStudentAnamnese = async () => {
+    if (!selectedAluno) return;
+    setLoadingAnamnese(true);
+    try {
+      const { data } = await dbService.getAnamnese(selectedAluno.id);
+      setStudentAnamnese(data);
+    } catch (err) {
+      console.error('Erro ao carregar anamnese do aluno:', err);
+    } finally {
+      setLoadingAnamnese(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedAluno) {
       loadWorkoutsList();
       loadStudentProgressData();
+      loadStudentAnamnese();
     } else {
       setWorkouts([]);
       setStudentMetrics([]);
       setStudentSeries([]);
+      setStudentAnamnese(null);
     }
   }, [selectedAluno]);
 
@@ -602,6 +623,39 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               <span>Voltar para meus alunos</span>
             </button>
 
+            {(() => {
+              const restrictions: string[] = [];
+              if (studentAnamnese) {
+                if (studentAnamnese.parq_problema_cardiaco) restrictions.push("Problema cardíaco");
+                if (studentAnamnese.parq_dor_no_peito) restrictions.push("Dor no peito ao praticar atividade física");
+                if (studentAnamnese.parq_tontura_desmaio) restrictions.push("Tontura ou desmaio ao se exercitar");
+                if (studentAnamnese.parq_problema_osseo_articular) restrictions.push("Problema ósseo ou articular");
+                if (studentAnamnese.parq_medicamento_pressao) restrictions.push("Medicamento para pressão ou coração");
+                if (studentAnamnese.parq_outra_razao) {
+                  restrictions.push(`Outra razão impeditiva: ${studentAnamnese.parq_outra_razao_qual || 'Sim'}`);
+                }
+                if (studentAnamnese.possui_lesao) {
+                  restrictions.push(`Lesão física relatada: ${studentAnamnese.lesoes || 'Sim'}`);
+                }
+              }
+              if (restrictions.length > 0) {
+                return (
+                  <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-5 space-y-2.5">
+                    <div className="flex items-center gap-2.5 text-rose-400">
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <span className="font-display font-bold text-sm uppercase tracking-wider">Atenção: restrições de saúde relatadas</span>
+                    </div>
+                    <ul className="list-disc pl-5 text-xs text-ink-2 space-y-1 leading-relaxed">
+                      {restrictions.map((r, idx) => (
+                        <li key={idx} className="text-rose-300 font-medium">{r}</li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {/* Profile Overview Card */}
             <div className="bg-surface border border-white/5 rounded-2xl p-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-48 h-48 bg-violet/5 blur-3xl pointer-events-none rounded-full" />
@@ -682,6 +736,191 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 </div>
               </div>
             </div>
+
+            {/* ANAMNESE DO ALUNO */}
+            {isPersonalEditingAnamnese ? (
+              <AnamneseForm
+                alunoId={selectedAluno.id}
+                isPersonalEditing={true}
+                onClose={() => setIsPersonalEditingAnamnese(false)}
+                onSave={() => {
+                  setIsPersonalEditingAnamnese(false);
+                  loadStudentAnamnese();
+                }}
+              />
+            ) : (
+              <div className="bg-surface border border-white/5 rounded-2xl p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-rose-500" />
+                    <div>
+                      <h3 className="font-display font-bold text-base text-ink">Anamnese do Aluno</h3>
+                      {studentAnamnese && (
+                        <p className="text-[11px] text-ink-3">
+                          Respondida em: {new Date(studentAnamnese.criado_em).toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {studentAnamnese ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsPersonalEditingAnamnese(true)}
+                        className="py-2 px-4 rounded-lg bg-[#F26A1B] text-white text-xs font-semibold hover:bg-[#D45914] transition-colors"
+                      >
+                        Editar Anamnese
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            showToast("Solicitação de anamnese enviada ao aluno!");
+                          }}
+                          className="py-2 px-4 rounded-lg bg-surface-2 border border-white/10 text-ink-2 text-xs font-semibold hover:bg-white/5 transition-colors"
+                        >
+                          Solicitar preenchimento
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsPersonalEditingAnamnese(true)}
+                          className="py-2 px-4 rounded-lg bg-[#F26A1B] text-white text-xs font-semibold hover:bg-[#D45914] transition-colors"
+                        >
+                          Preencher Avaliação
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {!studentAnamnese ? (
+                  <div className="py-4 text-center">
+                    <p className="text-sm text-rose-400 font-medium">Anamnese não respondida</p>
+                    <p className="text-xs text-ink-3 mt-1">Este aluno ainda não possui ficha de anamnese registrada.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    {/* Bloco 1: Objetivo e Experiência */}
+                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2">
+                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Objetivo & Experiência</p>
+                      <div className="space-y-1 text-ink-2">
+                        <p><span className="text-ink-3">Objetivo principal:</span> {studentAnamnese.objetivo_principal}</p>
+                        <p>
+                          <span className="text-ink-3">Experiência:</span>{' '}
+                          {studentAnamnese.experiencia === 'nunca_treinou' ? 'Nunca treinou' :
+                           studentAnamnese.experiencia === 'iniciante' ? 'Iniciante' :
+                           studentAnamnese.experiencia === 'intermediario' ? 'Intermediário' : 'Avançado'}
+                        </p>
+                        <p><span className="text-ink-3">Tempo sem treinar:</span> {studentAnamnese.tempo_sem_treinar || 'N/A'}</p>
+                        <p><span className="text-ink-3">Frequência semanal desejada:</span> {studentAnamnese.frequencia_semanal_desejada} dias</p>
+                      </div>
+                    </div>
+
+                    {/* Bloco 2: Saúde & Lesões */}
+                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2">
+                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Saúde & Lesões</p>
+                      <div className="space-y-1 text-ink-2">
+                        <p>
+                          <span className="text-ink-3">Possui lesão:</span>{' '}
+                          {studentAnamnese.possui_lesao ? (
+                            <span className="text-rose-400 font-semibold">Sim ({studentAnamnese.lesoes})</span>
+                          ) : 'Não'}
+                        </p>
+                        <p><span className="text-ink-3">Cirurgias:</span> {studentAnamnese.cirurgias || 'Não'}</p>
+                        <p>
+                          <span className="text-ink-3">Doenças crônicas:</span>{' '}
+                          {studentAnamnese.doencas_cronicas && studentAnamnese.doencas_cronicas.length > 0
+                            ? studentAnamnese.doencas_cronicas.join(', ')
+                            : 'Nenhuma'}
+                        </p>
+                        <p><span className="text-ink-3">Medicamentos em uso:</span> {studentAnamnese.medicamentos || 'Nenhum'}</p>
+                        <p><span className="text-ink-3">Alergias:</span> {studentAnamnese.alergias || 'Nenhuma'}</p>
+                        <p>
+                          <span className="text-ink-3">Liberação médica:</span>{' '}
+                          {studentAnamnese.possui_liberacao_medica ? 'Sim' : 'Não'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bloco 3: Questionário PAR-Q */}
+                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2 md:col-span-2">
+                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Questionário de Prontidão (PAR-Q)</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-ink-2">
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-ink-3">Problema cardíaco?</span>
+                          <span className={studentAnamnese.parq_problema_cardiaco ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                            {studentAnamnese.parq_problema_cardiaco ? 'Sim' : 'Não'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-ink-3">Dor no peito sob esforço?</span>
+                          <span className={studentAnamnese.parq_dor_no_peito ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                            {studentAnamnese.parq_dor_no_peito ? 'Sim' : 'Não'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-ink-3">Tontura ou desmaio?</span>
+                          <span className={studentAnamnese.parq_tontura_desmaio ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                            {studentAnamnese.parq_tontura_desmaio ? 'Sim' : 'Não'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-ink-3">Problema articular/ósseo?</span>
+                          <span className={studentAnamnese.parq_problema_osseo_articular ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                            {studentAnamnese.parq_problema_osseo_articular ? 'Sim' : 'Não'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-ink-3">Toma remédio de pressão/coração?</span>
+                          <span className={studentAnamnese.parq_medicamento_pressao ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                            {studentAnamnese.parq_medicamento_pressao ? 'Sim' : 'Não'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-0.5">
+                          <span className="text-ink-3">Outra razão de saúde impeditiva?</span>
+                          <span className={studentAnamnese.parq_outra_razao ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                            {studentAnamnese.parq_outra_razao ? 'Sim' : 'Não'}
+                          </span>
+                        </div>
+                        {studentAnamnese.parq_outra_razao && (
+                          <div className="sm:col-span-2 pt-1 border-t border-white/5 mt-1">
+                            <span className="text-ink-3">Detalhe da razão:</span> <span className="text-rose-300">{studentAnamnese.parq_outra_razao_qual}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bloco 4: Estilo de Vida & Observações */}
+                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2 md:col-span-2">
+                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Estilo de Vida & Observações</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-ink-2">
+                        <p><span className="text-ink-3">Fumante:</span> {studentAnamnese.fumante ? 'Sim' : 'Não'}</p>
+                        <p>
+                          <span className="text-ink-3">Consumo de álcool:</span>{' '}
+                          {studentAnamnese.consumo_alcool === 'nao' ? 'Não consome' :
+                           studentAnamnese.consumo_alcool === 'social' ? 'Socialmente' : 'Frequentemente'}
+                        </p>
+                        <p><span className="text-ink-3">Horas de sono:</span> {studentAnamnese.horas_sono} horas/noite</p>
+                        <p>
+                          <span className="text-ink-3">Atividade diária:</span>{' '}
+                          {studentAnamnese.nivel_atividade_diaria === 'sedentario' ? 'Sedentário' :
+                           studentAnamnese.nivel_atividade_diaria === 'leve' ? 'Leve' :
+                           studentAnamnese.nivel_atividade_diaria === 'moderado' ? 'Moderado' : 'Intenso'}
+                        </p>
+                        {studentAnamnese.observacoes && (
+                          <div className="sm:col-span-2 pt-2 border-t border-white/5 mt-2">
+                            <p className="text-ink-3">Observações adicionais:</p>
+                            <p className="mt-1 bg-void/50 p-2.5 rounded-lg text-ink leading-relaxed border border-white/5">{studentAnamnese.observacoes}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Three Blocks: Treinos, Progresso, Desvincular */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

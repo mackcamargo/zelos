@@ -3,7 +3,7 @@ import { dbService } from '../lib/supabase';
 import { Exercicio, Treino, TreinoExercicioDetailed, Categoria, TemplateTreino, TemplateExercicioDetailed } from '../types';
 import { 
   ArrowLeft, Trash2, ChevronUp, ChevronDown, Plus, Check, Sparkles, 
-  Save, Send, Calendar, Clock, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info
+  Save, Send, Calendar, Clock, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -55,6 +55,19 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   // Confirmation modals
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Student Anamnese for warning notices
+  const [studentAnamnese, setStudentAnamnese] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (aluno?.id) {
+      dbService.getAnamnese(aluno.id).then(({ data }) => {
+        if (data) {
+          setStudentAnamnese(data);
+        }
+      });
+    }
+  }, [aluno]);
 
   // Load Categories & Exercises
   useEffect(() => {
@@ -753,6 +766,16 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   Selecione os exercícios para incluir no treino do aluno.
                 </p>
               </div>
+
+              {studentAnamnese?.possui_lesao && (
+                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 flex gap-2 text-[11px] text-rose-300">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-rose-200">Atenção:</span>
+                    <p className="mt-0.5 leading-relaxed">Este aluno relatou: <span className="font-medium text-white">{studentAnamnese.lesoes}</span></p>
+                  </div>
+                </div>
+              )}
 
               {/* Library search and filter */}
               <div className="space-y-3">

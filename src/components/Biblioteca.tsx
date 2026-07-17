@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService } from '../lib/supabase';
 import { Categoria, Exercicio } from '../types';
-import { BookOpen, Play, ChevronLeft, Award, Sparkles, Flame, Search } from 'lucide-react';
+import { BookOpen, Play, ChevronLeft, Award, Sparkles, Flame, Search, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface BibliotecaProps {
@@ -20,6 +20,12 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
   const [loadingCategorias, setLoadingCategorias] = useState(true);
   const [loadingExercicios, setLoadingExercicios] = useState(false);
   const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
+
+  // Extended Filter States
+  const [publicoAlvoFilter, setPublicoAlvoFilter] = useState('');
+  const [semContraindicacaoFilter, setSemContraindicacaoFilter] = useState('');
+  const [impactoFilter, setImpactoFilter] = useState<'' | 'baixo' | 'medio' | 'alto'>('');
+  const [equipamentoFilter, setEquipamentoFilter] = useState('');
 
   // Fetch Categories on Mount
   useEffect(() => {
@@ -40,14 +46,20 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
     fetchCats();
   }, []);
 
-  // Fetch Exercises whenever the selected category changes
+  // Fetch Exercises whenever the selected category or filters change
   useEffect(() => {
     if (!selectedCategoria) return;
 
     async function fetchExs() {
       setLoadingExercicios(true);
       try {
-        const { data, error } = await dbService.getExercicios(selectedCategoria!.id, personalId);
+        const filters = {
+          publicoAlvo: publicoAlvoFilter || undefined,
+          semContraindicacao: semContraindicacaoFilter || undefined,
+          impacto: impactoFilter || undefined,
+          equipamento: equipamentoFilter || undefined,
+        };
+        const { data, error } = await dbService.getExercicios(selectedCategoria!.id, personalId, filters);
         if (data) {
           setExercicios(data);
           
@@ -81,7 +93,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
     }
 
     fetchExs();
-  }, [selectedCategoria, personalId]);
+  }, [selectedCategoria, personalId, publicoAlvoFilter, semContraindicacaoFilter, impactoFilter, equipamentoFilter]);
 
   // Handle video autoplay fail-safes (especially for browsers restricting base64/signed media autoplay)
   const handleVideoRef = (el: HTMLVideoElement | null) => {
@@ -169,6 +181,64 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 })}
               </div>
             )}
+
+            {/* Advanced Filters */}
+            <div className="bg-surface border border-white/5 p-4 rounded-2xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+              {/* Público-alvo */}
+              <div className="space-y-1">
+                <label className="text-[11px] text-ink-3 block font-medium">Público-alvo</label>
+                <input
+                  id="filter-publico-alvo"
+                  type="text"
+                  placeholder="Ex: Gestantes, Idosos..."
+                  value={publicoAlvoFilter}
+                  onChange={(e) => setPublicoAlvoFilter(e.target.value)}
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none"
+                />
+              </div>
+
+              {/* Sem Contraindicação para */}
+              <div className="space-y-1">
+                <label className="text-[11px] text-ink-3 block font-medium">Sem contraindicação para</label>
+                <input
+                  id="filter-contraindicacao"
+                  type="text"
+                  placeholder="Ex: Lombalgia, Condromalácia..."
+                  value={semContraindicacaoFilter}
+                  onChange={(e) => setSemContraindicacaoFilter(e.target.value)}
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none"
+                />
+              </div>
+
+              {/* Impacto Articular */}
+              <div className="space-y-1">
+                <label className="text-[11px] text-ink-3 block font-medium">Impacto articular</label>
+                <select
+                  id="filter-impacto"
+                  value={impactoFilter}
+                  onChange={(e) => setImpactoFilter(e.target.value as any)}
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none cursor-pointer"
+                >
+                  <option value="">Todos</option>
+                  <option value="baixo">Baixo impacto</option>
+                  <option value="medio">Médio impacto</option>
+                  <option value="alto">Alto impacto</option>
+                </select>
+              </div>
+
+              {/* Equipamento */}
+              <div className="space-y-1">
+                <label className="text-[11px] text-ink-3 block font-medium">Equipamento</label>
+                <input
+                  id="filter-equipamento"
+                  type="text"
+                  placeholder="Ex: Halteres, Barra, Smith..."
+                  value={equipamentoFilter}
+                  onChange={(e) => setEquipamentoFilter(e.target.value)}
+                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none"
+                />
+              </div>
+            </div>
 
             {/* Exercises Grid */}
             {loadingExercicios ? (
@@ -350,6 +420,61 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 )}
               </div>
             </div>
+
+            {/* Informações adicionais card */}
+            {(selectedExercicio.equipamento || selectedExercicio.impacto || (selectedExercicio.publico_alvo && selectedExercicio.publico_alvo.length > 0) || (selectedExercicio.contraindicacoes && selectedExercicio.contraindicacoes.length > 0)) && (
+              <div className="bg-surface border border-white/5 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+                  <Info className="w-5 h-5 text-violet" />
+                  <h4 className="font-semibold text-sm text-ink">Informações complementares</h4>
+                </div>
+
+                <div className="space-y-3 text-xs text-ink-2">
+                  {selectedExercicio.equipamento && (
+                    <div className="flex justify-between border-b border-white/5 pb-2">
+                      <span className="text-ink-3">Equipamento:</span>
+                      <span className="font-medium text-ink">{selectedExercicio.equipamento}</span>
+                    </div>
+                  )}
+
+                  {selectedExercicio.impacto && (
+                    <div className="flex justify-between border-b border-white/5 pb-2">
+                      <span className="text-ink-3">Impacto articular:</span>
+                      <span className={`font-semibold capitalize ${
+                        selectedExercicio.impacto === 'alto' ? 'text-amber-400' :
+                        selectedExercicio.impacto === 'medio' ? 'text-amber-200' : 'text-emerald-400'
+                      }`}>{selectedExercicio.impacto}</span>
+                    </div>
+                  )}
+
+                  {selectedExercicio.publico_alvo && selectedExercicio.publico_alvo.length > 0 && (
+                    <div className="space-y-1.5 border-b border-white/5 pb-2">
+                      <span className="text-ink-3 block">Indicado para:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedExercicio.publico_alvo.map((p) => (
+                          <span key={p} className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-medium">
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedExercicio.contraindicacoes && selectedExercicio.contraindicacoes.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="text-ink-3 block">Contraindicado para:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedExercicio.contraindicacoes.map((c) => (
+                          <span key={c} className="text-[10px] bg-rose-500/10 border border-rose-500/20 text-rose-400 px-2 py-0.5 rounded-full font-medium">
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Numbered tips block */}
             <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">

@@ -26,6 +26,7 @@ import ChatAluno from './ChatAluno';
 import { MessageSquare } from 'lucide-react';
 import { Checkin } from '../types';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
+import { AnamneseForm } from './AnamneseForm';
 
 interface AlunoAreaProps {
   userId: string;
@@ -56,6 +57,17 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const [activeTab, setActiveTab] = useState<TabType>('treino');
   const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
+  const [hasAnamnese, setHasAnamnese] = useState(false);
+  const [showAnamneseForm, setShowAnamneseForm] = useState(false);
+
+  const checkAnamnese = async () => {
+    try {
+      const { data } = await dbService.getAnamnese(userId);
+      setHasAnamnese(!!data);
+    } catch (err) {
+      console.error('Erro ao verificar anamnese:', err);
+    }
+  };
 
   const toggleSom = () => {
     const novo = !somHabilitado;
@@ -493,6 +505,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       }
     };
     fetchPersonalId();
+    checkAnamnese();
   }, [userId]);
 
   const loadStudentWorkouts = async () => {
@@ -2278,6 +2291,42 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 </button>
               </div>
             </div>
+
+            {showAnamneseForm ? (
+              <AnamneseForm 
+                alunoId={userId} 
+                onClose={() => setShowAnamneseForm(false)} 
+                onSave={checkAnamnese}
+              />
+            ) : (
+              <div className="bg-surface border border-white/5 rounded-3xl p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
+                  <div>
+                    <h3 className="font-display font-bold text-xl text-ink">Ficha de Anamnese</h3>
+                    <p className="text-sm text-ink-2">Seu histórico de saúde, hábitos e questionário PAR-Q.</p>
+                  </div>
+                  <button
+                    id="btn-responder-anamnese"
+                    type="button"
+                    onClick={() => setShowAnamneseForm(true)}
+                    className="py-2.5 px-5 rounded-xl bg-[#F26A1B] text-white text-xs font-semibold hover:bg-[#D45914] transition-colors shadow-md"
+                  >
+                    {hasAnamnese ? 'Atualizar anamnese' : 'Responder'}
+                  </button>
+                </div>
+                
+                {hasAnamnese ? (
+                  <div className="text-xs text-ink-3 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <span>Sua anamnese está preenchida e atualizada para o seu personal trainer.</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-ink-3">
+                    Você ainda não respondeu a sua anamnese. Responda para liberar treinos mais seguros e personalizados.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>

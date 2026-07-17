@@ -43,6 +43,40 @@ export interface Exercicio {
   musculo_primario: string[];
   musculo_secundario: string[];
   dicas: string[];
+  nivel?: string[];
+  publico_alvo?: string[];
+  contraindicacoes?: string[];
+  impacto?: 'baixo' | 'medio' | 'alto' | null;
+  equipamento?: string | null;
+}
+
+export interface Anamnese {
+  aluno_id: string;
+  objetivo_principal: string;
+  experiencia: 'nunca_treinou' | 'iniciante' | 'intermediario' | 'avancado';
+  tempo_sem_treinar: string;
+  frequencia_semanal_desejada: number;
+  parq_problema_cardiaco: boolean;
+  parq_dor_no_peito: boolean;
+  parq_tontura_desmaio: boolean;
+  parq_problema_osseo_articular: boolean;
+  parq_medicamento_pressao: boolean;
+  parq_outra_razao: boolean;
+  parq_outra_razao_qual: string | null;
+  possui_lesao: boolean;
+  lesoes: string | null;
+  cirurgias: string | null;
+  doencas_cronicas: string[];
+  medicamentos: string | null;
+  alergias: string | null;
+  possui_liberacao_medica: boolean;
+  fumante: boolean;
+  consumo_alcool: 'nao' | 'social' | 'frequente';
+  horas_sono: number;
+  nivel_atividade_diaria: 'sedentario' | 'leve' | 'moderado' | 'intenso';
+  observacoes: string | null;
+  criado_em?: string;
+  updated_at?: string;
 }
 
 export type TreinoStatus = 'rascunho' | 'publicado' | 'concluido';

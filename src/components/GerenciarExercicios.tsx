@@ -38,10 +38,41 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   const [musculoPrimario, setMusculoPrimario] = useState<string[]>([]);
   const [musculoSecundario, setMusculoSecundario] = useState<string[]>([]);
   const [dicas, setDicas] = useState<string[]>([]);
+  const [publicoAlvo, setPublicoAlvo] = useState<string[]>([]);
+  const [contraindicacoes, setContraindicacoes] = useState<string[]>([]);
+  const [impacto, setImpacto] = useState<'baixo' | 'medio' | 'alto' | null>(null);
+  const [equipamento, setEquipamento] = useState('');
   
   const [newPrimario, setNewPrimario] = useState('');
   const [newSecundario, setNewSecundario] = useState('');
   const [newDica, setNewDica] = useState('');
+
+  const [newPublico, setNewPublico] = useState('');
+  const [newContraindicacao, setNewContraindicacao] = useState('');
+
+  const addPublicoTag = (val: string) => {
+    const trimmed = val.trim();
+    if (trimmed && !publicoAlvo.includes(trimmed)) {
+      setPublicoAlvo([...publicoAlvo, trimmed]);
+    }
+    setNewPublico('');
+  };
+
+  const removePublicoTag = (tag: string) => {
+    setPublicoAlvo(publicoAlvo.filter(t => t !== tag));
+  };
+
+  const addContraindicacaoTag = (val: string) => {
+    const trimmed = val.trim();
+    if (trimmed && !contraindicacoes.includes(trimmed)) {
+      setContraindicacoes([...contraindicacoes, trimmed]);
+    }
+    setNewContraindicacao('');
+  };
+
+  const removeContraindicacaoTag = (tag: string) => {
+    setContraindicacoes(contraindicacoes.filter(t => t !== tag));
+  };
 
   // Video Upload States
   const [uploadProgressMasc, setUploadProgressMasc] = useState<number | null>(null);
@@ -114,6 +145,10 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setDicas(ex.dicas || []);
     setVideoUrlMasc(ex.video_url_masc || null);
     setVideoUrlFem(ex.video_url_fem || null);
+    setPublicoAlvo(ex.publico_alvo || []);
+    setContraindicacoes(ex.contraindicacoes || []);
+    setImpacto(ex.impacto || null);
+    setEquipamento(ex.equipamento || '');
     setUploadError(null);
     setUploadProgressMasc(null);
     setUploadProgressFem(null);
@@ -131,7 +166,11 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
       video_url_fem: null,
       musculo_primario: [],
       musculo_secundario: [],
-      dicas: []
+      dicas: [],
+      publico_alvo: [],
+      contraindicacoes: [],
+      impacto: null,
+      equipamento: ''
     });
     setNome('');
     setCategoriaId(categorias[0]?.id || '');
@@ -142,6 +181,10 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setVideoUrlFem(null);
     setVideoPreviewMasc(null);
     setVideoPreviewFem(null);
+    setPublicoAlvo([]);
+    setContraindicacoes([]);
+    setImpacto(null);
+    setEquipamento('');
     setUploadError(null);
     setUploadProgressMasc(null);
     setUploadProgressFem(null);
@@ -439,7 +482,11 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
             dicas: finalDicas,
             video_url_masc: videoUrlMasc || null,
             video_url_fem: videoUrlFem || null,
-            personal_id: personalId
+            personal_id: personalId,
+            publico_alvo: publicoAlvo,
+            contraindicacoes: contraindicacoes,
+            impacto: impacto || null,
+            equipamento: equipamento.trim() || null
           });
         } else {
           query = supabase.from("exercicios").update({
@@ -450,6 +497,10 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
             dicas: finalDicas,
             video_url_masc: videoUrlMasc || null,
             video_url_fem: videoUrlFem || null,
+            publico_alvo: publicoAlvo,
+            contraindicacoes: contraindicacoes,
+            impacto: impacto || null,
+            equipamento: equipamento.trim() || null
           }).eq("id", selectedExercicio.id);
         }
 
@@ -473,7 +524,11 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           video_url_fem: videoUrlFem,
           musculo_primario: finalPrimarios,
           musculo_secundario: finalAuxiliares,
-          dicas: finalDicas
+          dicas: finalDicas,
+          publico_alvo: publicoAlvo,
+          contraindicacoes: contraindicacoes,
+          impacto: impacto,
+          equipamento: equipamento.trim() || null
         };
 
         const { error } = await dbService.saveExercicio(payload);
@@ -775,6 +830,145 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Equipamento */}
+                  <div className="space-y-1">
+                    <label className="text-[12px] text-ink-3 block">Equipamento</label>
+                    <input
+                      id="form-ex-equipment"
+                      type="text"
+                      placeholder="Ex: Barra, Halteres, Máquina Smith, Peso Corporal..."
+                      value={equipamento}
+                      onChange={(e) => setEquipamento(e.target.value)}
+                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none"
+                    />
+                  </div>
+
+                  {/* Impacto */}
+                  <div className="space-y-1">
+                    <label className="text-[12px] text-ink-3 block">Impacto articular</label>
+                    <select
+                      id="form-ex-impact"
+                      value={impacto || ''}
+                      onChange={(e) => setImpacto(e.target.value ? (e.target.value as 'baixo' | 'medio' | 'alto') : null)}
+                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none cursor-pointer"
+                    >
+                      <option value="">Não informado</option>
+                      <option value="baixo">Baixo impacto</option>
+                      <option value="medio">Médio impacto</option>
+                      <option value="alto">Alto impacto</option>
+                    </select>
+                  </div>
+
+                  {/* Público-alvo */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[12px] text-ink-3 block font-medium text-ink">Público-alvo sugerido</label>
+                      <p className="text-[10px] text-ink-3">Grupos recomendados para o exercício (Ex: Gestantes, Idosos, Iniciantes).</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 min-h-[32px] p-2 bg-void/50 rounded-xl border border-white/5">
+                      {publicoAlvo.length === 0 ? (
+                        <span className="text-[11px] text-ink-3 italic self-center px-1">Nenhum público-alvo adicionado</span>
+                      ) : (
+                        publicoAlvo.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[11px] font-medium pl-2.5 pr-1 py-0.5 rounded-full bg-white/5 border border-white/10 text-ink-2 flex items-center gap-1"
+                          >
+                            <span>{tag}</span>
+                            <button
+                              type="button"
+                              onClick={() => removePublicoTag(tag)}
+                              className="p-0.5 text-ink-3 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        id="input-new-publico"
+                        type="text"
+                        placeholder="Adicionar público-alvo..."
+                        value={newPublico}
+                        onChange={(e) => setNewPublico(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addPublicoTag(newPublico);
+                          }
+                        }}
+                        className="flex-1 bg-void border border-white/5 focus:border-white/10 rounded-xl px-3 py-2 text-xs text-ink outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => addPublicoTag(newPublico)}
+                        className="py-2 px-4 rounded-xl border border-white/5 bg-surface-2 text-xs font-semibold text-ink hover:bg-surface-3 hover:border-white/10 transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Contraindicações */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[12px] text-ink-3 block font-medium text-ink">Contraindicações</label>
+                      <p className="text-[10px] text-ink-3">Restrições ou lesões impeditivas para o exercício (Ex: Lombalgia, Condromalácia).</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 min-h-[32px] p-2 bg-void/50 rounded-xl border border-white/5">
+                      {contraindicacoes.length === 0 ? (
+                        <span className="text-[11px] text-ink-3 italic self-center px-1">Nenhuma contraindicação adicionada</span>
+                      ) : (
+                        contraindicacoes.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[11px] font-medium pl-2.5 pr-1 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-center gap-1"
+                          >
+                            <span>{tag}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeContraindicacaoTag(tag)}
+                              className="p-0.5 text-rose-400 hover:text-white rounded-full hover:bg-rose-500/20 transition-colors cursor-pointer"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        id="input-new-contraindicacao"
+                        type="text"
+                        placeholder="Adicionar contraindicação..."
+                        value={newContraindicacao}
+                        onChange={(e) => setNewContraindicacao(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addContraindicacaoTag(newContraindicacao);
+                          }
+                        }}
+                        className="flex-1 bg-void border border-white/5 focus:border-white/10 rounded-xl px-3 py-2 text-xs text-ink outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => addContraindicacaoTag(newContraindicacao)}
+                        className="py-2 px-4 rounded-xl border border-white/5 bg-surface-2 text-xs font-semibold text-ink hover:bg-surface-3 hover:border-white/10 transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
 

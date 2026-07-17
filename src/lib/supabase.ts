@@ -4,7 +4,7 @@ import {
   Conquista, AlunoConquista, RecordePessoal, FotoProgresso, AnguloFoto, 
   PlanoAlimentar, RegistroNutricao, RegistroHidratacao, SessaoBemEstar, 
   ConteudoEducativo, Agendamento, ResumoBemEstar, Treino, TreinoExercicio, 
-  Mensagem, Assinatura, Plano 
+  Mensagem, Assinatura, Plano, Anamnese 
 } from '../types';
 
 // Mock values for video placeholders
@@ -504,12 +504,81 @@ export const dbService = {
     return { data: exercises, error: null };
   },
 
-  async getExercicios(categoriaId: string, personalId: string | null): Promise<{ data: Exercicio[] | null; error: any }> {
+  async getExercicios(
+    categoriaId: string, 
+    personalId: string | null,
+    filters?: { 
+      publicoAlvo?: string; 
+      semContraindicacao?: string; 
+      impacto?: string; 
+      equipamento?: string; 
+    }
+  ): Promise<{ data: Exercicio[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      let query = supabase
+        .from('exercicios')
+        .select('*');
+
+      const isCatNumber = !isNaN(Number(categoriaId));
+      if (isCatNumber) {
+        query = query.eq('categoria_id', Number(categoriaId));
+      } else {
+        query = query.eq('categoria_id', categoriaId);
+      }
+      
+      if (personalId) {
+        query = query.or(`personal_id.is.null,personal_id.eq.${personalId}`);
+      } else {
+        query = query.is('personal_id', null);
+      }
+
+      if (filters) {
+        if (filters.publicoAlvo) {
+          query = query.contains('publico_alvo', [filters.publicoAlvo]);
+        }
+        if (filters.semContraindicacao) {
+          query = query.not('contraindicacoes', 'cs', `{${filters.semContraindicacao}}`);
+        }
+        if (filters.impacto) {
+          query = query.eq('impacto', filters.impacto);
+        }
+        if (filters.equipamento) {
+          query = query.ilike('equipamento', `%${filters.equipamento}%`);
+        }
+      }
+
+      const { data, error } = await query.order('nome', { ascending: true });
+      if (error) return { data: null, error };
+      return { data: data as Exercicio[], error: null };
+    }
+
     const exercises = (await this.getAllExercicios()).data || [];
-    const filtered = exercises.filter((ex: any) => 
-      ex.categoria_id === categoriaId && 
+    let filtered = exercises.filter((ex: any) => 
+      String(ex.categoria_id) === String(categoriaId) && 
       (ex.personal_id === null || ex.personal_id === personalId)
     );
+
+    if (filters) {
+      if (filters.publicoAlvo) {
+        filtered = filtered.filter((ex) => 
+          ex.publico_alvo && ex.publico_alvo.includes(filters.publicoAlvo)
+        );
+      }
+      if (filters.semContraindicacao) {
+        filtered = filtered.filter((ex) => 
+          !ex.contraindicacoes || !ex.contraindicacoes.includes(filters.semContraindicacao)
+        );
+      }
+      if (filters.impacto) {
+        filtered = filtered.filter((ex) => ex.impacto === filters.impacto);
+      }
+      if (filters.equipamento) {
+        filtered = filtered.filter((ex) => 
+          ex.equipamento && ex.equipamento.toLowerCase().includes(filters.equipamento!.toLowerCase())
+        );
+      }
+    }
+
     return { data: filtered, error: null };
   },
 
@@ -2223,5 +2292,42 @@ export const dbService = {
     const msgs = load('zenite_mensagens', []);
     const count = msgs.filter((m: any) => m.personal_id === personalId && m.autor_id !== personalId && !m.lida).length;
     return { data: count, error: null };
+  },
+
+  async getAnamnese(alunoId: string): Promise<{ data: Anamnese | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('anamneses')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .maybeSingle();
+      return { data: data as Anamnese, error };
+    }
+    const list = load('zenite_anamneses', []);
+    const found = list.find((x: any) => x.aluno_id === alunoId);
+    return { data: found || null, error: null };
+  },
+
+  async salvarAnamnese(anamnese: Anamnese): Promise<{ data: Anamnese | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      // Remove any unwanted fields just in case, but personal_id should not be sent
+      const { data, error } = await supabase
+        .from('anamneses')
+        .upsert(anamnese, { onConflict: 'aluno_id' })
+        .select()
+        .maybeSingle();
+      return { data: data as Anamnese, error };
+    }
+    const list = load('zenite_anamneses', []);
+    const index = list.findIndex((x: any) => x.aluno_id === anamnese.aluno_id);
+    const updated = { ...anamnese, updated_at: new Date().toISOString() };
+    if (index >= 0) {
+      list[index] = { ...list[index], ...updated };
+    } else {
+      updated.criado_em = new Date().toISOString();
+      list.push(updated);
+    }
+    save('zenite_anamneses', list);
+    return { data: updated as Anamnese, error: null };
   }
 };
