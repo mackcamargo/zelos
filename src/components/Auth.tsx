@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { authService, isSupabaseConfigured } from '../lib/supabase';
 import { PapelUsuario, TipoAvatar } from '../types';
-import { Eye, EyeOff, Dumbbell, User, Sparkles, Mail, Lock, Check } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Eye, EyeOff, Dumbbell, User, Sparkles, Mail, Lock, Check, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { traduzErro } from '../lib/erros';
 
 interface AuthProps {
   onAuthSuccess: (user: any) => void;
@@ -31,11 +32,29 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
 
+  // Password validation logic
+  const passwordCriteria = useMemo(() => {
+    const p = !isLogin && view === 'auth' ? password : newPassword;
+    return {
+      length: p.length >= 8,
+      lower: /[a-z]/.test(p),
+      upper: /[A-Z]/.test(p),
+      number: /[0-9]/.test(p),
+    };
+  }, [password, newPassword, isLogin, view]);
+
+  const isPasswordValid = useMemo(() => {
+    return passwordCriteria.length && passwordCriteria.lower && passwordCriteria.upper && passwordCriteria.number;
+  }, [passwordCriteria]);
+
+  const canSubmitSignup = isLogin || isPasswordValid;
+  const canSubmitReset = view !== 'reset' || (isPasswordValid && newPassword === confirmPassword);
+
   React.useEffect(() => {
     const recoveryError = localStorage.getItem('zenite_recovery_error');
     if (recoveryError) {
       setView('forgot');
-      setError(recoveryError);
+      setError(traduzErro(recoveryError));
       localStorage.removeItem('zenite_recovery_error');
       return;
     }
@@ -65,7 +84,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     try {
       const { error: resetError } = await authService.resetPassword(email);
       if (resetError) {
-        setError(resetError.message);
+        setError(traduzErro(resetError.message));
       } else {
         setSuccessMessage('Se este e-mail estiver cadastrado, enviamos um link ou código de recuperação. Verifique sua caixa de entrada.');
         // Transição automática para o campo de código para facilitar
@@ -75,7 +94,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         }, 3000);
       }
     } catch (err: any) {
-      setError(err?.message || 'Ocorreu um erro ao enviar o e-mail de recuperação.');
+      setError(traduzErro(err?.message) || 'Ocorreu um erro ao enviar o e-mail de recuperação.');
     } finally {
       setLoading(false);
     }
@@ -90,12 +109,12 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     try {
       const { error: verifyError } = await authService.verifyOtp(email, otpCode);
       if (verifyError) {
-        setError(verifyError.message);
+        setError(traduzErro(verifyError.message));
       } else {
         setView('reset');
       }
     } catch (err: any) {
-      setError(err?.message || 'Erro ao validar o código.');
+      setError(traduzErro(err?.message) || 'Erro ao validar o código.');
     } finally {
       setLoading(false);
     }
@@ -106,8 +125,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     setError(null);
     setSuccessMessage(null);
 
-    if (newPassword.length < 8) {
-      setError('A senha deve ter pelo menos 8 caracteres.');
+    if (!isPasswordValid) {
+      setError('A senha não atende aos requisitos mínimos.');
       return;
     }
 
@@ -120,7 +139,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     try {
       const { error: updateError } = await authService.updatePassword(newPassword);
       if (updateError) {
-        setError(updateError.message);
+        setError(traduzErro(updateError.message));
       } else {
         setSuccessMessage('Senha alterada com sucesso! Você já pode entrar na sua conta.');
         setTimeout(() => {
@@ -130,7 +149,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         }, 2000);
       }
     } catch (err: any) {
-      setError(err?.message || 'Ocorreu um erro ao alterar a senha.');
+      setError(traduzErro(err?.message) || 'Ocorreu um erro ao alterar a senha.');
     } finally {
       setLoading(false);
     }
@@ -140,13 +159,19 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+
+    if (!isLogin && !isPasswordValid) {
+      setError('A senha não atende aos requisitos mínimos.');
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isLogin) {
         const { data, error: authError } = await authService.signIn(email, password);
         if (authError) {
-          setError(authError.message);
+          setError(traduzErro(authError.message));
         } else if (data?.user) {
           onAuthSuccess(data.user);
         }
@@ -177,7 +202,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         );
 
         if (authError) {
-          setError(authError.message);
+          setError(traduzErro(authError.message));
         } else if (data?.user) {
           // Se for aluno e cadastro novo, mostra boas-vindas
           if (papel === 'aluno') {
@@ -192,11 +217,41 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         }
       }
     } catch (err: any) {
-      setError(err?.message || 'Ocorreu um erro inesperado.');
+      setError(traduzErro(err?.message) || 'Ocorreu um erro inesperado.');
     } finally {
       setLoading(false);
     }
   };
+
+  const PasswordRequirements = ({ criteria }: { criteria: typeof passwordCriteria }) => (
+    <div className="mt-3 space-y-1.5 p-3 bg-white/5 rounded-lg border border-white/5">
+      <p className="text-[10px] text-ink-3 font-semibold uppercase tracking-wider mb-2">Requisitos da Senha</p>
+      <div className="flex items-center gap-2">
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${criteria.length ? 'bg-ok text-void' : 'bg-white/10 text-ink-3'}`}>
+          <Check className="w-2.5 h-2.5 stroke-[4px]" />
+        </div>
+        <span className={`text-[11px] ${criteria.length ? 'text-ok font-medium' : 'text-ink-3'}`}>Pelo menos 8 caracteres</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${criteria.lower ? 'bg-ok text-void' : 'bg-white/10 text-ink-3'}`}>
+          <Check className="w-2.5 h-2.5 stroke-[4px]" />
+        </div>
+        <span className={`text-[11px] ${criteria.lower ? 'text-ok font-medium' : 'text-ink-3'}`}>Pelo menos uma letra minúscula</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${criteria.upper ? 'bg-ok text-void' : 'bg-white/10 text-ink-3'}`}>
+          <Check className="w-2.5 h-2.5 stroke-[4px]" />
+        </div>
+        <span className={`text-[11px] ${criteria.upper ? 'text-ok font-medium' : 'text-ink-3'}`}>Pelo menos uma letra maiúscula</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${criteria.number ? 'bg-ok text-void' : 'bg-white/10 text-ink-3'}`}>
+          <Check className="w-2.5 h-2.5 stroke-[4px]" />
+        </div>
+        <span className={`text-[11px] ${criteria.number ? 'text-ok font-medium' : 'text-ink-3'}`}>Pelo menos um número</span>
+      </div>
+    </div>
+  );
 
   const handleStartApp = () => {
     if (pendingUser) {
@@ -496,7 +551,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={isLogin ? "Mínimo 6 caracteres" : "Senha forte necessária"}
                   className="z-input !pl-12 !pr-12 !h-14 num"
                 />
                 <button
@@ -507,13 +562,14 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {!isLogin && <PasswordRequirements criteria={passwordCriteria} />}
             </div>
 
             {/* Submit Button */}
             <button
               id="btn-auth-submit"
               type="submit"
-              disabled={loading}
+              disabled={loading || !canSubmitSignup}
               className="w-full mt-2 py-4 px-6 rounded-lg bg-[#F26A1B] font-semibold text-ink hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (
@@ -645,7 +701,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder="Senha forte necessária"
                   className="z-input !pl-12 !pr-12 !h-14 num"
                 />
                 <button
@@ -656,6 +712,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              <PasswordRequirements criteria={passwordCriteria} />
             </div>
 
             <div className="space-y-2">
@@ -672,12 +729,15 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   className="z-input !pl-12 !pr-12 !h-14 num"
                 />
               </div>
+              {confirmPassword && newPassword !== confirmPassword && (
+                <p className="text-[10px] text-danger font-medium mt-1">As senhas não coincidem</p>
+              )}
             </div>
 
             <button
               id="btn-reset-submit"
               type="submit"
-              disabled={loading}
+              disabled={loading || !canSubmitReset}
               className="w-full py-4 px-6 rounded-lg bg-[#F26A1B] font-semibold text-ink hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
             >
               {loading ? (

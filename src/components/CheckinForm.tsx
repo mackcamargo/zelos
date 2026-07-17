@@ -188,7 +188,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
               value={sono} 
               onChange={setSono} 
               icon={Moon}
-              colorClass="bg-violet"
+              colorClass="bg-amber-500"
             />
             <RatingField 
               label="Nível de Estresse" 
@@ -196,7 +196,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
               value={estresse} 
               onChange={setEstresse} 
               icon={Flame}
-              colorClass="bg-flame"
+              colorClass="bg-amber-500"
             />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
