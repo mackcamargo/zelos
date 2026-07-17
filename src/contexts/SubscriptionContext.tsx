@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { dbService } from '../lib/supabase';
+import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Assinatura } from '../types';
 
 interface SubscriptionContextType {
@@ -19,6 +19,7 @@ export const SubscriptionProvider: React.FC<{ personalId: string; children: Reac
   const [loading, setLoading] = useState(true);
   const [studentCount, setStudentCount] = useState(0);
   const [errorModal, setErrorModal] = useState<{ title: string; message: string; type: 'upgrade' | 'reactivate' } | null>(null);
+  const [rpcAtivo, setRpcAtivo] = useState<boolean | null>(null);
 
   const fetchSubscription = async () => {
     try {
@@ -29,6 +30,22 @@ export const SubscriptionProvider: React.FC<{ personalId: string; children: Reac
       
       setAssinatura(subRes.data);
       setStudentCount(countRes.data || 0);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const { data: rpcData, error: rpcErr } = await supabase.rpc('personal_ativo');
+          if (!rpcErr && typeof rpcData === 'boolean') {
+            setRpcAtivo(rpcData);
+          } else {
+            setRpcAtivo(null);
+          }
+        } catch (rpcEx) {
+          console.error('Erro ao chamar RPC personal_ativo:', rpcEx);
+          setRpcAtivo(null);
+        }
+      } else {
+        setRpcAtivo(null);
+      }
     } catch (error) {
       console.error('Erro ao carregar assinatura:', error);
     } finally {
@@ -42,10 +59,13 @@ export const SubscriptionProvider: React.FC<{ personalId: string; children: Reac
     }
   }, [personalId]);
 
-  const isReadOnly = !assinatura || 
-    assinatura.status === 'cancelada' || 
-    assinatura.status === 'expirada' || 
-    new Date(assinatura.expira_em) < new Date();
+  const vigente = rpcAtivo !== null
+    ? rpcAtivo
+    : !!assinatura && 
+      (assinatura.status === 'ativa' || assinatura.status === 'trial') &&
+      (!assinatura.expira_em || new Date(assinatura.expira_em) > new Date());
+
+  const isReadOnly = !vigente;
 
   const getDaysRemaining = () => {
     if (!assinatura?.expira_em) return 0;

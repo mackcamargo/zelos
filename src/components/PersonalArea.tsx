@@ -4,7 +4,6 @@ import { Aluno, Profile } from '../types';
 import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
-import GerenciarConteudo from './GerenciarConteudo';
 import GerenciarAgendaPersonal from './GerenciarAgendaPersonal';
 import GerenciarAlunos from './GerenciarAlunos';
 import GerenciarTemplates from './GerenciarTemplates';
@@ -24,7 +23,7 @@ interface PersonalAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos';
+type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos';
 
 function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -66,7 +65,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
     { id: 'exercicios', label: 'Treinos', icon: Activity },
     { id: 'agenda', label: 'Agenda', icon: Calendar },
     { id: 'checkins', label: 'Check-ins', icon: MessageSquare },
-    { id: 'conteudo', label: 'Biblioteca', icon: BookOpen },
     { id: 'templates', label: 'Modelos', icon: FolderHeart },
     { id: 'chat', label: 'Mensagens', icon: MessageSquare },
     { id: 'planos', label: 'Assinatura', icon: CreditCard },
@@ -560,7 +558,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   {activeTab === 'exercicios' && 'Exercícios'}
                   {activeTab === 'agenda' && 'Sua agenda'}
                   {activeTab === 'checkins' && 'Check-ins'}
-                  {activeTab === 'conteudo' && 'Biblioteca'}
                   {activeTab === 'templates' && 'Modelos de treino'}
                   {activeTab === 'chat' && 'Mensagens'}
                   {activeTab === 'perfil' && 'Seu perfil'}
@@ -572,7 +569,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   {activeTab === 'exercicios' && 'Explore a biblioteca de movimentos e treinos de referência'}
                   {activeTab === 'agenda' && 'Horários de atendimento e compromissos marcados'}
                   {activeTab === 'checkins' && 'Monitore as respostas semanais e feedbacks recebidos'}
-                  {activeTab === 'conteudo' && 'Artigos educativos, postagens e guias que você publicou'}
                   {activeTab === 'templates' && 'Fichas pré-estruturadas para agilizar a prescrição'}
                   {activeTab === 'chat' && 'Converse com seus alunos e tire dúvidas em tempo real'}
                   {activeTab === 'perfil' && 'Gerencie seus dados cadastrais e assinatura'}
@@ -626,13 +622,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         {activeTab === 'exercicios' && (
           <div id="tab-content-exercicios" className="space-y-6">
             <Biblioteca personalId={userId} avatarTipo={profile.avatar_tipo} isReadOnly={isReadOnly} />
-          </div>
-        )}
-
-        {/* TAB: CONTEUDO EDUCATIVO */}
-        {activeTab === 'conteudo' && (
-          <div id="tab-content-conteudo" className="space-y-6">
-            <GerenciarConteudo personalId={userId} isReadOnly={isReadOnly} />
           </div>
         )}
 
