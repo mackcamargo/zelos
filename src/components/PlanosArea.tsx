@@ -133,14 +133,6 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
           );
         })}
       </div>
-
-      <div className="z-card max-w-2xl mx-auto text-center">
-        <p className="text-xs text-ink-3 font-semibold leading-relaxed">
-          As assinaturas são processadas com segurança pela Kiwify. 
-          Após o pagamento, seu acesso será atualizado automaticamente.
-          Dúvidas? Entre em contato com nosso suporte.
-        </p>
-      </div>
     </div>
   );
 }

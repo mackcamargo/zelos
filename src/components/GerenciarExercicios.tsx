@@ -3,7 +3,8 @@ import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Categoria, Exercicio } from '../types';
 import { 
   ChevronLeft, Plus, Search, Check, X, Film, UploadCloud, 
-  Trash2, Save, Info, Sparkles, Loader, AlertCircle, Dumbbell 
+  Trash2, Save, Info, Sparkles, Loader, AlertCircle, Dumbbell,
+  MoreVertical, EyeOff, Eye, Move, Copy, RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -31,6 +32,9 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('todos');
+  const [mostrarOcultos, setMostrarOcultos] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [movingExId, setMovingExId] = useState<string | null>(null);
 
   // Form states
   const [nome, setNome] = useState('');
@@ -91,17 +95,90 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   const loadData = async () => {
     setLoading(true);
     try {
-      const [catsRes, exsRes] = await Promise.all([
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [catsRes, exsRes, adjustmentsRes] = await Promise.all([
         dbService.getCategorias(),
-        dbService.getAllExercicios()
+        supabase.from('exercicios').select('*').or(`personal_id.is.null,personal_id.eq.${user.id}`),
+        supabase.from('exercicios_ajustes').select('*').eq('personal_id', user.id)
       ]);
       
       if (catsRes.data) setCategorias(catsRes.data);
-      if (exsRes.data) setExercicios(exsRes.data);
+      
+      if (exsRes.data) {
+        const adjustedExs = exsRes.data.map((ex: any) => {
+          const ajuste = (adjustmentsRes.data || []).find((a: any) => a.exercicio_id === ex.id);
+          return { ...ex, ajuste };
+        });
+        setExercicios(adjustedExs);
+      }
     } catch (err) {
       console.error('Erro ao buscar dados:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpsertAjuste = async (exId: string, updates: { categoria_id?: string | null, oculto?: boolean }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('exercicios_ajustes')
+        .upsert({
+          exercicio_id: exId,
+          personal_id: user.id,
+          ...updates
+        }, { onConflict: 'personal_id,exercicio_id' });
+
+      if (error) throw error;
+      
+      setFeedback('Alterado apenas na sua biblioteca');
+      setTimeout(() => setFeedback(null), 3000);
+      loadData();
+    } catch (err: any) {
+      console.error('Erro ao ajustar exercício:', err);
+      setUploadError(err.message);
+    }
+  };
+
+  const handleDuplicarExercicio = async (ex: Exercicio) => {
+    try {
+      setSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('exercicios')
+        .insert({
+          nome: `${ex.nome} (Cópia)`,
+          categoria_id: ex.ajuste?.categoria_id || ex.categoria_id,
+          personal_id: user.id,
+          musculo_primario: ex.musculo_primario,
+          musculo_secundario: ex.musculo_secundario,
+          dicas: ex.dicas,
+          video_url_masc: ex.video_url_masc,
+          video_url_fem: ex.video_url_fem,
+          equipamento: ex.equipamento,
+          impacto: ex.impacto,
+          publico_alvo: ex.publico_alvo,
+          contraindicacoes: ex.contraindicacoes
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setFeedback('Exercício duplicado para sua biblioteca');
+      setTimeout(() => setFeedback(null), 3000);
+      loadData();
+    } catch (err: any) {
+      console.error('Erro ao duplicar exercício:', err);
+      setUploadError(err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -556,11 +633,17 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
 
   // Filter exercises
   const filteredExercicios = exercicios.filter((ex) => {
+    const categoriaEfetiva = ex.ajuste?.categoria_id ?? ex.categoria_id;
+    const isOculto = ex.ajuste?.oculto === true;
+
     const matchesSearch = ex.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ex.musculo_primario.some((m) => m.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesCategory = selectedCategoryFilter === 'todos' || ex.categoria_id === selectedCategoryFilter;
+    const matchesCategory = selectedCategoryFilter === 'todos' || categoriaEfetiva === selectedCategoryFilter;
     
+    // Filtro de visibilidade
+    if (!mostrarOcultos && isOculto) return false;
+
     return matchesSearch && matchesCategory;
   });
 
@@ -637,19 +720,30 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
               </div>
 
               {/* Category Filter */}
-              <select
-                id="admin-filter-category"
-                value={selectedCategoryFilter}
-                onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-                className="z-input cursor-pointer"
-              >
-                <option value="todos">Todas as Categorias</option>
-                {categorias.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.nome}
-                  </option>
-                ))}
-              </select>
+              <div className="flex gap-2">
+                <select
+                  id="admin-filter-category"
+                  value={selectedCategoryFilter}
+                  onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                  className="z-input cursor-pointer flex-1"
+                >
+                  <option value="todos">Todas as Categorias</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.nome}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => setMostrarOcultos(!mostrarOcultos)}
+                  className={`z-btn z-btn--icon ${mostrarOcultos ? 'z-btn--primary' : 'z-btn--ghost'}`}
+                  title={mostrarOcultos ? 'Ocultar exercícios desativados' : 'Mostrar exercícios ocultos'}
+                >
+                  {mostrarOcultos ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             {/* Exercises Admin Grid */}
@@ -682,51 +776,76 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     </thead>
                     <tbody className="divide-y divide-line/40">
                       {filteredExercicios.map((ex) => {
-                        const cat = categorias.find((c) => c.id === ex.categoria_id);
+                        const categoriaEfetivaId = ex.ajuste?.categoria_id ?? ex.categoria_id;
+                        const isOculto = ex.ajuste?.oculto === true;
+                        const isGlobal = ex.personal_id === null;
+                        const cat = categorias.find((c) => c.id === categoriaEfetivaId);
+                        const originalCat = (ex.ajuste?.categoria_id && ex.ajuste.categoria_id !== ex.categoria_id) 
+                          ? categorias.find(c => c.id === ex.categoria_id) 
+                          : null;
+
                         return (
                           <tr
                             key={ex.id}
-                            className="h-14 hover:bg-raise/30 border-b border-line/40 transition-colors group cursor-pointer"
-                            onClick={() => handleEdit(ex)}
+                            className={`h-14 hover:bg-raise/30 border-b border-line/40 transition-colors group ${isOculto ? 'opacity-40' : ''}`}
                           >
-                            <td className="py-4 px-6">
-                              <div>
-                                <span className="font-display font-semibold text-sm text-ink group-hover:text-accent transition-colors block">
-                                  {ex.nome}
-                                </span>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {ex.musculo_primario.slice(0, 2).map((m) => (
-                                    <span
-                                      key={m}
-                                      className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-semibold border border-accent/20"
-                                    >
-                                      {m}
+                            <td className="py-4 px-6 cursor-pointer" onClick={() => handleEdit(ex)}>
+                              <div className="flex items-center gap-3">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-display font-semibold text-sm text-ink group-hover:text-accent transition-colors block">
+                                      {ex.nome}
                                     </span>
-                                  ))}
-                                  {ex.musculo_primario.length > 2 && (
-                                    <span className="text-[10px] px-2 py-0.5 rounded bg-raise text-ink-3 border border-line">
-                                      +{ex.musculo_primario.length - 2}
-                                    </span>
-                                  )}
+                                    {isGlobal && (
+                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold uppercase tracking-tighter">
+                                        Global
+                                      </span>
+                                    )}
+                                    {ex.ajuste?.categoria_id && (
+                                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-flame/10 text-flame border border-flame/20 font-bold uppercase tracking-tighter">
+                                        Movido
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {ex.musculo_primario.slice(0, 2).map((m) => (
+                                      <span
+                                        key={m}
+                                        className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-semibold border border-accent/20"
+                                      >
+                                        {m}
+                                      </span>
+                                    ))}
+                                    {ex.musculo_primario.length > 2 && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded bg-raise text-ink-3 border border-line">
+                                        +{ex.musculo_primario.length - 2}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </td>
                             <td className="py-4 px-6">
-                              <span className="text-xs text-ink-2 font-medium">
-                                {cat ? cat.nome : 'Sem categoria'}
-                              </span>
+                              <div className="flex flex-col">
+                                <span className="text-xs text-ink font-medium">
+                                  {cat ? cat.nome : 'Sem categoria'}
+                                </span>
+                                {originalCat && (
+                                  <span className="text-[10px] text-ink-3 line-through">
+                                    Original: {originalCat.nome}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="py-4 px-6 text-center">
                               <div className="inline-flex items-center justify-center">
                                 {ex.video_url_masc ? (
-                                  <span className="text-[12px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2.5 py-0.5 rounded-full">
-                                    <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                    <span>Enviado</span>
+                                  <span className="text-[10px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2 py-0.5 rounded-full">
+                                    <Check className="w-3 h-3" strokeWidth={2.5} />
                                   </span>
                                 ) : (
-                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2.5 py-0.5 rounded-full border border-line">
-                                    <X className="w-3.5 h-3.5 text-danger" />
-                                    <span>Pendente</span>
+                                  <span className="text-[10px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2 py-0.5 rounded-full border border-line">
+                                    <X className="w-3 h-3 text-danger" />
                                   </span>
                                 )}
                               </div>
@@ -734,22 +853,124 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             <td className="py-4 px-6 text-center">
                               <div className="inline-flex items-center justify-center">
                                 {ex.video_url_fem ? (
-                                  <span className="text-[12px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2.5 py-0.5 rounded-full">
-                                    <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
-                                    <span>Enviado</span>
+                                  <span className="text-[10px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2 py-0.5 rounded-full">
+                                    <Check className="w-3 h-3" strokeWidth={2.5} />
                                   </span>
                                 ) : (
-                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2.5 py-0.5 rounded-full border border-line">
-                                    <X className="w-3.5 h-3.5 text-danger" />
-                                    <span>Pendente</span>
+                                  <span className="text-[10px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2 py-0.5 rounded-full border border-line">
+                                    <X className="w-3 h-3 text-danger" />
                                   </span>
                                 )}
                               </div>
                             </td>
-                            <td className="py-4 px-6 text-right">
-                              <span className="text-xs font-semibold text-ink-3 group-hover:text-accent transition-colors">
-                                Editar →
-                              </span>
+                            <td className="py-4 px-6 text-right relative">
+                              <div className="flex justify-end items-center gap-2">
+                                {!isGlobal && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleEdit(ex);
+                                    }}
+                                    className="text-[11px] font-bold text-accent hover:underline"
+                                  >
+                                    Editar
+                                  </button>
+                                )}
+                                
+                                <div className="relative">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(openMenuId === ex.id ? null : ex.id);
+                                    }}
+                                    className="p-1.5 rounded-lg hover:bg-white/10 text-ink-3 hover:text-ink transition-all"
+                                  >
+                                    <MoreVertical className="w-4 h-4" />
+                                  </button>
+
+                                  <AnimatePresence>
+                                    {openMenuId === ex.id && (
+                                      <>
+                                        <div 
+                                          className="fixed inset-0 z-40" 
+                                          onClick={() => setOpenMenuId(null)}
+                                        />
+                                        <motion.div
+                                          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                                          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                          className="absolute right-0 mt-2 w-52 bg-surface-2 border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                                        >
+                                          <div className="p-1.5 space-y-0.5">
+                                            <button
+                                              onClick={() => {
+                                                setMovingExId(ex.id);
+                                                setOpenMenuId(null);
+                                              }}
+                                              className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-medium text-ink-2 hover:bg-white/5 hover:text-ink flex items-center gap-2 transition-all"
+                                            >
+                                              <Move className="w-4 h-4 text-accent" />
+                                              <span>Mover para outra categoria</span>
+                                            </button>
+
+                                            {ex.ajuste?.categoria_id && (
+                                              <button
+                                                onClick={() => {
+                                                  handleUpsertAjuste(ex.id, { categoria_id: null });
+                                                  setOpenMenuId(null);
+                                                }}
+                                                className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-medium text-ink-2 hover:bg-white/5 hover:text-ink flex items-center gap-2 transition-all"
+                                              >
+                                                <RotateCcw className="w-4 h-4 text-accent" />
+                                                <span>Restaurar categoria original</span>
+                                              </button>
+                                            )}
+
+                                            {isOculto ? (
+                                              <button
+                                                onClick={() => {
+                                                  handleUpsertAjuste(ex.id, { oculto: false });
+                                                  setOpenMenuId(null);
+                                                }}
+                                                className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-medium text-ink-2 hover:bg-white/5 hover:text-ink flex items-center gap-2 transition-all"
+                                              >
+                                                <Eye className="w-4 h-4 text-ok" />
+                                                <span>Restaurar (Mostrar)</span>
+                                              </button>
+                                            ) : (
+                                              <button
+                                                onClick={() => {
+                                                  handleUpsertAjuste(ex.id, { oculto: true });
+                                                  setOpenMenuId(null);
+                                                }}
+                                                className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-medium text-ink-2 hover:bg-white/5 hover:text-ink flex items-center gap-2 transition-all"
+                                              >
+                                                <EyeOff className="w-4 h-4 text-danger" />
+                                                <span>Ocultar da minha biblioteca</span>
+                                              </button>
+                                            )}
+
+                                            {isGlobal && (
+                                              <button
+                                                onClick={() => {
+                                                  handleDuplicarExercicio(ex);
+                                                  setOpenMenuId(null);
+                                                }}
+                                                className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-medium text-ink-2 hover:bg-white/5 hover:text-ink flex items-center gap-2 transition-all"
+                                              >
+                                                <Copy className="w-4 h-4 text-violet" />
+                                                <span>Duplicar para minha biblioteca</span>
+                                              </button>
+                                            )}
+                                          </div>
+                                        </motion.div>
+                                      </>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -1368,35 +1589,106 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                 {/* SAVE ACTION CARD */}
                 {!isReadOnly && (
                   <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
-                    <div className="bg-void/50 p-4 border border-white/5 rounded-2xl flex gap-2.5 text-[11px] text-ink-2 leading-relaxed">
-                      <Info className="w-4.5 h-4.5 text-flame shrink-0 mt-0.5" />
-                      <span>Ao salvar, os vídeos serão vinculados permanentemente à biblioteca centralizada. Todos os alunos terão acesso à execução imediata.</span>
-                    </div>
+                    {selectedExercicio?.personal_id === null && !String(selectedExercicio.id).startsWith('ex-') ? (
+                      <div className="space-y-4">
+                        <div className="bg-blue-500/10 p-4 border border-blue-500/20 rounded-2xl flex gap-2.5 text-[11px] text-blue-400 leading-relaxed">
+                          <Info className="w-4.5 h-4.5 text-blue-400 shrink-0 mt-0.5" />
+                          <span>Este é um exercício global. Para editá-lo ou adicionar seus próprios vídeos, você deve primeiro duplicá-lo para sua biblioteca pessoal.</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDuplicarExercicio(selectedExercicio)}
+                          disabled={saving}
+                          className="w-full h-14 bg-blue-500 text-white rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50"
+                        >
+                          {saving ? <Loader className="w-5 h-5 animate-spin" /> : <Copy className="w-5 h-5" />}
+                          <span>Duplicar para minha biblioteca</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-void/50 p-4 border border-white/5 rounded-2xl flex gap-2.5 text-[11px] text-ink-2 leading-relaxed">
+                          <Info className="w-4.5 h-4.5 text-flame shrink-0 mt-0.5" />
+                          <span>Ao salvar, os vídeos serão vinculados permanentemente à biblioteca centralizada. Todos os alunos terão acesso à execução imediata.</span>
+                        </div>
 
-                    <button
-                      id="btn-save-exercise-submit"
-                      type="button"
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="w-full py-4 rounded-2xl brand-gradient-bg text-void text-sm font-semibold flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none shadow-[0_4px_20px_rgba(245,51,79,0.3)]"
-                    >
-                      {saving ? (
-                        <>
-                          <Loader className="w-4.5 h-4.5 animate-spin" />
-                          <span>Gravando exercício...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4.5 h-4.5" />
-                          <span>Salvar exercício</span>
-                        </>
-                      )}
-                    </button>
+                        <button
+                          id="btn-save-exercise-submit"
+                          type="button"
+                          onClick={handleSave}
+                          disabled={saving}
+                          className="w-full py-4 rounded-2xl brand-gradient-bg text-void text-sm font-semibold flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none shadow-[0_4px_20px_rgba(245,51,79,0.3)]"
+                        >
+                          {saving ? (
+                            <>
+                              <Loader className="w-4.5 h-4.5 animate-spin" />
+                              <span>Gravando exercício...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4.5 h-4.5" />
+                              <span>Salvar exercício</span>
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
             </form>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Movimentação de Categoria */}
+      <AnimatePresence>
+        {movingExId && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setMovingExId(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm bg-surface-1 rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
+            >
+              <div className="p-6 border-b border-white/5">
+                <h3 className="text-lg font-display font-bold text-ink">Mover para Categoria</h3>
+                <p className="text-xs text-ink-3 mt-1">Escolha o novo destino para este exercício</p>
+              </div>
+              <div className="p-2 max-h-[60vh] overflow-y-auto">
+                <div className="grid grid-cols-1 gap-1">
+                  {categorias.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        handleUpsertAjuste(movingExId, { categoria_id: cat.id });
+                        setMovingExId(null);
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-2xl text-sm font-medium text-ink-2 hover:bg-white/5 hover:text-accent flex items-center justify-between transition-all group"
+                    >
+                      <span>{cat.nome}</span>
+                      <ChevronLeft className="w-4 h-4 opacity-0 group-hover:opacity-100 rotate-180 transition-all" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 bg-raise/50 flex justify-end border-t border-white/5">
+                <button
+                  onClick={() => setMovingExId(null)}
+                  className="z-btn z-btn--ghost text-xs"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

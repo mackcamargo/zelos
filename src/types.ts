@@ -48,6 +48,14 @@ export interface Exercicio {
   contraindicacoes?: string[];
   impacto?: 'baixo' | 'medio' | 'alto' | null;
   equipamento?: string | null;
+  ajuste?: ExercicioAjuste;
+}
+
+export interface ExercicioAjuste {
+  personal_id: string;
+  exercicio_id: string;
+  categoria_id: string | null;
+  oculto: boolean;
 }
 
 export interface Anamnese {
