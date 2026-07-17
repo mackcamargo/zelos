@@ -330,28 +330,23 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
       {/* Modal: Aplicar Template */}
       <AnimatePresence>
         {isApplyModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsApplyModalOpen(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
+          <div className="z-overlay">
+            {/* Background click to close */}
+            <div className="absolute inset-0" onClick={() => setIsApplyModalOpen(false)} />
             
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-surface border border-line rounded-3xl p-6 shadow-2xl overflow-hidden"
+              className="z-modal relative p-6 z-10 border border-line"
             >
               {/* Glow decorativo */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
               
               <div className="relative z-10 space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#F26A1B]/10 border border-[#F26A1B]/20 rounded-xl flex items-center justify-center text-[#F26A1B]">
+                    <div className="w-10 h-10 bg-accent/10 border border-line rounded-xl flex items-center justify-center text-accent">
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
@@ -363,7 +358,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                   </div>
                   <button 
                     onClick={() => setIsApplyModalOpen(false)}
-                    className="p-2 hover:bg-raise rounded-full text-ink-3 transition-colors"
+                    className="p-2 hover:bg-raise border border-line rounded-full text-ink-3 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>

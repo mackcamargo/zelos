@@ -127,22 +127,16 @@ export default function DetalheSessaoModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Overlay */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-bg/80 backdrop-blur-sm"
-        />
+      <div className="z-overlay">
+        {/* Overlay clickable bg */}
+        <div className="absolute inset-0" onClick={onClose} />
 
         {/* Modal container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-md bg-surface border border-line rounded-[32px] shadow-2xl overflow-hidden z-10"
+          className="z-modal relative w-full max-w-md bg-surface border border-line rounded-[32px] shadow-2xl overflow-hidden z-10"
         >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-line">
@@ -152,7 +146,7 @@ export default function DetalheSessaoModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-raise text-ink-3 hover:text-ink transition-colors"
+              className="p-2 rounded-full hover:bg-raise border border-line text-ink-3 hover:text-ink transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -199,7 +193,7 @@ export default function DetalheSessaoModal({
             ) : (
               <div className="grid grid-cols-1 gap-4 p-4 bg-raise rounded-2xl border border-line">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-bg rounded-xl text-accent">
+                  <div className="p-2 bg-bg border border-line rounded-xl text-accent">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
@@ -209,7 +203,7 @@ export default function DetalheSessaoModal({
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-bg rounded-xl text-accent">
+                  <div className="p-2 bg-bg border border-line rounded-xl text-accent">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div className="flex-1 flex justify-between items-center">
@@ -235,10 +229,15 @@ export default function DetalheSessaoModal({
                     <MapPin className="w-5 h-5 text-accent" />
                     <span className="text-sm font-semibold">Presencial</span>
                   </>
-                ) : (
+                ) : agendamento.tipo === 'online' ? (
                   <>
                     <Video className="w-5 h-5 text-accent" />
                     <span className="text-sm font-semibold">Online / Remoto</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-5 h-5 text-accent" />
+                    <span className="text-sm font-semibold">Avaliação física</span>
                   </>
                 )}
               </div>

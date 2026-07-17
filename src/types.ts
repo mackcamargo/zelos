@@ -251,7 +251,7 @@ export interface SessaoBemEstar {
 }
 
 export type StatusAgendamento = 'solicitado' | 'confirmado' | 'cancelado';
-export type TipoSessao = 'presencial' | 'online';
+export type TipoSessao = 'presencial' | 'online' | 'avaliacao';
 
 export interface Agendamento {
   id: number;

@@ -1705,6 +1705,34 @@ export const dbService = {
   },
 
   async saveAgendamento(agendamento: any): Promise<{ data: any; error: any }> {
+    let resolvedStatus = 'confirmado'; // Default fallback
+
+    try {
+      const user = await this.getCurrentUser();
+      if (user) {
+        const { data: profile } = await this.getProfile(user.id);
+        if (profile) {
+          if (profile.papel === 'professor') {
+            // Regra: Personal agenda direto -> status confirmado
+            resolvedStatus = 'confirmado';
+          } else if (profile.papel === 'aluno') {
+            // Regra: Aluno agenda -> status solicitado (pendente de aprovação do personal)
+            resolvedStatus = 'solicitado';
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao resolver papel do usuário logado para status do agendamento:', e);
+    }
+
+    /* 
+      ESTRUTURA DE REGRAS DE NEGÓCIO DO AGENDAMENTO:
+      - Se criado pelo Personal (papel: 'professor'):
+        Nasce automaticamente como 'confirmado' para pular etapa de aprovação.
+      - Se solicitado pelo Aluno (papel: 'aluno'):
+        Nasce como 'solicitado' e exige ação do personal na dashboard para confirmar.
+    */
+
     if (isSupabaseConfigured && supabase) {
       const payload = {
         personal_id: agendamento.personal_id,
@@ -1712,7 +1740,7 @@ export const dbService = {
         data_hora: agendamento.data_hora || (agendamento.data && agendamento.horario ? new Date(`${agendamento.data}T${agendamento.horario}`).toISOString() : new Date().toISOString()),
         duracao_min: agendamento.duracao_min ?? 60,
         tipo: agendamento.tipo || 'presencial',
-        status: agendamento.status || 'confirmado',
+        status: agendamento.status || resolvedStatus,
         observacao: (agendamento.observacao && typeof agendamento.observacao === 'string' && !isUUID(agendamento.observacao))
           ? (agendamento.observacao.trim() || null)
           : null
@@ -1729,6 +1757,7 @@ export const dbService = {
     const newAgendamento = { 
       id: Math.floor(Math.random() * 1000000), 
       ...agendamento,
+      status: agendamento.status || resolvedStatus,
       data_hora: agendamento.data_hora || (agendamento.data && agendamento.horario ? new Date(`${agendamento.data}T${agendamento.horario}`).toISOString() : new Date().toISOString()),
       observacao: (agendamento.observacao && typeof agendamento.observacao === 'string' && !isUUID(agendamento.observacao))
         ? (agendamento.observacao.trim() || null)

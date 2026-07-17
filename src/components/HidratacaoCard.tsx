@@ -154,22 +154,22 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
 
   if (loading) {
     return (
-      <div className="bg-surface border border-white/5 rounded-xl p-8 flex justify-center items-center">
-        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
+      <div className="bg-surface border border-line rounded-xl p-8 flex justify-center items-center">
+        <Loader2 className="w-6 h-6 text-accent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-surface border border-white/5 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between group min-h-[350px]">
+    <div className="bg-surface border border-line rounded-xl p-6 relative overflow-hidden flex flex-col justify-between group min-h-[350px]">
       {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#F26A1B]/10 rounded-lg">
-              <Droplets className="w-5 h-5 text-[#F26A1B]" />
+            <div className="p-2 bg-accent/10 border border-line rounded-lg">
+              <Droplets className="w-5 h-5 text-accent" />
             </div>
             <div>
               <h3 className="font-semibold text-base text-ink">Registro de Hidratação</h3>
@@ -179,7 +179,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-ink-3 hover:text-ink transition-colors cursor-pointer"
+            className="p-2 bg-bg hover:bg-raise border border-line rounded-lg text-ink-3 hover:text-ink transition-colors cursor-pointer"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -200,7 +200,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                   type="number"
                   value={meta}
                   onChange={(e) => setMeta(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-void border border-white/5 rounded-lg p-3 text-sm text-ink outline-none focus:border-[#F26A1B]/50"
+                  className="w-full bg-void border border-line rounded-lg p-3 text-sm text-ink outline-none focus:border-accent/50"
                   step="250"
                 />
               </div>
@@ -208,7 +208,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                 <button
                   type="button"
                   onClick={() => setShowSettings(false)}
-                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-semibold text-ink-2 transition-colors"
+                  className="flex-1 py-2.5 bg-bg hover:bg-raise border border-line rounded-lg text-xs font-semibold text-ink-2 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -216,7 +216,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                   type="button"
                   onClick={handleSaveMeta}
                   disabled={saving}
-                  className="flex-1 py-2.5 bg-[#F26A1B] text-ink rounded-lg text-xs font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-accent text-white border border-line rounded-lg text-xs font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2"
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   Salvar
@@ -243,7 +243,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      className="text-[#F26A1B] transition-all duration-500 ease-out"
+                      className="text-accent transition-all duration-500 ease-out"
                       strokeDasharray={`${percent}, 100`}
                       strokeWidth="3.5"
                       strokeLinecap="round"
@@ -324,7 +324,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       </AnimatePresence>
 
       {/* Histograma minimalista nos últimos 7 dias */}
-      <div className="border-t border-white/5 pt-4 mt-6">
+      <div className="border-t border-line pt-4 mt-6">
         <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mb-3">Histórico de 7 dias</p>
         <div className="h-12 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -334,7 +334,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                   if (active && payload && payload.length) {
                     const dataObj = payload[0].payload;
                     return (
-                      <div className="bg-void/90 backdrop-blur-md border border-white/5 p-2 rounded-lg text-[10px] text-ink num">
+                      <div className="bg-void/90 backdrop-blur-md border border-line p-2 rounded-lg text-[10px] text-ink num">
                         {dataObj.total}ml
                       </div>
                     );
@@ -348,7 +348,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                   return (
                     <Cell
                       key={`cell-${index}`}
-                      fill={isDone ? '#22C55E' : '#F26A1B'}
+                      fill={isDone ? 'var(--z-ok)' : 'var(--z-accent)'}
                       opacity={entry.total === 0 ? 0.05 : 0.6}
                     />
                   );

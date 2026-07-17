@@ -239,14 +239,14 @@ export default function App() {
     <div id="app-workspace-root" className="min-h-screen bg-void relative">
       {/* Invitation Conflict Modal */}
       {showConviteConflict && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-bg/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-surface border border-line rounded-3xl p-8 relative shadow-2xl">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
+        <div className="z-overlay !z-[200]">
+          <div className="z-modal relative p-8 border border-line">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
             
             <div className="text-center space-y-6 relative z-10">
               <div className="flex justify-center">
-                <div className="w-16 h-16 bg-[#F26A1B]/10 rounded-full flex items-center justify-center border border-[#F26A1B]/20">
-                  <Sparkles className="w-8 h-8 text-[#F26A1B]" />
+                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center border border-line">
+                  <Sparkles className="w-8 h-8 text-accent" />
                 </div>
               </div>
 
@@ -269,7 +269,7 @@ export default function App() {
                     // Force refresh to ensure Auth component picks up the param correctly
                     window.location.reload();
                   }}
-                  className="w-full py-4 px-6 rounded-2xl bg-accent hover:opacity-90 text-white font-display font-bold text-sm transition-all active:scale-[0.98]"
+                  className="w-full py-4 px-6 rounded-2xl bg-accent hover:opacity-90 text-white font-display font-bold text-sm transition-all active:scale-[0.98] border border-line"
                 >
                   Sair e usar o convite
                 </button>

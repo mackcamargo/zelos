@@ -86,23 +86,14 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
       setSaving(true);
       const dataHoraStr = `${formData.data}T${formData.horario}:00`;
 
-      let mappedTipo = formData.tipo;
-      let finalObservacao = formData.observacao;
-      if (formData.tipo === 'avaliacao') {
-        mappedTipo = 'presencial';
-        finalObservacao = finalObservacao 
-          ? `[Avaliação Física] ${finalObservacao}`
-          : 'Avaliação Física';
-      }
-
+      // Correção 1: Envia tipo 'avaliacao' direto ao banco sem concatenação
       const payload = {
         personal_id: personalId,
         aluno_id: formData.aluno_id,
         data_hora: dataHoraStr,
-        tipo: mappedTipo,
+        tipo: formData.tipo,
         duracao_min: formData.duracao_min,
-        status: 'confirmado',
-        observacao: finalObservacao
+        observacao: formData.observacao ? formData.observacao.trim() : ''
       };
 
       const { error } = await dbService.saveAgendamento(payload);
@@ -123,7 +114,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
   return (
     <AnimatePresence>
       {aberto && (
-        <div className="fixed inset-0 bg-bg/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="z-overlay">
           {/* BACKGROUND CLICK TO CLOSE */}
           <div className="absolute inset-0" onClick={onFechar} />
 
@@ -132,7 +123,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-lg bg-surface border border-line rounded-xl p-8 overflow-hidden z-10"
+            className="z-modal relative p-8 z-10"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
@@ -147,7 +138,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
               <button
                 type="button"
                 onClick={onFechar}
-                className="p-2 hover:bg-raise text-ink-3 hover:text-ink rounded-full transition-colors"
+                className="p-2 bg-bg hover:bg-raise border border-line text-ink-3 hover:text-ink rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -301,7 +292,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                 <button
                   type="submit"
                   disabled={saving || !formData.aluno_id}
-                  className="flex-1 py-4 bg-accent hover:opacity-90 text-white font-semibold rounded-lg text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-4 bg-accent hover:opacity-90 text-white font-semibold rounded-lg text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-line"
                 >
                   {saving ? (
                     <>

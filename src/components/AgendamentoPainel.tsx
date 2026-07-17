@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Calendar as CalendarIcon, Clock, MapPin, 
   Video, Plus, Loader2, ChevronRight, 
-  AlertCircle, CheckCircle2, XCircle, Info, Sparkles
+  AlertCircle, CheckCircle2, XCircle, Info, Sparkles, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase } from '../lib/supabase';
@@ -151,12 +151,26 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
               </h2>
               <div className="flex flex-wrap items-center gap-6 text-[20px] font-semibold text-ink-2">
                 <div className="flex items-center gap-2 num">
-                  <Clock className="w-6 h-6 text-[#F26A1B]" />
+                  <Clock className="w-6 h-6 text-accent" />
                   {parseDataHora(proximaSessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
                 <div className="flex items-center gap-2">
-                  {proximaSessao.tipo === 'presencial' ? <MapPin className="w-6 h-6 text-[#F26A1B]" /> : <Video className="w-6 h-6 text-[#F26A1B]" />}
-                  {proximaSessao.tipo === 'presencial' ? 'Presencial' : 'Online'}
+                  {proximaSessao.tipo === 'presencial' ? (
+                    <>
+                      <MapPin className="w-6 h-6 text-accent" />
+                      <span>Presencial</span>
+                    </>
+                  ) : proximaSessao.tipo === 'online' ? (
+                    <>
+                      <Video className="w-6 h-6 text-accent" />
+                      <span>Online</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-6 h-6 text-accent" />
+                      <span>Avaliação física</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -226,8 +240,22 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     </div>
                     <div className="flex items-center gap-4 text-[12px] text-ink-3">
                       <span className="flex items-center gap-1.5">
-                        {agendamento.tipo === 'presencial' ? <MapPin className="w-3.5 h-3.5 text-flame" /> : <Video className="w-3.5 h-3.5 text-flame" />}
-                        {agendamento.tipo.charAt(0).toUpperCase() + agendamento.tipo.slice(1)}
+                        {agendamento.tipo === 'presencial' ? (
+                          <>
+                            <MapPin className="w-3.5 h-3.5 text-accent" />
+                            <span>Presencial</span>
+                          </>
+                        ) : agendamento.tipo === 'online' ? (
+                          <>
+                            <Video className="w-3.5 h-3.5 text-accent" />
+                            <span>Online</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="w-3.5 h-3.5 text-accent" />
+                            <span>Avaliação física</span>
+                          </>
+                        )}
                       </span>
                       {agendamento.observacao && (
                         <span className="flex items-center gap-1.5 italic text-[12px] opacity-60">
@@ -266,20 +294,18 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
       {/* MODAL SOLICITAR */}
       <AnimatePresence>
         {showModal && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-void/90 backdrop-blur-xl flex items-center justify-center p-6"
-          >
+          <div className="z-overlay">
+            {/* Click outside to close */}
+            <div className="absolute inset-0" onClick={() => setShowModal(false)} />
+
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-surface border border-white/10 rounded-[40px] w-full max-w-md overflow-hidden"
+              className="z-modal relative p-0 overflow-hidden z-10 border border-line"
             >
-              <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                <h3 className="text-[24px] font-semibold text-ink">Solicitar <span className="text-flame">sessão</span></h3>
-                <button onClick={() => setShowModal(false)} className="text-ink-3 hover:text-ink">
+              <div className="p-8 border-b border-line flex items-center justify-between">
+                <h3 className="text-[24px] font-semibold text-ink">Solicitar <span className="text-accent">sessão</span></h3>
+                <button onClick={() => setShowModal(false)} className="p-2 hover:bg-raise border border-line rounded-full text-ink-3 hover:text-ink transition-colors">
                    <Plus className="w-6 h-6 rotate-45" />
                 </button>
               </div>
@@ -299,7 +325,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     required
                     value={formData.data}
                     onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                    className="w-full bg-void border border-white/5 rounded-2xl p-4 text-ink outline-none focus:border-flame/50 transition-all num"
+                    className="w-full bg-void border border-line rounded-2xl p-4 text-ink outline-none focus:border-accent/50 transition-all num"
                   />
                 </div>
 
@@ -310,24 +336,32 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     required
                     value={formData.horario}
                     onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
-                    className="w-full bg-void border border-white/5 rounded-2xl p-4 text-ink outline-none focus:border-flame/50 transition-all num"
+                    className="w-full bg-void border border-line rounded-2xl p-4 text-ink outline-none focus:border-accent/50 transition-all num"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[12px] text-ink-3">Tipo de sessão</label>
                   <div className="flex gap-2">
-                    {(['presencial', 'online'] as TipoSessao[]).map(t => (
+                    {(['presencial', 'online', 'avaliacao'] as TipoSessao[]).map(t => (
                       <button
                         key={t}
                         type="button"
                         onClick={() => setFormData({ ...formData, tipo: t })}
                         className={`flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 border transition-all ${
-                          formData.tipo === t ? 'bg-flame border-flame text-void' : 'bg-void border-white/5 text-ink-3'
+                          formData.tipo === t ? 'bg-accent border-line text-white font-bold' : 'bg-void border-line text-ink-3 hover:text-ink'
                         }`}
                       >
-                        {t === 'presencial' ? <MapPin className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                        <span className="text-xs font-semibold">{t.charAt(0).toUpperCase() + t.slice(1)}</span>
+                        {t === 'presencial' ? (
+                          <MapPin className="w-4 h-4" />
+                        ) : t === 'online' ? (
+                          <Video className="w-4 h-4" />
+                        ) : (
+                          <FileText className="w-4 h-4" />
+                        )}
+                        <span className="text-xs font-semibold">
+                          {t === 'avaliacao' ? 'Avaliação' : t.charAt(0).toUpperCase() + t.slice(1)}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -339,7 +373,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     value={formData.observacao}
                     onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
                     placeholder="Ex: Focar em agachamentos..."
-                    className="w-full bg-void border border-white/5 rounded-2xl p-4 text-ink outline-none focus:border-flame/50 transition-all resize-none h-24"
+                    className="w-full bg-void border border-line rounded-2xl p-4 text-ink outline-none focus:border-accent/50 transition-all resize-none h-24"
                   />
                 </div>
 
@@ -347,14 +381,14 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                   type="button"
                   onClick={handleSolicitar}
                   disabled={saving}
-                  className="w-full py-4 bg-ink text-void rounded-2xl font-semibold text-xs shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-accent hover:opacity-90 text-white rounded-2xl font-semibold text-xs shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2 border border-line"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   Confirmar solicitação
                 </button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar as CalendarIcon, Clock, MapPin, 
-  Video, Check, X, Loader2, AlertCircle
+  Video, Check, X, Loader2, AlertCircle, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
@@ -187,8 +187,22 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                   </div>
                   <div className="flex items-center gap-4 text-[12px] text-ink-3">
                      <span className="flex items-center gap-1">
-                       {agenda.tipo === 'presencial' ? <MapPin className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-                       {agenda.tipo}
+                       {agenda.tipo === 'presencial' ? (
+                         <>
+                           <MapPin className="w-3 h-3 text-accent" />
+                           <span>Presencial</span>
+                         </>
+                       ) : agenda.tipo === 'online' ? (
+                         <>
+                           <Video className="w-3 h-3 text-accent" />
+                           <span>Online</span>
+                         </>
+                       ) : (
+                         <>
+                           <FileText className="w-3 h-3 text-accent" />
+                           <span>Avaliação física</span>
+                         </>
+                       )}
                      </span>
                      <span className={`px-2 py-0.5 rounded-full border ${config.color} text-[10px] font-semibold num`}>
                        {config.label}
