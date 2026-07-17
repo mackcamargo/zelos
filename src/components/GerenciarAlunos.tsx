@@ -712,17 +712,32 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                   <input
                     id="input-edit-objective"
                     type="text"
+                    list="objetivos"
                     value={editObjetivo}
                     onChange={(e) => setEditObjetivo(e.target.value)}
                     placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
-                    className="z-input flex-1 !h-11"
+                    className="flex-1 h-12 px-4 text-base rounded-xl border border-line bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
                   />
+                  <datalist id="objetivos">
+                    <option value="Hipertrofia (ganho de massa muscular)" />
+                    <option value="Emagrecimento / perda de gordura" />
+                    <option value="Definição muscular" />
+                    <option value="Condicionamento físico / cardio" />
+                    <option value="Força" />
+                    <option value="Resistência muscular" />
+                    <option value="Saúde e qualidade de vida" />
+                    <option value="Reabilitação / fortalecimento" />
+                    <option value="Performance esportiva" />
+                    <option value="Mobilidade e flexibilidade" />
+                    <option value="Ganho de peso" />
+                    <option value="Preparação para prova física / concurso" />
+                  </datalist>
                   <button
                     id="btn-save-objective"
                     type="button"
                     disabled={salvandoObjetivo || editObjetivo === selectedAluno.objetivo}
                     onClick={handleSaveObjective}
-                    className="z-btn z-btn--primary"
+                    className="h-12 px-6 rounded-xl bg-[#F26A1B] text-white font-display font-bold text-base hover:bg-[#D45914] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   >
                     {salvandoObjetivo ? 'Salvando...' : 'Salvar'}
                   </button>

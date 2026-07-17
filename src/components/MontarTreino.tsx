@@ -20,7 +20,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   const isTemplateMode = !aluno || !!templateId;
 
   // Workout header states
-  const [titulo, setTitulo] = useState(isTemplateMode ? 'Novo Modelo' : 'Treino A');
+  const [titulo, setTitulo] = useState(isTemplateMode ? 'Novo Modelo' : '');
+  const [tituloEditadoManualmente, setTituloEditadoManualmente] = useState(!!treinoId);
   const [descricao, setDescricao] = useState('');
   
   // Default values for date and time
@@ -190,6 +191,30 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
     fetchData();
   }, [treinoId, templateId]);
+
+  // Título automático sequencial por aluno + por dia
+  useEffect(() => {
+    if (!isTemplateMode && !treinoId && !tituloEditadoManualmente && aluno?.id && dataTreino) {
+      const updateAutoTitle = async () => {
+        try {
+          const { data: treinosExistentes } = await dbService.getTreinosParaAluno(aluno.id);
+          // Filtra treinos do mesmo dia (incluindo rascunhos e publicados)
+          const treinosNoDia = treinosExistentes?.filter(t => t.data_treino === dataTreino) || [];
+          
+          const [year, month, day] = dataTreino.split('-');
+          const dataBR = `${day}/${month}/${year}`;
+          
+          // Letra sequencial: 0 treinos -> A, 1 -> B, etc (65 é 'A' em ASCII)
+          const proximaLetra = String.fromCharCode(65 + (treinosNoDia.length % 26));
+          setTitulo(`${dataBR} - Treino ${proximaLetra}`);
+        } catch (err) {
+          console.error('Erro ao gerar título automático:', err);
+        }
+      };
+      
+      updateAutoTitle();
+    }
+  }, [dataTreino, aluno?.id, treinoId, isTemplateMode, tituloEditadoManualmente]);
 
   // Load saved templates from DB
   const fetchTemplates = async () => {
@@ -517,7 +542,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     type="text"
                     required
                     value={titulo}
-                    onChange={(e) => setTitulo(e.target.value)}
+                    onChange={(e) => {
+                      setTitulo(e.target.value);
+                      setTituloEditadoManualmente(true);
+                    }}
                     placeholder="Ex: Treino A, Pernas Foco Glúteo"
                     className="z-input !h-10 text-xs"
                   />
