@@ -348,36 +348,38 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
   });
 
   return (
-    <div id="chat-personal-container" className="grid grid-cols-1 md:grid-cols-12 bg-surface rounded-3xl border border-white/5 overflow-hidden flex-1 min-h-0 shadow-2xl">
+    <div id="chat-personal-container" className="grid grid-cols-1 md:grid-cols-12 bg-surface rounded-3xl border border-line overflow-hidden flex-1 min-h-0 shadow-2xl">
       {/* LEFT COLUMN: Student Conversation List */}
-      <div className={`md:col-span-4 border-r border-white/5 flex flex-col bg-[#141414] h-full overflow-hidden ${selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`md:col-span-4 border-r border-line flex flex-col bg-bg-sub h-full overflow-hidden ${selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
         {/* Search Header */}
-        <div className="p-4 border-b border-white/5 space-y-3 shrink-0">
+        <div className="p-4 border-b border-line space-y-3 shrink-0">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-lg text-ink">Alunos ativos</h3>
-            <span className="text-[12px] bg-[#F26A1B]/15 text-[#F26A1B] px-2 py-0.5 rounded-full font-semibold">Chat</span>
+            <h3 className="z-h1 text-ink">Alunos ativos</h3>
+            <span className="z-badge z-badge--accent">Chat</span>
           </div>
-          <div className="relative">
-            <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="z-search">
+            <span className="z-search__icon">
+              <Search className="w-4 h-4 text-ink-3" />
+            </span>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar aluno..."
-              className="w-full bg-surface text-sm text-ink pl-9 pr-4 py-2 rounded-xl border border-white/5 focus:outline-none focus:border-[#F26A1B]/30 transition-all placeholder:text-ink-3"
+              className="z-input"
             />
           </div>
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto min-h-0 divide-y divide-white/[0.02]">
+        <div className="flex-1 overflow-y-auto min-h-0 divide-y divide-line-soft z-list">
           {loadingList ? (
             <div className="h-48 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#F26A1B]" />
+              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-accent" />
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-8 text-center text-ink-3 text-xs">
-              <MessageSquare className="w-8 h-8 text-white/5 mx-auto mb-2" />
+              <MessageSquare className="w-8 h-8 text-ink-3 mx-auto mb-2" />
               Nenhum aluno encontrado.
             </div>
           ) : (
@@ -387,33 +389,37 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
               const isFemale = c.aluno.profile?.avatar_tipo === 'feminino';
               
               return (
-                      <button
-                        key={c.aluno.id}
-                        type="button"
-                        onClick={() => handleSelectAluno(c.aluno.id)}
-                        data-sem-som
-                        className={`w-full text-left p-4 flex gap-3 transition-colors cursor-pointer hover:bg-white/[0.01] ${
-                          isSelected ? 'bg-white/[0.03]' : ''
-                        }`}
-                      >
+                <button
+                  key={c.aluno.id}
+                  type="button"
+                  onClick={() => handleSelectAluno(c.aluno.id)}
+                  data-sem-som
+                  className={`w-full text-left p-4 flex gap-3 transition-all cursor-pointer border-l-3 ${
+                    isSelected ? 'bg-raise border-l-accent' : 'border-l-transparent hover:bg-raise/50'
+                  }`}
+                >
                   {/* Avatar */}
                   <div className="relative shrink-0">
-                    <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-2xl bg-surface">
-                      {isFemale ? '👩' : '👨'}
+                    <div className="z-avatar">
+                      {c.aluno.profile?.avatar_url ? (
+                        <img src={c.aluno.profile.avatar_url} alt={c.aluno.profile?.nome || 'Aluno'} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                      ) : (
+                        (c.aluno.profile?.nome || 'A').charAt(0).toUpperCase()
+                      )}
                     </div>
                     {hasUnread && (
-                      <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#F26A1B] border-2 border-[#141414] rounded-full" />
+                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-accent border-2 border-bg rounded-full animate-pulse" />
                     )}
                   </div>
 
                   {/* Text previews */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between">
-                      <h4 className={`text-sm truncate font-medium ${isSelected ? 'text-[#F26A1B]' : 'text-ink'}`}>
+                      <h4 className={`text-sm truncate font-semibold ${isSelected ? 'text-accent' : 'text-ink'}`}>
                         {c.aluno.profile?.nome || 'Aluno Sem Nome'}
                       </h4>
                       {c.lastMessage && (
-                        <span className="text-[12px] text-ink-3 shrink-0 num">
+                        <span className="text-[11.5px] text-ink-3 shrink-0 z-num">
                           {formatTime(c.lastMessage.criado_em)}
                         </span>
                       )}
@@ -424,7 +430,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                         {c.lastMessage ? c.lastMessage.conteudo : 'Nenhuma mensagem ainda'}
                       </p>
                       {hasUnread && (
-                        <span className="text-[12px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
+                        <span className="text-[10.5px] bg-accent text-white px-1.5 py-0.5 rounded-full font-bold z-num">
                           {c.unreadCount}
                         </span>
                       )}
@@ -438,45 +444,49 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
       </div>
 
       {/* RIGHT COLUMN: Active Chat Frame */}
-      <div className={`md:col-span-8 flex flex-col bg-surface-2 h-full overflow-hidden ${!selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`md:col-span-8 flex flex-col bg-surface h-full overflow-hidden ${!selectedAlunoId ? 'hidden md:flex' : 'flex'}`}>
         {selectedAlunoId ? (
           <>
             {/* Active chat header */}
-            <div className="bg-surface px-6 py-4 border-b border-white/5 flex items-center justify-between shrink-0 z-10">
+            <div className="bg-bg-sub px-6 py-4 border-b border-line flex items-center justify-between shrink-0 z-10">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setSelectedAlunoId(null)}
-                  className="md:hidden p-1.5 rounded-lg hover:bg-white/5 text-ink-2 active:scale-95 transition-all cursor-pointer"
+                  className="md:hidden z-btn z-btn--ghost z-btn--icon z-btn--sm"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className="w-4 h-4 text-ink-2" />
                 </button>
                 
-                <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-2xl bg-surface-3 shadow-inner">
-                  {getActiveStudentProfile()?.avatar_tipo === 'feminino' ? '👩' : '👨'}
+                <div className="z-avatar z-avatar--lg bg-raise">
+                  {getActiveStudentProfile()?.avatar_url ? (
+                    <img src={getActiveStudentProfile()?.avatar_url} alt={getActiveStudentProfileName()} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                  ) : (
+                    getActiveStudentProfileName().charAt(0).toUpperCase()
+                  )}
                 </div>
 
                 <div>
                   <h3 className="font-semibold text-base text-ink leading-tight">
                     {getActiveStudentProfileName()}
                   </h3>
-                  <p className="text-[12px] text-ink-3 mt-0.5">
+                  <p className="z-eyebrow mt-0.5 normal-case tracking-normal">
                     Seu aluno
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full text-[12px] font-semibold shrink-0">
-                <span className="w-1.5 h-1.5 bg-[#F26A1B] rounded-full animate-ping" />
+              <div className="z-badge z-badge--accent">
+                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-ping" />
                 Realtime ativo
               </div>
             </div>
 
             {/* Error Alert Box */}
             {errorMsg && (
-              <div className="bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs px-4 py-3 rounded-2xl flex justify-between items-center gap-2 animate-fade-in mx-6 mt-4 shrink-0">
+              <div className="bg-danger-soft border border-danger/25 text-danger text-xs px-4 py-3 rounded-2xl flex justify-between items-center gap-2 animate-fade-in mx-6 mt-4 shrink-0">
                 <span>{errorMsg}</span>
-                <button type="button" onClick={() => setErrorMsg(null)} className="text-rose-400 hover:text-rose-300 transition-colors cursor-pointer">
+                <button type="button" onClick={() => setErrorMsg(null)} className="text-danger hover:opacity-80 transition-opacity cursor-pointer">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -485,15 +495,15 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
             {/* Chat bubble list */}
             <div 
               ref={chatContainerRef}
-              className="flex-1 overflow-y-auto min-h-0 p-6 space-y-4 scrollbar-thin scrollbar-thumb-white/5 scrollbar-track-transparent"
+              className="flex-1 overflow-y-auto min-h-0 p-6 space-y-4"
             >
               {loadingChat ? (
                 <div className="h-full flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#F26A1B]" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent" />
                 </div>
               ) : activeMessages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-8 text-ink-3">
-                  <MessageSquare className="w-10 h-10 text-white/5 mb-2" />
+                  <MessageSquare className="w-10 h-10 text-ink-3 mb-2" />
                   <p className="text-sm font-medium text-ink-2">Nenhuma conversa registrada</p>
                   <p className="text-xs max-w-xs mt-1">Diga olá para iniciar o contato com este aluno.</p>
                 </div>
@@ -514,7 +524,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                     >
                       <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'} relative`}>
                         {showSenderName && (
-                          <span className="text-[12px] font-semibold text-[#F26A1B] mb-1">
+                          <span className="text-[12px] font-semibold text-accent mb-1">
                             {studentFirstName}
                           </span>
                         )}
@@ -526,13 +536,13 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                               <button
                                 type="button"
                                 onClick={() => setOpenMenuId(openMenuId === msg.id ? null : msg.id)}
-                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-white/10 text-ink-3 hover:text-ink transition-all cursor-pointer"
+                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-raise text-ink-3 hover:text-ink transition-all cursor-pointer"
                               >
                                 <MoreVertical className="w-4 h-4" />
                               </button>
                               
                               {openMenuId === msg.id && (
-                                <div className="absolute right-0 bottom-full mb-1 z-50 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl p-1 flex flex-col min-w-[100px] divide-y divide-white/5 animate-fade-in">
+                                <div className="absolute right-0 bottom-full mb-1 z-50 bg-surface border border-line rounded-xl shadow-2xl p-1 flex flex-col min-w-[100px] divide-y divide-line-soft animate-fade-in">
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -540,9 +550,9 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                                       setEditingText(msg.conteudo);
                                       setOpenMenuId(null);
                                     }}
-                                    className="px-3 py-1.5 text-xs text-ink hover:bg-white/5 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
+                                    className="px-3 py-1.5 text-xs text-ink hover:bg-raise rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
                                   >
-                                    <Pencil className="w-3 h-3 text-[#F26A1B]" />
+                                    <Pencil className="w-3 h-3 text-accent" />
                                     Editar
                                   </button>
                                   <button
@@ -551,7 +561,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                                       setConfirmingDeleteId(msg.id);
                                       setOpenMenuId(null);
                                     }}
-                                    className="px-3 py-1.5 text-xs text-rose-500 hover:bg-rose-500/10 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
+                                    className="px-3 py-1.5 text-xs text-danger hover:bg-danger-soft rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
                                   >
                                     <Trash2 className="w-3 h-3" />
                                     Excluir
@@ -565,27 +575,27 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                           <div
                             className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                               isOwn
-                                ? 'bg-[#F26A1B] text-white rounded-tr-none shadow-[0_4px_12px_rgba(242,106,27,0.2)]'
-                                : 'bg-surface-3 text-ink-2 rounded-tl-none border border-white/5'
+                                ? 'bg-accent text-white rounded-tr-none shadow-[0_4px_12px_rgba(242,106,27,0.15)] font-medium'
+                                : 'bg-raise text-ink-2 rounded-tl-none border border-line font-medium'
                             }`}
                           >
                             {isMessageExcluded ? (
                               <p className="italic text-ink-3 text-xs">Mensagem apagada</p>
                             ) : isConfirmingDelete ? (
                               <div className="flex flex-col gap-2 p-1 min-w-[150px]">
-                                <p className="text-xs font-semibold text-white">Excluir esta mensagem?</p>
+                                <p className="text-xs font-semibold text-ink">Excluir esta mensagem?</p>
                                 <div className="flex justify-end gap-1.5">
                                   <button
                                     type="button"
                                     onClick={() => setConfirmingDeleteId(null)}
-                                    className="px-2.5 py-1 text-[10px] uppercase font-bold text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-[10px] uppercase font-bold text-ink-3 hover:text-ink hover:bg-raise rounded-lg transition-colors cursor-pointer"
                                   >
                                     Não
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => handleDelete(msg.id)}
-                                    className="px-2.5 py-1 text-[10px] uppercase font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-[10px] uppercase font-bold text-white bg-danger hover:bg-danger/90 rounded-lg transition-colors cursor-pointer"
                                   >
                                     Sim
                                   </button>
@@ -596,14 +606,14 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                                 <textarea
                                   value={editingText}
                                   onChange={(e) => setEditingText(e.target.value)}
-                                  className="bg-black/35 text-white text-sm border border-[#F26A1B]/40 rounded-xl p-2 focus:outline-none focus:border-white w-full resize-none placeholder:text-white/40"
+                                  className="bg-bg-sub text-ink text-sm border border-accent/40 rounded-xl p-2 focus:outline-none focus:border-accent w-full resize-none placeholder:text-ink-3"
                                   rows={2}
                                 />
                                 <div className="flex justify-end gap-1.5">
                                   <button
                                     type="button"
                                     onClick={() => setEditingMsgId(null)}
-                                    className="px-2.5 py-1 text-[12px] font-semibold text-white/70 hover:text-white hover:bg-white/5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-[12px] font-semibold text-ink-3 hover:text-ink hover:bg-raise rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                                   >
                                     <X className="w-3 h-3" />
                                     Cancelar
@@ -611,7 +621,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                                   <button
                                     type="button"
                                     onClick={() => handleSaveEdit(msg.id)}
-                                    className="px-2.5 py-1 text-[12px] font-semibold text-[#F26A1B] bg-white hover:bg-white/90 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                                    className="px-2.5 py-1 text-[12px] font-semibold text-accent bg-bg-sub border border-accent/20 hover:bg-raise rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                                   >
                                     <Check className="w-3 h-3" />
                                     Salvar
@@ -624,14 +634,14 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                           </div>
                         </div>
 
-                        <span className="text-[12px] text-ink-3 mt-1 flex items-center gap-1 num">
+                        <span className="text-[11px] text-ink-3 mt-1 flex items-center gap-1 z-num">
                           <Clock className="w-3 h-3" />
                           {formatTime(msg.criado_em)}
                           {msg.editado_em && !isMessageExcluded && (
-                            <span className="text-[12px] text-ink-3 italic ml-1">(editada)</span>
+                            <span className="text-[11px] text-ink-3 italic ml-1">(editada)</span>
                           )}
                           {isOwn && msg.lida && !isMessageExcluded && (
-                            <span className="text-emerald-400 text-[10px] font-semibold ml-1">Lida</span>
+                            <span className="text-ok text-[10px] font-bold ml-1 uppercase tracking-wider">Lida</span>
                           )}
                         </span>
                       </div>
@@ -643,28 +653,28 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSend} className="p-4 bg-surface border-t border-white/5 flex gap-2 shrink-0">
+            <form onSubmit={handleSend} className="p-4 bg-bg-sub border-t border-line flex gap-2 shrink-0">
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={`Mensagem para ${getFirstName(getActiveStudentProfileName())}...`}
-                className="flex-1 bg-[#141414] text-ink border border-white/5 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26A1B]/40 transition-colors placeholder:text-ink-3"
+                className="z-input flex-1"
               />
               <button
                 type="submit"
                 disabled={!inputText.trim()}
-                className="w-12 h-12 rounded-2xl bg-[#F26A1B] hover:bg-[#d55814] active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center transition-all cursor-pointer text-white shadow-lg shadow-[#F26A1B]/20"
+                className="z-btn z-btn--primary z-btn--icon w-11 h-11"
               >
-                <Send className="w-5 h-5" />
+                <Send className="w-4 h-4" />
               </button>
             </form>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-ink-3 h-full justify-center">
-            <MessageSquare className="w-16 h-16 text-[#F26A1B]/15 mb-4 animate-pulse" />
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-ink-3 h-full">
+            <MessageSquare className="w-16 h-16 text-accent/15 mb-4 animate-pulse" />
             <h3 className="font-semibold text-lg text-ink">Centro de mensagens</h3>
-            <p className="text-sm max-w-sm mt-1">Selecione um aluno na barra lateral esquerda para visualizar o histórico de conversas e enviar mensagens em tempo real.</p>
+            <p className="text-sm max-w-sm mt-1 text-ink-2">Selecione um aluno na barra lateral esquerda para visualizar o histórico de conversas e enviar mensagens em tempo real.</p>
           </div>
         )}
       </div>

@@ -52,7 +52,7 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
     .sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
 
   if (carregando) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-flame animate-spin" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 text-accent animate-spin" /></div>;
   }
 
   return (
@@ -62,32 +62,32 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-amber/5 border border-amber/20 rounded-[40px] p-8 space-y-6"
+          className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-6 space-y-6"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber/20 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-amber" />
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-amber-500" />
               </div>
               <div>
-                <h3 className="text-[20px] font-semibold text-amber">Solicitações <span className="text-ink">pendentes</span></h3>
-                <p className="text-[12px] text-amber/60">{solicitacoesPendentes.length} novas solicitações</p>
+                <h3 className="text-lg font-bold text-amber-500">Solicitações <span className="text-ink">pendentes</span></h3>
+                <p className="text-[12px] text-ink-3">{solicitacoesPendentes.length} novas solicitações</p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {solicitacoesPendentes.map(req => (
-              <div key={req.id} className="bg-void border border-white/5 rounded-3xl p-6 flex items-center justify-between gap-4">
+              <div key={req.id} className="bg-bg-sub border border-line rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center border border-white/10">
-                    <User className="w-6 h-6 text-ink-3" />
+                  <div className="z-avatar">
+                    <User className="w-5 h-5 text-ink-2" />
                   </div>
                   <div>
                     {req.aluno_nome && !isUUID(req.aluno_nome) && (
                       <h4 className="font-semibold text-ink leading-none">{req.aluno_nome}</h4>
                     )}
-                    <p className="text-[12px] text-ink-3 mt-1 num">
+                    <p className="text-[12px] text-ink-3 mt-1.5 z-num font-medium">
                       {new Date(req.data_hora).toLocaleDateString('pt-BR')} • {new Date(req.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -98,14 +98,14 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
                       <button 
                         disabled={processingId === req.id}
                         onClick={() => handleUpdateStatus(req, 'confirmado')}
-                        className="w-10 h-10 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center hover:bg-green-500/20 transition-all border border-green-500/20"
+                        className="w-9 h-9 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center hover:bg-green-500/20 transition-all border border-green-500/20 cursor-pointer"
                       >
                         {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" />}
                       </button>
                       <button 
                         disabled={processingId === req.id}
                         onClick={() => handleUpdateStatus(req, 'cancelado')}
-                        className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-all border border-red-500/20"
+                        className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-all border border-red-500/20 cursor-pointer"
                       >
                         {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-5 h-5" />}
                       </button>
@@ -122,16 +122,15 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* FILTER TABS */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-[28px] font-semibold text-ink">Gestão da <span className="text-flame">agenda</span></h3>
-            <div className="flex gap-1 bg-white/5 p-1 rounded-2xl border border-white/5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="z-display">Gestão da <span className="text-accent">agenda</span></h3>
+            <div className="z-chips">
               {(['todos', 'confirmado', 'solicitado', 'cancelado'] as const).map(f => (
                 <button
                   key={f}
                   onClick={() => setSelectedFilter(f)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    selectedFilter === f ? 'bg-flame text-void' : 'text-ink-3 hover:text-ink hover:bg-white/5'
-                  }`}
+                  aria-selected={selectedFilter === f}
+                  className="z-chip"
                 >
                   {f === 'todos' ? 'Ver tudo' : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
@@ -145,20 +144,20 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
 
         {/* SIDEBAR WIDGETS */}
         <div className="space-y-8">
-          <div className="bg-surface-2 border border-white/5 rounded-[40px] p-8 space-y-6">
-            <h4 className="text-base font-semibold text-ink">Próximas <span className="text-flame">sessões</span></h4>
+          <div className="z-card space-y-5">
+            <h4 className="z-eyebrow">Próximas <span className="text-accent">sessões</span></h4>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               {proximasSessoes.slice(0, 3).map(s => (
-                <div key={s.id} className="flex items-start gap-4 p-4 bg-void border border-white/5 rounded-2xl">
-                  <div className="w-10 h-10 rounded-xl bg-flame/10 flex items-center justify-center text-flame shrink-0">
+                <div key={s.id} className="flex items-start gap-4 p-4 bg-bg-sub border border-line rounded-xl hover:border-line-strong transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
                     {s.aluno_nome && !isUUID(s.aluno_nome) && (
                       <h5 className="font-semibold text-ink leading-tight">{s.aluno_nome}</h5>
                     )}
-                    <p className="text-[12px] text-ink-3 mt-1 num">
+                    <p className="text-[12px] text-ink-3 mt-1.5 z-num font-medium">
                       {new Date(s.data_hora).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} • {new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
@@ -172,7 +171,7 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
             {!isReadOnly && (
               <button 
                 onClick={() => setModalAberto(true)} 
-                className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl text-xs font-semibold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                className="z-btn z-btn--ghost w-full flex items-center justify-center gap-2 mt-4"
               >
                 <Plus className="w-4 h-4" /> Criar p/ aluno
               </button>

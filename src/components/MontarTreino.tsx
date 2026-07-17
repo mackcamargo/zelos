@@ -422,29 +422,29 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
     <div id="workout-creator-root" className="space-y-6">
       
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-2 p-5 rounded-2xl border border-white/5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-sub p-5 rounded-2xl border border-line">
         <div className="flex items-center gap-3">
           <button
             id="btn-back-from-creator"
             type="button"
             onClick={onBack}
-            className="p-2.5 rounded-xl bg-void border border-white/5 text-ink-2 hover:text-ink transition-all hover:border-white/10"
+            className="z-btn z-btn--ghost z-btn--icon"
           >
-            <ArrowLeft className="w-5 h-5 text-flame" />
+            <ArrowLeft className="w-5 h-5 text-accent" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[12px] bg-flame/10 text-flame px-2 py-0.5 rounded-full font-semibold">
+              <span className="z-badge z-badge--accent">
                 Montando treino
               </span>
               <span className={`text-[12px] px-2 py-0.5 rounded-full font-semibold ${
-                isTemplateMode ? 'bg-violet/10 text-violet' :
+                isTemplateMode ? 'bg-indigo-500/10 text-indigo-400' :
                 status === 'publicado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
               }`}>
                 {isTemplateMode ? 'Modo template' : (status === 'publicado' ? 'Publicado' : 'Rascunho')}
               </span>
             </div>
-            <h2 className="font-semibold text-lg text-ink leading-tight mt-1">
+            <h2 className="z-h2 mt-1">
               {isTemplateMode ? 'Criando modelo de treino' : `Para: ${aluno?.profile?.nome || 'Aluno'}`}
             </h2>
           </div>
@@ -458,9 +458,9 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               id="btn-templates-workout"
               type="button"
               onClick={() => setShowTemplatesModal(true)}
-              className="py-2.5 px-4 rounded-xl border border-white/5 hover:bg-surface-3 bg-void text-xs font-mono text-ink-2 hover:text-ink flex items-center gap-2 transition-all"
+              className="z-btn z-btn--ghost z-btn--sm flex items-center gap-1.5"
             >
-              <FolderHeart className="w-4 h-4 text-violet" />
+              <FolderHeart className="w-4 h-4 text-accent" />
               <span>Usar Modelo</span>
             </button>
           )}
@@ -470,9 +470,9 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
             type="button"
             disabled={saving || loading}
             onClick={() => handleSave('rascunho')}
-            className="py-2.5 px-4 rounded-xl border border-white/5 hover:border-white/10 bg-surface-3 hover:bg-surface-2 text-xs font-semibold text-ink transition-all disabled:opacity-40"
+            className="z-btn z-btn--ghost z-btn--sm flex items-center gap-1.5"
           >
-            <Save className="w-4 h-4 text-ink-3 inline mr-1.5" />
+            <Save className="w-4 h-4 text-accent" />
             {isTemplateMode ? 'Salvar modelo' : 'Salvar rascunho'}
           </button>
 
@@ -482,7 +482,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               type="button"
               disabled={saving || loading}
               onClick={() => setShowPublishConfirm(true)}
-              className="py-2.5 px-5 rounded-xl brand-gradient-bg font-semibold text-void text-xs flex items-center gap-2 transition-all shadow-[0_4px_15px_rgba(245,51,79,0.2)] hover:opacity-95 disabled:opacity-40"
+              className="z-btn z-btn--primary z-btn--sm flex items-center gap-1.5"
             >
               <Send className="w-4 h-4" />
               <span>Publicar treino</span>
@@ -493,7 +493,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
       {loading ? (
         <div className="flex justify-center py-24">
-          <span className="w-8 h-8 border-2 border-flame border-t-transparent rounded-full animate-spin" />
+          <span className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -502,14 +502,14 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
           <div className="lg:col-span-7 space-y-6">
             
             {/* Form Settings */}
-            <div className="bg-surface border border-white/5 rounded-2xl p-5 space-y-4">
-              <h3 className="text-[12px] font-semibold text-ink-3 flex items-center gap-2">
-                <Info className="w-4 h-4 text-flame" />
+            <div className="z-card space-y-4">
+              <h3 className="z-eyebrow flex items-center gap-2">
+                <Info className="w-4 h-4 text-accent" />
                 <span>Configurações gerais</span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[12px] font-medium text-ink-2 block mb-1.5">
+                  <label className="z-label block mb-1.5">
                     {isTemplateMode ? 'Título do modelo' : 'Título do treino'}
                   </label>
                   <input
@@ -519,13 +519,13 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ex: Treino A, Pernas Foco Glúteo"
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none"
+                    className="z-input !h-10 text-xs"
                   />
                 </div>
                 {!isTemplateMode ? (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[12px] font-medium text-white/50 block mb-2">
+                      <label className="z-label block mb-1.5">
                         Data
                       </label>
                       <div className="relative">
@@ -535,12 +535,12 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           type="date"
                           value={dataTreino}
                           onChange={(e) => setDataTreino(e.target.value)}
-                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark] num"
+                          className="z-input !h-10 text-xs pl-10 z-num"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium text-white/50 block mb-2">
+                      <label className="z-label block mb-1.5">
                         Hora
                       </label>
                       <div className="relative">
@@ -550,14 +550,14 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           type="time"
                           value={horaTreino}
                           onChange={(e) => setHoraTreino(e.target.value)}
-                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark] num"
+                          className="z-input !h-10 text-xs pl-10 z-num"
                         />
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <label className="text-[12px] font-medium text-ink-2 block mb-1.5">
+                    <label className="z-label block mb-1.5">
                       Descrição do modelo (opcional)
                     </label>
                     <input
@@ -565,7 +565,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       value={descricao}
                       onChange={(e) => setDescricao(e.target.value)}
                       placeholder="Ex: Foco em hipertrofia de membros inferiores"
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none"
+                      className="z-input !h-10 text-xs"
                     />
                   </div>
                 )}
@@ -573,20 +573,20 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
             </div>
 
             {/* Exercises List Area */}
-            <div className="bg-surface border border-white/5 rounded-2xl p-5 space-y-4">
+            <div className="z-card space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-[12px] font-semibold text-ink-3 flex items-center gap-2">
-                  <Dumbbell className="w-4 h-4 text-flame animate-pulse" />
+                <h3 className="z-eyebrow flex items-center gap-2">
+                  <Dumbbell className="w-4 h-4 text-accent animate-pulse" />
                   <span>Exercícios adicionados ({selectedExercises.length})</span>
                 </h3>
                 {selectedExercises.length > 0 && (
-                  <div className="flex gap-4">
+                  <div className="flex items-center gap-4">
                     {!isTemplateMode && (
                       <button
                         id="btn-save-as-template-prompt"
                         type="button"
                         onClick={() => setShowTemplatesModal(true)}
-                        className="text-[12px] text-violet hover:text-violet-300 flex items-center gap-1"
+                        className="text-[12px] text-accent hover:underline flex items-center gap-1 font-semibold"
                       >
                         <FolderHeart className="w-3 h-3" />
                         Salvar como modelo
@@ -604,10 +604,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           setTimeout(() => setShowClearConfirm(false), 3000);
                         }
                       }}
-                      className={`text-[12px] transition-colors ${
+                      className={`text-[12px] font-semibold transition-colors ${
                         showClearConfirm 
-                          ? 'text-white bg-rose-500 hover:bg-rose-600 px-2 py-0.5 rounded' 
-                          : 'text-rose-400 hover:text-rose-300'
+                          ? 'text-white bg-danger hover:bg-danger/95 px-2 py-0.5 rounded' 
+                          : 'text-danger hover:underline'
                       }`}
                     >
                       {showClearConfirm ? 'Tem certeza?' : 'Limpar tudo'}
@@ -617,17 +617,17 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               </div>
 
               {selectedExercises.length === 0 ? (
-                <div className="p-12 border border-dashed border-white/5 rounded-xl text-center space-y-3">
+                <div className="p-12 border border-dashed border-line rounded-xl text-center space-y-3 bg-bg-sub">
                   <Dumbbell className="w-10 h-10 text-ink-3 mx-auto stroke-1" />
-                  <p className="text-xs text-ink-2">Nenhum exercício ainda neste treino.</p>
-                  <p className="text-[10px] text-ink-3 max-w-[280px] mx-auto leading-relaxed">
+                  <p className="text-xs text-ink-2 font-semibold">Nenhum exercício ainda neste treino.</p>
+                  <p className="text-[11px] text-ink-3 max-w-[280px] mx-auto leading-relaxed">
                     Pesquise e selecione exercícios na biblioteca à direita para montar a planilha.
                   </p>
                   <button
                     id="btn-focus-library"
                     type="button"
                     onClick={() => setShowLibrary(true)}
-                    className="lg:hidden py-1.5 px-3 bg-white/5 rounded-lg text-[12px] text-ink hover:bg-white/10"
+                    className="lg:hidden z-btn z-btn--ghost z-btn--sm"
                   >
                     Ver biblioteca abaixo
                   </button>
@@ -644,13 +644,13 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     return (
                       <div
                         key={index}
-                        className="bg-void border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-white/10 transition-colors group relative overflow-hidden"
+                        className="bg-bg-sub border border-line rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-line-strong transition-all group relative overflow-hidden shadow-sm"
                       >
                         {/* Compact metadata column */}
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           
                           {/* Mini Looping Video or Icon */}
-                          <div className="w-12 h-12 rounded-lg bg-surface-2 border border-white/5 flex items-center justify-center shrink-0 overflow-hidden">
+                          <div className="w-12 h-12 rounded-lg bg-surface border border-line flex items-center justify-center shrink-0 overflow-hidden">
                             {resolvedVideoUrl ? (
                               <video
                                 src={resolvedVideoUrl}
@@ -666,60 +666,60 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           </div>
 
                           <div className="min-w-0">
-                            <span className="text-[12px] bg-white/5 text-ink-3 px-2 py-0.5 rounded-full font-semibold">
+                            <span className="z-badge z-badge--accent">
                               {primario}
                             </span>
-                            <h4 className="font-semibold text-xs text-ink mt-1 truncate">
+                            <h4 className="font-semibold text-xs text-ink mt-1.5 truncate">
                               {index + 1}. {name}
                             </h4>
                           </div>
                         </div>
 
                         {/* Right side parameters and controls */}
-                        <div className="flex flex-row sm:flex-row items-center gap-4 justify-between sm:justify-end shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                        <div className="flex flex-row sm:flex-row items-center gap-4 justify-between sm:justify-end shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-line">
                           {/* Editable Plan Parameters (Series, Reps, Load) */}
                           <div className="grid grid-cols-3 gap-2 shrink-0">
                             <div className="w-16 sm:w-20">
-                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-semibold">Séries</label>
+                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Séries</label>
                               <input
                                 type="number"
                                 min="1"
                                 value={item.series}
                                 onChange={(e) => updateExerciseField(index, 'series', e.target.value)}
-                                className="w-full bg-surface border border-white/5 focus:border-white/10 rounded-lg p-2 text-center text-xs text-ink num"
+                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
                               />
                             </div>
                             <div className="w-16 sm:w-20">
-                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-semibold">Reps</label>
+                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Reps</label>
                               <input
                                 type="text"
                                 value={item.repeticoes}
                                 placeholder="ex: 10"
                                 onChange={(e) => updateExerciseField(index, 'repeticoes', e.target.value)}
-                                className="w-full bg-surface border border-white/5 focus:border-white/10 rounded-lg p-2 text-center text-xs text-ink num"
+                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
                               />
                             </div>
                             <div className="w-16 sm:w-20">
-                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-semibold">Carga (kg)</label>
+                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Carga (kg)</label>
                               <input
                                 type="number"
                                 step="any"
                                 placeholder="-"
                                 value={item.carga_kg ?? ''}
                                 onChange={(e) => updateExerciseField(index, 'carga_kg', e.target.value)}
-                                className="w-full bg-surface border border-white/5 focus:border-white/10 rounded-lg p-2 text-center text-xs text-ink num"
+                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
                               />
                             </div>
                           </div>
 
                           {/* Order & Remove Controls */}
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <div className="flex sm:flex-col gap-1">
                               <button
                                 type="button"
                                 disabled={index === 0}
                                 onClick={() => moveUp(index)}
-                                className="p-1 bg-surface hover:bg-surface-2 border border-white/5 rounded text-ink-2 hover:text-ink disabled:opacity-20 transition-all cursor-pointer"
+                                className="p-1 bg-surface hover:bg-raise border border-line rounded text-ink-2 hover:text-ink disabled:opacity-20 transition-all cursor-pointer"
                                 title="Subir"
                               >
                                 <ChevronUp className="w-3.5 h-3.5" />
@@ -728,7 +728,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                                 type="button"
                                 disabled={index === selectedExercises.length - 1}
                                 onClick={() => moveDown(index)}
-                                className="p-1 bg-surface hover:bg-surface-2 border border-white/5 rounded text-ink-2 hover:text-ink disabled:opacity-20 transition-all cursor-pointer"
+                                className="p-1 bg-surface hover:bg-raise border border-line rounded text-ink-2 hover:text-ink disabled:opacity-20 transition-all cursor-pointer"
                                 title="Descer"
                               >
                                 <ChevronDown className="w-3.5 h-3.5" />
@@ -738,7 +738,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                             <button
                               type="button"
                               onClick={() => handleRemoveExercise(index)}
-                              className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                              className="p-1.5 text-danger hover:bg-danger-soft rounded transition-colors cursor-pointer"
                               title="Remover"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -758,10 +758,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
           {/* RIGHT COL: EXERCISE LIBRARY (5cols) */}
           <div className="lg:col-span-5 space-y-6">
             
-            <div className="bg-surface border border-white/5 rounded-2xl p-5 space-y-4 lg:sticky lg:top-6">
+            <div className="z-card space-y-4 lg:sticky lg:top-6">
               <div>
-                <h3 className="font-semibold text-sm text-ink flex items-center gap-2">
-                  <Dumbbell className="w-4 h-4 text-violet" />
+                <h3 className="z-eyebrow flex items-center gap-2">
+                  <Dumbbell className="w-4 h-4 text-accent" />
                   <span>Biblioteca de exercícios</span>
                 </h3>
                 <p className="text-xs text-ink-2 mt-1">
@@ -770,39 +770,38 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               </div>
 
               {studentAnamnese?.possui_lesao && (
-                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 flex gap-2 text-[11px] text-rose-300">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="bg-danger-soft border border-danger/20 rounded-xl p-3 flex gap-2 text-[11px] text-danger">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-rose-200">Atenção:</span>
-                    <p className="mt-0.5 leading-relaxed">Este aluno relatou: <span className="font-medium text-white">{studentAnamnese.lesoes}</span></p>
+                    <span className="font-semibold">Atenção:</span>
+                    <p className="mt-0.5 leading-relaxed">Este aluno relatou: <span className="font-semibold text-ink">{studentAnamnese.lesoes}</span></p>
                   </div>
                 </div>
               )}
 
               {/* Library search and filter */}
               <div className="space-y-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                <div className="z-search">
+                  <span className="z-search__icon">
+                    <Search className="w-4 h-4 text-ink-3" />
+                  </span>
                   <input
                     id="search-library-input"
                     type="text"
                     value={searchLibrary}
                     onChange={(e) => setSearchLibrary(e.target.value)}
                     placeholder="Pesquisar exercício ou músculo..."
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-2.5 pl-9 pr-4 text-xs text-ink placeholder-ink-3 outline-none"
+                    className="z-input"
                   />
                 </div>
 
                 {/* Categories selector horizontal list */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin">
+                <div className="z-chips">
                   <button
                     type="button"
                     onClick={() => setSelectedCategoriaId('all')}
-                    className={`py-1 px-3 rounded-full text-[12px] shrink-0 transition-all ${
-                      selectedCategoriaId === 'all' 
-                        ? 'bg-violet text-white font-semibold' 
-                        : 'bg-void border border-white/5 text-ink-2 hover:border-white/10'
-                    }`}
+                    aria-selected={selectedCategoriaId === 'all'}
+                    className="z-chip"
                   >
                     Todos
                   </button>
@@ -811,11 +810,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       key={cat.id}
                       type="button"
                       onClick={() => setSelectedCategoriaId(cat.id)}
-                      className={`py-1 px-3 rounded-full text-[12px] shrink-0 transition-all ${
-                        selectedCategoriaId === cat.id 
-                          ? 'bg-violet text-white font-semibold' 
-                          : 'bg-void border border-white/5 text-ink-2 hover:border-white/10'
-                      }`}
+                      aria-selected={selectedCategoriaId === cat.id}
+                      className="z-chip"
                     >
                       {cat.nome}
                     </button>
@@ -826,7 +822,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               {/* Library List with quick Add buttons */}
               {loadingLibrary ? (
                 <div className="flex justify-center py-10">
-                  <span className="w-6 h-6 border border-flame border-t-transparent rounded-full animate-spin" />
+                  <span className="w-6 h-6 border border-accent border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : filteredLibrary.length === 0 ? (
                 <p className="text-xs text-ink-3 italic text-center py-8">Nenhum exercício correspondente encontrado.</p>
@@ -843,11 +839,11 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                         id={`lib-exercise-item-${ex.id}`}
                         key={ex.id}
                         onClick={() => handleAddExercise(ex)}
-                        className="flex items-center justify-between p-2.5 bg-void rounded-xl border border-white/5 hover:border-white/10 hover:bg-surface-2 transition-all cursor-pointer group clicavel"
+                        className="flex items-center justify-between p-2.5 bg-bg-sub rounded-xl border border-line hover:border-line-strong hover:bg-raise transition-all cursor-pointer group clicavel"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {/* Small Media thumbnail preview */}
-                          <div className="w-10 h-10 rounded-lg bg-surface-2 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
+                          <div className="w-10 h-10 rounded-lg bg-surface border border-line flex items-center justify-center overflow-hidden shrink-0">
                             {resolvedVideoUrl ? (
                               <video
                                 src={resolvedVideoUrl}
@@ -863,10 +859,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           </div>
                           
                           <div className="min-w-0">
-                            <h4 className="font-medium text-xs text-ink group-hover:text-white transition-colors truncate">
+                            <h4 className="font-semibold text-xs text-ink group-hover:text-accent transition-colors truncate">
                               {ex.nome}
                             </h4>
-                            <span className="text-[12px] text-ink-3 block mt-0.5">
+                            <span className="text-[11px] text-ink-3 block mt-0.5">
                               {ex.musculo_primario?.[0]}
                             </span>
                           </div>
@@ -874,7 +870,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
                         <button
                           type="button"
-                          className="p-1.5 rounded-lg bg-white/5 text-ink-2 hover:text-void hover:bg-flame transition-colors shrink-0"
+                          className="p-1.5 rounded-lg bg-raise text-ink-2 hover:text-white hover:bg-accent transition-colors shrink-0 cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -887,27 +883,27 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
           </div>
 
-        </div>
-      )}
+         </div>
+       )}
 
       {/* PUBLISH CONFIRMATION DIALOG */}
       <AnimatePresence>
         {showPublishConfirm && (
-          <div id="publish-confirm-overlay" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-md">
+          <div id="publish-confirm-overlay" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface border border-white/5 rounded-2xl max-w-sm w-full p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] space-y-4"
+              className="bg-surface border border-line rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4"
             >
-              <div className="flex items-center gap-2 text-flame">
+              <div className="flex items-center gap-2 text-accent">
                 <Sparkles className="w-5 h-5 animate-pulse" />
-                <h3 className="font-semibold text-base text-ink">Publicar treino?</h3>
+                <h3 className="z-h2">Publicar treino?</h3>
               </div>
-              <p className="text-[12px] text-ink-2 leading-relaxed">
-                Tem certeza que deseja publicar o treino <strong className="text-white">"{titulo}"</strong> para o aluno <strong className="text-white">{aluno?.profile?.nome}</strong>?
+              <p className="text-[12.5px] text-ink-2 leading-relaxed">
+                Tem certeza que deseja publicar o treino <strong className="text-ink">"{titulo}"</strong> para o aluno <strong className="text-ink">{aluno?.profile?.nome}</strong>?
               </p>
-              <p className="text-[12px] text-ink-3 leading-relaxed">
+              <p className="text-[11.5px] text-ink-3 leading-relaxed">
                 Ao publicar, ele será notificado e terá acesso instantâneo a essa planilha em sua área de aluno.
               </p>
               <div className="flex gap-2 justify-end pt-2">
@@ -915,7 +911,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   id="btn-cancel-publish"
                   type="button"
                   onClick={() => setShowPublishConfirm(false)}
-                  className="px-4 py-2 rounded-xl text-xs text-ink-2 hover:text-ink"
+                  className="z-btn z-btn--ghost z-btn--sm"
                 >
                   Cancelar
                 </button>
@@ -924,7 +920,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   type="button"
                   disabled={saving}
                   onClick={() => handleSave('publicado')}
-                  className="px-4 py-2 rounded-xl bg-flame hover:bg-flame/90 text-void font-semibold text-xs"
+                  className="z-btn z-btn--primary z-btn--sm"
                 >
                   {saving ? 'Publicando...' : 'Sim, publicar!'}
                 </button>
@@ -937,48 +933,48 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
       {/* TEMPLATES DIALOG (Save/Load) */}
       <AnimatePresence>
         {showTemplatesModal && (
-          <div id="templates-modal-overlay" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-md">
+          <div id="templates-modal-overlay" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface border border-white/5 rounded-2xl max-w-md w-full p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] space-y-5"
+              className="bg-surface border border-line rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5"
             >
-              <div className="flex justify-between items-start pb-2 border-b border-white/5">
+              <div className="flex justify-between items-start pb-2 border-b border-line">
                 <div>
-                  <h3 className="font-semibold text-base text-ink">Gerenciar modelos de treino</h3>
-                  <p className="text-[12px] text-ink-2">Reutilize estruturas prontas de treinos em diferentes alunos.</p>
+                  <h3 className="z-h2">Modelos de treino</h3>
+                  <p className="text-[12px] text-ink-2 mt-0.5">Reutilize estruturas prontas de treinos em diferentes alunos.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowTemplatesModal(false)}
-                  className="text-ink-3 hover:text-ink text-xs"
+                  className="text-ink-3 hover:text-ink text-sm font-semibold cursor-pointer"
                 >
-                  Fechar ✕
+                  ✕
                 </button>
               </div>
 
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[12px] font-medium text-ink-2 block">Nome do modelo:</label>
+                <div className="space-y-1.5">
+                  <label className="z-label block">Nome do modelo:</label>
                   <input
                     id="input-template-name"
                     type="text"
                     value={templateName}
                     onChange={(e) => setTemplateName(e.target.value)}
                     placeholder="Ex: Treino A - Peito e Tríceps"
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none"
+                    className="z-input !h-10 text-xs"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[12px] font-medium text-ink-2 block">Descrição (opcional):</label>
+                <div className="space-y-1.5">
+                  <label className="z-label block">Descrição (opcional):</label>
                   <input
                     id="input-template-desc"
                     type="text"
                     value={templateDesc}
                     onChange={(e) => setTemplateDesc(e.target.value)}
                     placeholder="Ex: Foco em força máxima"
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none"
+                    className="z-input !h-10 text-xs"
                   />
                 </div>
                 <button
@@ -986,15 +982,15 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   type="button"
                   onClick={handleSaveAsTemplate}
                   disabled={saving}
-                  className="w-full py-3 rounded-xl bg-violet hover:bg-violet/90 text-white font-semibold text-xs transition-all disabled:opacity-50"
+                  className="z-btn z-btn--primary w-full"
                 >
                   {saving ? 'Salvando...' : 'Salvar como modelo'}
                 </button>
               </div>
 
               {/* List of saved templates */}
-              <div className="space-y-2.5 pt-2 border-t border-white/5">
-                <span className="text-[12px] text-ink-3 block">Modelos disponíveis ({availableTemplates.length}):</span>
+              <div className="space-y-2.5 pt-4 border-t border-line">
+                <span className="text-[12px] text-ink-3 block font-bold uppercase tracking-wider">Modelos salvos ({availableTemplates.length}):</span>
                 {availableTemplates.length === 0 ? (
                   <p className="text-xs text-ink-3 italic py-4 text-center">Nenhum modelo salvo ainda.</p>
                 ) : (
@@ -1003,21 +999,21 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       <div
                         key={template.id}
                         onClick={() => handleLoadTemplate(template)}
-                        className="flex items-center justify-between p-2.5 bg-void rounded-xl border border-white/5 hover:border-white/10 hover:bg-surface-2 transition-all cursor-pointer group text-xs text-ink"
+                        className="flex items-center justify-between p-2.5 bg-bg-sub rounded-xl border border-line hover:border-line-strong hover:bg-raise transition-all cursor-pointer group text-xs text-ink"
                       >
-                        <div className="flex items-center gap-2">
-                          <FolderHeart className="w-4 h-4 text-violet shrink-0" />
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FolderHeart className="w-4 h-4 text-accent shrink-0" />
                           <div className="min-w-0">
-                            <span className="truncate block max-w-[200px]">{template.titulo}</span>
+                            <span className="font-semibold truncate block max-w-[200px]">{template.titulo}</span>
                             {template.descricao && (
-                              <span className="text-[12px] text-ink-3 truncate block max-w-[200px] num">{template.descricao}</span>
+                              <span className="text-[11px] text-ink-3 truncate block max-w-[200px] z-num">{template.descricao}</span>
                             )}
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={(e) => handleDeleteTemplate(template.id, e)}
-                          className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors"
+                          className="p-1.5 text-danger hover:bg-danger-soft rounded transition-colors cursor-pointer"
                           title="Excluir modelo"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
