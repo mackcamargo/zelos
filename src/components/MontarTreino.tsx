@@ -253,6 +253,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
   // Save Workout or Template
   const handleSave = async (targetStatus: 'rascunho' | 'publicado') => {
+    if (saving) return;
     if (!titulo.trim()) {
       showToast('O título é obrigatório.');
       return;
@@ -325,6 +326,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
   // Template logic
   const handleSaveAsTemplate = async () => {
+    if (saving) return;
     if (!templateName.trim()) {
       showToast('Digite um nome para o modelo.');
       return;

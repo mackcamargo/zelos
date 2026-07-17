@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, AlertCircle, TrendingUp, Search, 
-  ChevronRight, ArrowUpRight, ArrowDownRight,
-  Filter, Bell, Sparkles, User
+  AlertCircle, TrendingUp, Search, 
+  ChevronRight, ArrowUpRight, Bell, User
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 import { dbService } from '../lib/supabase';
 
 interface DashPersonalBemEstarProps {
@@ -38,155 +36,171 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-12 h-12 rounded-full border-2 border-flame/20 border-t-flame animate-spin" />
-        <p className="text-[12px] text-ink-3">Processando dados dos alunos...</p>
+      <div className="z-page pb-20 space-y-8">
+        <section className="grid grid-cols-2 gap-4">
+          <div className="z-card h-28 z-skeleton" />
+          <div className="z-card h-28 z-skeleton" />
+        </section>
+        <section className="space-y-4">
+          <div className="h-6 w-32 z-skeleton rounded-md" />
+          <div className="z-card z-card--flush">
+            <div className="p-4 space-y-4">
+              <div className="flex gap-4 items-center">
+                <div className="w-10 h-10 rounded-full z-skeleton" />
+                <div className="flex-1 space-y-2">
+                   <div className="h-4 w-1/3 z-skeleton rounded" />
+                   <div className="h-3 w-1/2 z-skeleton rounded" />
+                </div>
+              </div>
+              <div className="flex gap-4 items-center">
+                <div className="w-10 h-10 rounded-full z-skeleton" />
+                <div className="flex-1 space-y-2">
+                   <div className="h-4 w-1/4 z-skeleton rounded" />
+                   <div className="h-3 w-1/3 z-skeleton rounded" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="z-page pb-20 space-y-8">
       {/* Overview Stats */}
       <section className="grid grid-cols-2 gap-4">
-        <div className="bg-surface border border-white/5 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-3 mb-4 text-emerald">
-            <div className="p-2 rounded-lg bg-emerald/10 border border-emerald/20">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-            <span className="text-[12px] text-ink-3">Média geral</span>
+        {/* KPI: Média Geral */}
+        <div className="z-card z-card--rail z-rail-ok">
+          <div className="z-eyebrow mb-2 flex items-center gap-1">
+            <TrendingUp className="w-3 h-3 text-ok" strokeWidth={1.75} />
+            Média geral
           </div>
-          <h3 className="text-[28px] font-semibold text-ink num">
-            {alunostats.length > 0 
-              ? Math.round(alunostats.reduce((acc, a) => acc + (a.resumo?.indiceGeral || 0), 0) / alunostats.length) 
-              : 0}
-          </h3>
-          <p className="text-[12px] text-emerald font-semibold mt-1 flex items-center gap-1">
-            <ArrowUpRight className="w-3 h-3" /> +4% vs semana passada
-          </p>
+          <div className="z-stat">
+            <div className="z-stat__value text-ink z-num">
+              {alunostats.length > 0 
+                ? Math.round(alunostats.reduce((acc, a) => acc + (a.resumo?.indiceGeral || 0), 0) / alunostats.length) 
+                : 0}%
+            </div>
+            <span className="z-stat__delta z-stat__delta--up mt-1">
+              <ArrowUpRight className="w-3.5 h-3.5" /> +4% vs semana passada
+            </span>
+          </div>
         </div>
 
-        <div className="bg-surface border border-white/5 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-3 mb-4 text-flame">
-            <div className="p-2 rounded-lg bg-flame/10 border border-flame/20">
-              <AlertCircle className="w-4 h-4" />
-            </div>
-            <span className="text-[12px] text-ink-3">Sob atenção</span>
+        {/* KPI: Sob Atenção */}
+        <div className="z-card z-card--rail z-rail-alert">
+          <div className="z-eyebrow mb-2 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3 text-danger" strokeWidth={1.75} />
+            Sob atenção
           </div>
-          <h3 className="text-[28px] font-semibold text-ink num">{alunosAtencao.length}</h3>
-          <p className="text-[12px] text-flame font-semibold mt-1">
-            Alunos com índice baixo
-          </p>
+          <div className="z-stat">
+            <div className="z-stat__value text-ink z-num">
+              {alunosAtencao.length}
+            </div>
+            <span className="z-sub mt-1">
+              Alunos com índice baixo
+            </span>
+          </div>
         </div>
       </section>
 
       {/* Attention Required List */}
       {alunosAtencao.length > 0 && (
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="z-between">
             <div className="flex items-center gap-2">
-              <Bell className="w-4 h-4 text-flame" />
-              <h4 className="text-[14px] font-semibold text-ink">Atenção prioritária</h4>
+              <Bell className="w-4 h-4 text-danger" strokeWidth={1.75} />
+              <h4 className="z-h2 text-ink">Atenção prioritária</h4>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-flame/10 text-flame text-[12px] font-semibold num">
-              {alunosAtencao.length} alunos
+            <span className="z-badge z-badge--danger z-num">
+              {alunosAtencao.length} {alunosAtencao.length === 1 ? 'aluno' : 'alunos'}
             </span>
           </div>
           
-          <div className="space-y-3">
-            {alunosAtencao.map(aluno => (
-              <motion.button
-                key={aluno.alunoId}
-                onClick={() => onSelectAluno(aluno.alunoId)}
-                whileHover={{ x: 4 }}
-                className="w-full bg-flame/5 border border-flame/10 rounded-2xl p-4 flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    {aluno.avatar ? (
-                      <img src={aluno.avatar} className="w-12 h-12 rounded-full border-2 border-flame/20 object-cover" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-full bg-surface-2 flex items-center justify-center border-2 border-flame/20">
-                        <User className="w-6 h-6 text-ink-3" />
-                      </div>
-                    )}
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-flame rounded-full border-2 border-black flex items-center justify-center">
-                      <AlertCircle className="w-3 h-3 text-white" />
+          <div className="z-card z-card--flush">
+            <div className="z-list">
+              {alunosAtencao.map(aluno => (
+                <div
+                  key={aluno.alunoId}
+                  onClick={() => onSelectAluno(aluno.alunoId)}
+                  className="z-row group"
+                >
+                  <div className="z-avatar">
+                    {aluno.nome.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="z-row__main">
+                    <div className="z-row__name text-ink">{aluno.nome}</div>
+                    <div className="z-row__meta">
+                      Índice: <span className="z-num text-danger font-semibold">{aluno.resumo?.indiceGeral}%</span> • Treino: <span className="z-num">{aluno.resumo?.detalhes.treino.valor}%</span>
                     </div>
                   </div>
-                  <div className="text-left">
-                    <h5 className="font-semibold text-ink leading-tight">{aluno.nome}</h5>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[12px] text-flame font-semibold num">
-                        Índice: {aluno.resumo?.indiceGeral}%
-                      </span>
-                      <span className="text-[12px] text-ink-3">•</span>
-                      <span className="text-[12px] text-ink-3 num">
-                        Treino: {aluno.resumo?.detalhes.treino.valor}%
-                      </span>
-                    </div>
-                  </div>
+                  <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-accent transition-colors" strokeWidth={1.75} />
                 </div>
-                <ChevronRight className="w-5 h-5 text-ink-3 group-hover:text-flame transition-colors" />
-              </motion.button>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
       )}
 
       {/* Main List */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h4 className="text-[14px] font-semibold text-ink">Todos os alunos</h4>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-3" />
+        <div className="z-between">
+          <h4 className="z-h2 text-ink">Todos os alunos</h4>
+          <div className="z-search max-w-xs w-full sm:w-48">
+            <span className="z-search__icon">
+              <Search className="w-4 h-4 text-ink-3" strokeWidth={1.75} />
+            </span>
             <input 
               type="text" 
               placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-surface border border-white/5 rounded-full py-1.5 pl-8 pr-4 text-xs text-ink placeholder:text-ink-3 focus:outline-none focus:border-flame/30 w-32 md:w-48 transition-all"
+              className="z-input !h-9 !text-xs !pl-9"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {filteredAlunos.map(aluno => (
-            <button
-              key={aluno.alunoId}
-              onClick={() => onSelectAluno(aluno.alunoId)}
-              className="bg-surface border border-white/5 rounded-2xl p-4 flex items-center justify-between hover:border-white/10 transition-colors group"
-            >
-              <div className="flex items-center gap-4">
-                {aluno.avatar ? (
-                  <img src={aluno.avatar} className="w-10 h-10 rounded-full border border-white/10 object-cover" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center border border-white/10">
-                    <User className="w-5 h-5 text-ink-3" />
-                  </div>
-                )}
-                <div className="text-left">
-                  <h5 className="font-semibold text-ink text-sm">{aluno.nome}</h5>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <div className="w-20 h-1 bg-white/5 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full ${
-                          (aluno.resumo?.indiceGeral || 0) >= 85 ? 'bg-emerald' : 
-                          (aluno.resumo?.indiceGeral || 0) >= 60 ? 'bg-amber' : 
-                          'bg-flame'
-                        }`}
-                        style={{ width: `${aluno.resumo?.indiceGeral || 0}%` }}
-                      />
-                    </div>
-                    <span className="text-[12px] text-ink-3 num">
-                      {aluno.resumo?.indiceGeral || 0}%
-                    </span>
-                  </div>
-                </div>
+        <div className="z-card z-card--flush">
+          <div className="z-list">
+            {filteredAlunos.length === 0 ? (
+              <div className="z-empty">
+                <span className="z-empty__title">Nenhum aluno encontrado</span>
+                <p className="z-empty__hint">Não encontramos nenhum aluno correspondente à sua busca.</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-flame transition-colors" />
-            </button>
-          ))}
+            ) : (
+              filteredAlunos.map(aluno => (
+                <div
+                  key={aluno.alunoId}
+                  onClick={() => onSelectAluno(aluno.alunoId)}
+                  className="z-row group"
+                >
+                  <div className="z-avatar">
+                    {aluno.nome.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="z-row__main">
+                    <div className="z-row__name text-ink">{aluno.nome}</div>
+                    <div className="z-row__meta mt-0.5 flex items-center gap-2">
+                      <div className="w-16 h-1 bg-line rounded-full overflow-hidden animate-none">
+                        <div 
+                          className={`h-full ${
+                            (aluno.resumo?.indiceGeral || 0) >= 85 ? 'bg-ok' : 
+                            (aluno.resumo?.indiceGeral || 0) >= 60 ? 'bg-warn' : 
+                            'bg-danger'
+                          }`}
+                          style={{ width: `${aluno.resumo?.indiceGeral || 0}%` }}
+                        />
+                      </div>
+                      <span className="z-num text-[12px]">
+                        {aluno.resumo?.indiceGeral || 0}%
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-accent transition-colors" strokeWidth={1.75} />
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </section>
     </div>

@@ -84,6 +84,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
   };
 
   const handleApplyTemplate = async () => {
+    if (applying) return;
     if (!supabase || !templateToApply || !selectedStudentId) {
       if (!selectedStudentId) showToast('Selecione um aluno');
       return;

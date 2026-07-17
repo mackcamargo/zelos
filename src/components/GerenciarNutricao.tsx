@@ -128,6 +128,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
   const totals = calculateTotals();
 
   const handleSave = async () => {
+    if (saving) return;
     setSaving(true);
     try {
       await dbService.savePlanoAlimentar(plano);

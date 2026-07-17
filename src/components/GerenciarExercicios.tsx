@@ -428,6 +428,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   // Save Exercise
   const handleSave = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) e.preventDefault();
+    if (saving) return;
     if (!nome.trim() || !categoriaId) {
       setUploadError("Nome e Categoria são obrigatórios.");
       return;

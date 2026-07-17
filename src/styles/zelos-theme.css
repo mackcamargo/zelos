@@ -1,0 +1,637 @@
+/* ==========================================================================
+   ZELOS — Design System v1
+   Tema escuro + tema claro, tokens únicos, contornos definidos.
+   Cole este arquivo em: src/styles/zelos-theme.css
+   Importe no topo do index.css (antes do @tailwind).
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,400..800;1,75..125,400..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap');
+
+/* --------------------------------------------------------------------------
+   1. TOKENS — TEMA ESCURO (padrão)
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Superfícies em camadas — nunca preto puro (#000 mata o contorno) */
+  --z-bg: #0e0d11;          /* fundo da página */
+  --z-bg-sub: #131217;      /* faixas / topbar */
+  --z-surface: #17161c;     /* card padrão */
+  --z-surface-hi: #1d1c23;  /* topo do card (gradiente) + inputs */
+  --z-surface-raise: #24222b; /* hover, popovers, modais */
+
+  /* Contornos — o que estava faltando */
+  --z-line: #2b2933;        /* hairline padrão de TODO card/input */
+  --z-line-soft: #211f28;   /* divisórias internas de lista */
+  --z-line-strong: #3d3a47; /* hover / borda de destaque */
+
+  /* Texto */
+  --z-text: #f3f1f6;
+  --z-text-2: #a29eae;
+  --z-text-3: #6b6776;
+
+  /* Marca */
+  --z-accent: #f26a1b;
+  --z-accent-hi: #ff8b48;
+  --z-accent-ink: #140a03;      /* texto sobre laranja sólido */
+  --z-accent-soft: rgba(242, 106, 27, 0.14);
+  --z-accent-line: rgba(242, 106, 27, 0.35);
+
+  /* Semânticos (indicadores: energia, sono, estresse, status) */
+  --z-ok: #3fbf7f;
+  --z-ok-soft: rgba(63, 191, 127, 0.13);
+  --z-warn: #e0a53a;
+  --z-warn-soft: rgba(224, 165, 58, 0.13);
+  --z-danger: #e5484d;
+  --z-danger-soft: rgba(229, 72, 77, 0.13);
+  --z-info: #5b8fd6;
+  --z-info-soft: rgba(91, 143, 214, 0.13);
+
+  /* Relevo — o segredo do "premium": luz na aresta superior */
+  --z-card-bg: linear-gradient(180deg, var(--z-surface-hi) 0%, var(--z-surface) 100%);
+  --z-edge: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --z-shadow-1: var(--z-edge), 0 1px 2px rgba(0, 0, 0, 0.5);
+  --z-shadow-2: var(--z-edge), 0 12px 32px -16px rgba(0, 0, 0, 0.9);
+  --z-shadow-pop: 0 24px 60px -20px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --z-ring: 0 0 0 3px rgba(242, 106, 27, 0.28);
+  --z-skeleton: linear-gradient(90deg, #1a1920 25%, #232128 50%, #1a1920 75%);
+}
+
+/* --------------------------------------------------------------------------
+   2. TOKENS — TEMA CLARO (mesma estrutura, nada de "inverter cores")
+   -------------------------------------------------------------------------- */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --z-bg: #f7f6f4;
+  --z-bg-sub: #ffffff;
+  --z-surface: #ffffff;
+  --z-surface-hi: #ffffff;
+  --z-surface-raise: #f2f0ed;
+
+  --z-line: #e4e0da;
+  --z-line-soft: #efece7;
+  --z-line-strong: #cec8c0;
+
+  --z-text: #16151a;
+  --z-text-2: #5d5967;
+  --z-text-3: #8b8794;
+
+  --z-accent: #d95712;      /* levemente mais escuro p/ passar em AA no branco */
+  --z-accent-hi: #f26a1b;
+  --z-accent-ink: #ffffff;
+  --z-accent-soft: rgba(242, 106, 27, 0.1);
+  --z-accent-line: rgba(217, 87, 18, 0.3);
+
+  --z-ok: #1f8a53;
+  --z-ok-soft: rgba(31, 138, 83, 0.1);
+  --z-warn: #a9701a;
+  --z-warn-soft: rgba(169, 112, 26, 0.1);
+  --z-danger: #c62a2f;
+  --z-danger-soft: rgba(198, 42, 47, 0.1);
+  --z-info: #2f6bb5;
+  --z-info-soft: rgba(47, 107, 181, 0.1);
+
+  --z-card-bg: var(--z-surface);
+  --z-edge: none;
+  --z-shadow-1: 0 1px 2px rgba(22, 21, 26, 0.05);
+  --z-shadow-2: 0 1px 2px rgba(22, 21, 26, 0.04), 0 10px 28px -18px rgba(22, 21, 26, 0.25);
+  --z-shadow-pop: 0 24px 60px -20px rgba(22, 21, 26, 0.28);
+  --z-ring: 0 0 0 3px rgba(242, 106, 27, 0.22);
+  --z-skeleton: linear-gradient(90deg, #eceae6 25%, #f5f4f2 50%, #eceae6 75%);
+}
+
+/* --------------------------------------------------------------------------
+   3. ESCALAS FIXAS — espaçamento, raio, tipografia, camadas
+   -------------------------------------------------------------------------- */
+:root {
+  /* grade de 4px — nada fora dela */
+  --z-1: 4px;  --z-2: 8px;  --z-3: 12px; --z-4: 16px;
+  --z-5: 20px; --z-6: 24px; --z-8: 32px; --z-10: 40px; --z-12: 48px;
+
+  --z-r-sm: 8px;
+  --z-r-md: 12px;
+  --z-r-lg: 16px;
+  --z-r-xl: 20px;
+  --z-r-full: 999px;
+
+  --z-font-display: 'Archivo', 'Archivo Expanded', system-ui, sans-serif;
+  --z-font-body: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --z-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --z-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --z-fast: 120ms;
+  --z-med: 220ms;
+
+  --z-page-x: 20px;        /* ÚNICA margem lateral do app inteiro */
+  --z-header-h: 60px;
+  --z-maxw: 720px;
+}
+
+/* --------------------------------------------------------------------------
+   4. BASE
+   -------------------------------------------------------------------------- */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--z-bg);
+  color: var(--z-text);
+  font-family: var(--z-font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color var(--z-med) var(--z-ease), color var(--z-med) var(--z-ease);
+}
+
+::selection { background: var(--z-accent-soft); color: var(--z-text); }
+
+:where(a) { color: inherit; text-decoration: none; }
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--z-ring);
+  border-radius: var(--z-r-sm);
+}
+
+/* --------------------------------------------------------------------------
+   5. TIPOGRAFIA — escala fechada. Sem tamanho "no olho".
+   -------------------------------------------------------------------------- */
+.z-display {
+  font-family: var(--z-font-display);
+  font-variation-settings: 'wdth' 112, 'wght' 750;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.z-h1 {
+  font-family: var(--z-font-display);
+  font-variation-settings: 'wdth' 105, 'wght' 700;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+.z-h2 {
+  font-family: var(--z-font-body);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.z-body { font-size: 15px; color: var(--z-text); }
+.z-sub  { font-size: 13.5px; line-height: 1.45; color: var(--z-text-2); margin: 0; }
+
+/* Eyebrow / label de seção — mono, porque é metadado, não título */
+.z-eyebrow {
+  font-family: var(--z-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--z-text-3);
+}
+
+/* Números: sempre mono tabular. Alinha coluna e não "dança" ao atualizar. */
+.z-num {
+  font-family: var(--z-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.02em;
+}
+
+/* --------------------------------------------------------------------------
+   6. LAYOUT
+   -------------------------------------------------------------------------- */
+.z-page {
+  max-width: var(--z-maxw);
+  margin: 0 auto;
+  padding: var(--z-5) var(--z-page-x) var(--z-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--z-4);
+}
+
+.z-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--z-3);
+  min-height: var(--z-header-h);
+  padding: var(--z-3) var(--z-page-x);
+  background: color-mix(in srgb, var(--z-bg-sub) 82%, transparent);
+  backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--z-line);
+}
+.z-topbar__title { flex: 1; min-width: 0; }
+
+/* --------------------------------------------------------------------------
+   7. CARD — a correção principal: contorno + relevo + padding constante
+   -------------------------------------------------------------------------- */
+.z-card {
+  position: relative;
+  background: var(--z-card-bg);
+  border: 1px solid var(--z-line);
+  border-radius: var(--z-r-lg);
+  box-shadow: var(--z-shadow-2);
+  padding: var(--z-5);
+  transition: border-color var(--z-fast) var(--z-ease), transform var(--z-fast) var(--z-ease);
+}
+.z-card--flush { padding: 0; overflow: hidden; }
+.z-card--tap { cursor: pointer; }
+.z-card--tap:hover { border-color: var(--z-line-strong); }
+.z-card--tap:active { transform: scale(0.995); }
+
+.z-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--z-3);
+  padding: var(--z-4) var(--z-5);
+  border-bottom: 1px solid var(--z-line-soft);
+}
+.z-card__body { padding: var(--z-4) var(--z-5); }
+
+/* SIGNATURE: trilho de status. A cor da barra à esquerda diz o estado.
+   É informação, não enfeite. */
+.z-card--rail { padding-left: calc(var(--z-5) - 3px); }
+.z-card--rail::before {
+  content: '';
+  position: absolute;
+  left: 0; top: var(--z-4); bottom: var(--z-4);
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--z-rail, var(--z-line-strong));
+  box-shadow: 0 0 16px -2px var(--z-rail, transparent);
+}
+.z-rail-active  { --z-rail: var(--z-accent); }
+.z-rail-ok      { --z-rail: var(--z-ok); }
+.z-rail-wait    { --z-rail: var(--z-line-strong); }
+.z-rail-alert   { --z-rail: var(--z-danger); }
+
+/* --------------------------------------------------------------------------
+   8. LISTAS (Mensagens, Alunos)
+   -------------------------------------------------------------------------- */
+.z-list { display: flex; flex-direction: column; }
+.z-row {
+  display: flex;
+  align-items: center;
+  gap: var(--z-3);
+  padding: var(--z-3) var(--z-5);
+  border-top: 1px solid var(--z-line-soft);
+  cursor: pointer;
+  transition: background var(--z-fast) var(--z-ease);
+}
+.z-row:first-child { border-top: 0; }
+.z-row:hover { background: var(--z-surface-raise); }
+.z-row__main { flex: 1; min-width: 0; }
+.z-row__name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.z-row__meta {
+  font-size: 13px;
+  color: var(--z-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.z-row__time { font-family: var(--z-font-mono); font-size: 11.5px; color: var(--z-text-3); }
+
+/* --------------------------------------------------------------------------
+   9. AVATAR
+   -------------------------------------------------------------------------- */
+.z-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border-radius: var(--z-r-full);
+  background: var(--z-surface-raise);
+  border: 1px solid var(--z-line);
+  font-family: var(--z-font-display);
+  font-variation-settings: 'wght' 700;
+  font-size: 14px;
+  color: var(--z-text-2);
+}
+.z-avatar--me { border-color: var(--z-accent-line); color: var(--z-accent); background: var(--z-accent-soft); }
+.z-avatar--lg { width: 44px; height: 44px; font-size: 16px; }
+
+/* --------------------------------------------------------------------------
+   10. BOTÕES
+   -------------------------------------------------------------------------- */
+.z-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--z-2);
+  height: 42px;
+  padding: 0 var(--z-4);
+  border-radius: var(--z-r-md);
+  border: 1px solid transparent;
+  font-family: var(--z-font-body);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--z-fast) var(--z-ease);
+}
+.z-btn:active { transform: translateY(1px); }
+.z-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.z-btn--primary {
+  background: linear-gradient(180deg, var(--z-accent-hi), var(--z-accent));
+  color: var(--z-accent-ink);
+  border-color: var(--z-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 6px 18px -8px rgba(242, 106, 27, 0.6);
+}
+.z-btn--primary:hover { filter: brightness(1.06); }
+
+.z-btn--ghost {
+  background: var(--z-surface-hi);
+  color: var(--z-text);
+  border-color: var(--z-line);
+  box-shadow: var(--z-shadow-1);
+}
+.z-btn--ghost:hover { border-color: var(--z-line-strong); background: var(--z-surface-raise); }
+
+.z-btn--quiet { background: transparent; color: var(--z-text-2); }
+.z-btn--quiet:hover { background: var(--z-surface-raise); color: var(--z-text); }
+
+.z-btn--icon { width: 42px; padding: 0; }
+.z-btn--sm { height: 34px; padding: 0 var(--z-3); font-size: 13px; border-radius: var(--z-r-sm); }
+
+/* --------------------------------------------------------------------------
+   11. INPUTS
+   -------------------------------------------------------------------------- */
+.z-field { display: flex; flex-direction: column; gap: var(--z-2); }
+.z-label { font-size: 12.5px; font-weight: 500; color: var(--z-text-2); }
+
+.z-input {
+  height: 44px;
+  width: 100%;
+  padding: 0 var(--z-4);
+  background: var(--z-surface-hi);
+  color: var(--z-text);
+  border: 1px solid var(--z-line);
+  border-radius: var(--z-r-md);
+  font-family: var(--z-font-body);
+  font-size: 15px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: border-color var(--z-fast) var(--z-ease), box-shadow var(--z-fast) var(--z-ease);
+}
+[data-theme='light'] .z-input { box-shadow: inset 0 1px 2px rgba(22, 21, 26, 0.04); }
+.z-input::placeholder { color: var(--z-text-3); }
+.z-input:hover { border-color: var(--z-line-strong); }
+.z-input:focus { border-color: var(--z-accent); box-shadow: var(--z-ring); outline: none; }
+
+.z-search { position: relative; }
+.z-search .z-input { padding-left: 42px; }
+.z-search__icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--z-text-3);
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   12. CHIPS / FILTROS
+   -------------------------------------------------------------------------- */
+.z-chips {
+  display: flex;
+  gap: var(--z-2);
+  overflow-x: auto;
+  padding-bottom: var(--z-1);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.z-chips::-webkit-scrollbar { display: none; }
+
+.z-chip {
+  flex: none;
+  height: 36px;
+  padding: 0 var(--z-4);
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--z-r-full);
+  border: 1px solid var(--z-line);
+  background: var(--z-surface-hi);
+  color: var(--z-text-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--z-fast) var(--z-ease);
+}
+.z-chip:hover { border-color: var(--z-line-strong); color: var(--z-text); }
+.z-chip[aria-selected='true'] {
+  background: var(--z-accent-soft);
+  border-color: var(--z-accent-line);
+  color: var(--z-accent-hi);
+  font-weight: 600;
+}
+[data-theme='light'] .z-chip[aria-selected='true'] { color: var(--z-accent); }
+
+/* --------------------------------------------------------------------------
+   13. BADGES / TAGS DE ESTADO
+   -------------------------------------------------------------------------- */
+.z-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--z-r-full);
+  border: 1px solid var(--z-line);
+  background: var(--z-surface-raise);
+  color: var(--z-text-2);
+  font-family: var(--z-font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.z-badge--accent { background: var(--z-accent-soft); border-color: var(--z-accent-line); color: var(--z-accent-hi); }
+.z-badge--ok     { background: var(--z-ok-soft);     border-color: var(--z-ok);     color: var(--z-ok); }
+.z-badge--warn   { background: var(--z-warn-soft);   border-color: var(--z-warn);   color: var(--z-warn); }
+.z-badge--danger { background: var(--z-danger-soft); border-color: var(--z-danger); color: var(--z-danger); }
+[data-theme='light'] .z-badge--accent { color: var(--z-accent); }
+
+/* --------------------------------------------------------------------------
+   14. MÉTRICAS (energia / sono / estresse / KPIs)
+   -------------------------------------------------------------------------- */
+.z-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--z-2); }
+.z-metric {
+  background: var(--z-bg-sub);
+  border: 1px solid var(--z-line);
+  border-radius: var(--z-r-md);
+  padding: var(--z-3);
+  text-align: center;
+  box-shadow: var(--z-shadow-1);
+}
+[data-theme='light'] .z-metric { background: var(--z-surface-raise); }
+.z-metric__icon { font-size: 15px; line-height: 1; margin-bottom: 6px; color: var(--z-text-3); }
+.z-metric__value {
+  font-family: var(--z-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--z-text);
+}
+.z-metric__value small { font-size: 12px; color: var(--z-text-3); font-weight: 400; }
+.z-metric__label {
+  margin-top: 4px;
+  font-family: var(--z-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--z-text-3);
+}
+/* barra de intensidade 0–5 embaixo do número */
+.z-meter { height: 3px; margin-top: 8px; border-radius: 2px; background: var(--z-line); overflow: hidden; }
+.z-meter__fill { height: 100%; border-radius: 2px; background: var(--z-track, var(--z-accent)); transition: width var(--z-med) var(--z-ease); }
+
+.z-stat { display: flex; flex-direction: column; gap: var(--z-1); }
+.z-stat__value { font-family: var(--z-font-mono); font-size: 30px; font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+.z-stat__delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 500; }
+.z-stat__delta--up { color: var(--z-ok); }
+.z-stat__delta--down { color: var(--z-danger); }
+
+/* --------------------------------------------------------------------------
+   15. ESTADOS VAZIOS — convite pra agir, não caixa tracejada morta
+   -------------------------------------------------------------------------- */
+.z-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--z-3);
+  padding: var(--z-8) var(--z-5);
+  text-align: center;
+  border: 1px dashed var(--z-line-strong);
+  border-radius: var(--z-r-md);
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 8px,
+    color-mix(in srgb, var(--z-line-soft) 60%, transparent) 8px 9px
+  );
+}
+.z-empty__title { font-weight: 600; font-size: 14.5px; color: var(--z-text-2); }
+.z-empty__hint { font-size: 13px; color: var(--z-text-3); max-width: 36ch; margin: 0; }
+
+/* --------------------------------------------------------------------------
+   16. MODAL / DIALOG
+   -------------------------------------------------------------------------- */
+.z-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center;
+  padding: var(--z-5);
+  background: color-mix(in srgb, var(--z-bg) 72%, transparent);
+  backdrop-filter: blur(6px);
+  animation: z-fade var(--z-med) var(--z-ease);
+}
+.z-modal {
+  width: 100%;
+  max-width: 440px;
+  background: var(--z-surface-raise);
+  border: 1px solid var(--z-line-strong);
+  border-radius: var(--z-r-xl);
+  box-shadow: var(--z-shadow-pop);
+  overflow: hidden;
+  animation: z-pop var(--z-med) var(--z-ease);
+}
+.z-modal__head { padding: var(--z-5) var(--z-5) var(--z-3); }
+.z-modal__body { padding: 0 var(--z-5) var(--z-5); color: var(--z-text-2); font-size: 14px; }
+.z-modal__foot {
+  display: flex; justify-content: flex-end; gap: var(--z-2);
+  padding: var(--z-4) var(--z-5);
+  border-top: 1px solid var(--z-line);
+  background: var(--z-surface);
+}
+
+/* --------------------------------------------------------------------------
+   17. NAV LATERAL
+   -------------------------------------------------------------------------- */
+.z-nav { display: flex; flex-direction: column; gap: 2px; padding: var(--z-3); }
+.z-nav__item {
+  position: relative;
+  display: flex; align-items: center; gap: var(--z-3);
+  height: 46px;
+  padding: 0 var(--z-3);
+  border-radius: var(--z-r-md);
+  color: var(--z-text-2);
+  font-size: 15px; font-weight: 500;
+  cursor: pointer;
+  transition: all var(--z-fast) var(--z-ease);
+}
+.z-nav__item:hover { background: var(--z-surface-raise); color: var(--z-text); }
+.z-nav__item[aria-current='page'] {
+  background: var(--z-accent-soft);
+  color: var(--z-accent-hi);
+  font-weight: 600;
+}
+[data-theme='light'] .z-nav__item[aria-current='page'] { color: var(--z-accent); }
+.z-nav__item[aria-current='page']::before {
+  content: '';
+  position: absolute; left: -13px; top: 11px; bottom: 11px;
+  width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--z-accent);
+}
+
+/* --------------------------------------------------------------------------
+   18. TOGGLE DE TEMA
+   -------------------------------------------------------------------------- */
+.z-theme-toggle {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--z-r-full);
+  border: 1px solid var(--z-line);
+  background: var(--z-surface-hi);
+  box-shadow: var(--z-shadow-1);
+}
+.z-theme-toggle button {
+  width: 34px; height: 30px;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--z-r-full);
+  background: transparent;
+  color: var(--z-text-3);
+  cursor: pointer;
+  transition: all var(--z-fast) var(--z-ease);
+}
+.z-theme-toggle button[aria-pressed='true'] {
+  background: var(--z-surface-raise);
+  color: var(--z-accent);
+  box-shadow: var(--z-shadow-1);
+}
+
+/* --------------------------------------------------------------------------
+   19. UTILITÁRIOS
+   -------------------------------------------------------------------------- */
+.z-divider { height: 1px; background: var(--z-line); border: 0; margin: 0; }
+.z-stack { display: flex; flex-direction: column; gap: var(--z-4); }
+.z-between { display: flex; align-items: center; justify-content: space-between; gap: var(--z-3); }
+.z-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.z-skeleton {
+  background: var(--z-skeleton);
+  background-size: 200% 100%;
+  animation: z-shimmer 1.4s infinite linear;
+  border-radius: var(--z-r-sm);
+}
+
+@keyframes z-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes z-pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes z-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

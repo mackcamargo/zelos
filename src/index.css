@@ -1,44 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import './styles/zelos-theme.css';
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Inter", ui-monospace, SFMono-Regular, monospace;
+  --color-bg: var(--z-bg);
+  --color-surface: var(--z-surface);
+  --color-raise: var(--z-surface-raise);
+  --color-line: var(--z-line);
+  --color-line-strong: var(--z-line-strong);
+  --color-ink: var(--z-text);
+  --color-ink-2: var(--z-text-2);
+  --color-ink-3: var(--z-text-3);
+  --color-accent: var(--z-accent);
+  --color-ok: var(--z-ok);
+  --color-warn: var(--z-warn);
+  --color-danger: var(--z-danger);
 
-  --color-void: #0A0A0B;
-  --color-surface: #141416;
-  --color-surface-hover: #1A1A1D;
-  --color-surface-2: #141416;
-  --color-surface-3: #1A1A1D;
-  --color-ink: #FAFAFA;
-  --color-ink-2: #A1A1AA;
-  --color-ink-3: #71717A;
-  --color-ember: #F26A1B;
-  --color-flame: #F26A1B;
-  --color-amber: #F26A1B;
-  --color-violet: #F26A1B;
-}
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-sans: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
 
-:root {
-  --bg: #0A0A0B;            /* fundo da página */
-  --surface: #141416;        /* cards */
-  --surface-hover: #1A1A1D;
-  --border: rgba(255,255,255,0.08);
-  --border-strong: rgba(255,255,255,0.14);
-  --text: #FAFAFA;           /* principal */
-  --text-secondary: #A1A1AA; /* secundário */
-  --text-muted: #71717A;     /* legenda */
-  --accent: #F26A1B;         /* laranja, único acento */
-  --success: #22C55E;        /* só estado */
-  --danger: #EF4444;         /* só estado */
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
 }
 
 /* Custom background styles & utilities */
 body {
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: var(--font-sans);
+  background-color: var(--z-bg);
+  color: var(--z-text);
+  font-family: var(--z-font-body);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -47,15 +37,15 @@ body {
 }
 
 .brand-gradient-text {
-  color: var(--accent);
+  color: var(--z-accent);
 }
 
 .brand-gradient-bg {
-  background-color: var(--accent);
+  background-color: var(--z-accent);
 }
 
 .brand-gradient-border {
-  border-color: var(--border);
+  border-color: var(--z-line);
 }
 
 /* Hide scrollbars but keep functionality */
