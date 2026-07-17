@@ -812,12 +812,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   return (
     <div 
       id="aluno-area-root" 
-      className={`bg-void text-ink font-sans flex flex-col ${
-        activeTab === 'chat' ? 'h-[100dvh] overflow-hidden pb-0' : 'min-h-screen pb-24'
-      }`}
+      className="bg-bg text-ink font-sans flex flex-col h-screen overflow-hidden"
     >
       {/* Top Header */}
-      <header className="sticky top-0 bg-void/90 backdrop-blur-md z-40 border-b border-b-white/5 py-5 px-6 shrink-0">
+      <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-40 border-b border-line py-5 px-6 shrink-0">
         <div className="max-w-[1200px] mx-auto flex justify-between items-center">
           <div>
             <div className="flex items-center gap-2">
@@ -855,10 +853,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </header>
 
       {/* Main View Area */}
-      <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 ${
+      <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 overflow-y-auto ${
         activeTab === 'chat' 
           ? 'pt-4 pb-[88px] flex flex-col min-h-0 overflow-hidden' 
-          : 'pt-8 pb-32 md:pb-8'
+          : 'pt-8 pb-32 md:pb-16'
       }`}>
         
         {/* TAB 1: TREINO */}
@@ -2590,7 +2588,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </AnimatePresence>
 
       {/* Bottom Navigation Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface border-t border-white/5 py-1 px-4 z-50 shadow-[0_-15px_50px_rgba(0,0,0,0.5)]">
+      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface/90 backdrop-blur-md border-t border-line py-1 px-4 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.15)]">
         <div className="max-w-md md:max-w-lg h-full mx-auto grid grid-cols-5 gap-1 items-center">
           {/* Tab 1 - Treino */}
           <button

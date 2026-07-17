@@ -163,11 +163,11 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
               transition={{ delay: index * 0.05 }}
               key={agenda.id}
               onClick={() => setSelectedAgendamento(agenda)}
-              className="group bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 clicavel"
+              className="z-card z-card--tap flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
               <div className="flex items-center gap-6">
                 <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-semibold shrink-0 ${
-                  agenda.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
+                  agenda.status === 'confirmado' ? 'bg-accent text-void' : 'bg-surface-raise text-ink-3 border border-line'
                 }`}>
                   <span className="text-[10px] opacity-70 num">
                     {isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-BR', { month: 'short' })}

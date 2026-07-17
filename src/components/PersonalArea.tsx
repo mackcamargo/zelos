@@ -199,9 +199,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
   return (
     <div 
       id="personal-area-root" 
-      className={`bg-bg text-ink font-sans flex overflow-hidden ${
-        activeTab === 'chat' ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'
-      }`}
+      className="bg-bg text-ink font-sans flex h-screen overflow-hidden"
     >
       
       {/* SIDEBAR: Desktop */}
@@ -501,9 +499,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
       </aside>
 
       {/* CONTENT CONTAINER */}
-      <div className={`flex-1 flex flex-col min-w-0 ${
-        activeTab === 'chat' ? 'h-[100dvh] md:h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'
-      }`}>
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         
         {/* Read-only Mode Banner */}
         {isReadOnly && (
@@ -594,7 +590,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         </header>
 
         {/* Main View Area */}
-        <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 ${
+        <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 overflow-y-auto ${
           activeTab === 'chat' ? 'pt-4 pb-4 flex flex-col min-h-0 overflow-hidden' : 'pt-8 pb-16'
         }`}>
         

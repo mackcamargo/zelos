@@ -682,10 +682,11 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                             <div className="w-16 sm:w-20">
                               <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Séries</label>
                               <input
-                                type="number"
-                                min="1"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 value={item.series}
-                                onChange={(e) => updateExerciseField(index, 'series', e.target.value)}
+                                onChange={(e) => updateExerciseField(index, 'series', e.target.value.replace(/[^0-9]/g, ''))}
                                 className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
                               />
                             </div>
@@ -702,11 +703,14 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                             <div className="w-16 sm:w-20">
                               <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Carga (kg)</label>
                               <input
-                                type="number"
-                                step="any"
+                                type="text"
+                                inputMode="decimal"
                                 placeholder="-"
                                 value={item.carga_kg ?? ''}
-                                onChange={(e) => updateExerciseField(index, 'carga_kg', e.target.value)}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                                  updateExerciseField(index, 'carga_kg', val);
+                                }}
                                 className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
                               />
                             </div>

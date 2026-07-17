@@ -133,7 +133,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-xl p-8 bg-surface border border-white/5"
+          className="relative overflow-hidden z-card p-8"
         >
           <div className="absolute top-0 right-0 p-8 opacity-10 text-[#F26A1B]">
             <CalendarIcon className="w-32 h-32" />
@@ -200,11 +200,11 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 transition={{ delay: index * 0.05 }}
                 key={agendamento.id}
                 onClick={() => setSelectedAgendamento(agendamento)}
-                className="group relative bg-surface-2 border border-white/5 rounded-3xl p-6 hover:bg-surface-3 hover:border-white/20 cursor-pointer transition-all flex flex-col md:flex-row md:items-center justify-between gap-6 clicavel"
+                className="z-card z-card--tap flex flex-col md:flex-row md:items-center justify-between gap-6"
               >
                 <div className="flex items-center gap-6">
                   <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-semibold ${
-                    agendamento.status === 'confirmado' ? 'bg-flame text-void' : 'bg-white/5 text-ink-3'
+                    agendamento.status === 'confirmado' ? 'bg-accent text-void' : 'bg-surface-raise text-ink-3 border border-line'
                   }`}>
                     <span className="text-[12px] opacity-70">
                       {parseDataHora(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
