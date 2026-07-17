@@ -177,7 +177,7 @@ export default function DetalheSessaoModal({
                     type="date"
                     value={novaData}
                     onChange={(e) => setNovaData(e.target.value)}
-                    className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink text-xs font-mono focus:outline-none focus:border-accent"
+                    className="z-input !h-9 text-xs num"
                   />
                 </div>
                 <div className="space-y-1">
@@ -186,7 +186,7 @@ export default function DetalheSessaoModal({
                     type="time"
                     value={novoHorario}
                     onChange={(e) => setNovoHorario(e.target.value)}
-                    className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink text-xs font-mono focus:outline-none focus:border-accent"
+                    className="z-input !h-9 text-xs num"
                   />
                 </div>
               </div>

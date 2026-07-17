@@ -161,14 +161,14 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   }
 
   return (
-    <div className="bg-surface border border-line rounded-xl p-6 relative overflow-hidden flex flex-col justify-between group min-h-[350px]">
+    <div className="bg-surface border border-line rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between group min-h-[350px]">
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/10 border border-line rounded-lg">
+            <div className="p-2 bg-accent/10 border border-line rounded-xl">
               <Droplets className="w-5 h-5 text-accent" />
             </div>
             <div>

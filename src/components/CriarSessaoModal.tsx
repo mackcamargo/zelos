@@ -173,7 +173,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                     <select
                       value={formData.aluno_id}
                       onChange={(e) => setFormData(prev => ({ ...prev, aluno_id: e.target.value }))}
-                      className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm appearance-none"
+                      className="z-input !h-14 !pr-10 appearance-none"
                       style={{
                         backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")`,
                         backgroundRepeat: 'no-repeat',
@@ -204,7 +204,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                       required
                       value={formData.data}
                       onChange={(e) => setFormData(prev => ({ ...prev, data: e.target.value }))}
-                      className="w-full bg-bg border border-line rounded-lg pl-12 pr-4 py-4 text-ink outline-none focus:border-accent/50 transition-all text-sm"
+                      className="z-input !h-14 !pl-12"
                     />
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                       required
                       value={formData.horario}
                       onChange={(e) => setFormData(prev => ({ ...prev, horario: e.target.value }))}
-                      className="w-full bg-bg border border-line rounded-lg pl-12 pr-4 py-4 text-ink outline-none focus:border-accent/50 transition-all text-sm"
+                      className="z-input !h-14 !pl-12"
                     />
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                   <select
                     value={formData.tipo}
                     onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value as TipoSessao }))}
-                    className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm appearance-none"
+                    className="z-input !h-14 !pr-10 appearance-none"
                     style={{
                       backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")`,
                       backgroundRepeat: 'no-repeat',
@@ -261,7 +261,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                     required
                     value={formData.duracao_min}
                     onChange={(e) => setFormData(prev => ({ ...prev, duracao_min: Number(e.target.value) }))}
-                    className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm"
+                    className="z-input !h-14"
                   />
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                   onChange={(e) => setFormData(prev => ({ ...prev, observacao: e.target.value }))}
                   placeholder="Foco em pernas, trazer toalha, etc."
                   rows={3}
-                  className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm resize-none"
+                  className="z-input h-auto py-4 min-h-[100px] resize-none"
                 />
               </div>
 

@@ -136,17 +136,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
           </div>
 
           {/* Slider Comparison */}
-          <div 
-            ref={sliderRef}
-            className="relative aspect-[3/4] bg-void rounded-[40px] overflow-hidden border border-white/10 cursor-col-resize select-none"
-            onMouseDown={() => setIsDragging(true)}
-            onMouseUp={() => setIsDragging(false)}
-            onMouseLeave={() => setIsDragging(false)}
-            onMouseMove={handleMove}
-            onTouchStart={() => setIsDragging(true)}
-            onTouchEnd={() => setIsDragging(false)}
-            onTouchMove={handleMove}
-          >
+          <div ref={sliderRef} className="relative aspect-[3/4] bg-void rounded-[40px] overflow-hidden border border-line cursor-col-resize select-none" onMouseDown={() => setIsDragging(true)} onMouseUp={() => setIsDragging(false)} onMouseLeave={() => setIsDragging(false)} onMouseMove={handleMove} onTouchStart={() => setIsDragging(true)} onTouchEnd={() => setIsDragging(false)} onTouchMove={handleMove}>
             {/* Oldest (Background) */}
             <img 
               src={oldest.signed_url} 
@@ -213,7 +203,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
         <h4 className="font-display font-bold text-sm text-ink">Histórico de Fotos</h4>
         <div className="grid grid-cols-1 gap-4">
           {filteredFotos.map((foto) => (
-            <div key={foto.id} className="bg-surface-2 border border-white/5 rounded-3xl p-4 flex gap-4 transition-all hover:border-white/10">
+            <div key={foto.id} className="bg-surface-2 border border-line rounded-3xl p-4 flex gap-4 transition-all hover:border-accent/20">
               <div className="w-24 h-32 bg-void rounded-2xl overflow-hidden shrink-0 border border-white/5">
                 <img src={foto.signed_url} alt="Progresso" className="w-full h-full object-cover" />
               </div>

@@ -365,7 +365,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                     value={newMeal.nome}
                     onChange={(e) => setNewMeal(prev => ({ ...prev, nome: e.target.value }))}
                     placeholder="Ex: Frango com Batata"
-                    className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm text-ink outline-none focus:border-flame/30"
+                    className="z-input !h-12"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -375,7 +375,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                     value={newMeal.calorias}
                     onChange={(e) => setNewMeal(prev => ({ ...prev, calorias: e.target.value }))}
                     placeholder="400"
-                    className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm text-ink outline-none focus:border-flame/30 num"
+                    className="z-input !h-12 num"
                   />
                 </div>
               </div>

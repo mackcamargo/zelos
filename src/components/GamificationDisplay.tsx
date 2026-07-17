@@ -66,7 +66,7 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
           {prs.map((pr) => (
             <div 
               key={pr.id}
-              className="bg-surface-2 border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:border-amber-500/20 transition-all"
+              className="bg-surface-2 border border-line rounded-2xl p-4 flex items-center justify-between group hover:border-amber-500/20 transition-all"
             >
               <div className="min-w-0">
                 <p className="text-[10px] font-mono text-ink-3 uppercase mb-0.5">Exercício</p>
@@ -109,8 +109,8 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
                 key={conquista.id}
                 className={`relative flex flex-col items-center text-center p-6 rounded-[32px] border transition-all duration-500 group ${
                   isUnlocked 
-                    ? 'bg-surface-2 border-white/10 hover:border-flame/30 hover:scale-105' 
-                    : 'bg-void border-white/5 opacity-50 grayscale'
+                    ? 'bg-surface-2 border-line hover:border-flame/30 hover:scale-105' 
+                    : 'bg-void border-line/50 opacity-50 grayscale'
                 }`}
               >
                 {!isUnlocked && (

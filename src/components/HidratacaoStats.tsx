@@ -79,7 +79,7 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
   return (
     <div className="space-y-4">
       {/* Média semanal */}
-      <div className="flex items-center gap-4 bg-void/50 p-4 rounded-2xl border border-white/5">
+      <div className="flex items-center gap-4 bg-void/50 p-4 rounded-2xl border border-line">
         <div className="p-3 bg-violet/10 rounded-xl">
           <Droplets className="w-5 h-5 text-violet" />
         </div>
@@ -92,7 +92,7 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
       </div>
 
       {/* Prescrição da meta diária */}
-      <div className="bg-void/50 p-4 rounded-2xl border border-white/5 space-y-3">
+      <div className="bg-void/50 p-4 rounded-2xl border border-line space-y-3">
         <div className="flex items-center gap-2">
           <Target className="w-4 h-4 text-flame" />
           <p className="text-[12px] text-ink-3">Meta diária prescrita</p>
@@ -109,7 +109,7 @@ export default function HidratacaoStats({ alunoId }: HidratacaoStatsProps) {
             step={250}
             min={500}
             max={8000}
-            className="flex-1 bg-void border border-white/10 rounded-xl px-4 py-2.5 text-ink text-sm focus:outline-none focus:border-flame/50 num"
+            className="z-input flex-1 !h-10 num"
             placeholder="Ex: 3000"
           />
           <span className="text-xs text-ink-3 mr-2 num">ml</span>

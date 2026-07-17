@@ -215,7 +215,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Pesquisar modelos por título ou descrição..."
-          className="w-full bg-surface border border-white/5 focus:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs text-ink placeholder-ink-3 outline-none transition-all"
+          className="z-input !pl-11"
         />
       </div>
 
@@ -371,7 +371,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                       id="select-apply-aluno"
                       value={selectedStudentId}
                       onChange={(e) => setSelectedStudentId(e.target.value)}
-                      className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 px-4 text-sm text-ink outline-none transition-all appearance-none cursor-pointer"
+                      className="z-input cursor-pointer"
                     >
                       <option value="">Selecione um aluno...</option>
                       {students.map((s) => (
@@ -390,7 +390,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                       value={customTitle}
                       onChange={(e) => setCustomTitle(e.target.value)}
                       placeholder={templateToApply?.titulo}
-                      className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                      className="z-input"
                     />
                   </div>
 
@@ -404,7 +404,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                           type="date"
                           value={applyDate}
                           onChange={(e) => setApplyDate(e.target.value)}
-                          className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all num"
+                          className="z-input !pl-11 num"
                         />
                       </div>
                     </div>
@@ -418,7 +418,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                           type="time"
                           value={applyTime}
                           onChange={(e) => setApplyTime(e.target.value)}
-                          className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all num"
+                          className="z-input !pl-11 num"
                         />
                       </div>
                     </div>

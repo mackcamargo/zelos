@@ -813,7 +813,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       placeholder="Ex: Leg Press 45º, Rosca Martelo..."
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none"
+                      className="z-input"
                     />
                   </div>
 
@@ -825,7 +825,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       required
                       value={categoriaId}
                       onChange={(e) => setCategoriaId(e.target.value)}
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none cursor-pointer"
+                      className="z-input cursor-pointer"
                     >
                       {categorias.map((cat) => (
                         <option key={cat.id} value={cat.id}>
@@ -844,7 +844,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       placeholder="Ex: Barra, Halteres, Máquina Smith, Peso Corporal..."
                       value={equipamento}
                       onChange={(e) => setEquipamento(e.target.value)}
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none"
+                      className="z-input"
                     />
                   </div>
 
@@ -855,7 +855,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       id="form-ex-impact"
                       value={impacto || ''}
                       onChange={(e) => setImpacto(e.target.value ? (e.target.value as 'baixo' | 'medio' | 'alto') : null)}
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-3 text-xs text-ink outline-none cursor-pointer"
+                      className="z-input cursor-pointer"
                     >
                       <option value="">Não informado</option>
                       <option value="baixo">Baixo impacto</option>
@@ -907,12 +907,12 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             addPublicoTag(newPublico);
                           }
                         }}
-                        className="flex-1 bg-void border border-white/5 focus:border-white/10 rounded-xl px-3 py-2 text-xs text-ink outline-none"
+                        className="z-input flex-1"
                       />
                       <button
                         type="button"
                         onClick={() => addPublicoTag(newPublico)}
-                        className="py-2 px-4 rounded-xl border border-white/5 bg-surface-2 text-xs font-semibold text-ink hover:bg-surface-3 hover:border-white/10 transition-colors"
+                        className="z-btn z-btn--ghost z-btn--sm"
                       >
                         +
                       </button>
@@ -962,12 +962,12 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             addContraindicacaoTag(newContraindicacao);
                           }
                         }}
-                        className="flex-1 bg-void border border-white/5 focus:border-white/10 rounded-xl px-3 py-2 text-xs text-ink outline-none"
+                        className="z-input flex-1"
                       />
                       <button
                         type="button"
                         onClick={() => addContraindicacaoTag(newContraindicacao)}
-                        className="py-2 px-4 rounded-xl border border-white/5 bg-surface-2 text-xs font-semibold text-ink hover:bg-surface-3 hover:border-white/10 transition-colors"
+                        className="z-btn z-btn--ghost z-btn--sm"
                       >
                         +
                       </button>
@@ -1020,18 +1020,18 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             addMuscleTag('primario', newPrimario);
                           }
                         }}
-                        className="flex-1 bg-void border border-white/5 focus:border-white/10 rounded-xl px-3 py-2 text-xs text-ink outline-none"
+                        className="z-input flex-1"
                       />
                       <button
                         type="button"
                         onClick={() => addMuscleTag('primario', newPrimario)}
-                        className="py-2 px-4 rounded-xl border border-white/5 bg-surface-2 text-xs font-semibold text-ink hover:bg-surface-3 hover:border-white/10 transition-colors"
+                        className="z-btn z-btn--ghost z-btn--sm"
                       >
                         +
                       </button>
                     </div>
                     {newPrimario.trim() && (
-                      <span className="text-[12px] text-[#F26A1B] animate-pulse block mt-1">
+                      <span className="text-[12px] text-flame animate-pulse block mt-1">
                         Pressione Enter ou + para adicionar
                       </span>
                     )}
@@ -1080,18 +1080,18 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             addMuscleTag('secundario', newSecundario);
                           }
                         }}
-                        className="flex-1 bg-void border border-white/5 focus:border-white/10 rounded-xl px-3 py-2 text-xs text-ink outline-none"
+                        className="z-input flex-1"
                       />
                       <button
                         type="button"
                         onClick={() => addMuscleTag('secundario', newSecundario)}
-                        className="py-2 px-4 rounded-xl border border-white/5 bg-surface-2 text-xs font-semibold text-ink hover:bg-surface-3 hover:border-white/10 transition-colors"
+                        className="z-btn z-btn--ghost z-btn--sm"
                       >
                         +
                       </button>
                     </div>
                     {newSecundario.trim() && (
-                      <span className="text-[12px] text-[#F26A1B] animate-pulse block mt-1">
+                      <span className="text-[12px] text-flame animate-pulse block mt-1">
                         Pressione Enter ou + para adicionar
                       </span>
                     )}
@@ -1162,18 +1162,18 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                           addDica();
                         }
                       }}
-                      className="flex-1 bg-void border border-white/5 focus:border-white/10 rounded-xl px-3 py-3 text-xs text-ink outline-none"
+                      className="z-input flex-1"
                     />
                     <button
                       type="button"
                       onClick={addDica}
-                      className="py-3 px-4 rounded-xl border border-white/5 bg-surface-2 text-xs font-bold text-ink hover:bg-surface-3 hover:border-white/10 transition-colors"
+                      className="z-btn z-btn--ghost z-btn--sm min-w-[80px]"
                     >
                       + Dica
                     </button>
                   </div>
                   {newDica.trim() && (
-                    <span className="text-[10px] text-[#F26A1B] font-mono animate-pulse block mt-1">
+                    <span className="text-[10px] text-flame font-mono animate-pulse block mt-1">
                       Pressione Enter ou + para adicionar
                     </span>
                   )}

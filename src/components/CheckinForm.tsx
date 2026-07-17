@@ -212,7 +212,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                         value={peso}
                         onChange={(e) => setPeso(e.target.value)}
                         placeholder="75.5"
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none num"
+                        className="z-input w-full !pl-10 text-xs num"
                       />
                     </div>
                   </div>
@@ -260,7 +260,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                           placeholder="Onde? Descreva a dor ou desconforto..."
                           required={senteDor}
                           rows={2}
-                          className="w-full bg-void border border-white/5 focus:border-rose-500/30 rounded-xl pt-3 pl-10 pr-4 text-xs text-ink outline-none resize-none"
+                          className="z-input w-full !pl-10 py-3 text-xs resize-none"
                         />
                       </motion.div>
                     )}
@@ -276,7 +276,7 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
                     onChange={(e) => setObservacoes(e.target.value)}
                     placeholder="Conte algo mais sobre sua semana..."
                     rows={3}
-                    className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl p-4 text-xs text-ink outline-none resize-none"
+                    className="z-input w-full p-4 text-xs resize-none"
                   />
                 </div>
               </div>

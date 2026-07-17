@@ -352,7 +352,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       value={nome}
                       onChange={(e) => setNome(e.target.value)}
                       placeholder="Como prefere ser chamado"
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                      className="z-input !pl-12 !h-14"
                     />
                   </div>
                 </div>
@@ -369,8 +369,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       onClick={() => setPapel('personal')}
                       className={`p-4 rounded-lg border text-left flex flex-col items-start transition-all duration-300 ${
                         papel === 'personal'
-                          ? 'bg-surface-3 border-[#F26A1B]'
-                          : 'bg-void border-white/5 hover:border-white/10'
+                          ? 'bg-surface-3 border-accent'
+                          : 'bg-void border-line hover:border-accent/30'
                       } disabled:opacity-40 disabled:cursor-not-allowed`}
                     >
                       <Dumbbell className={`w-6 h-6 mb-2 ${papel === 'personal' ? 'text-flame' : 'text-ink-3'}`} />
@@ -386,8 +386,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       onClick={() => setPapel('aluno')}
                       className={`p-4 rounded-lg border text-left flex flex-col items-start transition-all duration-300 ${
                         papel === 'aluno'
-                          ? 'bg-surface-3 border-[#F26A1B]'
-                          : 'bg-void border-white/5 hover:border-white/10'
+                          ? 'bg-surface-3 border-accent'
+                          : 'bg-void border-line hover:border-accent/30'
                       } disabled:opacity-75`}
                     >
                       <User className={`w-6 h-6 mb-2 ${papel === 'aluno' ? 'text-[#F26A1B]' : 'text-ink-3'}`} />
@@ -408,8 +408,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       onClick={() => setAvatarTipo('masculino')}
                       className={`p-3 rounded-lg border text-center transition-all ${
                         avatarTipo === 'masculino'
-                          ? 'bg-surface-3 border-white/20 text-ink font-semibold'
-                          : 'bg-void border-white/5 text-ink-2 hover:border-white/10'
+                          ? 'bg-surface-3 border-accent text-ink font-semibold'
+                          : 'bg-void border-line text-ink-2 hover:border-accent/30'
                       }`}
                     >
                       <span className="text-xs">Masculino</span>
@@ -422,8 +422,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       onClick={() => setAvatarTipo('feminino')}
                       className={`p-3 rounded-lg border text-center transition-all ${
                         avatarTipo === 'feminino'
-                          ? 'bg-surface-3 border-white/20 text-ink font-semibold'
-                          : 'bg-void border-white/5 text-ink-2 hover:border-white/10'
+                          ? 'bg-surface-3 border-accent text-ink font-semibold'
+                          : 'bg-void border-line text-ink-2 hover:border-accent/30'
                       }`}
                     >
                       <span className="text-xs">Feminino</span>
@@ -444,7 +444,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       onChange={(e) => setCodigoConvite(e.target.value.toUpperCase())}
                       disabled={isConviteLocked}
                       placeholder="Ex: ZEN-DEMO-123"
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed num"
+                      className="z-input !h-14 disabled:opacity-60 disabled:cursor-not-allowed num"
                     />
                     <p className="text-[12px] text-ink-3 font-sans leading-relaxed">
                       {isConviteLocked 
@@ -469,7 +469,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="exemplo@zelos.com"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
+                  className="z-input !pl-12 !h-14 num"
                 />
               </div>
             </div>
@@ -497,7 +497,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
+                  className="z-input !pl-12 !pr-12 !h-14 num"
                 />
                 <button
                   type="button"
@@ -542,7 +542,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="exemplo@zelos.com"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
+                  className="z-input !pl-12 !h-14 num"
                 />
               </div>
             </div>
@@ -598,7 +598,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-4 text-center text-xl num tracking-[0.5em] text-ink placeholder-ink-3 outline-none transition-all font-semibold"
+                  className="z-input !h-16 text-center text-xl num tracking-[0.5em] font-semibold"
                 />
               </div>
               <p className="text-[12px] text-ink-3 font-sans leading-relaxed text-center">
@@ -646,7 +646,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
+                  className="z-input !pl-12 !pr-12 !h-14 num"
                 />
                 <button
                   type="button"
@@ -669,7 +669,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repita a nova senha"
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg py-4 pl-12 pr-12 text-sm text-ink placeholder-ink-3 outline-none transition-all num"
+                  className="z-input !pl-12 !pr-12 !h-14 num"
                 />
               </div>
             </div>

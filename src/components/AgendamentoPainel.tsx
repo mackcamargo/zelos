@@ -325,7 +325,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     required
                     value={formData.data}
                     onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                    className="w-full bg-void border border-line rounded-2xl p-4 text-ink outline-none focus:border-accent/50 transition-all num"
+                    className="z-input !h-14 num"
                   />
                 </div>
 
@@ -336,7 +336,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     required
                     value={formData.horario}
                     onChange={(e) => setFormData({ ...formData, horario: e.target.value })}
-                    className="w-full bg-void border border-line rounded-2xl p-4 text-ink outline-none focus:border-accent/50 transition-all num"
+                    className="z-input !h-14 num"
                   />
                 </div>
 
@@ -373,7 +373,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                     value={formData.observacao}
                     onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
                     placeholder="Ex: Focar em agachamentos..."
-                    className="w-full bg-void border border-line rounded-2xl p-4 text-ink outline-none focus:border-accent/50 transition-all resize-none h-24"
+                    className="z-input h-auto py-4 min-h-[100px] resize-none"
                   />
                 </div>
 

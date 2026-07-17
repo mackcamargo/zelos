@@ -366,7 +366,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar aluno..."
-              className="z-input"
+              className="z-input !h-9 !text-xs"
             />
           </div>
         </div>
@@ -606,7 +606,7 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
                                 <textarea
                                   value={editingText}
                                   onChange={(e) => setEditingText(e.target.value)}
-                                  className="bg-bg-sub text-ink text-sm border border-accent/40 rounded-xl p-2 focus:outline-none focus:border-accent w-full resize-none placeholder:text-ink-3"
+                                  className="z-input w-full resize-none !h-20 text-sm"
                                   rows={2}
                                 />
                                 <div className="flex justify-end gap-1.5">

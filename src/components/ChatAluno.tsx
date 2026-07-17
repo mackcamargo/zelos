@@ -335,7 +335,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                           <textarea
                             value={editingText}
                             onChange={(e) => setEditingText(e.target.value)}
-                            className="bg-black/35 text-white text-sm border border-[#F26A1B]/40 rounded-xl p-2 focus:outline-none focus:border-white w-full resize-none placeholder:text-white/40"
+                            className="z-input w-full resize-none !h-20 text-sm"
                             rows={2}
                           />
                           <div className="flex justify-end gap-1.5">
@@ -388,7 +388,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder={`Mensagem para ${personalFirstName}...`}
-          className="flex-1 bg-surface-2 text-ink border border-white/5 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-[#F26A1B]/40 transition-colors placeholder:text-ink-3"
+          className="z-input flex-1"
         />
         <button
           type="submit"

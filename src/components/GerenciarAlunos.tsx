@@ -715,7 +715,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     value={editObjetivo}
                     onChange={(e) => setEditObjetivo(e.target.value)}
                     placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
-                    className="z-input flex-1"
+                    className="z-input flex-1 !h-11"
                   />
                   <button
                     id="btn-save-objective"
@@ -1199,8 +1199,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               </div>
 
               {/* BLOCK 6: FOTOS DE EVOLUÇÃO */}
-              <div className="bg-surface border border-white/5 rounded-2xl p-6 md:col-span-2 space-y-6">
-                <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+                <div className="flex items-center gap-3 pb-4 border-b border-line">
                   <Camera className="w-5 h-5 text-flame" />
                   <h3 className="font-display font-bold text-lg text-ink">Evolução Visual</h3>
                 </div>
@@ -1208,8 +1208,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               </div>
 
               {/* BLOCK 7: NUTRIÇÃO */}
-              <div className="bg-surface border border-white/5 rounded-2xl p-6 md:col-span-2 space-y-6">
-                <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+                <div className="flex items-center gap-3 pb-4 border-b border-line">
                   <Utensils className="w-5 h-5 text-flame" />
                   <h3 className="font-display font-bold text-lg text-ink">Plano Alimentar</h3>
                 </div>
@@ -1217,8 +1217,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               </div>
 
               {/* BLOCK 8: HIDRATAÇÃO (Personal View) */}
-              <div className="bg-surface border border-white/5 rounded-2xl p-6 md:col-span-2 space-y-6">
-                <div className="flex items-center gap-3 pb-4 border-b border-white/5">
+              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+                <div className="flex items-center gap-3 pb-4 border-b border-line">
                   <Droplets className="w-5 h-5 text-violet" />
                   <h3 className="font-display font-bold text-lg text-ink">Hidratação do Aluno</h3>
                 </div>
@@ -1346,7 +1346,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                           value={conviteNome}
                           onChange={(e) => setConviteNome(e.target.value)}
                           placeholder="Nome completo do aluno"
-                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                          className="z-input"
                         />
                       </div>
 
@@ -1358,7 +1358,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                           value={conviteObjetivo}
                           onChange={(e) => setConviteObjetivo(e.target.value)}
                           placeholder="Ex: Hipertrofia, Emagrecimento, etc."
-                          className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                          className="z-input"
                         />
                       </div>
 
@@ -1516,7 +1516,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         value={novoNome}
                         onChange={(e) => setNovoNome(e.target.value)}
                         placeholder="Nome do aluno"
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                        className="z-input !pl-10 !text-xs"
                       />
                     </div>
                   </div>
@@ -1532,7 +1532,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         value={novoEmail}
                         onChange={(e) => setNovoEmail(e.target.value)}
                         placeholder="aluno@exemplo.com"
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                        className="z-input !pl-10 !text-xs"
                       />
                     </div>
                   </div>
@@ -1547,7 +1547,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         value={novoObjetivo}
                         onChange={(e) => setNovoObjetivo(e.target.value)}
                         placeholder="Ex: Hipertrofia de pernas, Emagrecimento, etc"
-                        className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-ink outline-none"
+                        className="z-input !pl-10 !text-xs"
                       />
                     </div>
                   </div>
@@ -1561,8 +1561,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         onClick={() => setNovoAvatar('masculino')}
                         className={`p-2.5 rounded-xl border text-center text-xs transition-all ${
                           novoAvatar === 'masculino'
-                            ? 'bg-surface-3 border-white/15 text-ink font-semibold'
-                            : 'bg-void border-white/5 text-ink-2 hover:border-white/10'
+                            ? 'bg-surface-3 border-line-strong text-ink font-semibold'
+                            : 'bg-void border-line text-ink-2 hover:border-line-strong'
                         }`}
                       >
                         Masculino (👨)
@@ -1572,8 +1572,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         onClick={() => setNovoAvatar('feminino')}
                         className={`p-2.5 rounded-xl border text-center text-xs transition-all ${
                           novoAvatar === 'feminino'
-                            ? 'bg-surface-3 border-white/15 text-ink font-semibold'
-                            : 'bg-void border-white/5 text-ink-2 hover:border-white/10'
+                            ? 'bg-surface-3 border-line-strong text-ink font-semibold'
+                            : 'bg-void border-line text-ink-2 hover:border-line-strong'
                         }`}
                       >
                         Feminino (👩)

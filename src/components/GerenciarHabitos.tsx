@@ -270,7 +270,7 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
                     value={newNome}
                     onChange={(e) => setNewNome(e.target.value)}
                     placeholder="Ex: Beber água"
-                    className="w-full bg-bg border border-line rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/25 transition-all"
+                    className="z-input !h-11"
                   />
                 </div>
 
@@ -311,7 +311,7 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
                     value={newMeta}
                     onChange={(e) => setNewMeta(e.target.value)}
                     placeholder="Ex: 2L"
-                    className="w-full bg-bg border border-line rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/25 transition-all"
+                    className="z-input !h-11"
                   />
                 </div>
 

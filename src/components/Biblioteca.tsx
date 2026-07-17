@@ -144,7 +144,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                   placeholder="Buscar exercício..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-surface-2 border border-white/5 focus:border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-xs text-ink outline-none transition-all placeholder:text-ink-3"
+                  className="z-input !pl-9"
                 />
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                   placeholder="Ex: Gestantes, Idosos..."
                   value={publicoAlvoFilter}
                   onChange={(e) => setPublicoAlvoFilter(e.target.value)}
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none"
+                  className="z-input !h-9 !rounded-lg !p-2 !text-[11px]"
                 />
               </div>
 
@@ -206,7 +206,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                   placeholder="Ex: Lombalgia, Condromalácia..."
                   value={semContraindicacaoFilter}
                   onChange={(e) => setSemContraindicacaoFilter(e.target.value)}
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none"
+                  className="z-input !h-9 !rounded-lg !p-2 !text-[11px]"
                 />
               </div>
 
@@ -217,7 +217,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                   id="filter-impacto"
                   value={impactoFilter}
                   onChange={(e) => setImpactoFilter(e.target.value as any)}
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none cursor-pointer"
+                  className="z-input cursor-pointer !h-9 !rounded-lg !p-2 !text-[11px]"
                 >
                   <option value="">Todos</option>
                   <option value="baixo">Baixo impacto</option>
@@ -235,7 +235,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                   placeholder="Ex: Halteres, Barra, Smith..."
                   value={equipamentoFilter}
                   onChange={(e) => setEquipamentoFilter(e.target.value)}
-                  className="w-full bg-void border border-white/5 focus:border-white/10 rounded-lg p-2 text-[11px] text-ink outline-none"
+                  className="z-input !h-9 !rounded-lg !p-2 !text-[11px]"
                 />
               </div>
             </div>

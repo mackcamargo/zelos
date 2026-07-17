@@ -168,9 +168,9 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
   }
 
   return (
-    <div className="bg-surface border border-white/5 rounded-3xl p-6 md:p-8 space-y-6 relative overflow-hidden max-w-3xl mx-auto shadow-2xl">
+    <div className="bg-surface border border-line rounded-3xl p-6 md:p-8 space-y-6 relative overflow-hidden max-w-3xl mx-auto shadow-2xl">
       {/* Header Form */}
-      <div className="flex items-center justify-between pb-6 border-b border-white/5">
+      <div className="flex items-center justify-between pb-6 border-b border-line">
         <div>
           <h2 className="font-display font-bold text-xl text-ink">
             {isPersonalEditing ? 'Anamnese e Avaliação do Aluno' : (isEditing ? 'Atualizar Anamnese' : 'Responder Anamnese')}
@@ -232,7 +232,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                 placeholder="Ex: Redução de percentual de gordura, fortalecimento lombar, hipertrofia de membros inferiores..."
                 value={formData.objetivo_principal}
                 onChange={e => setFormData(prev => ({ ...prev, objetivo_principal: e.target.value }))}
-                className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full min-h-[100px] resize-none"
+                className="z-input w-full min-h-[100px] py-3.5 resize-none"
               />
             </div>
 
@@ -242,7 +242,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                 <select
                   value={formData.experiencia}
                   onChange={e => setFormData(prev => ({ ...prev, experiencia: e.target.value as any }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full appearance-none cursor-pointer"
+                  className="z-input w-full cursor-pointer h-12"
                 >
                   <option value="nunca_treinou">Nunca treinou (Sedentário)</option>
                   <option value="iniciante">Iniciante (menos de 6 meses)</option>
@@ -258,7 +258,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   placeholder="Ex: Treinando ativo, parado há 3 meses, nunca treinei..."
                   value={formData.tempo_sem_treinar}
                   onChange={e => setFormData(prev => ({ ...prev, tempo_sem_treinar: e.target.value }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full"
+                  className="z-input w-full h-12"
                 />
               </div>
             </div>
@@ -273,8 +273,8 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                     onClick={() => setFormData(prev => ({ ...prev, frequencia_semanal_desejada: num }))}
                     className={`flex-1 py-3 rounded-xl border font-mono text-sm font-bold transition-all ${
                       formData.frequencia_semanal_desejada === num
-                        ? 'bg-[#F26A1B] border-transparent text-white'
-                        : 'bg-surface-2 border-white/5 text-ink-2 hover:bg-surface-3'
+                        ? 'bg-accent border-line text-white shadow-sm'
+                        : 'bg-surface-2 border border-line text-ink-2 hover:bg-surface-3'
                     }`}
                   >
                     {num}x
@@ -352,7 +352,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   placeholder="Por favor, especifique qual a outra razão relatada..."
                   value={formData.parq_outra_razao_qual || ''}
                   onChange={e => setFormData(prev => ({ ...prev, parq_outra_razao_qual: e.target.value }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full"
+                  className="z-input w-full h-12"
                 />
               </div>
             )}
@@ -409,7 +409,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                     placeholder="Especifique a lesão (ex: Condromalácia patelar grau 2, hérnia de disco L4-L5, tendinite no ombro)..."
                     value={formData.lesoes || ''}
                     onChange={e => setFormData(prev => ({ ...prev, lesoes: e.target.value }))}
-                    className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full min-h-[90px] resize-none animate-in slide-in-from-top-2 duration-200"
+                    className="z-input w-full min-h-[90px] py-3.5 resize-none animate-in slide-in-from-top-2 duration-200"
                   />
                 )}
               </div>
@@ -420,7 +420,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   placeholder="Se já realizou cirurgias, liste aqui..."
                   value={formData.cirurgias || ''}
                   onChange={e => setFormData(prev => ({ ...prev, cirurgias: e.target.value }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full min-h-[90px] resize-none"
+                  className="z-input w-full min-h-[90px] py-3.5 resize-none"
                 />
               </div>
             </div>
@@ -458,7 +458,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   placeholder="Ex: Enalapril para pressão, metformina..."
                   value={formData.medicamentos || ''}
                   onChange={e => setFormData(prev => ({ ...prev, medicamentos: e.target.value }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full"
+                  className="z-input w-full h-12"
                 />
               </div>
 
@@ -469,7 +469,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   placeholder="Ex: Alergia a AAS, látex, poeira, etc..."
                   value={formData.alergias || ''}
                   onChange={e => setFormData(prev => ({ ...prev, alergias: e.target.value }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full"
+                  className="z-input w-full h-12"
                 />
               </div>
             </div>
@@ -547,7 +547,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                 <select
                   value={formData.consumo_alcool}
                   onChange={e => setFormData(prev => ({ ...prev, consumo_alcool: e.target.value as any }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full appearance-none cursor-pointer"
+                  className="z-input w-full h-12 cursor-pointer"
                 >
                   <option value="nao">Não consumo</option>
                   <option value="social">Socialmente (finais de semana)</option>
@@ -565,7 +565,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   max="16"
                   value={formData.horas_sono}
                   onChange={e => setFormData(prev => ({ ...prev, horas_sono: Number(e.target.value) || 0 }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full"
+                  className="z-input w-full h-12 num"
                 />
               </div>
 
@@ -574,7 +574,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                 <select
                   value={formData.nivel_atividade_diaria}
                   onChange={e => setFormData(prev => ({ ...prev, nivel_atividade_diaria: e.target.value as any }))}
-                  className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full appearance-none cursor-pointer"
+                  className="z-input w-full h-12 cursor-pointer"
                 >
                   <option value="sedentario">Sedentário (Trabalho sentado, sem esforço físico)</option>
                   <option value="leve">Leve (Fica em pé às vezes, rotina tranquila)</option>
@@ -590,7 +590,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                 placeholder="Escreva aqui qualquer outra informação complementar relevante para o seu personal..."
                 value={formData.observacoes || ''}
                 onChange={e => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-                className="bg-surface-2 border border-white/5 focus:border-flame focus:ring-1 focus:ring-flame rounded-xl p-3.5 text-ink text-sm outline-none w-full min-h-[100px] resize-none"
+                className="z-input w-full min-h-[100px] py-3.5 resize-none"
               />
             </div>
           </div>
