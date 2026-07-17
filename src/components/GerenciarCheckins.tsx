@@ -82,14 +82,14 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
 
   const getIndicatorColor = (val: number, type: 'normal' | 'inverted') => {
     if (type === 'normal') {
-      if (val >= 4) return 'text-emerald-400';
-      if (val >= 3) return 'text-amber-400';
-      return 'text-rose-400';
+      if (val >= 4) return 'text-ok';
+      if (val >= 3) return 'text-warn';
+      return 'text-danger';
     } else {
       // Estresse (Invertido): 1-2 Verde, 3 Amarelo, 4-5 Vermelho
-      if (val <= 2) return 'text-emerald-400';
-      if (val === 3) return 'text-amber-400';
-      return 'text-rose-400';
+      if (val <= 2) return 'text-ok';
+      if (val === 3) return 'text-warn';
+      return 'text-danger';
     }
   };
 
@@ -100,8 +100,8 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="w-8 h-8 text-flame animate-spin" />
-        <p className="text-xs text-ink-3 font-mono uppercase tracking-widest">Sincronizando check-ins...</p>
+        <Loader2 className="w-8 h-8 text-accent animate-spin" />
+        <p className="z-eyebrow">Sincronizando check-ins...</p>
       </div>
     );
   }
@@ -110,33 +110,35 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic flex items-center">
-            Check<span className="text-flame">-ins</span>
+          <h2 className="z-display text-ink">
+            Check<span className="text-accent">ins</span>
           </h2>
-          <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Acompanhamento Semanal</p>
+          <p className="z-eyebrow mt-1">Acompanhamento Semanal</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+          <div className="z-search max-w-xs w-full sm:w-48">
+            <span className="z-search__icon">
+              <Search className="w-4 h-4 text-ink-3" strokeWidth={1.75} />
+            </span>
             <input 
               type="text"
               placeholder="Buscar aluno..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="bg-surface border border-white/5 rounded-xl py-2 pl-10 pr-4 text-xs text-ink focus:border-flame/30 outline-none w-48 transition-all"
+              className="z-input !h-9 !text-xs !pl-9"
             />
           </div>
-          <div className="flex bg-surface border border-white/5 rounded-xl p-1">
+          <div className="flex bg-raise border border-line rounded-xl p-1 gap-1">
             <button 
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white/10 text-flame' : 'text-ink-3 hover:text-ink'}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-accent/10 text-accent' : 'text-ink-3 hover:text-ink'}`}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white/10 text-flame' : 'text-ink-3 hover:text-ink'}`}
+              className={`p-1.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-accent/10 text-accent' : 'text-ink-3 hover:text-ink'}`}
             >
               <List className="w-4 h-4" />
             </button>
@@ -158,15 +160,15 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                   setSelectedAluno({ id: aluno.id, nome: aluno.profile.nome });
                 }
               }}
-              className={`bg-surface border border-white/5 rounded-3xl p-5 space-y-4 hover:border-white/10 transition-all clicavel ${
+              className={`z-card z-card--tap space-y-4 ${
                 !aluno.ultimoCheckin 
                   ? 'opacity-60' 
-                  : 'cursor-pointer hover:bg-white/[0.02] active:scale-[0.99]'
+                  : ''
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-void border border-white/5 flex items-center justify-center font-display font-bold text-flame overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-raise border border-line flex items-center justify-center font-display font-bold text-accent overflow-hidden">
                     {aluno.profile.avatar_url ? (
                       <img src={aluno.profile.avatar_url} alt={aluno.profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     ) : (
@@ -176,7 +178,7 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                   <div>
                     <h4 className="font-display font-bold text-ink leading-none">{aluno.profile.nome}</h4>
                     {aluno.ultimoCheckin ? (
-                      <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono text-ink-3">
+                      <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-mono text-ink-3">
                         <Calendar className="w-3 h-3" />
                         <span>Semana: {(() => {
                           const [ano, mes, dia] = aluno.ultimoCheckin.semana.split("-").map(Number);
@@ -184,13 +186,13 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                         })()}</span>
                       </div>
                     ) : (
-                      <p className="text-[10px] font-mono text-rose-400/70 mt-1 uppercase">Sem check-in ainda</p>
+                      <p className="z-eyebrow mt-1 text-danger">Sem check-in ainda</p>
                     )}
                   </div>
                 </div>
 
                 {aluno.ultimoCheckin?.dores && (
-                  <div className="flex items-center gap-1 bg-rose-500/10 border border-rose-500/20 text-rose-400 px-2 py-1 rounded-lg animate-pulse">
+                  <div className="flex items-center gap-1 bg-danger/10 border border-danger/20 text-danger px-2 py-1 rounded-lg animate-pulse">
                     <AlertCircle className="w-3 h-3" />
                     <span className="text-[9px] font-mono font-bold uppercase">Dor relatada</span>
                   </div>
@@ -200,20 +202,20 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
               {aluno.ultimoCheckin ? (
                 <>
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-void/50 p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
+                    <div className="bg-bg p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-line">
                       <Zap className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.energia, 'normal')}`} />
-                      <span className="text-sm font-mono font-black text-ink">{aluno.ultimoCheckin.energia}/5</span>
-                      <span className="text-[7px] font-mono uppercase text-ink-3">Energia</span>
+                      <span className="text-sm font-mono font-black text-ink z-num">{aluno.ultimoCheckin.energia}/5</span>
+                      <span className="text-[9px] z-eyebrow text-ink-3">Energia</span>
                     </div>
-                    <div className="bg-void/50 p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
+                    <div className="bg-bg p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-line">
                       <Moon className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.qualidade_sono, 'normal')}`} />
-                      <span className="text-sm font-mono font-black text-ink">{aluno.ultimoCheckin.qualidade_sono}/5</span>
-                      <span className="text-[7px] font-mono uppercase text-ink-3">Sono</span>
+                      <span className="text-sm font-mono font-black text-ink z-num">{aluno.ultimoCheckin.qualidade_sono}/5</span>
+                      <span className="text-[9px] z-eyebrow text-ink-3">Sono</span>
                     </div>
-                    <div className="bg-void/50 p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
+                    <div className="bg-bg p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-line">
                       <Flame className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.nivel_estresse, 'inverted')}`} />
-                      <span className="text-sm font-mono font-black text-ink">{aluno.ultimoCheckin.nivel_estresse}/5</span>
-                      <span className="text-[7px] font-mono uppercase text-ink-3">Estresse</span>
+                      <span className="text-sm font-mono font-black text-ink z-num">{aluno.ultimoCheckin.nivel_estresse}/5</span>
+                      <span className="text-[9px] z-eyebrow text-ink-3">Estresse</span>
                     </div>
                   </div>
 
@@ -222,25 +224,25 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                       {aluno.ultimoCheckin.peso_kg && (
                         <div className="flex items-center gap-2 text-ink-2">
                           <Scale className="w-3.5 h-3.5" />
-                          <span>Peso: {aluno.ultimoCheckin.peso_kg} kg</span>
+                          <span>Peso: <span className="z-num">{aluno.ultimoCheckin.peso_kg} kg</span></span>
                         </div>
                       )}
                       <span className="text-ink-3 ml-auto italic">
-                        Enviado {new Date(aluno.ultimoCheckin.criado_em).toLocaleDateString()}
+                        Enviado {new Date(aluno.ultimoCheckin.criado_em).toLocaleDateString('pt-BR')}
                       </span>
                     </div>
 
                     {aluno.ultimoCheckin.dores && (
-                      <div className="bg-rose-500/5 border border-rose-500/10 p-3 rounded-xl">
-                        <p className="text-[10px] text-rose-400 font-bold uppercase mb-1 flex items-center gap-1">
+                      <div className="bg-danger/5 border border-danger/10 p-3 rounded-xl">
+                        <p className="text-[10px] text-danger font-bold uppercase mb-1 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" /> Relato de Dor
                         </p>
-                        <p className="text-xs text-rose-200/80 leading-relaxed italic">"{aluno.ultimoCheckin.dores}"</p>
+                        <p className="text-xs text-ink-2 leading-relaxed italic">"{aluno.ultimoCheckin.dores}"</p>
                       </div>
                     )}
 
                     {aluno.ultimoCheckin.observacoes && (
-                      <div className="bg-void/30 p-3 rounded-xl border border-white/5">
+                      <div className="bg-bg p-3 rounded-xl border border-line">
                         <div className="flex items-center gap-2 mb-1">
                           <MessageSquare className="w-3 h-3 text-ink-3" />
                           <span className="text-[10px] font-mono text-ink-3 uppercase">Obs:</span>
@@ -251,13 +253,13 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
                   </div>
                 </>
               ) : (
-                <div className="py-6 flex flex-col items-center justify-center bg-void/20 rounded-2xl border border-dashed border-white/5">
-                  <p className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Aguardando check-in do aluno</p>
+                <div className="py-6 flex flex-col items-center justify-center bg-bg rounded-2xl border border-dashed border-line">
+                  <p className="z-eyebrow text-ink-3">Aguardando check-in do aluno</p>
                 </div>
               )}
             </motion.div>
           ))}
-        </ AnimatePresence>
+        </AnimatePresence>
       </div>
 
       {selectedAluno && (
@@ -269,7 +271,7 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
       )}
 
       {alunosFiltrados.length === 0 && (
-        <div className="bg-surface border border-white/5 rounded-3xl p-12 text-center">
+        <div className="z-card text-center p-12">
           <p className="text-ink-3 text-sm">Nenhum aluno encontrado para "{busca}"</p>
         </div>
       )}

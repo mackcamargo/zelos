@@ -238,15 +238,21 @@ html, body {
   position: relative;
   background: var(--z-card-bg);
   border: 1px solid var(--z-line);
+  border-bottom: 2.5px solid var(--z-line-strong);
   border-radius: var(--z-r-lg);
   box-shadow: var(--z-shadow-2);
   padding: var(--z-5);
-  transition: border-color var(--z-fast) var(--z-ease), transform var(--z-fast) var(--z-ease);
+  transition: border-color var(--z-fast) var(--z-ease), border-bottom-color var(--z-fast) var(--z-ease), transform var(--z-fast) var(--z-ease), box-shadow var(--z-fast) var(--z-ease);
 }
 .z-card--flush { padding: 0; overflow: hidden; }
 .z-card--tap { cursor: pointer; }
-.z-card--tap:hover { border-color: var(--z-line-strong); }
-.z-card--tap:active { transform: scale(0.995); }
+.z-card--tap:hover { 
+  border-color: var(--z-line-strong); 
+  border-bottom-color: var(--z-accent);
+  transform: translateY(-2.5px);
+  box-shadow: var(--z-shadow-pop);
+}
+.z-card--tap:active { transform: translateY(0) scale(0.99); }
 
 .z-card__head {
   display: flex;

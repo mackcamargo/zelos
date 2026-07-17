@@ -14,6 +14,7 @@ import PlanosArea from './PlanosArea';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
 import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface PersonalAreaProps {
   userId: string;
@@ -35,6 +36,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
 
   const { assinatura, loading, isReadOnly, daysRemaining } = useSubscription();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleTabChangeScroll = (e: any) => {
@@ -197,7 +199,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
   return (
     <div 
       id="personal-area-root" 
-      className={`bg-void text-ink font-sans flex overflow-hidden ${
+      className={`bg-bg text-ink font-sans flex overflow-hidden ${
         activeTab === 'chat' ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'
       }`}
     >
@@ -205,12 +207,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
       {/* SIDEBAR: Desktop */}
       <aside 
         id="desktop-sidebar"
-        className={`hidden md:flex flex-col bg-[#141414] border-r border-white/10 h-screen sticky top-0 transition-all duration-300 z-30 shrink-0 ${
+        className={`hidden md:flex flex-col bg-surface border-r border-line h-screen sticky top-0 transition-all duration-300 z-30 shrink-0 ${
           isCollapsed ? 'w-16' : 'w-60'
         }`}
       >
         {/* Top bar logo */}
-        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-white/5 h-16 shrink-0`}>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-4 border-b border-line/40 h-16 shrink-0`}>
           {isCollapsed ? (
             <button
               type="button"
@@ -219,7 +221,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 tocar('abrir');
               }}
               data-sem-som
-              className="font-display font-black text-2xl tracking-tight text-[#F26A1B] hover:scale-110 transition-transform focus:outline-none cursor-pointer"
+              className="font-display font-black text-2xl tracking-tight text-accent hover:scale-110 transition-transform focus:outline-none cursor-pointer"
               title="Expandir menu"
             >
               Z
@@ -232,14 +234,14 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 data-sem-som
                 className="font-display font-semibold text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
               >
-                ZE<span className="text-[#F26A1B]">LOS</span>
+                ZE<span className="text-accent">LOS</span>
               </button>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={toggleSom}
                   data-sem-som
-                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-ink-3 hover:text-ink transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-raise text-ink-3 hover:text-ink transition-colors"
                   title={somHabilitado ? "Silenciar sons" : "Ativar sons"}
                 >
                   {somHabilitado ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -251,7 +253,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                     tocar('fechar');
                   }}
                   data-sem-som
-                  className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-white/5 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-raise transition-colors cursor-pointer"
                   title="Recolher menu"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -262,7 +264,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         </div>
 
         {!isCollapsed && (
-          <div className="px-4 py-2 border-b border-white/5 bg-void/30">
+          <div className="px-4 py-2 border-b border-line/40 bg-bg/30">
             {getPlanBadge()}
           </div>
         )}
@@ -282,40 +284,40 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                     isCollapsed ? 'justify-center px-2' : 'px-4'
                   } py-3 gap-3 rounded-xl transition-all duration-200 relative group/btn cursor-pointer ${
                     isActive 
-                      ? 'text-[#F26A1B] bg-white/[0.04] font-semibold' 
-                      : 'text-ink-2 hover:text-ink hover:bg-white/[0.02]'
+                      ? 'text-accent bg-accent/10 font-semibold' 
+                      : 'text-ink-2 hover:text-ink hover:bg-raise/40'
                   }`}
                 >
                   {isActive && (
-                    <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-[#F26A1B] rounded-r-full" />
+                    <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-accent rounded-r-full" />
                   )}
                   <div className="relative">
                     <Icon className={`w-5 h-5 transition-transform duration-200 group-hover/btn:scale-105 ${
-                      isActive ? 'text-[#F26A1B]' : 'text-ink-2 group-hover/btn:text-ink'
+                      isActive ? 'text-accent' : 'text-ink-2 group-hover/btn:text-ink'
                     }`} />
                     {item.id === 'chat' && unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full ring-2 ring-surface" />
                     )}
                     {item.id === 'agenda' && agendaPendingCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full ring-2 ring-surface" />
                     )}
                     {item.id === 'checkins' && checkinsPendingCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full ring-2 ring-surface" />
                     )}
                   </div>
                   {!isCollapsed && <span className="text-sm font-sans truncate">{item.label}</span>}
                   {!isCollapsed && item.id === 'chat' && unreadCount > 0 && (
-                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
+                    <span className="ml-auto text-[9px] bg-accent text-white px-1.5 py-0.5 rounded-full font-semibold num">
                       {unreadCount}
                     </span>
                   )}
                   {!isCollapsed && item.id === 'agenda' && agendaPendingCount > 0 && (
-                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
+                    <span className="ml-auto text-[9px] bg-accent text-white px-1.5 py-0.5 rounded-full font-semibold num">
                       {agendaPendingCount}
                     </span>
                   )}
                   {!isCollapsed && item.id === 'checkins' && checkinsPendingCount > 0 && (
-                    <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
+                    <span className="ml-auto text-[9px] bg-accent text-white px-1.5 py-0.5 rounded-full font-semibold num">
                       {checkinsPendingCount}
                     </span>
                   )}
@@ -323,7 +325,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
 
                 {/* Tooltip on Collapsed hover */}
                 {isCollapsed && (
-                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-[#1a1a1a] border border-white/10 text-xs font-semibold text-ink rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 whitespace-nowrap pointer-events-none shadow-xl">
+                  <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-raise border border-line text-xs font-semibold text-ink rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 z-50 whitespace-nowrap pointer-events-none shadow-xl">
                     {item.label}
                   </div>
                 )}
@@ -333,24 +335,24 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         </div>
 
         {/* Footer profile & logout */}
-        <div className="p-2 border-t border-white/5 shrink-0 relative group/footer">
+        <div className="p-2 border-t border-line/40 shrink-0 relative group/footer">
           <button
             type="button"
             onClick={() => setActiveTab('perfil')}
             data-sem-som
             className={`w-full flex items-center ${
               isCollapsed ? 'justify-center p-2' : 'p-2'
-            } gap-3 text-left hover:bg-white/[0.03] rounded-xl transition-all group/btn cursor-pointer`}
+            } gap-3 text-left hover:bg-raise rounded-xl transition-all group/btn cursor-pointer`}
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                <div className="w-full h-full rounded-full bg-[#1c1d22] flex items-center justify-center font-display font-bold text-ink text-xs">
+                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-bold text-ink text-xs">
                   {profile.nome.charAt(0).toUpperCase()}
                 </div>
               </div>
               {!isCollapsed && (
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-ink group-hover/btn:text-[#F26A1B] transition-colors truncate">
+                  <p className="text-xs font-semibold text-ink group-hover/btn:text-accent transition-colors truncate">
                     {profile.nome}
                   </p>
                 </div>
@@ -364,7 +366,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   e.stopPropagation();
                   onLogout();
                 }}
-                className="p-1.5 rounded-lg text-ink-3 hover:text-ember hover:bg-white/5 transition-colors shrink-0 ml-auto cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-3 hover:text-accent hover:bg-raise transition-colors shrink-0 ml-auto cursor-pointer"
                 title="Sair da conta"
               >
                 <LogOut className="w-4 h-4" />
@@ -374,7 +376,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
 
           {/* Footer Tooltip on Collapsed */}
           {isCollapsed && (
-            <div className="absolute left-full ml-3 bottom-4 px-2.5 py-1.5 bg-[#1a1a1a] border border-white/10 text-xs font-semibold text-ink rounded-lg opacity-0 invisible group-hover/footer:opacity-100 group-hover/footer:visible transition-all duration-200 z-50 whitespace-nowrap pointer-events-none shadow-xl">
+            <div className="absolute left-full ml-3 bottom-4 px-2.5 py-1.5 bg-raise border border-line text-xs font-semibold text-ink rounded-lg opacity-0 invisible group-hover/footer:opacity-100 group-hover/footer:visible transition-all duration-200 z-50 whitespace-nowrap pointer-events-none shadow-xl">
               {profile.nome} (Sair)
             </div>
           )}
@@ -384,25 +386,25 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
       {/* MOBILE DRAWER: Sidebar drawer */}
       {isMobileOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-all duration-300 clicavel"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-all duration-300 clicavel"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
       <aside 
         id="mobile-sidebar"
-        className={`fixed top-0 bottom-0 left-0 bg-[#141414] border-r border-white/10 w-60 z-50 transition-transform duration-300 md:hidden flex flex-col ${
+        className={`fixed top-0 bottom-0 left-0 bg-surface border-r border-line w-60 z-50 transition-transform duration-300 md:hidden flex flex-col ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5 h-16 shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-line/40 h-16 shrink-0">
           <span className="font-display font-black text-xl tracking-tight">
-            ZE<span className="text-[#F26A1B]">LOS</span>
+            ZE<span className="text-accent">LOS</span>
           </span>
           <button
             type="button"
             onClick={() => setIsMobileOpen(false)}
-            className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-raise transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -425,38 +427,38 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 data-sem-som
                 className={`w-full flex items-center px-4 py-3 gap-3 rounded-xl transition-all duration-200 relative cursor-pointer ${
                   isActive 
-                    ? 'text-[#F26A1B] bg-white/[0.04] font-semibold' 
-                    : 'text-ink-2 hover:text-ink hover:bg-white/[0.02]'
+                    ? 'text-accent bg-accent/10 font-semibold' 
+                    : 'text-ink-2 hover:text-ink hover:bg-raise/40'
                 }`}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-[#F26A1B] rounded-r-full" />
+                  <span className="absolute left-0 top-2.5 bottom-2.5 w-1 bg-accent rounded-r-full" />
                 )}
                 <div className="relative">
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-[#F26A1B]' : 'text-ink-2'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-accent' : 'text-ink-2'}`} />
                   {item.id === 'chat' && unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full ring-2 ring-surface" />
                   )}
                   {item.id === 'agenda' && agendaPendingCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full ring-2 ring-surface" />
                   )}
                   {item.id === 'checkins' && checkinsPendingCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#F26A1B] rounded-full ring-2 ring-[#141414]" />
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full ring-2 ring-surface" />
                   )}
                 </div>
                 <span className="text-sm font-sans">{item.label}</span>
                 {item.id === 'chat' && unreadCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
+                  <span className="ml-auto text-[9px] bg-accent text-white px-1.5 py-0.5 rounded-full font-semibold num">
                     {unreadCount}
                   </span>
                 )}
                 {item.id === 'agenda' && agendaPendingCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
+                  <span className="ml-auto text-[9px] bg-accent text-white px-1.5 py-0.5 rounded-full font-semibold num">
                     {agendaPendingCount}
                   </span>
                 )}
                 {item.id === 'checkins' && checkinsPendingCount > 0 && (
-                  <span className="ml-auto text-[9px] bg-[#F26A1B] text-white px-1.5 py-0.5 rounded-full font-semibold num">
+                  <span className="ml-auto text-[9px] bg-accent text-white px-1.5 py-0.5 rounded-full font-semibold num">
                     {checkinsPendingCount}
                   </span>
                 )}
@@ -466,8 +468,8 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-white/5 shrink-0">
-          <div className="w-full flex items-center justify-between gap-3 p-2 rounded-xl bg-white/[0.02]">
+        <div className="p-3 border-t border-line/40 shrink-0">
+          <div className="w-full flex items-center justify-between gap-3 p-2 rounded-xl bg-raise/40">
             <button
               type="button"
               onClick={() => {
@@ -478,7 +480,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
               className="flex items-center gap-3 min-w-0 text-left cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                <div className="w-full h-full rounded-full bg-[#1c1d22] flex items-center justify-center font-display font-semibold text-ink text-xs">
+                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-ink text-xs">
                   {profile.nome.charAt(0).toUpperCase()}
                 </div>
               </div>
@@ -489,7 +491,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
             <button 
               type="button"
               onClick={onLogout}
-              className="p-1.5 rounded-lg text-ink-3 hover:text-ember hover:bg-white/5 transition-colors shrink-0 cursor-pointer"
+              className="p-1.5 rounded-lg text-ink-3 hover:text-accent hover:bg-raise transition-colors shrink-0 cursor-pointer"
               title="Sair da conta"
             >
               <LogOut className="w-4 h-4" />
@@ -539,14 +541,14 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
           </div>
         )}
           {/* Top Header */}
-        <header className="sticky top-0 bg-void/90 backdrop-blur-md z-20 border-b border-white/5 py-4 px-6 shrink-0">
+        <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-20 border-b border-line/40 py-4 px-6 shrink-0">
           <div className="max-w-[1200px] mx-auto flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               {/* Hamburger button on Mobile */}
               <button
                 type="button"
                 onClick={() => setIsMobileOpen(true)}
-                className="md:hidden p-2 -ml-2 text-ink-2 hover:text-ink hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                className="md:hidden p-2 -ml-2 text-ink-2 hover:text-ink hover:bg-raise rounded-xl transition-all cursor-pointer"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -583,7 +585,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 <span className="text-[12px] text-ink-2">Personal</span>
               </div>
               <div className="w-9 h-9 rounded-full brand-gradient-bg p-[1px]">
-                <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-semibold text-ink text-sm">
+                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-ink text-sm">
                   {profile.nome.charAt(0).toUpperCase()}
                 </div>
               </div>
@@ -662,12 +664,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
             </div>
 
             {/* Premium Profile Card */}
-            <div className="bg-surface border border-white/5 rounded-3xl p-8 space-y-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-flame/5 blur-3xl pointer-events-none rounded-full" />
+            <div className="bg-surface border border-line rounded-3xl p-8 space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
 
-              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-white/5">
+              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-line">
                 <div className="w-20 h-20 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                  <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-semibold text-[28px] text-ink">
+                  <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-[28px] text-ink">
                     {profile.nome.charAt(0).toUpperCase()}
                   </div>
                 </div>
@@ -676,7 +678,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   <h3 className="font-display font-semibold text-xl text-ink">{profile.nome}</h3>
                   <p className="text-sm text-ink-2">{userEmail}</p>
                   <div className="pt-2 flex flex-wrap justify-center sm:justify-start gap-2">
-                    <span className="text-[12px] bg-violet/10 border border-violet/20 text-violet px-2.5 py-0.5 rounded-full">
+                    <span className="text-[12px] bg-accent/10 border border-accent/20 text-accent px-2.5 py-0.5 rounded-full">
                       Plano Black
                     </span>
                     <span className="text-[12px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full">
@@ -688,18 +690,18 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
 
               {/* Additional Account Metadata details */}
               <div className="grid grid-cols-1 gap-4">
-                <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-1">
+                <div className="p-4 bg-bg border border-line rounded-2xl space-y-1">
                   <span className="text-[12px] text-ink-3">Criado em</span>
                   <p className="text-sm text-ink flex items-center gap-1.5 num">
-                    <Calendar className="w-3.5 h-3.5 text-flame" />
+                    <Calendar className="w-3.5 h-3.5 text-accent" />
                     <span>{new Date(profile.criado_em).toLocaleDateString('pt-BR')}</span>
                   </p>
                 </div>
               </div>
 
               {/* Safety notice / app status */}
-              <div className="p-4 bg-white/5 rounded-2xl flex gap-3 text-xs text-ink-2 leading-relaxed">
-                <ShieldCheck className="w-5 h-5 text-flame shrink-0 mt-0.5" />
+              <div className="p-4 bg-raise border border-line rounded-2xl flex gap-3 text-xs text-ink-2 leading-relaxed">
+                <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
                 <div>
                   <p className="text-ink font-semibold">Privacidade Protegida</p>
                   <p className="mt-0.5">Seus dados são privados e visíveis somente para você e seu personal trainer.</p>
@@ -707,13 +709,13 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
               </div>
 
               {/* Admin Button */}
-              <div className="p-5 bg-violet/5 hover:bg-violet/10 border border-violet/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
+              <div className="p-5 bg-accent/5 hover:bg-accent/10 border border-accent/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
                 <div className="flex gap-3 text-xs text-ink-2 leading-relaxed">
                   <span className="text-xl">⚙️</span>
                   <div>
                     <p className="text-ink font-semibold flex items-center gap-2">
                       <span>Gestão de exercícios</span>
-                      <span className="text-[9px] bg-violet/20 text-violet px-2 py-0.5 rounded-full border border-violet/30 font-semibold">Admin</span>
+                      <span className="text-[9px] bg-accent/20 text-accent px-2 py-0.5 rounded-full border border-accent/30 font-semibold">Admin</span>
                     </p>
                     <p className="mt-0.5 text-[11px]">Adicione movimentos, dicas de execução e faça upload dos vídeos.</p>
                   </div>
@@ -723,18 +725,18 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   type="button"
                   onClick={() => handleTabChange('gerenciar')}
                   data-sem-som
-                  className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-violet text-void text-xs font-bold transition-all hover:bg-violet/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all hover:bg-accent/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
                 >
                   ⚙️ Gerenciar Exercícios
                 </button>
               </div>
 
               {/* Sound Settings */}
-              <div className="p-5 bg-surface-2 border border-white/5 rounded-2xl space-y-4">
+              <div className="p-5 bg-surface border border-line rounded-2xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-flame/10 rounded-xl">
-                      <Volume2 className="w-4 h-4 text-flame" />
+                    <div className="p-2 bg-accent/10 rounded-xl">
+                      <Volume2 className="w-4 h-4 text-accent" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-ink">Sons do app</p>
@@ -745,10 +747,44 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                     type="button"
                     onClick={toggleSom}
                     data-sem-som
-                    className={`w-12 h-6 rounded-full transition-colors relative ${somHabilitado ? 'bg-flame' : 'bg-white/10'}`}
+                    className={`w-12 h-6 rounded-full transition-colors relative ${somHabilitado ? 'bg-accent' : 'bg-raise'}`}
                   >
                     <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${somHabilitado ? 'left-7' : 'left-1'}`} />
                   </button>
+                </div>
+              </div>
+
+              {/* Theme Settings */}
+              <div className="p-5 bg-surface border border-line rounded-2xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-accent/10 rounded-xl">
+                      <Sparkles className="w-4 h-4 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-ink">Tema visual</p>
+                      <p className="text-[12px] text-ink-3">Escolha a aparência do aplicativo</p>
+                    </div>
+                  </div>
+                  <div className="flex bg-raise border border-line rounded-xl p-1 gap-1 w-full sm:w-auto">
+                    {(['light', 'dark', 'system'] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          setTheme(t);
+                          tocar('tap');
+                        }}
+                        className={`flex-1 sm:flex-initial py-1.5 px-3.5 text-xs font-semibold rounded-lg transition-all capitalize cursor-pointer ${
+                          theme === t 
+                            ? 'bg-accent text-white shadow-md shadow-accent/20 border-b-2 border-accent-hi' 
+                            : 'text-ink-3 hover:text-ink'
+                        }`}
+                      >
+                        {t === 'light' ? 'Claro' : t === 'dark' ? 'Escuro' : 'Sistema'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -758,7 +794,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   id="btn-logout"
                   type="button"
                   onClick={onLogout}
-                  className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-sm font-semibold border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 text-ember hover:text-ember active:scale-[0.98]"
+                  className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-raise hover:bg-raise/80 text-sm font-semibold border border-line hover:border-line-strong transition-all flex items-center justify-center gap-2 text-accent active:scale-[0.98]"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Sair da Conta</span>

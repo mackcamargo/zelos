@@ -432,41 +432,11 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
             className="space-y-6"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="font-display font-semibold text-xl text-ink tracking-tight flex items-center gap-2">
-                    <span>Meus alunos</span>
-                  </h2>
-                  <div className="text-right">
-                    <span className="text-[12px] text-ink-3">
-                      Capacidade do plano
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Contador de alunos com barra de progresso */}
-                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-ink">
-                      {assinatura?.limite_alunos && assinatura.limite_alunos >= 999999 
-                        ? 'Alunos ilimitados' 
-                        : `${studentCount} de ${assinatura?.limite_alunos || 0} alunos`}
-                    </span>
-                    <span className="text-sm text-ink-3 num">
-                      {assinatura?.limite_alunos && assinatura.limite_alunos >= 999999 
-                        ? '∞' 
-                        : `${Math.round((studentCount / (assinatura?.limite_alunos || 1)) * 100)}%`}
-                    </span>
-                  </div>
-                  {(!assinatura?.limite_alunos || assinatura.limite_alunos < 999999) && (
-                    <div className="h-2 bg-void rounded-full overflow-hidden border border-white/5">
-                      <div 
-                        className={`h-full transition-all duration-500 ${studentCount >= (assinatura?.limite_alunos || 0) ? 'bg-red-500' : 'bg-flame'}`}
-                        style={{ width: `${Math.min(100, (studentCount / (assinatura?.limite_alunos || 1)) * 100)}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
+              <div>
+                <h2 className="z-display text-ink flex items-center gap-2">
+                  Meus <span className="text-accent">Alunos</span>
+                </h2>
+                <p className="z-eyebrow mt-1">Gestão de Carteira e Anamnese</p>
               </div>
 
               {/* Botão de Destaque + Adicionar aluno (Gradiente Brasa) */}
@@ -480,40 +450,60 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     handleGenerateCode();
                   }
                 }}
-                className={`py-3 px-5 rounded-xl font-display font-semibold text-void text-xs flex items-center justify-center gap-2 transition-all self-start sm:self-center shrink-0 cursor-pointer ${
-                  isReadOnly 
-                    ? 'bg-white/5 text-ink-3 cursor-not-allowed opacity-50' 
-                    : 'brand-gradient-bg hover:opacity-95 active:scale-[0.98] shadow-[0_4px_15px_rgba(245,51,79,0.25)]'
-                }`}
+                className="z-btn z-btn--primary"
                 title={isReadOnly ? "Sua assinatura não está ativa" : "Adicionar aluno"}
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4.5 h-4.5" strokeWidth={1.75} />
                 <span>Adicionar aluno</span>
               </button>
             </div>
 
+            {/* Contador de alunos com barra de progresso */}
+            <div className="z-card">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-ink-2">
+                  Capacidade do Plano
+                </span>
+                <span className="z-num text-sm text-ink font-semibold">
+                  {assinatura?.limite_alunos && assinatura.limite_alunos >= 999999 
+                    ? 'Alunos ilimitados' 
+                    : `${studentCount} de ${assinatura?.limite_alunos || 0} alunos`}
+                </span>
+              </div>
+              {(!assinatura?.limite_alunos || assinatura.limite_alunos < 999999) && (
+                <div className="h-2.5 bg-bg rounded-full overflow-hidden border border-line">
+                  <div 
+                    className={`h-full transition-all duration-500 rounded-full ${studentCount >= (assinatura?.limite_alunos || 0) ? 'bg-danger' : 'bg-accent'}`}
+                    style={{ width: `${Math.min(100, (studentCount / (assinatura?.limite_alunos || 1)) * 100)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+
             {/* BARRA DE PESQUISA (Search Bar) */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+            <div className="z-search relative w-full">
+              <span className="z-search__icon">
+                <Search className="w-4.5 h-4.5 text-ink-3" strokeWidth={1.75} />
+              </span>
               <input
                 id="search-alunos-input"
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Pesquisar aluno por nome..."
-                className="w-full bg-surface border border-white/5 focus:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-xs text-ink placeholder-ink-3 outline-none transition-all"
+                className="z-input !pl-11"
               />
             </div>
 
             {/* List and empty state handler */}
             {loading ? (
               <div className="flex justify-center py-20">
-                <span className="w-8 h-8 border-2 border-flame border-t-transparent rounded-full animate-spin" />
+                <span className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
               </div>
             ) : filteredAlunos.length === 0 ? (
-              <div className="py-12 flex flex-col items-center justify-center text-center">
-                <Users className="w-8 h-8 text-ink-3 stroke-[1.2] mb-3" />
-                <p className="text-sm text-ink-2 max-w-md mb-4">
+              <div className="z-card py-12 flex flex-col items-center justify-center text-center">
+                <Users className="w-8 h-8 text-ink-3 stroke-[1.5] mb-3" />
+                <p className="text-sm text-ink-2 max-w-md mb-4 font-medium">
                   {search 
                     ? `Nenhum resultado encontrado para "${search}".`
                     : 'Seus alunos vinculados aparecerão aqui. Compartilhe o código de convite ou adicione-os manualmente.'
@@ -527,7 +517,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                       setShowAddModal(true);
                       if (!generatedCode) handleGenerateCode();
                     }}
-                    className="py-2.5 px-6 rounded-xl border border-white/10 hover:bg-surface-2 text-ink-2 hover:text-ink text-xs font-display font-semibold transition-all"
+                    className="z-btn z-btn--ghost text-xs"
                   >
                     Adicionar Primeiro Aluno
                   </button>
@@ -550,50 +540,51 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         setSelectedAluno(aluno);
                         setEditObjetivo(aluno.objetivo || '');
                       }}
-                      className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative overflow-hidden clicavel"
+                      className="z-card z-card--tap flex flex-col justify-between relative overflow-hidden"
                     >
-                      {/* Premium subtle light leak on hover */}
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                      
                       <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
                         {streak > 0 && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 bg-flame/10 text-flame rounded-full border border-flame/20 shadow-sm">
-                            <Flame className="w-2.5 h-2.5 animate-pulse" />
-                            <span className="text-[12px] font-semibold num">{streak}</span>
+                          <div className="flex items-center gap-1 px-2.5 py-0.5 bg-accent/10 text-accent rounded-full border border-accent/20">
+                            <Flame className="w-3 h-3 animate-pulse" />
+                            <span className="text-[12px] font-semibold z-num">{streak}</span>
                           </div>
                         )}
 
                         {!hasCheckin && isAtivo && (
-                          <div className="flex items-center gap-1.5 bg-flame/10 text-flame text-[12px] font-medium px-2 py-0.5 rounded-full border border-flame/20 animate-pulse">
-                            <AlertCircle className="w-2.5 h-2.5" />
+                          <div className="flex items-center gap-1 bg-danger/10 text-danger text-[11px] font-medium px-2 py-0.5 rounded-full border border-danger/20 animate-pulse">
+                            <AlertCircle className="w-3 h-3" />
                             <span>Check-in pendente</span>
                           </div>
                         )}
                       </div>
 
                       <div className="flex items-start gap-4">
-                        {/* Avatar styling with initials/emojis */}
-                        <div className="w-12 h-12 rounded-xl bg-surface-2 border border-white/5 flex items-center justify-center font-display font-semibold text-base shrink-0 group-hover:scale-105 transition-transform">
-                          {isFemale ? '👩' : '👨'}
+                        {/* Avatar styling using ZELOS design avatar */}
+                        <div className="z-avatar z-avatar--lg bg-raise text-ink flex items-center justify-center font-display font-bold text-accent overflow-hidden shrink-0">
+                          {aluno.profile?.avatar_url ? (
+                            <img src={aluno.profile.avatar_url} alt={name} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                          ) : (
+                            name.charAt(0).toUpperCase()
+                          )}
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="font-display font-semibold text-sm text-ink group-hover:text-white transition-colors truncate">
+                        <div className="min-w-0 pr-16">
+                          <h3 className="font-display font-semibold text-sm text-ink group-hover:text-accent transition-colors truncate">
                             {name}
                           </h3>
-                          <div className="flex items-center gap-1.5 text-[12px] text-ink-2 mt-1">
-                            <Target className="w-3.5 h-3.5 text-flame shrink-0" />
+                          <div className="flex items-center gap-1.5 text-[12px] text-ink-3 mt-1.5">
+                            <Target className="w-3.5 h-3.5 text-accent shrink-0" strokeWidth={1.75} />
                             <span className="truncate">{aluno.objetivo || 'Foco geral / condicionamento'}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Status Row */}
-                      <div className="mt-5 pt-3.5 border-t border-white/5 flex justify-between items-center text-[12px]">
+                      <div className="mt-5 pt-3.5 border-t border-line/40 flex justify-between items-center text-[12px]">
                         <div className="flex items-center gap-1.5">
-                          <span className={`w-2 h-2 rounded-full ${isAtivo ? 'bg-emerald-500 animate-pulse' : 'bg-ink-3'}`} />
+                          <span className={`w-2 h-2 rounded-full ${isAtivo ? 'bg-ok animate-pulse' : 'bg-ink-3'}`} />
                           <span className="text-ink-2">Ativo</span>
                         </div>
-                        <span className="text-ink-3">Ver perfil →</span>
+                        <span className="text-ink-3 font-medium group-hover:text-accent transition-colors">Ver perfil →</span>
                       </div>
                     </div>
                   );
@@ -617,53 +608,55 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
               id="btn-back-to-alunos"
               type="button"
               onClick={() => setSelectedAluno(null)}
-              className="flex items-center gap-2 text-xs text-ink-2 hover:text-ink transition-colors"
+              className="flex items-center gap-2 text-xs text-ink-3 hover:text-ink transition-colors cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4 text-flame" />
-              <span>Voltar para meus alunos</span>
+              <ArrowLeft className="w-4 h-4 text-accent" strokeWidth={1.75} />
+              <span className="font-medium">Voltar para meus alunos</span>
             </button>
 
             {(() => {
-              const restrictions: string[] = [];
-              if (studentAnamnese) {
-                if (studentAnamnese.parq_problema_cardiaco) restrictions.push("Problema cardíaco");
-                if (studentAnamnese.parq_dor_no_peito) restrictions.push("Dor no peito ao praticar atividade física");
-                if (studentAnamnese.parq_tontura_desmaio) restrictions.push("Tontura ou desmaio ao se exercitar");
-                if (studentAnamnese.parq_problema_osseo_articular) restrictions.push("Problema ósseo ou articular");
-                if (studentAnamnese.parq_medicamento_pressao) restrictions.push("Medicamento para pressão ou coração");
-                if (studentAnamnese.parq_outra_razao) {
-                  restrictions.push(`Outra razão impeditiva: ${studentAnamnese.parq_outra_razao_qual || 'Sim'}`);
-                }
-                if (studentAnamnese.possui_lesao) {
-                  restrictions.push(`Lesão física relatada: ${studentAnamnese.lesoes || 'Sim'}`);
-                }
-              }
-              if (restrictions.length > 0) {
-                return (
-                  <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-5 space-y-2.5">
-                    <div className="flex items-center gap-2.5 text-rose-400">
-                      <AlertCircle className="w-5 h-5 shrink-0" />
-                      <span className="font-display font-bold text-sm uppercase tracking-wider">Atenção: restrições de saúde relatadas</span>
-                    </div>
-                    <ul className="list-disc pl-5 text-xs text-ink-2 space-y-1 leading-relaxed">
-                      {restrictions.map((r, idx) => (
-                        <li key={idx} className="text-rose-300 font-medium">{r}</li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              }
-              return null;
+               const restrictions: string[] = [];
+               if (studentAnamnese) {
+                 if (studentAnamnese.parq_problema_cardiaco) restrictions.push("Problema cardíaco");
+                 if (studentAnamnese.parq_dor_no_peito) restrictions.push("Dor no peito ao praticar atividade física");
+                 if (studentAnamnese.parq_tontura_desmaio) restrictions.push("Tontura ou desmaio ao se exercitar");
+                 if (studentAnamnese.parq_problema_osseo_articular) restrictions.push("Problema ósseo ou articular");
+                 if (studentAnamnese.parq_medicamento_pressao) restrictions.push("Medicamento para pressão ou coração");
+                 if (studentAnamnese.parq_outra_razao) {
+                   restrictions.push(`Outra razão impeditiva: ${studentAnamnese.parq_outra_razao_qual || 'Sim'}`);
+                 }
+                 if (studentAnamnese.possui_lesao) {
+                   restrictions.push(`Lesão física relatada: ${studentAnamnese.lesoes || 'Sim'}`);
+                 }
+               }
+               if (restrictions.length > 0) {
+                 return (
+                   <div className="bg-danger/10 border border-danger/20 rounded-2xl p-5 space-y-2.5">
+                     <div className="flex items-center gap-2.5 text-danger">
+                       <AlertCircle className="w-5 h-5 shrink-0" />
+                       <span className="font-display font-bold text-sm uppercase tracking-wider">Atenção: restrições de saúde relatadas</span>
+                     </div>
+                     <ul className="list-disc pl-5 text-xs text-ink-2 space-y-1 leading-relaxed">
+                       {restrictions.map((r, idx) => (
+                         <li key={idx} className="text-danger font-medium">{r}</li>
+                       ))}
+                     </ul>
+                   </div>
+                 );
+               }
+               return null;
             })()}
 
             {/* Profile Overview Card */}
-            <div className="bg-surface border border-white/5 rounded-2xl p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-violet/5 blur-3xl pointer-events-none rounded-full" />
-              
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/5">
+            <div className="z-card relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-line/40">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-surface-2 border border-white/5 flex items-center justify-center font-display text-3xl">
-                    {selectedAluno.profile?.avatar_tipo === 'feminino' ? '👩' : '👨'}
+                  <div className="z-avatar z-avatar--lg bg-raise text-ink flex items-center justify-center font-display font-bold text-accent overflow-hidden shrink-0">
+                    {selectedAluno.profile?.avatar_url ? (
+                      <img src={selectedAluno.profile.avatar_url} alt={selectedAluno.profile?.nome} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                    ) : (
+                      selectedAluno.profile?.nome?.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div>
                     <h2 className="font-display font-semibold text-xl text-ink leading-tight">
@@ -674,42 +667,42 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
 
                 {/* Status Switcher: Active/Inactive */}
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <div className="flex items-center gap-3 bg-surface-2 px-4 py-2 rounded-xl border border-white/5">
-                    <span className="text-[12px] text-ink-2">Status:</span>
+                  <div className="flex items-center gap-3 bg-raise px-4 py-2 rounded-xl border border-line">
+                    <span className="text-[12px] text-ink-3">Status:</span>
                     <button
                       id="btn-toggle-student-status"
-                    type="button"
-                    disabled={savingStatus}
-                    onClick={handleToggleStatus}
-                    className={`px-3 py-1 rounded-lg text-[12px] font-semibold transition-all flex items-center gap-1 ${
-                      selectedAluno.ativo !== false 
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                        : 'bg-white/5 text-ink-3 border border-white/5'
-                    }`}
-                  >
-                    {savingStatus ? (
-                      <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <span className={`w-1.5 h-1.5 rounded-full ${selectedAluno.ativo !== false ? 'bg-emerald-400 animate-pulse' : 'bg-ink-3'}`} />
-                        <span>{selectedAluno.ativo !== false ? 'Ativo' : 'Inativo'}</span>
-                      </>
-                    )}
-                  </button>
+                      type="button"
+                      disabled={savingStatus}
+                      onClick={handleToggleStatus}
+                      className={`px-3 py-1 rounded-lg text-[12px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                        selectedAluno.ativo !== false 
+                          ? 'bg-ok/10 text-ok border border-ok/20' 
+                          : 'bg-white/5 text-ink-3 border border-line'
+                      }`}
+                    >
+                      {savingStatus ? (
+                        <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <span className={`w-1.5 h-1.5 rounded-full ${selectedAluno.ativo !== false ? 'bg-ok animate-pulse' : 'bg-ink-3'}`} />
+                          <span>{selectedAluno.ativo !== false ? 'Ativo' : 'Inativo'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
               {/* Editable Goal/Objective Field */}
               <div className="pt-6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-[12px] text-ink-2 flex items-center gap-1.5">
-                    <Target className="w-3.5 h-3.5 text-flame" />
+                  <label className="text-[12px] text-ink-2 flex items-center gap-1.5 font-medium">
+                    <Target className="w-3.5 h-3.5 text-accent" strokeWidth={1.75} />
                     <span>Foco e objetivo do aluno</span>
                   </label>
                   
                   {savedFeedback && (
-                    <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                    <span className="text-[11px] text-ok font-semibold flex items-center gap-1">
                       <Check className="w-3.5 h-3.5" /> Salvo!
                     </span>
                   )}
@@ -722,14 +715,14 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     value={editObjetivo}
                     onChange={(e) => setEditObjetivo(e.target.value)}
                     placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
-                    className="flex-1 bg-surface-2 border border-white/5 focus:border-white/15 rounded-xl p-3.5 text-xs text-ink outline-none"
+                    className="z-input flex-1"
                   />
                   <button
                     id="btn-save-objective"
                     type="button"
                     disabled={salvandoObjetivo || editObjetivo === selectedAluno.objetivo}
                     onClick={handleSaveObjective}
-                    className="py-3.5 px-5 rounded-xl bg-violet hover:bg-violet/90 text-white font-display font-semibold text-xs transition-all disabled:opacity-40 disabled:pointer-events-none shrink-0"
+                    className="z-btn z-btn--primary"
                   >
                     {salvandoObjetivo ? 'Salvando...' : 'Salvar'}
                   </button>
@@ -749,8 +742,8 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 }}
               />
             ) : (
-              <div className="bg-surface border border-white/5 rounded-2xl p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
+              <div className="z-card space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line/40">
                   <div className="flex items-center gap-2">
                     <Heart className="w-5 h-5 text-rose-500" />
                     <div>

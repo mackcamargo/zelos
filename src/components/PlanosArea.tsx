@@ -28,25 +28,29 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64">Carregando planos...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <span className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   const getIcon = (slug: string) => {
     switch (slug) {
-      case 'basico': return <Zap className="w-6 h-6 text-blue-400" />;
-      case 'pro': return <Rocket className="w-6 h-6 text-flame" />;
-      case 'ilimitado': return <Sparkles className="w-6 h-6 text-amber" />;
-      default: return <Shield className="w-6 h-6 text-ink-3" />;
+      case 'basico': return <Zap className="w-6 h-6 text-accent" strokeWidth={1.75} />;
+      case 'pro': return <Rocket className="w-6 h-6 text-accent" strokeWidth={1.75} />;
+      case 'ilimitado': return <Sparkles className="w-6 h-6 text-accent" strokeWidth={1.75} />;
+      default: return <Shield className="w-6 h-6 text-ink-3" strokeWidth={1.75} />;
     }
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="text-center space-y-2">
-        <h2 className="text-[28px] font-semibold text-ink">
-          Escolha o seu <span className="text-flame">plano</span>
+        <h2 className="z-display text-ink text-[28px] leading-tight">
+          Escolha o seu <span className="text-accent">plano</span>
         </h2>
-        <p className="text-ink-3 text-[12px] font-medium">
+        <p className="z-eyebrow mt-1">
           Potencialize sua consultoria com as melhores ferramentas
         </p>
       </div>
@@ -60,65 +64,67 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
           return (
             <div 
               key={plano.id}
-              className={`relative bg-surface border-2 rounded-3xl p-8 flex flex-col transition-all duration-300 hover:scale-[1.02] ${
-                isCurrent ? 'border-flame shadow-2xl shadow-flame/10' : 'border-white/5 hover:border-white/10'
+              className={`z-card relative flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] ${
+                isCurrent ? 'border-accent shadow-[0_0_20px_rgba(242,106,27,0.15)] bg-raise' : ''
               }`}
             >
               {isCurrent && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-flame text-white text-[12px] font-semibold px-4 py-1.5 rounded-full shadow-lg">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-white text-[11px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-md">
                   Seu plano
                 </div>
               )}
 
-              <div className="flex items-center justify-between mb-6">
-                <div className="p-3 bg-white/5 rounded-2xl">
-                  {getIcon(plano.id.toLowerCase())}
-                </div>
-                <div className="text-right">
-                  <div className="text-[20px] font-semibold text-ink">
-                    {plano.nome}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="p-3 bg-raise rounded-2xl border border-line">
+                    {getIcon(plano.id.toLowerCase())}
                   </div>
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-semibold text-ink-3">R$</span>
-                  <span className="text-[28px] font-semibold text-ink num">
-                    {(plano.preco_centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-[12px] text-ink-3 font-medium">/mês</span>
-                </div>
-              </div>
-
-              <ul className="space-y-4 mb-8 flex-1">
-                <li className="flex items-center gap-3 text-sm text-ink-2">
-                  <div className="shrink-0 w-5 h-5 rounded-full bg-flame/10 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-flame" />
-                  </div>
-                  <span>
-                    {plano.limite_alunos >= 999999 ? 'Alunos ilimitados' : `Até ${plano.limite_alunos} alunos`}
-                  </span>
-                </li>
-                {plano.recursos?.map((recurso, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-ink-2">
-                    <div className="shrink-0 w-5 h-5 rounded-full bg-flame/10 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-flame" />
+                  <div className="text-right">
+                    <div className="text-[20px] font-bold font-display text-ink">
+                      {plano.nome}
                     </div>
-                    <span>{recurso}</span>
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-sm font-semibold text-ink-3">R$</span>
+                    <span className="text-[28px] font-bold text-ink z-num">
+                      {(plano.preco_centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                    <span className="text-[12px] text-ink-3 font-semibold">/mês</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-3 text-sm text-ink-2 font-medium">
+                    <div className="shrink-0 w-5 h-5 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 text-accent" strokeWidth={2} />
+                    </div>
+                    <span>
+                      {plano.limite_alunos >= 999999 ? 'Alunos ilimitados' : `Até ${plano.limite_alunos} alunos`}
+                    </span>
                   </li>
-                ))}
-              </ul>
+                  {plano.recursos?.map((recurso, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-ink-2 font-medium">
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                        <Check className="w-3.5 h-3.5 text-accent" strokeWidth={2} />
+                      </div>
+                      <span>{recurso}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
               <button
                 disabled={isCurrent || !isAvailable}
                 onClick={() => handleAssinar(plano.id.toLowerCase())}
-                className={`w-full py-4 rounded-2xl font-semibold text-xs transition-all duration-300 ${
+                className={`z-btn w-full ${
                   isCurrent 
-                    ? 'bg-white/5 text-ink-3 cursor-not-allowed'
+                    ? '!bg-raise !text-ink-3 cursor-not-allowed border-line'
                     : isAvailable
-                      ? 'bg-flame text-white hover:bg-orange-600 shadow-xl shadow-flame/20 hover:shadow-flame/30'
-                      : 'bg-white/5 text-ink-3 cursor-not-allowed'
+                      ? 'z-btn--primary'
+                      : 'z-btn--ghost text-ink-3 cursor-not-allowed'
                 }`}
               >
                 {isCurrent ? 'Plano atual' : isAvailable ? 'Assinar agora' : 'Em breve'}
@@ -128,8 +134,8 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
         })}
       </div>
 
-      <div className="bg-white/5 rounded-3xl p-6 border border-white/5 max-w-2xl mx-auto text-center">
-        <p className="text-xs text-ink-3 font-medium leading-relaxed">
+      <div className="z-card max-w-2xl mx-auto text-center">
+        <p className="text-xs text-ink-3 font-semibold leading-relaxed">
           As assinaturas são processadas com segurança pela Kiwify. 
           Após o pagamento, seu acesso será atualizado automaticamente.
           Dúvidas? Entre em contato com nosso suporte.

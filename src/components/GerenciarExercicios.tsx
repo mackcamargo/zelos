@@ -584,18 +584,18 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   id="btn-admin-back"
                   type="button"
                   onClick={onBack}
-                  className="p-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 text-ink-2 hover:text-ink transition-all cursor-pointer"
+                  className="z-btn z-btn--ghost z-btn--icon"
                 >
-                  <ChevronLeft className="w-5 h-5 text-flame" />
+                  <ChevronLeft className="w-5 h-5 text-accent" strokeWidth={1.75} />
                 </button>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[12px] bg-flame/15 text-flame px-2.5 py-0.5 rounded-full border border-flame/20 font-semibold">
-                      Admin
+                    <span className="text-[11px] uppercase tracking-wider font-semibold font-mono bg-accent/15 text-accent px-2.5 py-0.5 rounded border border-accent/20">
+                      Acervo
                     </span>
-                    <h1 className="font-display font-semibold text-[20px] text-ink tracking-tight">Gestão de exercícios</h1>
+                    <h2 className="z-display text-ink">Gestão de <span className="text-accent">Exercícios</span></h2>
                   </div>
-                  <p className="text-xs text-ink-2 mt-0.5">Cadastre, edite dicas de execução e envie os vídeos das execuções.</p>
+                  <p className="z-eyebrow mt-1">Biblioteca de Movimentos e Execuções</p>
                 </div>
               </div>
 
@@ -604,17 +604,17 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   id="btn-new-exercise"
                   type="button"
                   onClick={handleNew}
-                  className="py-2.5 px-4 rounded-xl brand-gradient-bg text-void text-xs font-semibold flex items-center justify-center gap-1.5 self-start sm:self-auto transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_15px_rgba(245,51,79,0.3)]"
+                  className="z-btn z-btn--primary"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4.5 h-4.5" strokeWidth={1.75} />
                   <span>Novo exercício</span>
                 </button>
               )}
             </div>
 
             {feedback && (
-              <div id="success-feedback-banner" className="p-4 bg-emerald-500/15 border border-emerald-500/20 rounded-2xl flex gap-3 text-xs text-emerald-400">
-                <Check className="w-5 h-5 shrink-0 text-emerald-400" />
+              <div id="success-feedback-banner" className="p-4 bg-ok/10 border border-ok/20 rounded-2xl flex gap-3 text-xs text-ok font-semibold">
+                <Check className="w-5 h-5 shrink-0 text-ok" />
                 <span>{feedback}</span>
               </div>
             )}
@@ -622,15 +622,17 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
             {/* Quick stats & Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Search Bar */}
-              <div className="relative sm:col-span-2">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+              <div className="z-search relative sm:col-span-2">
+                <span className="z-search__icon">
+                  <Search className="w-4.5 h-4.5 text-ink-3" strokeWidth={1.75} />
+                </span>
                 <input
                   id="admin-search-ex"
                   type="text"
                   placeholder="Buscar por nome ou músculo..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-surface border border-white/5 focus:border-white/10 rounded-xl pl-10 pr-4 py-3 text-xs text-ink outline-none transition-all placeholder:text-ink-3"
+                  className="z-input !pl-11"
                 />
               </div>
 
@@ -639,7 +641,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                 id="admin-filter-category"
                 value={selectedCategoryFilter}
                 onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-                className="w-full bg-surface border border-white/5 focus:border-white/10 rounded-xl px-3 py-3 text-xs text-ink-2 outline-none transition-all cursor-pointer"
+                className="z-input cursor-pointer"
               >
                 <option value="todos">Todas as Categorias</option>
                 {categorias.map((cat) => (
@@ -654,23 +656,23 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
             {loading ? (
               <div className="flex justify-center py-20">
                 <div className="flex flex-col items-center gap-3">
-                  <span className="w-8 h-8 border-2 border-flame border-t-transparent rounded-full animate-spin" />
+                  <span className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
                   <span className="text-xs font-mono text-ink-3">Carregando acervo de movimentos...</span>
                 </div>
               </div>
             ) : filteredExercicios.length === 0 ? (
-              <div className="py-12 flex flex-col items-center justify-center text-center">
-                <Dumbbell className="w-8 h-8 text-ink-3 stroke-[1.2] mb-3" />
-                <p className="text-sm text-ink-2 max-w-md">
+              <div className="z-card py-12 flex flex-col items-center justify-center text-center">
+                <Dumbbell className="w-8 h-8 text-ink-3 stroke-[1.5] mb-3" />
+                <p className="text-sm text-ink-2 max-w-md font-medium">
                   Nenhum exercício encontrado. Crie um novo exercício ou altere as opções de busca para começar a popular seu catálogo.
                 </p>
               </div>
             ) : (
-              <div className="bg-surface border border-white/5 rounded-2xl overflow-hidden shadow-xl">
+              <div className="z-card !p-0 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-white/10 bg-surface-2 text-ink-3 text-[12px] h-14">
+                      <tr className="border-b border-line bg-raise text-ink-3 text-[12px] h-14">
                         <th className="px-6 font-semibold align-middle">Nome</th>
                         <th className="px-6 font-semibold align-middle">Categoria</th>
                         <th className="px-6 text-center font-semibold align-middle">Vídeo masc</th>
@@ -678,31 +680,31 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                         <th className="px-6 text-right font-semibold align-middle">Ação</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-line/40">
                       {filteredExercicios.map((ex) => {
                         const cat = categorias.find((c) => c.id === ex.categoria_id);
                         return (
                           <tr
                             key={ex.id}
-                            className="h-14 hover:bg-surface-hover border-b border-white/5 transition-colors group cursor-pointer"
+                            className="h-14 hover:bg-raise/30 border-b border-line/40 transition-colors group cursor-pointer"
                             onClick={() => handleEdit(ex)}
                           >
                             <td className="py-4 px-6">
                               <div>
-                                <span className="font-display font-semibold text-sm text-ink group-hover:text-flame transition-colors block">
+                                <span className="font-display font-semibold text-sm text-ink group-hover:text-accent transition-colors block">
                                   {ex.nome}
                                 </span>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                   {ex.musculo_primario.slice(0, 2).map((m) => (
                                     <span
                                       key={m}
-                                      className="text-[10px] px-1.5 py-0.5 rounded bg-violet/10 text-violet"
+                                      className="text-[10px] px-2 py-0.5 rounded bg-accent/10 text-accent font-semibold border border-accent/20"
                                     >
                                       {m}
                                     </span>
                                   ))}
                                   {ex.musculo_primario.length > 2 && (
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-ink-3">
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-raise text-ink-3 border border-line">
                                       +{ex.musculo_primario.length - 2}
                                     </span>
                                   )}
@@ -717,13 +719,13 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             <td className="py-4 px-6 text-center">
                               <div className="inline-flex items-center justify-center">
                                 {ex.video_url_masc ? (
-                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
-                                    <Check className="w-3 h-3" />
+                                  <span className="text-[12px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2.5 py-0.5 rounded-full">
+                                    <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
                                     <span>Enviado</span>
                                   </span>
                                 ) : (
-                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2 py-0.5 rounded-full border border-white/5">
-                                    <X className="w-3 h-3 text-ember" />
+                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2.5 py-0.5 rounded-full border border-line">
+                                    <X className="w-3.5 h-3.5 text-danger" />
                                     <span>Pendente</span>
                                   </span>
                                 )}
@@ -732,20 +734,20 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             <td className="py-4 px-6 text-center">
                               <div className="inline-flex items-center justify-center">
                                 {ex.video_url_fem ? (
-                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
-                                    <Check className="w-3 h-3" />
+                                  <span className="text-[12px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2.5 py-0.5 rounded-full">
+                                    <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
                                     <span>Enviado</span>
                                   </span>
                                 ) : (
-                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2 py-0.5 rounded-full border border-white/5">
-                                    <X className="w-3 h-3 text-ember" />
+                                  <span className="text-[12px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2.5 py-0.5 rounded-full border border-line">
+                                    <X className="w-3.5 h-3.5 text-danger" />
                                     <span>Pendente</span>
                                   </span>
                                 )}
                               </div>
                             </td>
                             <td className="py-4 px-6 text-right">
-                              <span className="text-xs font-mono text-ink-3 group-hover:text-flame transition-colors font-medium">
+                              <span className="text-xs font-semibold text-ink-3 group-hover:text-accent transition-colors">
                                 Editar →
                               </span>
                             </td>
