@@ -16,14 +16,17 @@ import FotoProgressoGaleria from './FotoProgressoGaleria';
 import GerenciarNutricao from './GerenciarNutricao';
 import HidratacaoStats from './HidratacaoStats';
 import { Flame, Camera, Utensils, Droplets } from 'lucide-react';
+import { useSubscription } from '../contexts/SubscriptionContext';
 
 interface GerenciarAlunosProps {
   personalId: string;
+  isReadOnly?: boolean;
 }
 
 type TabForma = 'codigo' | 'cadastro';
 
-export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
+export default function GerenciarAlunos({ personalId, isReadOnly = false }: GerenciarAlunosProps) {
+  const { assinatura, studentCount, handleSubscriptionError } = useSubscription();
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -202,6 +205,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
     try {
       const { data, error } = await dbService.createConvite(personalId, conviteNome.trim(), conviteObjetivo.trim() || null);
       if (error) {
+        if (handleSubscriptionError(error)) return;
         console.error('Erro ao gerar código de convite:', error);
         showToast(`Erro ao gerar convite: ${error.message}`);
       } else if (data) {
@@ -269,6 +273,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
       loadAlunosList();
       loadConvitesList();
     } catch (err: any) {
+      if (handleSubscriptionError(err)) return;
       setCadastroError(err?.message || 'Ocorreu um erro ao cadastrar aluno.');
     } finally {
       setCadastrandoDireto(false);
@@ -406,29 +411,60 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
             className="space-y-6"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="font-display font-bold text-2xl text-ink tracking-tight flex items-center gap-2">
-                  <span>Meus Alunos</span>
-                  <span className="text-xs font-mono font-normal bg-white/5 text-ink-2 px-2.5 py-1 rounded-full border border-white/5">
-                    {alunos.length} {alunos.length === 1 ? 'aluno' : 'alunos'}
-                  </span>
-                </h2>
-                <p className="text-sm text-ink-2 mt-1">
-                  Gerencie o progresso, objetivos e envie códigos de acesso para novos alunos se vincularem.
-                </p>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="font-display font-bold text-2xl text-ink tracking-tight flex items-center gap-2">
+                    <span>Meus Alunos</span>
+                  </h2>
+                  <div className="text-right">
+                    <span className="text-[10px] font-mono font-bold text-ink-3 uppercase tracking-widest">
+                      Capacidade do Plano
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Contador de alunos com barra de progresso */}
+                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold text-ink">
+                      {assinatura?.limite_alunos && assinatura.limite_alunos >= 999999 
+                        ? 'Alunos Ilimitados' 
+                        : `${studentCount} de ${assinatura?.limite_alunos || 0} alunos`}
+                    </span>
+                    <span className="text-xs font-mono text-ink-3">
+                      {assinatura?.limite_alunos && assinatura.limite_alunos >= 999999 
+                        ? '∞' 
+                        : `${Math.round((studentCount / (assinatura?.limite_alunos || 1)) * 100)}%`}
+                    </span>
+                  </div>
+                  {(!assinatura?.limite_alunos || assinatura.limite_alunos < 999999) && (
+                    <div className="h-2 bg-void rounded-full overflow-hidden border border-white/5">
+                      <div 
+                        className={`h-full transition-all duration-500 ${studentCount >= (assinatura?.limite_alunos || 0) ? 'bg-red-500' : 'bg-flame'}`}
+                        style={{ width: `${Math.min(100, (studentCount / (assinatura?.limite_alunos || 1)) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Botão de Destaque + Adicionar aluno (Gradiente Brasa) */}
               <button
                 id="btn-trigger-add-student"
                 type="button"
+                disabled={isReadOnly}
                 onClick={() => {
                   setShowAddModal(true);
                   if (!generatedCode) {
                     handleGenerateCode();
                   }
                 }}
-                className="py-3 px-5 rounded-xl brand-gradient-bg hover:opacity-95 active:scale-[0.98] font-display font-bold text-void text-xs flex items-center justify-center gap-2 transition-all shadow-[0_4px_15px_rgba(245,51,79,0.25)] self-start sm:self-center shrink-0 cursor-pointer"
+                className={`py-3 px-5 rounded-xl font-display font-bold text-void text-xs flex items-center justify-center gap-2 transition-all self-start sm:self-center shrink-0 cursor-pointer ${
+                  isReadOnly 
+                    ? 'bg-white/5 text-ink-3 cursor-not-allowed opacity-50' 
+                    : 'brand-gradient-bg hover:opacity-95 active:scale-[0.98] shadow-[0_4px_15px_rgba(245,51,79,0.25)]'
+                }`}
+                title={isReadOnly ? "Sua assinatura não está ativa" : "Adicionar Aluno"}
               >
                 <Plus className="w-4 h-4" />
                 <span>Adicionar Aluno</span>
@@ -662,34 +698,35 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                       <span>Fichas de Treino ({workouts.length})</span>
                     </h3>
                     <div className="flex items-center gap-3">
-                      <button
-                        id="btn-apply-template"
-                        type="button"
-                        onClick={() => {
-                          setEditingTreinoId(null);
-                          // We open MontarTreino normally, 
-                          // but the user can then click "Usar Modelo"
-                          // OR we could add a direct "Pick Template" here
-                          setIsMontandoTreino(true);
-                        }}
-                        className="text-[10px] font-mono text-violet hover:text-violet/80 uppercase tracking-wider flex items-center gap-1"
-                      >
-                        <FolderHeart className="w-3 h-3" />
-                        <span>Usar Modelo</span>
-                      </button>
-                      <button
-                        id="btn-add-new-workout"
-                        type="button"
-                        onClick={() => {
-                          setEditingTreinoId(null);
-                          setInitialTemplateId(null);
-                          setIsMontandoTreino(true);
-                        }}
-                        className="text-[10px] font-mono text-flame hover:text-flame/80 uppercase tracking-wider flex items-center gap-1"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span>Novo Treino</span>
-                      </button>
+                      {!isReadOnly && (
+                        <>
+                          <button
+                            id="btn-apply-template"
+                            type="button"
+                            onClick={() => {
+                              setEditingTreinoId(null);
+                              setIsMontandoTreino(true);
+                            }}
+                            className="text-[10px] font-mono text-violet hover:text-violet/80 uppercase tracking-wider flex items-center gap-1"
+                          >
+                            <FolderHeart className="w-3 h-3" />
+                            <span>Usar Modelo</span>
+                          </button>
+                          <button
+                            id="btn-add-new-workout"
+                            type="button"
+                            onClick={() => {
+                              setEditingTreinoId(null);
+                              setInitialTemplateId(null);
+                              setIsMontandoTreino(true);
+                            }}
+                            className="text-[10px] font-mono text-flame hover:text-flame/80 uppercase tracking-wider flex items-center gap-1"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>Novo Treino</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -749,18 +786,20 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                   )}
                 </div>
 
-                <button
-                  id="btn-create-workout-main"
-                  type="button"
-                  onClick={() => {
-                    setEditingTreinoId(null);
-                    setIsMontandoTreino(true);
-                  }}
-                  className="w-full py-3 px-4 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs transition-all shadow-[0_4px_15px_rgba(245,51,79,0.2)] hover:opacity-95 text-center flex items-center justify-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Montar Ficha de Treino</span>
-                </button>
+                {!isReadOnly && (
+                  <button
+                    id="btn-create-workout-main"
+                    type="button"
+                    onClick={() => {
+                      setEditingTreinoId(null);
+                      setIsMontandoTreino(true);
+                    }}
+                    className="w-full py-3 px-4 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs transition-all shadow-[0_4px_15px_rgba(245,51,79,0.2)] hover:opacity-95 text-center flex items-center justify-center gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Montar Ficha de Treino</span>
+                  </button>
+                )}
               </div>
 
               {/* BLOCK 2: PROGRESSO */}
@@ -918,7 +957,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
 
               {/* BLOCK 4: HÁBITOS DIÁRIOS */}
               <div className="bg-surface border border-white/5 rounded-2xl p-6 md:col-span-2 space-y-6">
-                <GerenciarHabitos alunoId={selectedAluno.id} personalId={personalId} />
+                <GerenciarHabitos alunoId={selectedAluno.id} personalId={personalId} isReadOnly={isReadOnly} />
               </div>
 
               {/* BLOCK 5: GAMIFICAÇÃO & RECORDES */}
@@ -945,7 +984,7 @@ export default function GerenciarAlunos({ personalId }: GerenciarAlunosProps) {
                   <Utensils className="w-5 h-5 text-flame" />
                   <h3 className="font-display font-bold text-lg text-ink">Plano Alimentar</h3>
                 </div>
-                <GerenciarNutricao alunoId={selectedAluno.id} personalId={personalId} />
+                <GerenciarNutricao alunoId={selectedAluno.id} personalId={personalId} isReadOnly={isReadOnly} />
               </div>
 
               {/* BLOCK 8: HIDRATAÇÃO (Personal View) */}

@@ -10,11 +10,12 @@ import { motion, AnimatePresence } from 'motion/react';
 interface GerenciarHabitosProps {
   alunoId: string;
   personalId: string;
+  isReadOnly?: boolean;
 }
 
 const EMOJIS = ['⚡', '💧', '🥗', '😴', '🚶', '🧘', '📵', '☀️'];
 
-export default function GerenciarHabitos({ alunoId, personalId }: GerenciarHabitosProps) {
+export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = false }: GerenciarHabitosProps) {
   const [habitos, setHabitos] = useState<Habito[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -181,13 +182,15 @@ export default function GerenciarHabitos({ alunoId, personalId }: GerenciarHabit
             <p className="text-xs text-ink-3">Defina e acompanhe a disciplina diária</p>
           </div>
         </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-void rounded-xl font-display font-bold text-xs hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer"
-        >
-          <Plus className="w-4 h-4 text-void" />
-          + Novo hábito
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-white text-void rounded-xl font-display font-bold text-xs hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-void" />
+            + Novo hábito
+          </button>
+        )}
       </div>
 
       {/* Modal / Form to add habit */}
@@ -306,12 +309,14 @@ export default function GerenciarHabitos({ alunoId, personalId }: GerenciarHabit
               </div>
               
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => handleDesativar(h.id)}
-                  className="p-2 text-ink-3 hover:text-flame hover:bg-flame/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {!isReadOnly && (
+                  <button
+                    onClick={() => handleDesativar(h.id)}
+                    className="p-2 text-ink-3 hover:text-flame hover:bg-flame/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           );

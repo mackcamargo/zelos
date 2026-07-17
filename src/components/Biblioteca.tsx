@@ -7,9 +7,10 @@ import { motion, AnimatePresence } from 'motion/react';
 interface BibliotecaProps {
   personalId: string | null;
   avatarTipo?: 'masculino' | 'feminino';
+  isReadOnly?: boolean;
 }
 
-export default function Biblioteca({ personalId, avatarTipo = 'masculino' }: BibliotecaProps) {
+export default function Biblioteca({ personalId, avatarTipo = 'masculino', isReadOnly = false }: BibliotecaProps) {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
   const [selectedCategoria, setSelectedCategoria] = useState<Categoria | null>(null);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarConteudo from './GerenciarConteudo';
@@ -11,8 +11,10 @@ import GerenciarTemplates from './GerenciarTemplates';
 import GerenciarCheckins from './GerenciarCheckins';
 import { DashPersonalBemEstar } from './DashPersonalBemEstar';
 import ChatPersonal from './ChatPersonal';
+import PlanosArea from './PlanosArea';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
+import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
 
 interface PersonalAreaProps {
   userId: string;
@@ -22,9 +24,9 @@ interface PersonalAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar' | 'chat';
+type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'conteudo' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos';
 
-export default function PersonalArea({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
+function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -32,6 +34,18 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
   const [agendaPendingCount, setAgendaPendingCount] = useState<number>(0);
   const [checkinsPendingCount, setCheckinsPendingCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
+
+  const { assinatura, loading, isReadOnly, daysRemaining } = useSubscription();
+
+  useEffect(() => {
+    const handleTabChangeScroll = (e: any) => {
+      if (e.detail) {
+        setActiveTab(e.detail);
+      }
+    };
+    window.addEventListener('changeTab', handleTabChangeScroll);
+    return () => window.removeEventListener('changeTab', handleTabChangeScroll);
+  }, []);
 
   const toggleSom = () => {
     const novo = !somHabilitado;
@@ -55,8 +69,43 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
     { id: 'conteudo', label: 'Biblioteca', icon: BookOpen },
     { id: 'templates', label: 'Modelos', icon: FolderHeart },
     { id: 'chat', label: 'Mensagens', icon: MessageSquare },
+    { id: 'planos', label: 'Assinatura', icon: CreditCard },
     { id: 'perfil', label: 'Perfil', icon: User },
   ];
+
+  const getPlanBadge = () => {
+    if (!assinatura) return null;
+
+    if (assinatura.status === 'trial') {
+      const text = daysRemaining === 1 ? 'Último dia de trial' : `TRIAL — ${daysRemaining} dias restantes`;
+      return (
+        <div className="mx-4 mb-4 px-3 py-1.5 bg-amber text-void rounded-lg text-center shadow-lg shadow-amber/20">
+          <span className="text-[9px] font-black uppercase tracking-widest">{text}</span>
+        </div>
+      );
+    }
+
+    if (assinatura.status === 'ativa' || assinatura.plano === 'cortesia') {
+      const planoNome = (assinatura.plano === 'ilimitado') ? 'ILIMITADO' : (assinatura.plano === 'cortesia' ? 'PRO' : assinatura.plano.toUpperCase());
+      return (
+        <div className="mx-4 mb-4 px-3 py-1.5 bg-[#F26A1B] text-white rounded-lg text-center shadow-lg shadow-flame/20">
+          <span className="text-[9px] font-black uppercase tracking-widest">
+            {planoNome}
+          </span>
+        </div>
+      );
+    }
+
+    if (isReadOnly) {
+      return (
+        <div className="mx-4 mb-4 px-3 py-1.5 bg-red-500 text-white rounded-lg text-center shadow-lg shadow-red-500/20">
+          <span className="text-[9px] font-black uppercase tracking-widest">MODO LEITURA</span>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     const fetchUnreads = async () => {
@@ -186,9 +235,6 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
                 className="font-display font-black text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
               >
                 ZE<span className="text-[#F26A1B]">LOS</span>
-                <span className="text-[9px] font-mono uppercase bg-[#F26A1B]/15 text-[#F26A1B] px-1.5 py-0.5 rounded-full border border-[#F26A1B]/20 ml-1.5 align-middle">
-                  Pro
-                </span>
               </button>
               <div className="flex items-center gap-1">
                 <button
@@ -216,6 +262,12 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
             </>
           )}
         </div>
+
+        {!isCollapsed && (
+          <div className="px-4 py-2 border-b border-white/5 bg-void/30">
+            {getPlanBadge()}
+          </div>
+        )}
 
         {/* Navigation links */}
         <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
@@ -453,6 +505,42 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         activeTab === 'chat' ? 'h-[100dvh] md:h-screen overflow-hidden' : 'min-h-screen overflow-y-auto'
       }`}>
         
+        {/* Read-only Mode Banner */}
+        {isReadOnly && (
+          <div className="bg-red-500 text-white px-6 py-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 z-40 sticky top-0">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-center">
+                Sua assinatura não está ativa. Você pode ver seus dados, mas não criar ou editar.
+              </span>
+            </div>
+            <button 
+              onClick={() => handleTabChange('planos')}
+              className="px-3 py-1 bg-white text-red-500 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-ink-1 transition-colors whitespace-nowrap"
+            >
+              Reativar plano
+            </button>
+          </div>
+        )}
+
+        {/* Trial Ending Banner */}
+        {!isReadOnly && assinatura?.status === 'trial' && daysRemaining <= 3 && (
+          <div className="bg-amber text-void px-6 py-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 z-40 sticky top-0">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-center">
+                Seu trial termina em {daysRemaining} {daysRemaining === 1 ? 'dia' : 'dias'}. Escolha um plano para continuar.
+              </span>
+            </div>
+            <button 
+              onClick={() => handleTabChange('planos')}
+              className="px-3 py-1 bg-void text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-ink-dark transition-colors whitespace-nowrap"
+            >
+              Escolher Plano
+            </button>
+          </div>
+        )}
+        
         {/* Top Header */}
         <header className="sticky top-0 bg-void/90 backdrop-blur-md z-20 border-b border-white/5 py-4 px-6 shrink-0">
           <div className="max-w-5xl mx-auto flex justify-between items-center gap-4">
@@ -536,7 +624,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {/* TAB 1: ALUNOS */}
         {activeTab === 'alunos' && (
           <div id="tab-content-alunos" className="space-y-6">
-            <GerenciarAlunos personalId={userId} />
+            <GerenciarAlunos personalId={userId} isReadOnly={isReadOnly} />
           </div>
         )}
 
@@ -544,21 +632,21 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {/* TAB 2: EXERCICIOS */}
         {activeTab === 'exercicios' && (
           <div id="tab-content-exercicios" className="space-y-6">
-            <Biblioteca personalId={userId} avatarTipo={profile.avatar_tipo} />
+            <Biblioteca personalId={userId} avatarTipo={profile.avatar_tipo} isReadOnly={isReadOnly} />
           </div>
         )}
 
         {/* TAB: CONTEUDO EDUCATIVO */}
         {activeTab === 'conteudo' && (
           <div id="tab-content-conteudo" className="space-y-6">
-            <GerenciarConteudo personalId={userId} />
+            <GerenciarConteudo personalId={userId} isReadOnly={isReadOnly} />
           </div>
         )}
 
         {/* TAB: AGENDA PERSONAL */}
         {activeTab === 'agenda' && (
           <div id="tab-content-agenda" className="space-y-6">
-            <GerenciarAgendaPersonal personalId={userId} />
+            <GerenciarAgendaPersonal personalId={userId} isReadOnly={isReadOnly} />
           </div>
         )}
 
@@ -572,7 +660,7 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {/* TAB: MODELOS (NOVO) */}
         {activeTab === 'templates' && (
           <div id="tab-content-templates" className="space-y-6">
-            <GerenciarTemplates personalId={userId} />
+            <GerenciarTemplates personalId={userId} isReadOnly={isReadOnly} />
           </div>
         )}
 
@@ -701,11 +789,24 @@ export default function PersonalArea({ userId, userEmail, profile, onLogout, isD
         {/* TAB 4: GERENCIAR EXERCÍCIOS ADMIN */}
         {activeTab === 'gerenciar' && (
           <div id="tab-content-gerenciar" className="space-y-6">
-            <GerenciarExercicios onBack={() => setActiveTab('perfil')} />
+            <GerenciarExercicios personalId={userId} isReadOnly={isReadOnly} />
           </div>
+        )}
+
+        {/* TAB: PLANOS */}
+        {activeTab === 'planos' && (
+          <PlanosArea userEmail={userEmail} />
         )}
       </main>
       </div>
     </div>
+  );
+}
+
+export default function PersonalArea(props: PersonalAreaProps) {
+  return (
+    <SubscriptionProvider personalId={props.userId}>
+      <PersonalAreaContent {...props} />
+    </SubscriptionProvider>
   );
 }

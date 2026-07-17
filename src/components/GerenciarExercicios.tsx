@@ -8,7 +8,9 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 interface GerenciarExerciciosProps {
-  onBack: () => void;
+  onBack?: () => void;
+  personalId?: string;
+  isReadOnly?: boolean;
 }
 
 const COMMON_MUSCLES = [
@@ -20,7 +22,7 @@ const COMMON_MUSCLES = [
   'Gastrocnêmio', 'Sóleo', 'Trapézio', 'Lombar'
 ];
 
-export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps) {
+export default function GerenciarExercicios({ onBack, personalId, isReadOnly = false }: GerenciarExerciciosProps) {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
   const [selectedExercicio, setSelectedExercicio] = useState<Exercicio | null>(null);
@@ -541,15 +543,17 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                 </div>
               </div>
 
-              <button
-                id="btn-new-exercise"
-                type="button"
-                onClick={handleNew}
-                className="py-2.5 px-4 rounded-xl brand-gradient-bg text-void text-xs font-bold flex items-center justify-center gap-1.5 self-start sm:self-auto transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_15px_rgba(245,51,79,0.3)]"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Novo Exercício</span>
-              </button>
+              {!isReadOnly && (
+                <button
+                  id="btn-new-exercise"
+                  type="button"
+                  onClick={handleNew}
+                  className="py-2.5 px-4 rounded-xl brand-gradient-bg text-void text-xs font-bold flex items-center justify-center gap-1.5 self-start sm:self-auto transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_15px_rgba(245,51,79,0.3)]"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Novo Exercício</span>
+                </button>
+              )}
             </div>
 
             {feedback && (
@@ -1048,15 +1052,17 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                   />
 
                   <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fileInputMascRef.current?.click()}
-                      className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <UploadCloud className="w-4 h-4" />
-                      <span>{videoUrlMasc ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
-                    </button>
-                    {videoUrlMasc && (
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputMascRef.current?.click()}
+                        className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <UploadCloud className="w-4 h-4" />
+                        <span>{videoUrlMasc ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
+                      </button>
+                    )}
+                    {!isReadOnly && videoUrlMasc && (
                       <button
                         type="button"
                         onClick={() => {
@@ -1137,15 +1143,17 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                   />
 
                   <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fileInputFemRef.current?.click()}
-                      className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <UploadCloud className="w-4 h-4" />
-                      <span>{videoUrlFem ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
-                    </button>
-                    {videoUrlFem && (
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputFemRef.current?.click()}
+                        className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <UploadCloud className="w-4 h-4" />
+                        <span>{videoUrlFem ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
+                      </button>
+                    )}
+                    {!isReadOnly && videoUrlFem && (
                       <button
                         type="button"
                         onClick={() => {
@@ -1162,32 +1170,34 @@ export default function GerenciarExercicios({ onBack }: GerenciarExerciciosProps
                 </div>
 
                 {/* SAVE ACTION CARD */}
-                <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
-                  <div className="bg-void/50 p-4 border border-white/5 rounded-2xl flex gap-2.5 text-[11px] text-ink-2 leading-relaxed">
-                    <Info className="w-4.5 h-4.5 text-flame shrink-0 mt-0.5" />
-                    <span>Ao salvar, os vídeos serão vinculados permanentemente à biblioteca centralizada. Todos os alunos terão acesso à execução imediata.</span>
-                  </div>
+                {!isReadOnly && (
+                  <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
+                    <div className="bg-void/50 p-4 border border-white/5 rounded-2xl flex gap-2.5 text-[11px] text-ink-2 leading-relaxed">
+                      <Info className="w-4.5 h-4.5 text-flame shrink-0 mt-0.5" />
+                      <span>Ao salvar, os vídeos serão vinculados permanentemente à biblioteca centralizada. Todos os alunos terão acesso à execução imediata.</span>
+                    </div>
 
-                  <button
-                    id="btn-save-exercise-submit"
-                    type="button"
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="w-full py-4 rounded-2xl brand-gradient-bg text-void text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none shadow-[0_4px_20px_rgba(245,51,79,0.3)]"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader className="w-4.5 h-4.5 animate-spin" />
-                        <span>Gravando Exercício...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4.5 h-4.5" />
-                        <span>Salvar Exercício</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                    <button
+                      id="btn-save-exercise-submit"
+                      type="button"
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="w-full py-4 rounded-2xl brand-gradient-bg text-void text-sm font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none shadow-[0_4px_20px_rgba(245,51,79,0.3)]"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader className="w-4.5 h-4.5 animate-spin" />
+                          <span>Gravando Exercício...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4.5 h-4.5" />
+                          <span>Salvar Exercício</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </form>
           </motion.div>

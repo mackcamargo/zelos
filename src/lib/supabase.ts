@@ -3,7 +3,8 @@ import {
   TemplateTreino, TemplateExercicio, Checkin, Habito, HabitoRegistro, 
   Conquista, AlunoConquista, RecordePessoal, FotoProgresso, AnguloFoto, 
   PlanoAlimentar, RegistroNutricao, RegistroHidratacao, SessaoBemEstar, 
-  ConteudoEducativo, Agendamento, ResumoBemEstar, Treino, TreinoExercicio, Mensagem 
+  ConteudoEducativo, Agendamento, ResumoBemEstar, Treino, TreinoExercicio, 
+  Mensagem, Assinatura, Plano 
 } from '../types';
 
 // Mock values for video placeholders
@@ -272,6 +273,48 @@ const isUUID = (val: any): boolean => {
 };
 
 export const dbService = {
+  // ASSINATURAS
+  async getAssinatura(personalId: string): Promise<{ data: Assinatura | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      return await supabase
+        .from('assinaturas')
+        .select('*')
+        .eq('personal_id', personalId)
+        .maybeSingle();
+    }
+    return { 
+      data: {
+        personal_id: personalId,
+        email: 'demo@personal.com',
+        plano: 'trial',
+        status: 'trial',
+        limite_alunos: 10,
+        expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        criado_em: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, 
+      error: null 
+    };
+  },
+
+  async getPlanosAtivos(): Promise<{ data: Plano[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      return await supabase
+        .from('planos')
+        .select('*')
+        .eq('ativo', true)
+        .order('ordem');
+    }
+    return { data: [], error: null };
+  },
+
+  async getContagemAlunos(personalId: string): Promise<{ data: number; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.rpc('alunos_do_personal', { p_personal: personalId });
+      return { data: Number(data) || 0, error };
+    }
+    return { data: 0, error: null };
+  },
   async getProfile(userId: string): Promise<{ data: Profile | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();

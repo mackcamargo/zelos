@@ -11,9 +11,10 @@ import MontarTreino from './MontarTreino';
 
 interface GerenciarTemplatesProps {
   personalId: string;
+  isReadOnly?: boolean;
 }
 
-export default function GerenciarTemplates({ personalId }: GerenciarTemplatesProps) {
+export default function GerenciarTemplates({ personalId, isReadOnly = false }: GerenciarTemplatesProps) {
   const [templates, setTemplates] = useState<TemplateTreino[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -188,18 +189,20 @@ export default function GerenciarTemplates({ personalId }: GerenciarTemplatesPro
           </p>
         </div>
 
-        <button
-          id="btn-new-template"
-          type="button"
-          onClick={() => {
-            setSelectedTemplateId(null);
-            setIsEditing(true);
-          }}
-          className="py-3 px-5 rounded-xl brand-gradient-bg hover:opacity-95 active:scale-[0.98] font-display font-bold text-void text-xs flex items-center justify-center gap-2 transition-all shadow-[0_4px_15px_rgba(245,51,79,0.25)] shrink-0 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Novo Modelo</span>
-        </button>
+        {!isReadOnly && (
+          <button
+            id="btn-new-template"
+            type="button"
+            onClick={() => {
+              setSelectedTemplateId(null);
+              setIsEditing(true);
+            }}
+            className="py-3 px-5 rounded-xl brand-gradient-bg hover:opacity-95 active:scale-[0.98] font-display font-bold text-void text-xs flex items-center justify-center gap-2 transition-all shadow-[0_4px_15px_rgba(245,51,79,0.25)] shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Novo Modelo</span>
+          </button>
+        )}
       </div>
 
       {/* BARRA DE PESQUISA */}

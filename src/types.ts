@@ -295,4 +295,26 @@ export interface Mensagem {
   excluida?: boolean;
 }
 
+export interface Assinatura {
+  personal_id: string;
+  email: string;
+  plano: 'trial' | 'basico' | 'pro' | 'ilimitado' | 'cortesia';
+  status: 'trial' | 'ativa' | 'cancelada' | 'expirada';
+  limite_alunos: number;
+  expira_em: string;
+  criado_em: string;
+  updated_at: string;
+}
+
+export interface Plano {
+  id: string;
+  nome: string;
+  preco_centavos: number;
+  limite_alunos: number;
+  ordem: number;
+  ativo: boolean;
+  descricao?: string;
+  recursos?: string[];
+}
+
 

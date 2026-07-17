@@ -13,6 +13,7 @@ import ListaAgendamentos, { useAgendamentos } from './ListaAgendamentos';
 
 interface GerenciarAgendaPersonalProps {
   personalId: string;
+  isReadOnly?: boolean;
 }
 
 const STATUS_CONFIG: Record<StatusAgendamento, { label: string, color: string, ring: string }> = {
@@ -26,7 +27,7 @@ const isUUID = (val: any): boolean => {
   return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val) || (val.length > 25 && (val.includes('-') || /^[0-9a-fA-F]+$/.test(val)));
 };
 
-export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaPersonalProps) {
+export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false }: GerenciarAgendaPersonalProps) {
   const { agendamentos, carregando, erro, loadAgendamentos } = useAgendamentos(personalId);
   const [selectedFilter, setSelectedFilter] = useState<StatusAgendamento | 'todos'>('todos');
   const [processingId, setProcessingId] = useState<number | null>(null);
@@ -92,20 +93,24 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button 
-                    disabled={processingId === req.id}
-                    onClick={() => handleUpdateStatus(req, 'confirmado')}
-                    className="w-10 h-10 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center hover:bg-green-500/20 transition-all border border-green-500/20"
-                  >
-                    {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" />}
-                  </button>
-                  <button 
-                    disabled={processingId === req.id}
-                    onClick={() => handleUpdateStatus(req, 'cancelado')}
-                    className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-all border border-red-500/20"
-                  >
-                    {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-5 h-5" />}
-                  </button>
+                  {!isReadOnly && (
+                    <>
+                      <button 
+                        disabled={processingId === req.id}
+                        onClick={() => handleUpdateStatus(req, 'confirmado')}
+                        className="w-10 h-10 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center hover:bg-green-500/20 transition-all border border-green-500/20"
+                      >
+                        {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-5 h-5" />}
+                      </button>
+                      <button 
+                        disabled={processingId === req.id}
+                        onClick={() => handleUpdateStatus(req, 'cancelado')}
+                        className="w-10 h-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500/20 transition-all border border-red-500/20"
+                      >
+                        {processingId === req.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-5 h-5" />}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -164,12 +169,14 @@ export default function GerenciarAgendaPersonal({ personalId }: GerenciarAgendaP
               )}
             </div>
             
-            <button 
-              onClick={() => setModalAberto(true)} 
-              className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-            >
-              <Plus className="w-4 h-4" /> Criar p/ Aluno
-            </button>
+            {!isReadOnly && (
+              <button 
+                onClick={() => setModalAberto(true)} 
+                className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Criar p/ Aluno
+              </button>
+            )}
           </div>
 
 

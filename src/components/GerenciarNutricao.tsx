@@ -10,9 +10,10 @@ import { PlanoAlimentar, RefeicaoPlano, AlimentoRefeicao } from '../types';
 interface GerenciarNutricaoProps {
   alunoId: string;
   personalId: string;
+  isReadOnly?: boolean;
 }
 
-export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutricaoProps) {
+export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = false }: GerenciarNutricaoProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [plano, setPlano] = useState<Partial<PlanoAlimentar>>({
@@ -161,8 +162,9 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
             <input 
               type="number"
               value={plano.meta_calorias}
+              disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_calorias: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
             />
           </div>
           <div className="space-y-1.5">
@@ -170,8 +172,9 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
             <input 
               type="number"
               value={plano.meta_proteina}
+              disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_proteina: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
             />
           </div>
           <div className="space-y-1.5">
@@ -179,8 +182,9 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
             <input 
               type="number"
               value={plano.meta_carboidrato}
+              disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_carboidrato: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
             />
           </div>
           <div className="space-y-1.5">
@@ -188,8 +192,9 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
             <input 
               type="number"
               value={plano.meta_gordura}
+              disabled={isReadOnly}
               onChange={(e) => setPlano(prev => ({ ...prev, meta_gordura: Number(e.target.value) }))}
-              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none"
+              className="w-full bg-void border border-white/5 rounded-xl px-4 py-3 text-sm font-mono text-ink focus:border-flame/30 outline-none disabled:opacity-50"
             />
           </div>
         </div>
@@ -221,12 +226,14 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="font-display font-bold text-ink uppercase tracking-widest text-xs">Refeições</h4>
-          <button
-            onClick={handleAddRefeicao}
-            className="flex items-center gap-2 px-4 py-2 bg-flame text-void rounded-xl text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" /> Adicionar Refeição
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={handleAddRefeicao}
+              className="flex items-center gap-2 px-4 py-2 bg-flame text-void rounded-xl text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" /> Adicionar Refeição
+            </button>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -243,31 +250,35 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
                   <div className="flex-1 grid grid-cols-2 gap-4">
                     <input 
                       value={ref.nome}
+                      disabled={isReadOnly}
                       onChange={(e) => setPlano(prev => ({
                         ...prev,
                         refeicoes: prev.refeicoes?.map(r => r.id === ref.id ? { ...r, nome: e.target.value } : r)
                       }))}
-                      className="bg-transparent font-display font-bold text-ink outline-none border-b border-white/10 focus:border-flame"
+                      className="bg-transparent font-display font-bold text-ink outline-none border-b border-white/10 focus:border-flame disabled:opacity-50"
                     />
                     <div className="flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5 text-ink-3" />
                       <input 
                         type="time"
                         value={ref.horario}
+                        disabled={isReadOnly}
                         onChange={(e) => setPlano(prev => ({
                           ...prev,
                           refeicoes: prev.refeicoes?.map(r => r.id === ref.id ? { ...r, horario: e.target.value } : r)
                         }))}
-                        className="bg-transparent font-mono text-xs text-ink outline-none"
+                        className="bg-transparent font-mono text-xs text-ink outline-none disabled:opacity-50"
                       />
                     </div>
                   </div>
-                  <button 
-                    onClick={() => handleRemoveRefeicao(ref.id)}
-                    className="p-2 text-ink-3 hover:text-flame transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {!isReadOnly && (
+                    <button 
+                      onClick={() => handleRemoveRefeicao(ref.id)}
+                      className="p-2 text-ink-3 hover:text-flame transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="p-4 space-y-4">
@@ -327,20 +338,24 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
                           />
                         </div>
                         <div className="col-span-1 flex justify-center">
-                          <button onClick={() => handleRemoveAlimento(ref.id, ali.id)} className="text-ink-3 hover:text-flame">
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          {!isReadOnly && (
+                            <button onClick={() => handleRemoveAlimento(ref.id, ali.id)} className="text-ink-3 hover:text-flame">
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <button
-                    onClick={() => handleAddAlimento(ref.id)}
-                    className="w-full py-2 bg-void border border-dashed border-white/10 rounded-xl text-[9px] font-bold text-ink-3 hover:text-ink hover:border-white/20 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Plus className="w-3 h-3" /> ADICIONAR ALIMENTO
-                  </button>
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => handleAddAlimento(ref.id)}
+                      className="w-full py-2 bg-void border border-dashed border-white/10 rounded-xl text-[9px] font-bold text-ink-3 hover:text-ink hover:border-white/20 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-3 h-3" /> ADICIONAR ALIMENTO
+                    </button>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -349,14 +364,16 @@ export default function GerenciarNutricao({ alunoId, personalId }: GerenciarNutr
       </div>
 
       <div className="pt-6 mt-8">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full py-4 brand-gradient-bg rounded-2xl font-display font-bold text-void uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-        >
-          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-          SALVAR PLANO ALIMENTAR
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full py-4 brand-gradient-bg rounded-2xl font-display font-bold text-void uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            SALVAR PLANO ALIMENTAR
+          </button>
+        )}
       </div>
     </div>
   );

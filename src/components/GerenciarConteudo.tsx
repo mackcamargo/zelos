@@ -11,11 +11,12 @@ import { ConteudoEducativo, TipoConteudo, CategoriaConteudo } from '../types';
 
 interface GerenciarConteudoProps {
   personalId: string;
+  isReadOnly?: boolean;
 }
 
 const CATEGORIES: CategoriaConteudo[] = ['Nutrição', 'Treino', 'Lesão', 'Motivação', 'Geral'];
 
-export default function GerenciarConteudo({ personalId }: GerenciarConteudoProps) {
+export default function GerenciarConteudo({ personalId, isReadOnly = false }: GerenciarConteudoProps) {
   const [loading, setLoading] = useState(true);
   const [conteudos, setConteudos] = useState<ConteudoEducativo[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -83,15 +84,17 @@ export default function GerenciarConteudo({ personalId }: GerenciarConteudoProps
           <h3 className="font-display font-bold text-lg text-ink uppercase italic tracking-tighter">Biblioteca de Conteúdo</h3>
           <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest">Publique artigos e vídeos para seus alunos</p>
         </div>
-        <button
-          onClick={() => {
-            setCurrent({ personal_id: personalId, tipo: 'artigo', categoria: 'Geral', publicado: true });
-            setIsEditing(true);
-          }}
-          className="flex items-center gap-2 px-6 py-3 bg-violet text-void rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all"
-        >
-          <Plus className="w-4 h-4" /> Novo Conteúdo
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={() => {
+              setCurrent({ personal_id: personalId, tipo: 'artigo', categoria: 'Geral', publicado: true });
+              setIsEditing(true);
+            }}
+            className="flex items-center gap-2 px-6 py-3 bg-violet text-void rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg hover:scale-105 active:scale-95 transition-all"
+          >
+            <Plus className="w-4 h-4" /> Novo Conteúdo
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
