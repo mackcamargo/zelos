@@ -275,7 +275,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                     type="button"
                     onClick={() => handleAddWater(ml)}
                     disabled={saving}
-                    className="px-4 py-2 bg-[#1A1A1D] border border-white/5 hover:border-[#F26A1B]/30 rounded-lg text-xs font-semibold text-ink hover:text-[#F26A1B] transition-all flex items-center gap-1 cursor-pointer"
+                    className="px-4 py-2 bg-bg border border-line hover:border-accent/30 rounded-lg text-xs font-semibold text-ink hover:text-accent transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> {ml}ml
                   </button>
@@ -285,7 +285,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                     type="button"
                     onClick={handleReset}
                     disabled={saving}
-                    className="p-2 bg-[#1A1A1D] border border-white/5 hover:border-red-500/20 text-ink-3 hover:text-red-500 rounded-lg transition-all cursor-pointer"
+                    className="p-2 bg-bg border border-line hover:border-red-500/20 text-ink-3 hover:text-red-500 rounded-lg transition-all cursor-pointer"
                     title="Zerar hoje"
                   >
                     <Trash2 className="w-4 h-4" />

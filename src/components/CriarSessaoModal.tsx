@@ -86,14 +86,23 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
       setSaving(true);
       const dataHoraStr = `${formData.data}T${formData.horario}:00`;
 
+      let mappedTipo = formData.tipo;
+      let finalObservacao = formData.observacao;
+      if (formData.tipo === 'avaliacao') {
+        mappedTipo = 'presencial';
+        finalObservacao = finalObservacao 
+          ? `[Avaliação Física] ${finalObservacao}`
+          : 'Avaliação Física';
+      }
+
       const payload = {
         personal_id: personalId,
         aluno_id: formData.aluno_id,
         data_hora: dataHoraStr,
-        tipo: formData.tipo,
+        tipo: mappedTipo,
         duracao_min: formData.duracao_min,
-        status: 'agendado',
-        observacao: formData.observacao
+        status: 'confirmado',
+        observacao: finalObservacao
       };
 
       const { error } = await dbService.saveAgendamento(payload);
@@ -105,7 +114,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
       onFechar();
     } catch (err: any) {
       console.error(err);
-      setErro('Falha ao agendar a sessão no banco de dados.');
+      setErro(err?.message || 'Falha ao agendar a sessão no banco de dados.');
     } finally {
       setSaving(false);
     }
@@ -114,7 +123,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
   return (
     <AnimatePresence>
       {aberto && (
-        <div className="fixed inset-0 bg-void/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-bg/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           {/* BACKGROUND CLICK TO CLOSE */}
           <div className="absolute inset-0" onClick={onFechar} />
 
@@ -123,7 +132,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-lg bg-surface border border-white/5 rounded-xl p-8 overflow-hidden z-10"
+            className="relative w-full max-w-lg bg-surface border border-line rounded-xl p-8 overflow-hidden z-10"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
@@ -138,7 +147,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
               <button
                 type="button"
                 onClick={onFechar}
-                className="p-2 hover:bg-white/5 text-ink-3 hover:text-ink rounded-full transition-colors"
+                className="p-2 hover:bg-raise text-ink-3 hover:text-ink rounded-full transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -160,12 +169,12 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                   Selecione o Aluno
                 </label>
                 {loadingAlunos ? (
-                  <div className="flex items-center gap-2 p-4 bg-void border border-white/5 rounded-lg text-xs text-ink-3">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#F26A1B]" />
+                  <div className="flex items-center gap-2 p-4 bg-bg border border-line rounded-lg text-xs text-ink-3">
+                    <Loader2 className="w-4 h-4 animate-spin text-accent" />
                     Carregando alunos...
                   </div>
                 ) : alunos.length === 0 ? (
-                  <div className="p-4 bg-void border border-white/5 rounded-lg text-xs text-ink-3 text-center">
+                  <div className="p-4 bg-bg border border-line rounded-lg text-xs text-ink-3 text-center">
                     Nenhum aluno ativo vinculado.
                   </div>
                 ) : (
@@ -173,7 +182,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                     <select
                       value={formData.aluno_id}
                       onChange={(e) => setFormData(prev => ({ ...prev, aluno_id: e.target.value }))}
-                      className="w-full bg-void border border-white/5 rounded-lg p-4 text-ink outline-none focus:border-[#F26A1B]/50 transition-all text-sm appearance-none"
+                      className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm appearance-none"
                       style={{
                         backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")`,
                         backgroundRepeat: 'no-repeat',
@@ -204,7 +213,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                       required
                       value={formData.data}
                       onChange={(e) => setFormData(prev => ({ ...prev, data: e.target.value }))}
-                      className="w-full bg-void border border-white/5 rounded-lg pl-12 pr-4 py-4 text-ink outline-none focus:border-[#F26A1B]/50 transition-all text-sm"
+                      className="w-full bg-bg border border-line rounded-lg pl-12 pr-4 py-4 text-ink outline-none focus:border-accent/50 transition-all text-sm"
                     />
                   </div>
                 </div>
@@ -220,7 +229,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                       required
                       value={formData.horario}
                       onChange={(e) => setFormData(prev => ({ ...prev, horario: e.target.value }))}
-                      className="w-full bg-void border border-white/5 rounded-lg pl-12 pr-4 py-4 text-ink outline-none focus:border-[#F26A1B]/50 transition-all text-sm"
+                      className="w-full bg-bg border border-line rounded-lg pl-12 pr-4 py-4 text-ink outline-none focus:border-accent/50 transition-all text-sm"
                     />
                   </div>
                 </div>
@@ -235,7 +244,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                   <select
                     value={formData.tipo}
                     onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value as TipoSessao }))}
-                    className="w-full bg-void border border-white/5 rounded-lg p-4 text-ink outline-none focus:border-[#F26A1B]/50 transition-all text-sm appearance-none"
+                    className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm appearance-none"
                     style={{
                       backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='none' stroke='%238c8c8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")`,
                       backgroundRepeat: 'no-repeat',
@@ -243,9 +252,9 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                       backgroundSize: '16px'
                     }}
                   >
-                    <option value="presencial" className="bg-surface">Presencial</option>
-                    <option value="online" className="bg-surface">Online / Chamada</option>
-                    <option value="avaliacao" className="bg-surface">Avaliação Física</option>
+                    <option value="presencial" className="bg-surface text-ink">Presencial</option>
+                    <option value="online" className="bg-surface text-ink">Online / Chamada</option>
+                    <option value="avaliacao" className="bg-surface text-ink">Avaliação Física</option>
                   </select>
                 </div>
 
@@ -261,7 +270,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                     required
                     value={formData.duracao_min}
                     onChange={(e) => setFormData(prev => ({ ...prev, duracao_min: Number(e.target.value) }))}
-                    className="w-full bg-void border border-white/5 rounded-lg p-4 text-ink outline-none focus:border-[#F26A1B]/50 transition-all text-sm"
+                    className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm"
                   />
                 </div>
               </div>
@@ -276,7 +285,7 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                   onChange={(e) => setFormData(prev => ({ ...prev, observacao: e.target.value }))}
                   placeholder="Foco em pernas, trazer toalha, etc."
                   rows={3}
-                  className="w-full bg-void border border-white/5 rounded-lg p-4 text-ink outline-none focus:border-[#F26A1B]/50 transition-all text-sm resize-none"
+                  className="w-full bg-bg border border-line rounded-lg p-4 text-ink outline-none focus:border-accent/50 transition-all text-sm resize-none"
                 />
               </div>
 
@@ -285,18 +294,18 @@ export default function CriarSessaoModal({ aberto, onFechar, onCriado, personalI
                 <button
                   type="button"
                   onClick={onFechar}
-                  className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-ink-3 hover:text-ink rounded-lg text-xs font-semibold transition-all"
+                  className="flex-1 py-4 bg-bg hover:bg-raise border border-line text-ink-2 hover:text-ink rounded-lg text-xs font-semibold transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving || !formData.aluno_id}
-                  className="flex-1 py-4 bg-[#F26A1B] text-ink font-semibold rounded-lg text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-4 bg-accent hover:opacity-90 text-white font-semibold rounded-lg text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin text-ink" />
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
                       Agendando...
                     </>
                   ) : (

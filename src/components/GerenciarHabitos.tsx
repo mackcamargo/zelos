@@ -16,8 +16,19 @@ interface GerenciarHabitosProps {
 
 const EMOJIS = ['⚡', '💧', '🥗', '😴', '🚶', '🧘', '📵', '☀️'];
 
-const renderHabitoIcon = (icone: string) => {
-  const iconProps = { className: "w-5 h-5 text-ink stroke-[1.5]" };
+const ICON_LABELS: Record<string, string> = {
+  '⚡': 'Foco & Energia',
+  '💧': 'Beber Água / Hidratação',
+  '🥗': 'Alimentação / Dieta',
+  '😴': 'Sono / Descanso',
+  '🚶': 'Passos / Cardio',
+  '🧘': 'Meditação / Bem-Estar',
+  '📵': 'Desconexão / Foco',
+  '☀️': 'Vitamina D / Sol'
+};
+
+const renderHabitoIcon = (icone: string, colorClass: string = "text-ink") => {
+  const iconProps = { className: `w-5 h-5 ${colorClass} stroke-[1.5]` };
   switch (icone) {
     case '⚡': return <Zap {...iconProps} />;
     case '💧': return <Droplet {...iconProps} />;
@@ -163,23 +174,37 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
     const last7Days = Array.from({ length: 7 }).map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
-      return d.toISOString().split('T')[0];
+      return {
+        dateStr: d.toISOString().split('T')[0],
+        dayLetter: d.toLocaleDateString('pt-BR', { weekday: 'narrow' }).toUpperCase()
+      };
     });
 
     return (
-      <div className="flex gap-1">
-        {last7Days.map(date => {
-          const isDone = registros.some(r => r.data === date && r.concluido);
-          return (
-            <div 
-              key={date}
-              title={new Date(date).toLocaleDateString()}
-              className={`w-3.5 h-3.5 rounded border border-white/5 transition-colors ${
-                isDone ? 'bg-green-500' : 'bg-void'
-              }`}
-            />
-          );
-        })}
+      <div className="flex flex-col gap-1.5 mt-2.5">
+        <span className="text-[10px] text-ink-3 uppercase font-bold tracking-wider block">Adesão nos últimos 7 dias:</span>
+        <div className="flex gap-1.5">
+          {last7Days.map(({ dateStr, dayLetter }) => {
+            const isDone = registros.some(r => r.data === dateStr && r.concluido);
+            const dateParts = dateStr.split('-');
+            const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}` : dateStr;
+            return (
+              <div key={dateStr} className="flex flex-col items-center gap-1">
+                <span className="text-[9px] text-ink-3 font-mono font-semibold">{dayLetter}</span>
+                <div 
+                  title={`${formattedDate} - ${isDone ? 'Concluído' : 'Pendente'}`}
+                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all text-[9px] font-bold ${
+                    isDone 
+                      ? 'bg-green-500 border-green-600 text-white shadow-sm shadow-green-500/20' 
+                      : 'bg-raise border-line text-ink-3'
+                  }`}
+                >
+                  {isDone ? '✓' : ''}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -218,16 +243,16 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
       {/* Modal / Form to add habit */}
       <AnimatePresence>
         {showAddForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg/85 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface border border-white/5 rounded-xl p-6 w-full max-w-md space-y-6 relative"
+              className="bg-surface border border-line rounded-xl p-6 w-full max-w-md space-y-6 relative shadow-2xl"
             >
               <button 
                 onClick={() => setShowAddForm(false)} 
-                className="absolute top-4 right-4 p-1.5 text-ink-3 hover:text-ink hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                className="absolute top-4 right-4 p-1.5 text-ink-3 hover:text-ink hover:bg-raise rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -240,51 +265,60 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
               <div className="space-y-4">
                 {/* Nome */}
                 <div className="space-y-2">
-                  <label className="text-[12px] text-ink-3">Nome do hábito</label>
+                  <label className="text-[12px] text-ink-3 block font-medium">Nome do hábito</label>
                   <input
                     value={newNome}
                     onChange={(e) => setNewNome(e.target.value)}
                     placeholder="Ex: Beber água"
-                    className="w-full bg-void border border-white/5 rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-[#F26A1B]/50 transition-colors"
+                    className="w-full bg-bg border border-line rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/25 transition-all"
                   />
                 </div>
 
                 {/* Emoji / Icon selector */}
                 <div className="space-y-2">
-                  <label className="text-[12px] text-ink-3 block">Selecione o ícone</label>
+                  <label className="text-[12px] text-ink-3 block font-medium">Selecione o ícone</label>
                   <div className="grid grid-cols-8 gap-2">
                     {EMOJIS.map((emoji) => (
                       <button
                         key={emoji}
                         type="button"
                         onClick={() => setNewIcone(emoji)}
+                        title={ICON_LABELS[emoji]}
                         className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all cursor-pointer border ${
                           newIcone === emoji
-                            ? 'bg-[#F26A1B]/10 border-[#F26A1B] text-[#F26A1B]'
-                            : 'bg-[#1A1A1D] border-white/5 hover:border-white/10 text-ink-3'
+                            ? 'bg-accent/15 border-accent text-accent'
+                            : 'bg-raise border-line hover:border-line-strong text-ink-2'
                         }`}
                       >
-                        {renderHabitoIcon(emoji)}
+                        {renderHabitoIcon(emoji, newIcone === emoji ? 'text-accent' : 'text-ink-2')}
                       </button>
                     ))}
                   </div>
+                  
+                  {/* Icon Legend display */}
+                  <p className="text-[11px] text-accent font-semibold mt-2.5 flex items-center gap-1.5 bg-accent/5 p-2 rounded-lg border border-accent/10">
+                    <span>Ícone selecionado:</span>
+                    <span className="font-bold">
+                      {newIcone} {ICON_LABELS[newIcone]}
+                    </span>
+                  </p>
                 </div>
 
                 {/* Meta diária */}
                 <div className="space-y-2">
-                  <label className="text-[12px] text-ink-3">Meta diária (opcional)</label>
+                  <label className="text-[12px] text-ink-3 block font-medium">Meta diária (opcional)</label>
                   <input
                     value={newMeta}
                     onChange={(e) => setNewMeta(e.target.value)}
                     placeholder="Ex: 2L"
-                    className="w-full bg-void border border-white/5 rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-[#F26A1B]/50 transition-colors"
+                    className="w-full bg-bg border border-line rounded-lg px-4 py-2.5 text-sm text-ink outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/25 transition-all"
                   />
                 </div>
 
                 <button
                   onClick={handleSave}
                   disabled={saving || !newNome.trim()}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-[#F26A1B] text-ink rounded-lg font-semibold text-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                  className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-white rounded-lg font-semibold text-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {saving ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -303,10 +337,10 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
           const registros = h.registros || [];
           
           return (
-            <div key={h.id} className="bg-surface border border-white/5 rounded-xl p-4 flex items-center justify-between group hover:border-white/10 transition-all">
+            <div key={h.id} className="bg-surface border border-line rounded-xl p-4 flex items-center justify-between group hover:border-line-strong transition-all">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-[#1A1A1D] border border-white/5 flex items-center justify-center shrink-0">
-                  {renderHabitoIcon(h.icone || '⚡')}
+                <div className="w-10 h-10 rounded-lg bg-raise border border-line flex items-center justify-center shrink-0">
+                  {renderHabitoIcon(h.icone || '⚡', 'text-accent')}
                 </div>
                 <div className="min-w-0">
                   <h4 className="font-semibold text-sm text-ink truncate">{h.nome}</h4>
@@ -334,7 +368,7 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
         })}
 
         {habitos.length === 0 && !showAddForm && (
-          <div className="col-span-full py-12 bg-void/30 rounded-xl border border-dashed border-white/5 flex flex-col items-center justify-center">
+          <div className="col-span-full py-12 bg-raise/50 rounded-xl border border-dashed border-line flex flex-col items-center justify-center">
             <Sparkles className="w-10 h-10 text-ink-3 opacity-20 mb-3" />
             <p className="text-xs text-ink-3">Nenhum hábito atribuído a este aluno.</p>
           </div>

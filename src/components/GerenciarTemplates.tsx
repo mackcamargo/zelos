@@ -343,7 +343,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-[#141414] border border-white/10 rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+              className="relative w-full max-w-md bg-surface border border-line rounded-3xl p-6 shadow-2xl overflow-hidden"
             >
               {/* Glow decorativo */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
@@ -363,7 +363,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                   </div>
                   <button 
                     onClick={() => setIsApplyModalOpen(false)}
-                    className="p-2 hover:bg-white/5 rounded-full text-ink-3 transition-colors"
+                    className="p-2 hover:bg-raise rounded-full text-ink-3 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -376,7 +376,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                       id="select-apply-aluno"
                       value={selectedStudentId}
                       onChange={(e) => setSelectedStudentId(e.target.value)}
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink outline-none transition-all appearance-none cursor-pointer"
+                      className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 px-4 text-sm text-ink outline-none transition-all appearance-none cursor-pointer"
                     >
                       <option value="">Selecione um aluno...</option>
                       {students.map((s) => (
@@ -395,13 +395,13 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                       value={customTitle}
                       onChange={(e) => setCustomTitle(e.target.value)}
                       placeholder={templateToApply?.titulo}
-                      className="w-full bg-void border border-white/5 focus:border-white/10 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
+                      className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 px-4 text-sm text-ink placeholder-ink-3 outline-none transition-all"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[12px] text-white/50 block">Data</label>
+                      <label className="text-[12px] text-ink-3 block">Data</label>
                       <div className="relative">
                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input
@@ -409,13 +409,13 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                           type="date"
                           value={applyDate}
                           onChange={(e) => setApplyDate(e.target.value)}
-                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark] num"
+                          className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all num"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[12px] text-white/50 block">Hora</label>
+                      <label className="text-[12px] text-ink-3 block">Hora</label>
                       <div className="relative">
                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
                         <input
@@ -423,7 +423,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                           type="time"
                           value={applyTime}
                           onChange={(e) => setApplyTime(e.target.value)}
-                          className="w-full bg-void border border-white/10 focus:border-flame/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all [color-scheme:dark] num"
+                          className="w-full bg-bg border border-line focus:border-accent/50 rounded-xl py-3 pl-11 pr-4 text-sm text-ink outline-none transition-all num"
                         />
                       </div>
                     </div>
@@ -433,7 +433,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                 <div className="pt-2 flex gap-3">
                   <button
                     onClick={() => setIsApplyModalOpen(false)}
-                    className="flex-1 py-3.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-ink text-xs font-semibold transition-all"
+                    className="flex-1 py-3.5 px-4 rounded-xl bg-bg hover:bg-raise border border-line text-ink-2 hover:text-ink text-xs font-semibold transition-all"
                   >
                     Cancelar
                   </button>
@@ -441,7 +441,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                     id="btn-confirm-apply"
                     onClick={handleApplyTemplate}
                     disabled={applying || !selectedStudentId}
-                    className="flex-[2] py-3.5 px-4 rounded-xl bg-[#F26A1B] hover:bg-[#FF7A2B] text-white text-xs font-semibold transition-all shadow-[0_4px_15px_rgba(242,106,27,0.3)] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                    className="flex-[2] py-3.5 px-4 rounded-xl bg-accent hover:opacity-90 text-white text-xs font-semibold transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
                   >
                     {applying ? (
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

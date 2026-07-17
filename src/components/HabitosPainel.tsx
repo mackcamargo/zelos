@@ -13,8 +13,8 @@ interface HabitosPainelProps {
   onHabitComplete?: () => Promise<void>;
 }
 
-const renderHabitoIcon = (icone: string) => {
-  const iconProps = { className: "w-5 h-5 text-ink-2 stroke-[1.5]" };
+const renderHabitoIcon = (icone: string, colorClass: string = "text-ink-2") => {
+  const iconProps = { className: `w-5 h-5 ${colorClass} stroke-[1.5]` };
   switch (icone) {
     case '⚡': return <Zap {...iconProps} />;
     case '💧': return <Droplet {...iconProps} />;
@@ -167,16 +167,16 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12 bg-surface border border-white/5 rounded-xl p-6">
-        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
+      <div className="flex justify-center py-12 bg-surface border border-line rounded-xl p-6">
+        <Loader2 className="w-6 h-6 text-accent animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-surface border border-white/5 rounded-xl p-6 space-y-6 overflow-hidden relative group">
+    <div className="w-full bg-surface border border-line rounded-xl p-6 space-y-6 overflow-hidden relative group">
       {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
       <div className="flex items-center justify-between relative z-10">
         <div>
@@ -200,11 +200,11 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
               <span>Progresso diário</span>
               <span>{concluidoHoje} de {totalHabitos} concluídos hoje</span>
             </div>
-            <div className="h-2 bg-void rounded-full overflow-hidden border border-white/5">
+            <div className="h-2 bg-bg rounded-full overflow-hidden border border-line">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
-                className="h-full bg-[#F26A1B]"
+                className="h-full bg-accent"
               />
             </div>
           </div>
@@ -224,11 +224,11 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
                   className={`flex items-center gap-4 p-4 rounded-lg border transition-all duration-300 text-left cursor-pointer ${
                     isDone 
                       ? 'bg-green-500/5 border-green-500/10' 
-                      : 'bg-[#1A1A1D] border-white/5 hover:border-white/10'
+                      : 'bg-raise border-line hover:border-line-strong'
                   }`}
                 >
-                  <div className="shrink-0">
-                    {renderHabitoIcon(h.icone || '⚡')}
+                  <div className="shrink-0 bg-surface w-9 h-9 rounded-lg border border-line flex items-center justify-center">
+                    {renderHabitoIcon(h.icone || '⚡', isDone ? 'text-green-500' : 'text-accent')}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center">
@@ -236,8 +236,8 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
                         {h.nome}
                       </p>
                       {streak >= 2 && (
-                        <span className="text-[10px] font-semibold text-[#F26A1B] ml-2 bg-[#F26A1B]/10 px-1.5 py-0.5 rounded flex items-center shrink-0 num gap-0.5">
-                          <Flame className="w-3 h-3 text-[#F26A1B]" /> {streak} dias
+                        <span className="text-[10px] font-semibold text-accent ml-2 bg-accent/10 px-1.5 py-0.5 rounded flex items-center shrink-0 num gap-0.5">
+                          <Flame className="w-3 h-3 text-accent" /> {streak} dias
                         </span>
                       )}
                     </div>
@@ -247,10 +247,10 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
                   </div>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 ${
                     isDone 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-void border border-white/10 text-ink-3'
+                      ? 'bg-green-500 text-white shadow-sm shadow-green-500/20' 
+                      : 'bg-bg border border-line text-ink-3'
                   }`}>
-                    {isDone ? <CheckCircle2 className="w-5 h-5 text-void" /> : <Circle className="w-5 h-5" />}
+                    {isDone ? <CheckCircle2 className="w-5 h-5 text-white" /> : <Circle className="w-5 h-5" />}
                   </div>
                 </button>
               );

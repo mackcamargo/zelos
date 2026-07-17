@@ -134,7 +134,7 @@ export default function DetalheSessaoModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          className="absolute inset-0 bg-bg/80 backdrop-blur-sm"
         />
 
         {/* Modal container */}
@@ -142,17 +142,17 @@ export default function DetalheSessaoModal({
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          className="relative w-full max-w-md bg-[#141414] border border-white/10 rounded-[32px] shadow-2xl overflow-hidden z-10"
+          className="relative w-full max-w-md bg-surface border border-line rounded-[32px] shadow-2xl overflow-hidden z-10"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/5">
+          <div className="flex items-center justify-between p-6 border-b border-line">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-flame">DETALHES DA AGENDA</span>
-              <h3 className="text-xl font-display font-black tracking-tight text-white mt-0.5">Detalhes da Sessão</h3>
+              <span className="text-[10px] font-black uppercase tracking-widest text-accent">DETALHES DA AGENDA</span>
+              <h3 className="text-xl font-display font-black tracking-tight text-ink mt-0.5">Detalhes da Sessão</h3>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-white/5 text-ink-3 hover:text-white transition-colors"
+              className="p-2 rounded-full hover:bg-raise text-ink-3 hover:text-ink transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -164,7 +164,7 @@ export default function DetalheSessaoModal({
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <span className="text-[10px] font-bold text-ink-3 uppercase tracking-wider">ALUNO(A)</span>
-                <p className="text-lg font-bold text-white">
+                <p className="text-lg font-bold text-ink">
                   {agendamento.aluno_nome && !isUUID(agendamento.aluno_nome) ? agendamento.aluno_nome : 'Aluno'}
                 </p>
               </div>
@@ -176,50 +176,50 @@ export default function DetalheSessaoModal({
 
             {/* Date and Time / Editing Inputs */}
             {isEditing ? (
-              <div className="grid grid-cols-2 gap-4 p-4 bg-white/5 rounded-2xl border border-flame/30">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-raise rounded-2xl border border-accent/30">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-flame uppercase tracking-wider block">NOVA DATA</label>
+                  <label className="text-[9px] font-bold text-accent uppercase tracking-wider block">NOVA DATA</label>
                   <input
                     type="date"
                     value={novaData}
                     onChange={(e) => setNovaData(e.target.value)}
-                    className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-flame"
+                    className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink text-xs font-mono focus:outline-none focus:border-accent"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-flame uppercase tracking-wider block">NOVO HORÁRIO</label>
+                  <label className="text-[9px] font-bold text-accent uppercase tracking-wider block">NOVO HORÁRIO</label>
                   <input
                     type="time"
                     value={novoHorario}
                     onChange={(e) => setNovoHorario(e.target.value)}
-                    className="w-full bg-[#1c1c1c] border border-white/10 rounded-xl px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-flame"
+                    className="w-full bg-bg border border-line rounded-xl px-3 py-2 text-ink text-xs font-mono focus:outline-none focus:border-accent"
                   />
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div className="grid grid-cols-1 gap-4 p-4 bg-raise rounded-2xl border border-line">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/5 rounded-xl text-flame">
+                  <div className="p-2 bg-bg rounded-xl text-accent">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
                     <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">DATA</span>
-                    <span className="text-sm font-semibold text-white capitalize">{displayDate}</span>
+                    <span className="text-sm font-semibold text-ink capitalize">{displayDate}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/5 rounded-xl text-flame">
+                  <div className="p-2 bg-bg rounded-xl text-accent">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div className="flex-1 flex justify-between items-center">
                     <div>
                       <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">HORÁRIO</span>
-                      <span className="text-sm font-semibold text-white">{displayTime}</span>
+                      <span className="text-sm font-semibold text-ink">{displayTime}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">DURAÇÃO</span>
-                      <span className="text-sm font-mono font-medium text-white">{agendamento.duracao_min || 60} MIN</span>
+                      <span className="text-sm font-mono font-medium text-ink">{agendamento.duracao_min || 60} MIN</span>
                     </div>
                   </div>
                 </div>
@@ -229,15 +229,15 @@ export default function DetalheSessaoModal({
             {/* Session Type */}
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-ink-3 uppercase tracking-wider">TIPO DE SESSÃO</span>
-              <div className="flex items-center gap-2.5 p-3.5 bg-white/5 rounded-2xl border border-white/5 text-white">
+              <div className="flex items-center gap-2.5 p-3.5 bg-raise rounded-2xl border border-line text-ink">
                 {agendamento.tipo === 'presencial' ? (
                   <>
-                    <MapPin className="w-5 h-5 text-flame" />
+                    <MapPin className="w-5 h-5 text-accent" />
                     <span className="text-sm font-semibold">Presencial</span>
                   </>
                 ) : (
                   <>
-                    <Video className="w-5 h-5 text-flame" />
+                    <Video className="w-5 h-5 text-accent" />
                     <span className="text-sm font-semibold">Online / Remoto</span>
                   </>
                 )}
@@ -247,7 +247,7 @@ export default function DetalheSessaoModal({
             {/* Note / Observação */}
             <div className="space-y-1.5">
               <span className="text-[10px] font-bold text-ink-3 uppercase tracking-wider">OBSERVAÇÕES DO AGENDAMENTO</span>
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/5 min-h-[80px]">
+              <div className="p-4 bg-raise rounded-2xl border border-line min-h-[80px]">
                 {displayObservacao ? (
                   <p className="text-sm text-ink-2 whitespace-pre-wrap">{displayObservacao}</p>
                 ) : (
@@ -262,30 +262,30 @@ export default function DetalheSessaoModal({
 
           {/* Footer */}
           {isEditing ? (
-            <div className="p-6 border-t border-white/5 bg-white/[0.02] flex justify-end gap-3">
+            <div className="p-6 border-t border-line bg-raise/20 flex justify-end gap-3">
               <button
                 disabled={loading}
                 onClick={() => setIsEditing(false)}
-                className="px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-ink-3 hover:text-white font-bold text-xs uppercase tracking-wider transition-all"
+                className="px-5 py-2.5 rounded-full bg-bg hover:bg-line border border-line text-ink-2 hover:text-ink font-bold text-xs uppercase tracking-wider transition-all"
               >
                 Cancelar
               </button>
               <button
                 disabled={loading}
                 onClick={handleSaveRemarcar}
-                className="px-5 py-2.5 rounded-full bg-flame hover:bg-[#d55410] text-void font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50"
+                className="px-5 py-2.5 rounded-full bg-accent hover:opacity-90 text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50"
               >
                 {loading ? 'Salvando...' : 'Confirmar'}
               </button>
             </div>
           ) : confirmCancel ? (
-            <div className="p-6 border-t border-white/5 bg-white/[0.02] flex items-center justify-between gap-3">
+            <div className="p-6 border-t border-line bg-raise/20 flex items-center justify-between gap-3">
               <span className="text-xs font-bold text-red-500 uppercase tracking-wider">Confirmar cancelamento?</span>
               <div className="flex gap-2">
                 <button
                   disabled={loading}
                   onClick={() => setConfirmCancel(false)}
-                  className="px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all"
+                  className="px-4 py-2 rounded-full bg-bg hover:bg-line border border-line text-ink-2 hover:text-ink font-bold text-xs uppercase tracking-wider transition-all"
                 >
                   Voltar
                 </button>
@@ -299,7 +299,7 @@ export default function DetalheSessaoModal({
               </div>
             </div>
           ) : (
-            <div className="p-6 border-t border-white/5 bg-white/[0.02] flex flex-wrap items-center justify-between gap-3">
+            <div className="p-6 border-t border-line bg-raise/20 flex flex-wrap items-center justify-between gap-3">
               {isProfessor && agendamento.status !== 'cancelado' ? (
                 <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-start flex-1">
                   <button
@@ -310,7 +310,7 @@ export default function DetalheSessaoModal({
                   </button>
                   <button
                     onClick={handleStartEditing}
-                    className="px-4 py-2.5 rounded-full bg-flame hover:bg-[#d55410] text-void font-bold text-xs uppercase tracking-wider transition-all"
+                    className="px-4 py-2.5 rounded-full bg-accent hover:opacity-90 text-white font-bold text-xs uppercase tracking-wider transition-all"
                   >
                     Remarcar
                   </button>
@@ -320,7 +320,7 @@ export default function DetalheSessaoModal({
               )}
               <button
                 onClick={onClose}
-                className="px-6 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider transition-all w-full sm:w-auto text-center"
+                className="px-6 py-2.5 rounded-full bg-bg hover:bg-line border border-line text-ink font-bold text-xs uppercase tracking-wider transition-all w-full sm:w-auto text-center"
               >
                 Fechar
               </button>

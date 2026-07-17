@@ -1711,8 +1711,8 @@ export const dbService = {
         aluno_id: agendamento.aluno_id,
         data_hora: agendamento.data_hora || (agendamento.data && agendamento.horario ? new Date(`${agendamento.data}T${agendamento.horario}`).toISOString() : new Date().toISOString()),
         duracao_min: agendamento.duracao_min ?? 60,
-        tipo: agendamento.tipo || 'treino',
-        status: agendamento.status || 'agendado',
+        tipo: agendamento.tipo || 'presencial',
+        status: agendamento.status || 'confirmado',
         observacao: (agendamento.observacao && typeof agendamento.observacao === 'string' && !isUUID(agendamento.observacao))
           ? (agendamento.observacao.trim() || null)
           : null

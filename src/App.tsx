@@ -239,8 +239,8 @@ export default function App() {
     <div id="app-workspace-root" className="min-h-screen bg-void relative">
       {/* Invitation Conflict Modal */}
       {showConviteConflict && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#141414] border border-white/10 rounded-3xl p-8 relative shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-bg/80 backdrop-blur-md">
+          <div className="w-full max-w-md bg-surface border border-line rounded-3xl p-8 relative shadow-2xl">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
             
             <div className="text-center space-y-6 relative z-10">
@@ -255,7 +255,7 @@ export default function App() {
                   Convite Detectado!
                 </h2>
                 <p className="text-sm text-ink-2 leading-relaxed">
-                  Você já está conectado como <span className="text-ink font-semibold">{profile.nome}</span>. Para usar o convite <span className="text-[#F26A1B] font-mono font-bold tracking-wider">{conviteCode}</span>, você precisa sair da conta atual primeiro.
+                  Você já está conectado como <span className="text-ink font-semibold">{profile.nome}</span>. Para usar o convite <span className="text-accent font-mono font-bold tracking-wider">{conviteCode}</span>, você precisa sair da conta atual primeiro.
                 </p>
               </div>
 
@@ -269,7 +269,7 @@ export default function App() {
                     // Force refresh to ensure Auth component picks up the param correctly
                     window.location.reload();
                   }}
-                  className="w-full py-4 px-6 rounded-2xl bg-[#F26A1B] hover:bg-[#FF7A2B] text-white font-display font-bold text-sm transition-all active:scale-[0.98] shadow-[0_4px_15px_rgba(242,106,27,0.3)]"
+                  className="w-full py-4 px-6 rounded-2xl bg-accent hover:opacity-90 text-white font-display font-bold text-sm transition-all active:scale-[0.98]"
                 >
                   Sair e usar o convite
                 </button>
@@ -277,7 +277,7 @@ export default function App() {
                   id="btn-ignore-invite"
                   type="button"
                   onClick={() => setShowConviteConflict(false)}
-                  className="w-full py-4 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-ink-2 font-display font-bold text-sm transition-all active:scale-[0.98]"
+                  className="w-full py-4 px-6 rounded-2xl bg-bg hover:bg-raise border border-line text-ink-2 hover:text-ink font-display font-bold text-sm transition-all active:scale-[0.98]"
                 >
                   Continuar na conta atual
                 </button>
