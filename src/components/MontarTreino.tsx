@@ -547,7 +547,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       setTituloEditadoManualmente(true);
                     }}
                     placeholder="Ex: Treino A, Pernas Foco Glúteo"
-                    className="z-input !h-10 text-xs"
+                    className="flex-1 h-12 px-4 text-base rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all w-full"
                   />
                 </div>
                 {!isTemplateMode ? (
@@ -563,7 +563,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           type="date"
                           value={dataTreino}
                           onChange={(e) => setDataTreino(e.target.value)}
-                          className="z-input !h-10 text-xs pl-10 z-num"
+                          className="h-12 w-full px-4 pl-10 text-base rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all z-num"
                         />
                       </div>
                     </div>
@@ -578,7 +578,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           type="time"
                           value={horaTreino}
                           onChange={(e) => setHoraTreino(e.target.value)}
-                          className="z-input !h-10 text-xs pl-10 z-num"
+                          className="h-12 w-full px-4 pl-10 text-base rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all z-num"
                         />
                       </div>
                     </div>
@@ -593,7 +593,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       value={descricao}
                       onChange={(e) => setDescricao(e.target.value)}
                       placeholder="Ex: Foco em hipertrofia de membros inferiores"
-                      className="z-input !h-10 text-xs"
+                      className="h-12 w-full px-4 text-base rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
                     />
                   </div>
                 )}

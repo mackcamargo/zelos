@@ -712,13 +712,13 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                   <input
                     id="input-edit-objective"
                     type="text"
-                    list="objetivos"
+                    list="objetivos-detalhe"
                     value={editObjetivo}
                     onChange={(e) => setEditObjetivo(e.target.value)}
                     placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
-                    className="flex-1 h-12 px-4 text-base rounded-xl border border-line bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
+                    className="flex-1 h-12 px-4 text-base rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
                   />
-                  <datalist id="objetivos">
+                  <datalist id="objetivos-detalhe">
                     <option value="Hipertrofia (ganho de massa muscular)" />
                     <option value="Emagrecimento / perda de gordura" />
                     <option value="Definição muscular" />
