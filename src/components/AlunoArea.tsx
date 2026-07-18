@@ -1220,10 +1220,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                         <p className="text-[10px] mt-1">Sem vídeo demonstrativo</p>
                                       </div>
                                     )}
-                                    <span className="absolute bottom-2 right-2 text-[8px] font-mono bg-surface/80 backdrop-blur-md border border-line text-ink-2 px-2.5 py-1 rounded-full select-none flex items-center gap-1 shadow-sm">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                                      <span>9:16 LOOP</span>
-                                    </span>
+
                                   </div>
                                   
                                   {ex?.dicas && ex.dicas.length > 0 && (
@@ -1242,7 +1239,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                 <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm space-y-4">
                                   <div className="flex justify-between items-center pb-2.5 border-b border-line">
                                     <span className="text-xs font-mono text-ink uppercase tracking-wider font-bold">Métricas das Séries</span>
-                                    <span className="text-[9px] font-mono text-ink-2 bg-raise border border-line px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">INSIRA VALORES REAIS</span>
                                   </div>
 
                                   <div className="space-y-2.5">
