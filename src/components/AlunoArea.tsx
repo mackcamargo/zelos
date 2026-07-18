@@ -947,7 +947,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                 ? 'border-[#F26A1B]/40 bg-[#F26A1B]/[0.02] shadow-[0_0_15px_rgba(242,106,27,0.05)]'
                                 : isNew
                                   ? 'border-[#F26A1B] shadow-[0_0_20px_rgba(242,106,27,0.15)] animate-pulse motion-reduce:animate-none'
-                                  : 'border-white/5 hover:border-white/10'
+                                  : 'border-line hover:border-line-strong'
                           }`}
                         >
                           <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full" />
@@ -976,7 +976,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             </h3>
                           </div>
 
-                          <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                          <div className="flex items-center justify-between pt-4 border-t border-line">
                             <span className="text-xs text-ink-3 font-mono flex items-center gap-1.5">
                               <Calendar className="w-3.5 h-3.5 text-violet" />
                               {dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}
@@ -1012,7 +1012,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 <div className="space-y-6">
                   
                   {/* Header detail */}
-                  <div className="bg-surface-2 p-5 rounded-2xl border border-white/5 space-y-4 relative overflow-hidden">
+                  <div className="bg-surface p-5 rounded-2xl border border-line space-y-4 relative overflow-hidden shadow-sm">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-flame/5 blur-3xl pointer-events-none rounded-full" />
                     
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
@@ -1021,7 +1021,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           <button
                             type="button"
                             onClick={() => setSelectedWorkout(null)}
-                            className="p-2 bg-void border border-white/5 rounded-xl text-ink-2 hover:text-ink transition-all flex items-center justify-center shrink-0"
+                            className="p-2 bg-raise border border-line rounded-xl text-ink-2 hover:text-ink transition-all flex items-center justify-center shrink-0"
                             title="Ver outros treinos"
                           >
                             <ArrowLeft className="w-5 h-5 text-flame" />
@@ -1063,7 +1063,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         <button
                           type="button"
                           onClick={() => setExpandido(!expandido)}
-                          className="py-2.5 px-4 rounded-xl bg-surface-3 hover:bg-surface border border-white/5 text-ink hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                          className="py-2.5 px-4 rounded-xl bg-raise hover:bg-surface border border-line text-ink hover:text-accent transition-all flex items-center gap-1.5 text-xs font-semibold shrink-0"
                           title={expandido ? "Recolher exercícios" : "Expandir exercícios"}
                         >
                           <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${expandido ? 'rotate-180 text-flame' : 'text-ink-3'}`} />
@@ -1073,7 +1073,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           <button
                             type="button"
                             onClick={() => setSelectedWorkout(null)}
-                            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-surface-3 hover:bg-surface border border-white/5 text-ink-2 hover:text-ink text-xs font-semibold transition-all"
+                            className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-raise hover:bg-surface border border-line text-ink-2 hover:text-ink text-xs font-semibold transition-all"
                           >
                             Outros Treinos
                           </button>
@@ -1101,7 +1101,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         <span className="text-ink-3">Progresso de ativação muscular</span>
                         <span className="text-flame font-bold">{completedWorkoutSeries} de {totalWorkoutSeries} séries</span>
                       </div>
-                      <div className="w-full h-2.5 bg-void rounded-full overflow-hidden border border-white/5 p-[1px]">
+                      <div className="w-full h-2.5 bg-raise rounded-full overflow-hidden border border-line p-[1px]">
                         <div 
                           className="h-full brand-gradient-bg rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(245,51,79,0.4)]"
                           style={{ width: `${progressPercentage}%` }}
@@ -1397,7 +1397,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             })()}
 
             {/* HABITS SECTION (Moved below workout) */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-6 border-t border-white/5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-6 border-t border-line">
               <div className="flex-1 w-full">
                 <HabitosPainel alunoId={userId} onHabitComplete={() => checkAchievements('habit')} />
               </div>
@@ -1440,7 +1440,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             </div>
 
             {/* NEW: Weekly Check-in Section */}
-            <div className="bg-surface-2 border border-white/10 rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden">
+            <div className="bg-surface border border-line rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 relative overflow-hidden shadow-sm">
               <div className="absolute top-0 right-0 p-4 opacity-5">
                 <Calendar className="w-24 h-24 rotate-12" />
               </div>
@@ -1507,13 +1507,13 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     tocar('abrir');
                   }}
                   data-sem-som
-                  className="flex items-center gap-2 px-4 py-2 bg-surface-3 border border-white/10 rounded-xl text-[10px] font-mono font-bold text-ink hover:border-flame/30 transition-all uppercase tracking-widest"
+                  className="flex items-center gap-2 px-4 py-2 bg-surface border border-line rounded-xl text-[10px] font-mono font-bold text-ink hover:border-accent/30 transition-all uppercase tracking-widest"
                 >
                   <Plus className="w-3 h-3" /> REGISTRAR FOTO
                 </button>
               </div>
 
-              <div className="bg-surface-2 border border-white/5 rounded-3xl p-6">
+              <div className="bg-surface border border-line rounded-3xl p-6 shadow-sm">
                 <div key={fotoRefreshTrigger}>
                   <FotoProgressoGaleria alunoId={userId} />
                 </div>
@@ -1565,8 +1565,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               </div>
             ) : detailedSeries.length === 0 && metricas.length === 0 ? (
               /* State Empty Guard */
-              <div className="bg-surface rounded-3xl p-12 text-center border border-white/5 flex flex-col justify-center items-center">
-                <div className="w-16 h-16 rounded-2xl bg-surface-2 flex items-center justify-center mb-5 border border-white/5">
+              <div className="bg-surface rounded-3xl p-12 text-center border border-line flex flex-col justify-center items-center shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-raise flex items-center justify-center mb-5 border border-line">
                   <TrendingUp className="w-8 h-8 text-ink-3 stroke-1" />
                 </div>
                 <span className="font-display font-medium text-lg text-ink mb-1">Evolução em processamento</span>
@@ -1575,7 +1575,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 </p>
                 <button
                   onClick={() => setActiveTab('treino')}
-                  className="bg-white/5 hover:bg-white/10 text-ink text-xs font-semibold py-2 px-4 rounded-xl border border-white/10 transition-colors cursor-pointer"
+                  className="bg-raise/20 hover:bg-raise/40 text-ink text-xs font-semibold py-2 px-4 rounded-xl border border-line transition-colors cursor-pointer"
                 >
                   Ver Treino do Dia
                 </button>
@@ -1707,8 +1707,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
                   {/* HERO CARD: Weight Biometrics Progress */}
                   {currentPeso && (
-                    <div className="bg-[#0F1218] border border-white/5 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-flame/5 blur-3xl pointer-events-none rounded-full" />
+                    <div className="bg-surface border border-line rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
                         <div>
                           <span className="text-[10px] font-mono uppercase tracking-wider text-ink-3">Métrica Principal</span>
@@ -1719,7 +1719,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           <span className="text-3xl font-mono font-black text-ink">{currentPeso.toFixed(1)} <span className="text-lg font-sans font-medium text-ink-2">kg</span></span>
                           {hasPesoVariation && (
                             <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-full flex items-center gap-1 ${
-                              pesoVariation < 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : 'bg-flame/10 text-flame border border-flame/15'
+                              pesoVariation < 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : 'bg-accent/10 text-accent border border-accent/15'
                             }`}>
                               {pesoVariation <= 0 ? '▼' : '▲'} {Math.abs(pesoVariation).toFixed(1)} kg no mês
                             </span>
@@ -1731,27 +1731,27 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         {pesoHistory.length > 1 ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={pesoHistory} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                              <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                              <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--z-line)" opacity={0.3} />
+                              <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
+                              <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                                labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
-                                itemStyle={{ color: '#7B6CF6', fontSize: '12px', fontWeight: 'bold' }}
+                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
+                                itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value} kg`, 'Peso']}
                               />
                               <Line 
                                 type="monotone" 
                                 dataKey="Valor" 
-                                stroke="#7B6CF6" 
+                                stroke="var(--z-accent)" 
                                 strokeWidth={3} 
-                                dot={{ fill: '#7B6CF6', strokeWidth: 1 }} 
+                                dot={{ fill: 'var(--z-accent)', strokeWidth: 1 }} 
                                 activeDot={{ r: 6, strokeWidth: 1 }}
                               />
                             </LineChart>
                           </ResponsiveContainer>
                         ) : (
-                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5">
+                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-raise/30 rounded-2xl border border-line">
                             <Scale className="w-8 h-8 text-ink-3 mb-2 opacity-50" />
                             <p className="text-xs text-ink-2 font-sans">Mais registros de peso necessários para traçar gráfico.</p>
                           </div>
@@ -1764,7 +1764,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* CHART 1: LOAD PROGRESSION */}
-                    <div className="bg-[#0F1218] border border-white/5 rounded-3xl p-6 flex flex-col justify-between">
+                    <div className="bg-surface border border-line rounded-3xl p-6 flex flex-col justify-between shadow-sm">
                       <div>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                           <div>
@@ -1778,7 +1778,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                               <select
                                 value={activeExId || ''}
                                 onChange={(e) => setSelectedExIdProgress(e.target.value)}
-                                className="w-full sm:w-auto bg-surface-2 text-xs font-semibold text-ink border border-white/10 rounded-xl py-2 px-3 pr-8 appearance-none focus:outline-none focus:border-flame cursor-pointer transition-colors"
+                                className="w-full sm:w-auto bg-raise text-xs font-semibold text-ink border border-line rounded-xl py-2 px-3 pr-8 appearance-none focus:outline-none focus:border-accent cursor-pointer transition-colors"
                               >
                                 {exercisesList.map((ex: any) => (
                                   <option key={ex.id} value={ex.id}>{ex.nome}</option>
@@ -1792,9 +1792,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         </div>
 
                         {loadEvolutionData.length > 0 && personalRecord > 0 && (
-                          <div className="bg-void/40 border border-white/5 rounded-xl p-3 mb-4 flex items-center justify-between">
+                          <div className="bg-raise/40 border border-line rounded-xl p-3 mb-4 flex items-center justify-between">
                             <span className="text-xs font-semibold text-ink-2 font-sans">Maior carga registrada:</span>
-                            <span className="text-sm font-mono font-black text-flame bg-flame/10 border border-flame/15 px-3 py-1 rounded-lg">
+                            <span className="text-sm font-mono font-black text-accent bg-accent/10 border border-accent/15 px-3 py-1 rounded-lg">
                               Recorde: {personalRecord.toFixed(1)} kg
                             </span>
                           </div>
@@ -1805,27 +1805,27 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         {loadEvolutionData.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={loadEvolutionData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                              <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                              <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--z-line)" opacity={0.3} />
+                              <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
+                              <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                                labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
-                                itemStyle={{ color: '#F5334F', fontSize: '12px', fontWeight: 'bold' }}
+                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
+                                itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value} kg`, 'Carga']}
                               />
                               <Line 
                                 type="monotone" 
                                 dataKey="Carga" 
-                                stroke="#F5334F" 
+                                stroke="var(--z-accent)" 
                                 strokeWidth={3} 
-                                dot={{ fill: '#F5334F', strokeWidth: 1 }} 
+                                dot={{ fill: 'var(--z-accent)', strokeWidth: 1 }} 
                                 activeDot={{ r: 6, strokeWidth: 1 }}
                               />
                             </LineChart>
                           </ResponsiveContainer>
                         ) : (
-                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5">
+                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-raise/30 rounded-2xl border border-line">
                             <Dumbbell className="w-8 h-8 text-ink-3 mb-2 opacity-50" />
                             <p className="text-xs text-ink-2 px-6 font-sans">Escolha outro exercício ou complete séries para ver a curva.</p>
                           </div>
@@ -1834,7 +1834,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     </div>
 
                     {/* CHART 2: ADHERENCE */}
-                    <div className="bg-[#0F1218] border border-white/5 rounded-3xl p-6 flex flex-col justify-between">
+                    <div className="bg-surface border border-line rounded-3xl p-6 flex flex-col justify-between shadow-sm">
                       <div>
                         <div className="flex items-center justify-between gap-4 mb-4">
                           <div>
@@ -1843,7 +1843,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           </div>
                           <div className="shrink-0 bg-emerald-500/10 border border-emerald-500/15 px-3 py-1 rounded-xl text-right">
                             <span className="text-[9px] font-mono text-ink-3 uppercase block">Fator Médio</span>
-                            <span className="text-xs font-mono font-black text-emerald-400">
+                            <span className="text-xs font-mono font-black text-emerald-500">
                               Aderência: {averageAdherence}%
                             </span>
                           </div>
@@ -1857,12 +1857,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         {adherenceData.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={adherenceData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                              <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                              <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} />
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--z-line)" opacity={0.3} />
+                              <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
+                              <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                                labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
+                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
                                 itemStyle={{ color: '#10B981', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value}%`, 'Concluído']}
                               />
@@ -1875,7 +1875,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             </BarChart>
                           </ResponsiveContainer>
                         ) : (
-                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5">
+                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-raise/30 rounded-2xl border border-line">
                             <Award className="w-8 h-8 text-ink-3 mb-2 opacity-50" />
                             <p className="text-xs text-ink-2 px-6 font-sans">Conclua e salve seus treinos para gerar o histórico semanal.</p>
                           </div>
@@ -1884,7 +1884,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     </div>
 
                     {/* CHART 3: ACCUMULATED VOLUME */}
-                    <div className="bg-[#0F1218] border border-white/5 rounded-3xl p-6 md:col-span-2 flex flex-col justify-between">
+                    <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 flex flex-col justify-between shadow-sm">
                       <div>
                         <div className="flex items-center justify-between gap-4 mb-2">
                           <div>
@@ -1893,7 +1893,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           </div>
                         </div>
                         <p className="text-xs text-ink-2 mb-4 font-sans">
-                          Esforço mecânico por treino (calculado pela fórmula: <code className="text-flame font-mono text-xs">Carga × Repetições</code> de todas as séries executadas).
+                          Esforço mecânico por treino (calculado pela fórmula: <code className="text-accent font-mono text-xs">Carga × Repetições</code> de todas as séries executadas).
                         </p>
                       </div>
 
@@ -1903,23 +1903,23 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             <AreaChart data={volumeData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                               <defs>
                                 <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#FF6A2B" stopOpacity={0.3}/>
-                                  <stop offset="95%" stopColor="#FF6A2B" stopOpacity={0}/>
+                                  <stop offset="5%" stopColor="var(--z-accent)" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="var(--z-accent)" stopOpacity={0}/>
                                 </linearGradient>
                               </defs>
-                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                              <XAxis dataKey="date" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                              <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--z-line)" opacity={0.3} />
+                              <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
+                              <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                                labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
-                                itemStyle={{ color: '#FF6A2B', fontSize: '12px', fontWeight: 'bold' }}
+                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
+                                itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value} kg`, 'Esforço Mecânico']}
                               />
                               <Area 
                                 type="monotone" 
                                 dataKey="Volume" 
-                                stroke="#FF6A2B" 
+                                stroke="var(--z-accent)" 
                                 strokeWidth={3} 
                                 fillOpacity={1} 
                                 fill="url(#colorVolume)" 
@@ -1927,7 +1927,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             </AreaChart>
                           </ResponsiveContainer>
                         ) : (
-                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5 py-10">
+                          <div className="w-full h-full flex flex-col justify-center items-center text-center bg-raise/30 rounded-2xl border border-line py-10">
                             <Activity className="w-8 h-8 text-ink-3 mb-2 opacity-50" />
                             <p className="text-xs text-ink-2 px-6 font-sans">Faça o upload de cargas válidas e conclua séries para visualizar.</p>
                           </div>
@@ -2065,8 +2065,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     });
 
                     return (
-                      <div className="bg-[#0F1218] border border-white/5 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-[#F26A1B]/5 blur-3xl pointer-events-none rounded-full" />
+                      <div className="bg-surface border border-line rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
                         
                         <div className="mb-6">
                           <span className="text-[10px] font-mono uppercase tracking-wider text-ink-3">Performance & Sobrecarga</span>
@@ -2075,7 +2075,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         </div>
 
                         {validCargas.length === 0 ? (
-                          <div className="bg-void/40 border border-white/5 rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
+                          <div className="bg-raise/40 border border-line rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
                             <Trophy className="w-10 h-10 text-ink-3 mb-3 opacity-40" />
                             <p className="text-sm text-ink-2 font-medium max-w-md">
                               Registre a carga dos seus treinos para acompanhar sua evolução
@@ -2086,20 +2086,20 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             {/* Block A: Recordes Pessoais */}
                             <div>
                               <h3 className="text-sm font-bold text-ink uppercase tracking-wider font-display mb-4 flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-[#F26A1B]" />
+                                <Trophy className="w-4 h-4 text-accent" />
                                 <span>Recordes Pessoais (PRs)</span>
                               </h3>
                               {prsList.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                   {prsList.map((pr) => (
-                                    <div key={pr.exercise} className="bg-surface-3/30 border border-white/5 rounded-2xl p-4 flex items-center gap-3.5 hover:border-[#F26A1B]/30 transition-all">
-                                      <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center shrink-0">
-                                        <Trophy className="w-4.5 h-4.5 text-[#F26A1B]" />
+                                    <div key={pr.exercise} className="bg-raise border border-line rounded-2xl p-4 flex items-center gap-3.5 hover:border-accent/30 transition-all shadow-sm">
+                                      <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                                        <Trophy className="w-4.5 h-4.5 text-accent" />
                                       </div>
                                       <div className="flex-1 min-w-0">
                                         <p className="text-sm font-semibold text-ink truncate">{pr.exercise}</p>
                                         <p className="text-xs text-ink-3 font-mono mt-0.5">
-                                          Recorde: <span className="text-[#F26A1B] font-bold">{(Number(pr.maxCarga) || 0).toFixed(1)} kg</span> · {formatPRDate(pr.dateStr)}
+                                          Recorde: <span className="text-accent font-bold">{(Number(pr.maxCarga) || 0).toFixed(1)} kg</span> · {formatPRDate(pr.dateStr)}
                                         </p>
                                       </div>
                                     </div>
@@ -2113,7 +2113,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             {/* Block B & C Grid */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                               {/* Block B: Gráfico de evolução por exercício */}
-                              <div className="bg-surface-3/20 border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
+                              <div className="bg-raise border border-line rounded-2xl p-5 flex flex-col justify-between shadow-sm">
                                 <div className="mb-4">
                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
@@ -2125,7 +2125,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                         <select
                                           value={activeEx}
                                           onChange={(e) => setSelectedExForEvolution(e.target.value)}
-                                          className="w-full sm:w-auto bg-surface-2 text-xs font-semibold text-ink border border-white/10 rounded-xl py-2 px-3 pr-8 appearance-none focus:outline-none focus:border-[#F26A1B] cursor-pointer transition-colors"
+                                          className="w-full sm:w-auto bg-surface text-xs font-semibold text-ink border border-line rounded-xl py-2 px-3 pr-8 appearance-none focus:outline-none focus:border-accent cursor-pointer transition-colors"
                                         >
                                           {exercisesWithCarga.map((name) => (
                                             <option key={name} value={name}>{name}</option>
@@ -2141,36 +2141,36 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                   <div className="h-56 w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                       <LineChart data={evolutionChartData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                                        <XAxis dataKey="label" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--z-line)" opacity={0.3} />
+                                        <XAxis dataKey="label" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
                                         <Tooltip 
-                                          contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                                          labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
-                                          itemStyle={{ color: '#F26A1B', fontSize: '12px', fontWeight: 'bold' }}
+                                          contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                          labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
+                                          itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                           formatter={(value: any) => [`${value} kg`, 'Carga']}
                                         />
                                         <Line 
                                           type="monotone" 
                                           dataKey="Carga" 
-                                          stroke="#F26A1B" 
+                                          stroke="var(--z-accent)" 
                                           strokeWidth={3} 
-                                          dot={{ fill: '#F26A1B', strokeWidth: 1 }} 
+                                          dot={{ fill: 'var(--z-accent)', strokeWidth: 1 }} 
                                           activeDot={{ r: 6, strokeWidth: 1 }}
                                         />
                                       </LineChart>
                                     </ResponsiveContainer>
                                   </div>
                                 ) : (
-                                  <div className="w-full h-48 flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5 p-4">
-                                    <TrendingUp className="w-8 h-8 text-[#F26A1B]/50 mb-2 animate-pulse" />
+                                  <div className="w-full h-48 flex flex-col justify-center items-center text-center bg-raise/30 rounded-2xl border border-line p-4">
+                                    <TrendingUp className="w-8 h-8 text-accent/50 mb-2 animate-pulse" />
                                     <p className="text-xs text-ink-2 font-semibold">Poucos dados ainda — continue treinando</p>
                                   </div>
                                 )}
                               </div>
 
                               {/* Block C: Volume semanal */}
-                              <div className="bg-surface-3/20 border border-white/5 rounded-2xl p-5 flex flex-col justify-between">
+                              <div className="bg-raise border border-line rounded-2xl p-5 flex flex-col justify-between shadow-sm">
                                 <div className="mb-4">
                                   <span className="text-[9px] font-mono uppercase tracking-wider text-ink-3">Sobrecarga Acumulada</span>
                                   <h4 className="font-display font-bold text-base text-ink mt-0.5">Volume Semanal</h4>
@@ -2180,24 +2180,24 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                   {volumeSemanalData.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%">
                                       <BarChart data={volumeSemanalData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-                                        <XAxis dataKey="semana" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--z-line)" opacity={0.3} />
+                                        <XAxis dataKey="semana" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
+                                        <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                                         <Tooltip 
-                                          contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                                          labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
-                                          itemStyle={{ color: '#F26A1B', fontSize: '12px', fontWeight: 'bold' }}
+                                          contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                          labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
+                                          itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                         />
                                         <Bar 
                                           dataKey="Volume total (kg levantados)" 
-                                          fill="#F26A1B" 
+                                          fill="var(--z-accent)" 
                                           radius={[4, 4, 0, 0]} 
                                           maxBarSize={30}
                                         />
                                       </BarChart>
                                     </ResponsiveContainer>
                                   ) : (
-                                    <div className="w-full h-48 flex flex-col justify-center items-center text-center bg-void/30 rounded-2xl border border-white/5">
+                                    <div className="w-full h-48 flex flex-col justify-center items-center text-center bg-raise/30 rounded-2xl border border-line">
                                       <p className="text-xs text-ink-2 font-sans">Sem histórico de volume registrado.</p>
                                     </div>
                                   )}
@@ -2222,11 +2222,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         return (
                           <div 
                             key={item.tipo} 
-                            className="bg-[#0F1218] border border-white/5 rounded-2xl p-4 flex flex-col justify-between h-28 relative group"
+                            className="bg-surface border border-line rounded-2xl p-4 flex flex-col justify-between h-28 relative group shadow-sm hover:border-accent/20 transition-all"
                           >
                             <div className="flex items-center justify-between text-ink-3">
                               <span className="text-[10px] font-semibold truncate pr-1 font-sans">{item.label}</span>
-                              <ItemIcon className="w-4 h-4 text-violet group-hover:scale-110 transition-transform" />
+                              <ItemIcon className="w-4 h-4 text-accent group-hover:scale-110 transition-transform" />
                             </div>
                             
                             <div className="mt-3">
@@ -2258,11 +2258,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {/* TAB: NUTRIÇÃO */}
         {activeTab === 'nutricao' && (
           <div id="tab-content-nutricao" className="pb-12">
-            <div className="mb-8">
-              <h2 className="font-display font-black text-3xl text-ink tracking-tighter uppercase italic flex items-center">
+            <div className="mb-6">
+              <h2 className="font-display font-black text-2xl text-ink tracking-tighter uppercase italic flex items-center">
                 Nutri<span className="text-flame">ção</span>
               </h2>
-              <p className="text-ink-3 text-xs font-mono uppercase tracking-widest mt-1">Plano & Registros Alimentares</p>
+              <p className="text-ink-3 text-[10px] font-mono uppercase tracking-widest mt-0.5">Plano & Registros Alimentares</p>
             </div>
             <NutricaoPainel alunoId={userId} />
           </div>
@@ -2448,7 +2448,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="bg-surface border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-[0_25px_60px_rgba(0,0,0,0.9)] space-y-5"
+              className="bg-surface border border-line rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5"
             >
               {/* Header */}
               <div className="flex justify-between items-start gap-4">
@@ -2473,7 +2473,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               {/* 9:16 VERTICAL VIDEO PLAYER CONTAINER (EXACT IMPLEMENTATION FOR VERTICAL CELLPHONE SIZE) */}
               <div className="flex flex-col items-center justify-center">
                 <div 
-                  className="relative w-full overflow-hidden bg-void rounded-2xl border border-white/10 shadow-inner"
+                  className="relative w-full overflow-hidden bg-raise rounded-2xl border border-line shadow-inner"
                   style={{
                     aspectRatio: '9/16',
                     maxWidth: '320px' // Limite a largura máxima do vídeo e centralize
@@ -2504,7 +2504,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   })()}
 
                   {/* Aesthetic loop badge overlay */}
-                  <span className="absolute bottom-3 right-3 text-[8px] font-mono bg-void/70 backdrop-blur-md border border-white/10 text-ink-2 px-2 py-0.5 rounded-full flex items-center gap-1 select-none">
+                  <span className="absolute bottom-3 right-3 text-[8px] font-mono bg-surface/70 backdrop-blur-md border border-line text-ink-2 px-2 py-0.5 rounded-full flex items-center gap-1 select-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-flame animate-ping" />
                     <span>Loopplayer</span>
                   </span>
@@ -2520,7 +2520,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     </span>
                   ))}
                   {selectedExercise.musculo_secundario?.map((m: string) => (
-                    <span key={m} className="text-[10px] font-mono bg-white/5 border border-white/10 text-ink-2 px-2.5 py-0.5 rounded-full">
+                    <span key={m} className="text-[10px] font-mono bg-raise border border-line text-ink-2 px-2.5 py-0.5 rounded-full">
                       {m}
                     </span>
                   ))}
@@ -2528,7 +2528,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
                 {/* Instructions / Tips */}
                 {selectedExercise.dicas && selectedExercise.dicas.length > 0 && (
-                  <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-2">
+                  <div className="p-4 bg-raise/50 border border-line rounded-2xl space-y-2">
                     <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Dicas de Execução</span>
                     <ul className="text-xs text-ink-2 space-y-1.5 list-disc pl-4 leading-relaxed">
                       {selectedExercise.dicas.map((dica: string, idx: number) => (
@@ -2540,9 +2540,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
                 {/* Technical footer: equipamento, impacto, público-alvo, contraindicações */}
                 {(selectedExercise.equipamento || selectedExercise.impacto || (selectedExercise.publico_alvo && selectedExercise.publico_alvo.length > 0) || (selectedExercise.contraindicacoes && selectedExercise.contraindicacoes.length > 0)) && (
-                  <div className="pt-3 border-t border-white/5 flex flex-wrap gap-2 text-[10px]">
+                  <div className="pt-3 border-t border-line flex flex-wrap gap-2 text-[10px]">
                     {selectedExercise.equipamento && (
-                      <span className="px-2.5 py-1 rounded-full bg-void/40 border border-white/5 text-ink-2 font-medium">
+                      <span className="px-2.5 py-1 rounded-full bg-raise/40 border border-line text-ink-2 font-medium">
                         Equipamento: {selectedExercise.equipamento}
                       </span>
                     )}
@@ -2573,7 +2573,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               <button
                 type="button"
                 onClick={() => setSelectedExercise(null)}
-                className="w-full py-3 rounded-xl bg-surface-3 hover:bg-surface-2 border border-white/5 font-display font-bold text-ink text-xs transition-colors"
+                className="w-full py-3 rounded-xl bg-raise hover:bg-surface border border-line font-display font-bold text-ink text-xs transition-colors shadow-sm"
               >
                 Voltar ao Treino
               </button>
@@ -2591,7 +2591,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface border border-white/5 rounded-xl max-w-sm w-full p-8 text-center space-y-5"
+              className="bg-surface border border-line rounded-xl max-w-sm w-full p-8 text-center space-y-5 shadow-xl"
             >
               <div className="w-12 h-12 rounded-lg bg-[#F26A1B]/5 border border-[#F26A1B]/10 flex items-center justify-center mx-auto">
                 <Trophy className="w-6 h-6 text-[#F26A1B]" />
@@ -2602,7 +2602,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 <p className="text-xs text-ink-2">Você executou com consistência e dedicação hoje.</p>
               </div>
 
-              <div className="py-3 bg-void/40 border border-white/5 rounded-lg grid grid-cols-2 gap-4">
+              <div className="py-3 bg-raise/40 border border-line rounded-lg grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-[12px] text-ink-3 block">Streak semanal</span>
                   <span className="text-sm font-semibold text-[#F26A1B] num flex items-center justify-center gap-1">
@@ -2640,7 +2640,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 15 }}
-              className="bg-[#0F1218] border border-white/10 rounded-3xl max-w-sm w-full p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] space-y-6"
+              className="bg-surface border border-line rounded-3xl max-w-sm w-full p-6 sm:p-8 shadow-2xl space-y-6"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg text-ink flex items-center gap-2">
@@ -2663,7 +2663,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     <select
                       value={newMetricaTipo}
                       onChange={(e) => setNewMetricaTipo(e.target.value)}
-                      className="w-full bg-void text-sm text-ink border border-white/10 rounded-xl py-3 px-4 pr-10 appearance-none focus:outline-none focus:border-flame cursor-pointer transition-colors font-sans font-medium"
+                      className="w-full bg-raise text-sm text-ink border border-line rounded-xl py-3 px-4 pr-10 appearance-none focus:outline-none focus:border-accent cursor-pointer transition-colors font-sans font-medium"
                     >
                       <option value="peso">Peso Corporal (kg)</option>
                       <option value="gordura_pct">Percentual de Gordura (%)</option>
@@ -2687,7 +2687,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                       placeholder="Ex: 72.5"
                       value={newMetricaValor}
                       onChange={(e) => setNewMetricaValor(e.target.value)}
-                      className="w-full bg-void text-base text-ink border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-flame transition-colors num font-semibold"
+                      className="w-full bg-raise text-base text-ink border border-line rounded-xl py-3 px-4 focus:outline-none focus:border-accent transition-colors num font-semibold"
                     />
                     <span className="absolute right-4 top-3.5 text-xs font-semibold text-ink-3 num">
                       {newMetricaTipo === 'peso' ? 'kg' : newMetricaTipo === 'gordura_pct' ? '%' : 'cm'}
@@ -2706,7 +2706,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                       setShowAddMetricaModal(false);
                       tocar('fechar');
                     }}
-                    className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-display font-bold text-ink text-xs transition-colors cursor-pointer"
+                    className="flex-1 py-3 rounded-xl bg-raise/20 hover:bg-raise/40 border border-line font-display font-bold text-ink text-xs transition-colors cursor-pointer"
                   >
                     Cancelar
                   </button>
@@ -2735,7 +2735,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-void/95 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
+              className="fixed inset-0 z-[100] bg-void/60 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
               onClick={() => setFullscreenVideo(null)}
             >
               <button 
@@ -2749,7 +2749,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="relative w-full max-w-md aspect-[9/16] bg-void rounded-3xl border border-white/10 overflow-hidden shadow-2xl"
+                className="relative w-full max-w-md aspect-[9/16] bg-void rounded-3xl border border-line overflow-hidden shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 <video

@@ -33,9 +33,9 @@ const parseDataHora = (dataHoraStr: string): Date => {
 };
 
 const STATUS_CONFIG: Record<StatusAgendamento, { label: string, color: string, icon: any }> = {
-  solicitado: { label: 'Solicitado', color: 'text-amber bg-amber/10 border-amber/20', icon: AlertCircle },
-  confirmado: { label: 'Confirmado', color: 'text-green-500 bg-green-500/10 border-green-500/20', icon: CheckCircle2 },
-  cancelado: { label: 'Cancelado', color: 'text-ink-3 bg-white/5 border-white/10', icon: XCircle }
+  solicitado: { label: 'Solicitado', color: 'text-warn bg-warn/10 border-warn/20', icon: AlertCircle },
+  confirmado: { label: 'Confirmado', color: 'text-ok bg-ok/10 border-ok/20', icon: CheckCircle2 },
+  cancelado: { label: 'Cancelado', color: 'text-ink-3 bg-raise/5 border-line', icon: XCircle }
 };
 
 export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPainelProps) {
@@ -133,42 +133,42 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden z-card p-8"
+          className="relative overflow-hidden z-card !p-6 sm:!p-8"
         >
-          <div className="absolute top-0 right-0 p-8 opacity-10 text-[#F26A1B]">
-            <CalendarIcon className="w-32 h-32" />
+          <div className="absolute top-2 right-2 opacity-[0.08] text-accent rotate-12 pointer-events-none">
+            <CalendarIcon className="w-24 h-24 sm:w-32 sm:h-32" />
           </div>
           
-          <div className="relative z-10 space-y-6">
-            <div className="flex items-center gap-2 px-3 py-1 bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/10 rounded-full w-fit">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-[12px] font-semibold">Sua próxima sessão</span>
+          <div className="relative z-10 space-y-4">
+            <div className="flex items-center gap-2 px-2.5 py-1 bg-accent/10 text-accent border border-accent/20 rounded-full w-fit">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Próxima sessão</span>
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-[28px] font-semibold tracking-tight leading-none text-ink">
+            <div className="space-y-1">
+              <h2 className="text-2xl sm:text-[28px] font-semibold tracking-tight leading-tight text-ink">
                 {parseDataHora(proximaSessao.data_hora).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </h2>
-              <div className="flex flex-wrap items-center gap-6 text-[20px] font-semibold text-ink-2">
-                <div className="flex items-center gap-2 num">
-                  <Clock className="w-6 h-6 text-accent" />
+              <div className="flex flex-wrap items-center gap-4 text-base sm:text-[20px] font-semibold text-ink-2">
+                <div className="flex items-center gap-1.5 num">
+                  <Clock className="w-5 h-5 text-accent" />
                   {parseDataHora(proximaSessao.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   {proximaSessao.tipo === 'presencial' ? (
                     <>
-                      <MapPin className="w-6 h-6 text-accent" />
+                      <MapPin className="w-5 h-5 text-accent" />
                       <span>Presencial</span>
                     </>
                   ) : proximaSessao.tipo === 'online' ? (
                     <>
-                      <Video className="w-6 h-6 text-accent" />
+                      <Video className="w-5 h-5 text-accent" />
                       <span>Online</span>
                     </>
                   ) : (
                     <>
-                      <FileText className="w-6 h-6 text-accent" />
-                      <span>Avaliação física</span>
+                      <FileText className="w-5 h-5 text-accent" />
+                      <span>Avaliação</span>
                     </>
                   )}
                 </div>
@@ -186,17 +186,17 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
       )}
 
       {/* ACTION BAR */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-[28px] font-semibold text-ink">Sua <span className="text-flame">agenda</span></h3>
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-xl sm:text-[28px] font-semibold text-ink leading-tight">Sua <span className="text-accent">agenda</span></h3>
         <button 
           onClick={() => {
             setErrorMsg(null);
             setSuccessMsg(null);
             setShowModal(true);
           }}
-          className="flex items-center gap-2 px-6 py-3 bg-ink text-void rounded-2xl font-semibold text-xs shadow-lg hover:scale-105 active:scale-95 transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-accent text-white rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-xs shadow-lg hover:scale-105 active:scale-95 transition-all uppercase tracking-widest border border-line-strong/20 shrink-0"
         >
-          <Plus className="w-4 h-4" /> Solicitar sessão
+          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Solicitar sessão
         </button>
       </div>
 
@@ -214,46 +214,46 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 transition={{ delay: index * 0.05 }}
                 key={agendamento.id}
                 onClick={() => setSelectedAgendamento(agendamento)}
-                className="z-card z-card--tap flex flex-col md:flex-row md:items-center justify-between gap-6"
+                className="z-card z-card--tap !p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div className="flex items-center gap-6">
-                  <div className={`w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-semibold ${
-                    agendamento.status === 'confirmado' ? 'bg-accent text-void' : 'bg-surface-raise text-ink-3 border border-line'
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center font-semibold shrink-0 ${
+                    agendamento.status === 'confirmado' ? 'bg-accent text-white shadow-sm shadow-accent/20' : 'bg-raise text-ink-3 border border-line'
                   }`}>
-                    <span className="text-[12px] opacity-70">
-                      {parseDataHora(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
+                    <span className="text-[9px] uppercase tracking-tighter opacity-80 leading-none mb-0.5">
+                      {parseDataHora(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
                     </span>
-                    <span className="text-2xl leading-none num">
+                    <span className="text-xl leading-none num font-bold">
                       {parseDataHora(agendamento.data_hora).getDate()}
                     </span>
                   </div>
                   
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <h4 className="text-lg font-semibold text-ink leading-none num">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-base font-bold text-ink leading-none num">
                         {parseDataHora(agendamento.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </h4>
-                      <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-semibold ${config.color}`}>
-                        <StatusIcon className="w-3 h-3" />
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider ${config.color}`}>
+                        <StatusIcon className="w-2.5 h-2.5" />
                         {config.label}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-[12px] text-ink-3">
-                      <span className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-3 text-[11px] text-ink-3">
+                      <span className="flex items-center gap-1">
                         {agendamento.tipo === 'presencial' ? (
                           <>
-                            <MapPin className="w-3.5 h-3.5 text-accent" />
+                            <MapPin className="w-3 h-3 text-accent" />
                             <span>Presencial</span>
                           </>
                         ) : agendamento.tipo === 'online' ? (
                           <>
-                            <Video className="w-3.5 h-3.5 text-accent" />
+                            <Video className="w-3 h-3 text-accent" />
                             <span>Online</span>
                           </>
                         ) : (
                           <>
-                            <FileText className="w-3.5 h-3.5 text-accent" />
-                            <span>Avaliação física</span>
+                            <FileText className="w-3 h-3 text-accent" />
+                            <span>Avaliação</span>
                           </>
                         )}
                       </span>
@@ -268,12 +268,12 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
 
                 <div className="flex items-center gap-4">
                    {agendamento.status === 'confirmado' && (
-                     <div className="px-4 py-2 bg-green-500/5 text-green-500 rounded-xl text-[12px] font-semibold">
+                     <div className="px-4 py-2 bg-ok/5 text-ok border border-ok/10 rounded-xl text-[12px] font-semibold">
                        Sessão confirmada
                      </div>
                    )}
                    {agendamento.status === 'solicitado' && (
-                     <div className="px-4 py-2 bg-amber/5 text-amber rounded-xl text-[12px] font-semibold italic animate-pulse">
+                     <div className="px-4 py-2 bg-warn/5 text-warn border border-warn/10 rounded-xl text-[12px] font-semibold italic animate-pulse">
                        Aguardando personal...
                      </div>
                    )}
@@ -283,7 +283,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
           })
         ) : (
           <div className="py-20 text-center space-y-4">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-20 h-20 bg-raise border border-line rounded-full flex items-center justify-center mx-auto">
               <CalendarIcon className="w-8 h-8 text-ink-3" />
             </div>
             <p className="text-[14px] text-ink-3">Você ainda não tem sessões marcadas.</p>

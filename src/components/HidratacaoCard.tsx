@@ -161,7 +161,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   }
 
   return (
-    <div className="bg-surface border border-line rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between group min-h-[350px]">
+    <div className="bg-surface border border-line rounded-3xl p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between group min-h-[320px]">
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
@@ -236,7 +236,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                 <div className="relative w-20 h-20 flex-shrink-0">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                     <path
-                      className="text-white/5"
+                      className="text-line"
                       strokeWidth="3.5"
                       stroke="currentColor"
                       fill="none"
@@ -304,7 +304,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-void/90 z-20 flex flex-col items-center justify-center text-center p-4"
+            className="absolute inset-0 bg-void/60 z-20 flex flex-col items-center justify-center text-center p-4"
           >
             <motion.div
               initial={{ scale: 0.9, y: 10 }}
@@ -326,15 +326,15 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       {/* Histograma minimalista nos últimos 7 dias */}
       <div className="border-t border-line pt-4 mt-6">
         <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mb-3">Histórico de 7 dias</p>
-        <div className="h-12 w-full">
+        <div className="h-10 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={historico} margin={{ top: 0, bottom: 0, left: 0, right: 0 }}>
+            <BarChart data={historico} margin={{ top: 0, bottom: 0, left: 4, right: 4 }} barSize={12}>
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const dataObj = payload[0].payload;
                     return (
-                      <div className="bg-void/90 backdrop-blur-md border border-line p-2 rounded-lg text-[10px] text-ink num">
+                      <div className="bg-surface/90 backdrop-blur-md border border-line p-2 rounded-lg text-[10px] text-ink num">
                         {dataObj.total}ml
                       </div>
                     );

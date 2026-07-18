@@ -94,7 +94,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   return (
     <div className="space-y-8 pb-20">
       {/* RESUMO DO DIA */}
-      <div className="bg-surface border border-line rounded-3xl p-8 shadow-sm relative overflow-hidden">
+      <div className="bg-surface border border-line rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
         {/* Decorative background flare */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-flame/5 blur-[100px] pointer-events-none" />
         
@@ -109,28 +109,28 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
         ) : (
           <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
             {/* Calorias Ring */}
-            <div className="relative w-48 h-48 flex-shrink-0">
-              <svg className="w-full h-full -rotate-90">
+            <div className="relative w-40 h-40 flex-shrink-0">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 192 192">
                 <circle
                   cx="96"
                   cy="96"
-                  r="88"
+                  r="84"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="12"
+                  strokeWidth="10"
                   className="text-line"
                 />
                 <motion.circle
                   cx="96"
                   cy="96"
-                  r="88"
+                  r="84"
                   fill="none"
                   stroke="url(#flame-gradient)"
-                  strokeWidth="12"
+                  strokeWidth="10"
                   strokeLinecap="round"
-                  strokeDasharray="552.92"
-                  initial={{ strokeDashoffset: 552.92 }}
-                  animate={{ strokeDashoffset: 552.92 - (552.92 * calPercent) / 100 }}
+                  strokeDasharray="527.78"
+                  initial={{ strokeDashoffset: 527.78 }}
+                  animate={{ strokeDashoffset: 527.78 - (527.78 * calPercent) / 100 }}
                   transition={{ duration: 1.5, ease: "easeOut" }}
                 />
                 <defs>
@@ -141,13 +141,13 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[28px] font-semibold text-ink num">
+                <span className="text-2xl font-bold text-ink num">
                   {consumidoCalorias}
                 </span>
-                <span className="text-[12px] text-ink-3 text-center px-4">
-                  kcal consumidas
+                <span className="text-[10px] text-ink-3 text-center px-4 uppercase tracking-wider font-mono">
+                  kcal
                 </span>
-                <div className="mt-2 text-[12px] text-flame font-semibold bg-flame/10 px-2 py-0.5 rounded-full border border-flame/20 num">
+                <div className="mt-1 text-[10px] text-flame font-bold bg-flame/10 px-2 py-0.5 rounded-full border border-flame/20 num">
                   Meta: {metaCalorias}
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   </span>
                   <span className="text-[12px] text-ink-3 num">{consumidoProteina} / {metaProteina}g</span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${protPercent}%` }}
@@ -178,7 +178,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   </span>
                   <span className="text-[12px] text-ink-3 num">{consumidoCarbo} / {metaCarbo}g</span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${carboPercent}%` }}
@@ -194,7 +194,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   </span>
                   <span className="text-[12px] text-ink-3 num">{consumidoGordura} / {metaGordura}g</span>
                 </div>
-                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${gorduraPercent}%` }}
@@ -210,9 +210,9 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
       {/* HIDRATAÇÃO */}
       <HidratacaoCard alunoId={alunoId} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* PLANO ALIMENTAR */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-ink flex items-center gap-2">
               <Utensils className="w-5 h-5 text-flame" />
@@ -220,30 +220,30 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
             </h4>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {plano?.refeicoes?.map((ref) => (
-              <div key={ref.id} className="bg-surface border border-line rounded-3xl p-5 hover:bg-raise transition-all group">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="space-y-1">
-                    <h5 className="font-semibold text-ink group-hover:text-flame transition-colors">{ref.nome}</h5>
-                    <div className="flex items-center gap-2 text-ink-3">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-[12px] num">{ref.horario}</span>
+              <div key={ref.id} className="bg-surface border border-line rounded-2xl p-4 hover:bg-raise transition-all group">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="space-y-0.5">
+                    <h5 className="font-semibold text-sm text-ink group-hover:text-flame transition-colors">{ref.nome}</h5>
+                    <div className="flex items-center gap-1.5 text-ink-3">
+                      <Clock className="w-3 h-3" />
+                      <span className="text-[11px] num">{ref.horario}</span>
                     </div>
                   </div>
-                  <button className="p-2 bg-raise rounded-xl text-ink-3 hover:text-green-500 transition-colors">
-                    <Check className="w-4 h-4" />
+                  <button className="p-1.5 bg-raise border border-line rounded-lg text-ink-3 hover:text-ok transition-colors">
+                    <Check className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {ref.alimentos?.map((ali) => (
-                    <div key={ali.id} className="flex items-center justify-between py-2 border-t border-line">
+                    <div key={ali.id} className="flex items-center justify-between py-1.5 border-t border-line/50">
                       <div className="space-y-0.5">
-                        <p className="text-xs text-ink font-medium">{ali.nome}</p>
-                        <p className="text-[10px] text-ink-3">{ali.quantidade}</p>
+                        <p className="text-[11px] text-ink font-medium">{ali.nome}</p>
+                        <p className="text-[9px] text-ink-3 uppercase tracking-tight">{ali.quantidade}</p>
                       </div>
-                      <div className="text-[12px] text-ink-2 num">
+                      <div className="text-[11px] text-ink-2 num">
                         {ali.calorias} kcal
                       </div>
                     </div>
@@ -252,16 +252,16 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               </div>
             ))}
             {!plano && (
-              <div className="p-12 text-center bg-surface rounded-3xl border border-dashed border-line">
-                <p className="text-sm text-ink-3">Nenhum plano alimentar ativo.</p>
+              <div className="p-8 text-center bg-surface rounded-2xl border border-dashed border-line">
+                <p className="text-xs text-ink-3">Nenhum plano alimentar ativo.</p>
               </div>
             )}
           </div>
         </div>
 
         {/* REGISTROS & HISTÓRICO */}
-        <div className="space-y-8">
-          <div className="space-y-6">
+        <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="font-semibold text-ink flex items-center gap-2">
                 <History className="w-5 h-5 text-flame" />
@@ -272,7 +272,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   setShowAddModal(true);
                   tocar('tap');
                 }}
-                className="px-4 py-2 bg-surface border border-line rounded-xl text-xs font-semibold text-ink hover:bg-raise transition-all flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 bg-accent text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer border border-accent/20 shadow-sm"
               >
                 <Plus className="w-3.5 h-3.5" /> Registrar
               </button>
@@ -314,12 +314,12 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                     dataKey="data" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#666', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                    tick={{ fill: 'var(--z-text-3)', fontSize: 10, fontFamily: 'Archivo' }}
                     tickFormatter={(val) => val.split('-')[2]}
                   />
                   <YAxis hide />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '12px' }}
+                    contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
                     itemStyle={{ color: '#F5334F', fontSize: '10px', fontFamily: 'JetBrains Mono' }}
                     labelStyle={{ display: 'none' }}
                   />
@@ -341,7 +341,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
       {/* ADD MEAL MODAL */}
       <AnimatePresence>
         {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
