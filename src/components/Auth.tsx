@@ -204,12 +204,23 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         if (authError) {
           setError(traduzErro(authError.message));
         } else if (data?.user) {
-          // Se for aluno e cadastro novo, mostra boas-vindas
+          // Quando a confirmação de e-mail está ativa, o signUp NÃO retorna sessão:
+          // o usuário precisa clicar no link enviado por e-mail antes de entrar.
+          if (!data.session) {
+            setIsLogin(true);
+            setSuccessMessage(
+              `Conta criada! Enviamos um e-mail de confirmação para ${email}. ` +
+              `Confirme seu e-mail e depois faça login para entrar.`
+            );
+            setLoading(false);
+            return;
+          }
+
+          // Confirmação desligada: fluxo direto.
           if (papel === 'aluno') {
             setPendingUser(data.user);
             setShowWelcomeModal(true);
           } else {
-            // E-mail desligado: entra direto
             onAuthSuccess(data.user);
           }
         } else {
