@@ -8,6 +8,7 @@ export interface Profile {
   avatar_url: string | null;
   avatar_tipo: TipoAvatar | null;
   criado_em: string;
+  is_admin?: boolean;
 }
 
 export interface Personal {

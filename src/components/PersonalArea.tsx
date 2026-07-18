@@ -757,15 +757,17 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                     <p className="mt-0.5 text-[11px]">Adicione movimentos, dicas de execução e faça upload dos vídeos.</p>
                   </div>
                 </div>
-                <button
-                  id="btn-goto-admin"
-                  type="button"
-                  onClick={() => handleTabChange('gerenciar')}
-                  data-sem-som
-                  className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all hover:bg-accent/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
-                >
-                  ⚙️ Gerenciar Exercícios
-                </button>
+                {profile.is_admin && (
+                  <button
+                    id="btn-goto-admin"
+                    type="button"
+                    onClick={() => handleTabChange('gerenciar')}
+                    data-sem-som
+                    className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all hover:bg-accent/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
+                  >
+                    ⚙️ Gerenciar Exercícios
+                  </button>
+                )}
               </div>
 
               {/* Sound Settings */}
@@ -842,7 +844,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         )}
 
         {/* TAB 4: GERENCIAR EXERCÍCIOS ADMIN */}
-        {activeTab === 'gerenciar' && (
+        {activeTab === 'gerenciar' && profile.is_admin && (
           <div id="tab-content-gerenciar" className="space-y-6">
             <GerenciarExercicios personalId={userId} isReadOnly={isReadOnly} />
           </div>

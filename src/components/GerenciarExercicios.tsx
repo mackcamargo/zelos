@@ -1589,50 +1589,30 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                 {/* SAVE ACTION CARD */}
                 {!isReadOnly && (
                   <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
-                    {selectedExercicio?.personal_id === null && !String(selectedExercicio.id).startsWith('ex-') ? (
-                      <div className="space-y-4">
-                        <div className="bg-blue-500/10 p-4 border border-blue-500/20 rounded-2xl flex gap-2.5 text-[11px] text-blue-400 leading-relaxed">
-                          <Info className="w-4.5 h-4.5 text-blue-400 shrink-0 mt-0.5" />
-                          <span>Este é um exercício global. Para editá-lo ou adicionar seus próprios vídeos, você deve primeiro duplicá-lo para sua biblioteca pessoal.</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicarExercicio(selectedExercicio)}
-                          disabled={saving}
-                          className="w-full h-14 bg-blue-500 text-white rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50"
-                        >
-                          {saving ? <Loader className="w-5 h-5 animate-spin" /> : <Copy className="w-5 h-5" />}
-                          <span>Duplicar para minha biblioteca</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="bg-void/50 p-4 border border-white/5 rounded-2xl flex gap-2.5 text-[11px] text-ink-2 leading-relaxed">
-                          <Info className="w-4.5 h-4.5 text-flame shrink-0 mt-0.5" />
-                          <span>Ao salvar, os vídeos serão vinculados permanentemente à biblioteca centralizada. Todos os alunos terão acesso à execução imediata.</span>
-                        </div>
+                    <div className="bg-void/50 p-4 border border-white/5 rounded-2xl flex gap-2.5 text-[11px] text-ink-2 leading-relaxed">
+                      <Info className="w-4.5 h-4.5 text-flame shrink-0 mt-0.5" />
+                      <span>Os vídeos enviados vão direto para a biblioteca central. Todos os personais poderão usar e os alunos verão a execução imediatamente.</span>
+                    </div>
 
-                        <button
-                          id="btn-save-exercise-submit"
-                          type="button"
-                          onClick={handleSave}
-                          disabled={saving}
-                          className="w-full py-4 rounded-2xl brand-gradient-bg text-void text-sm font-semibold flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none shadow-[0_4px_20px_rgba(245,51,79,0.3)]"
-                        >
-                          {saving ? (
-                            <>
-                              <Loader className="w-4.5 h-4.5 animate-spin" />
-                              <span>Gravando exercício...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Save className="w-4.5 h-4.5" />
-                              <span>Salvar exercício</span>
-                            </>
-                          )}
-                        </button>
-                      </>
-                    )}
+                    <button
+                      id="btn-save-exercise-submit"
+                      type="button"
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="w-full py-4 rounded-2xl brand-gradient-bg text-void text-sm font-semibold flex items-center justify-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none shadow-[0_4px_20px_rgba(245,51,79,0.3)]"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader className="w-4.5 h-4.5 animate-spin" />
+                          <span>Gravando exercício...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4.5 h-4.5" />
+                          <span>{selectedExercicio?.personal_id === null ? 'Enviar vídeos' : 'Salvar exercício'}</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 )}
               </div>
