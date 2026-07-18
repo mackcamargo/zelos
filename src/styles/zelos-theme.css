@@ -124,9 +124,15 @@
   --z-fast: 120ms;
   --z-med: 220ms;
 
-  --z-page-x: 20px;        /* ÚNICA margem lateral do app inteiro */
+  --z-page-x: 14px;        /* Margem lateral reduzida para mobile */
   --z-header-h: 60px;
-  --z-maxw: 720px;
+  --z-maxw: 100%;          /* Removendo limite fixo para preenchimento total */
+}
+
+@media (min-width: 640px) {
+  :root {
+    --z-page-x: 28px;      /* Margem lateral expandida para desktop */
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -210,10 +216,16 @@ html, body {
 .z-page {
   max-width: var(--z-maxw);
   margin: 0 auto;
-  padding: var(--z-5) var(--z-page-x) var(--z-12);
+  padding: var(--z-4) var(--z-page-x) var(--z-12);
   display: flex;
   flex-direction: column;
   gap: var(--z-4);
+}
+
+@media (min-width: 640px) {
+  .z-page {
+    padding-top: var(--z-6);
+  }
 }
 
 .z-topbar {
@@ -241,8 +253,14 @@ html, body {
   border-bottom: 2.5px solid var(--z-line-strong);
   border-radius: var(--z-r-lg);
   box-shadow: var(--z-shadow-2);
-  padding: var(--z-5);
+  padding: var(--z-4);
   transition: border-color var(--z-fast) var(--z-ease), border-bottom-color var(--z-fast) var(--z-ease), transform var(--z-fast) var(--z-ease), box-shadow var(--z-fast) var(--z-ease);
+}
+
+@media (min-width: 640px) {
+  .z-card {
+    padding: var(--z-5);
+  }
 }
 .z-card--flush { padding: 0; overflow: hidden; }
 .z-card--tap { cursor: pointer; }
@@ -358,12 +376,12 @@ html, body {
 .z-btn--primary:hover { filter: brightness(1.06); }
 
 .z-btn--ghost {
-  background: var(--z-surface-hi);
+  background: var(--z-surface-raise);
   color: var(--z-text);
-  border-color: var(--z-line);
+  border-color: var(--z-line-strong);
   box-shadow: var(--z-shadow-1);
 }
-.z-btn--ghost:hover { border-color: var(--z-line-strong); background: var(--z-surface-raise); }
+.z-btn--ghost:hover { border-color: var(--z-accent-line); background: var(--z-surface-hi); }
 
 .z-btn--quiet { background: transparent; color: var(--z-text-2); }
 .z-btn--quiet:hover { background: var(--z-surface-raise); color: var(--z-text); }

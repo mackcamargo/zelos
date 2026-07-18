@@ -157,7 +157,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 ))}
               </div>
             ) : (
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none -mx-6 px-6 sm:mx-0 sm:px-0">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none -mx-3 px-3 sm:-mx-6 sm:px-6">
                 {categorias.map((cat) => {
                   const isSelected = selectedCategoria?.id === cat.id;
                   return (
@@ -258,7 +258,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredExercicios.map((ex, index) => {
                   const videoUrl = videoUrls[ex.id];
                   return (

@@ -577,9 +577,9 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
             </button>
           </div>
         )}
-          {/* Top Header */}
-        <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-20 border-b border-line/40 py-4 px-6 shrink-0">
-          <div className="max-w-[1200px] mx-auto flex justify-between items-center gap-4">
+        {/* Top Header */}
+        <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-20 border-b border-line/40 py-4 px-4 sm:px-6 shrink-0">
+          <div className="w-full flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               {/* Hamburger button on Mobile */}
               <button
@@ -631,7 +631,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         </header>
 
         {/* Main View Area */}
-        <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 overflow-y-auto ${
+        <main className={`flex-1 w-full px-3 sm:px-6 overflow-y-auto ${
           activeTab === 'chat' ? 'pt-4 pb-4 flex flex-col min-h-0 overflow-hidden' : 'pt-8 pb-16'
         }`}>
         

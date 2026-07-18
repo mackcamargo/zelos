@@ -524,7 +524,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {filteredAlunos.map((aluno) => {
                   const name = aluno.profile?.nome || 'Aluno Sem Nome';
                   const isFemale = aluno.profile?.avatar_tipo === 'feminino';

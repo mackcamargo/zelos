@@ -858,7 +858,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     >
       {/* Top Header */}
       <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-40 border-b border-line py-4 px-4 sm:px-6 shrink-0">
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
+        <div className="w-full flex justify-between items-center">
           <div>
             <div className="flex items-center gap-2">
               <span className="font-display font-black text-2xl tracking-tight">
@@ -895,7 +895,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </header>
 
       {/* Main View Area */}
-      <main className={`flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 overflow-y-auto ${
+      <main className={`flex-1 w-full px-3 sm:px-6 overflow-y-auto ${
         activeTab === 'chat' 
           ? 'pt-4 pb-[88px] flex flex-col min-h-0 overflow-hidden' 
           : 'pt-8 pb-32 md:pb-16'
@@ -1432,9 +1432,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   tocar('abrir');
                 }}
                 data-sem-som
-                className="self-start sm:self-center bg-flame hover:bg-flame-hover text-white font-bold text-[11px] uppercase tracking-widest py-2.5 px-5 rounded-xl flex items-center gap-2 shadow-lg shadow-flame/30 cursor-pointer transition-all border border-white/10 active:scale-95"
+                className="self-start sm:self-center bg-flame hover:brightness-110 text-void font-bold text-[13px] uppercase tracking-wider py-3 px-6 rounded-2xl flex items-center gap-2 shadow-xl shadow-flame/20 cursor-pointer transition-all border-0 active:scale-95"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 <span>Registrar Medida</span>
               </button>
             </div>
