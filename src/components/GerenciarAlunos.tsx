@@ -411,7 +411,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 py-3 px-5 bg-surface-3 border border-white/10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-2"
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 py-3 px-5 bg-raise border border-line rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-2"
           >
             <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
             <span className="text-xs font-medium text-ink">{toastMessage}</span>
@@ -786,7 +786,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                           onClick={() => {
                             showToast("Solicitação de anamnese enviada ao aluno!");
                           }}
-                          className="py-2 px-4 rounded-lg bg-surface-2 border border-white/10 text-ink-2 text-xs font-semibold hover:bg-white/5 transition-colors"
+                          className="py-2 px-4 rounded-lg bg-surface border border-line text-ink-2 text-xs font-semibold hover:bg-raise transition-colors cursor-pointer"
                         >
                           Solicitar preenchimento
                         </button>

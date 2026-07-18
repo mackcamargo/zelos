@@ -307,18 +307,18 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                 </div>
 
                 <div className="pt-2 flex flex-wrap gap-2">
-                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-void/50 px-2 py-0.5 rounded-md border border-white/5 num">
+                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-raise px-2 py-0.5 rounded-md border border-line num">
                     <Dumbbell className="w-3 h-3" />
                     <span>{template.exercicios?.length || 0} exercícios</span>
                   </div>
-                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-void/50 px-2 py-0.5 rounded-md border border-white/5 num">
+                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-raise px-2 py-0.5 rounded-md border border-line num">
                     <Clock className="w-3 h-3" />
                     <span>{new Date(template.criado_em).toLocaleDateString('pt-BR')}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-5 pt-3.5 border-t border-white/5 flex justify-between items-center text-[12px]">
+              <div className="mt-5 pt-3.5 border-t border-line flex justify-between items-center text-[12px]">
                 <span className="text-violet-400 font-semibold">Base reutilizável</span>
                 <span className="text-ink-3 group-hover:text-ink transition-colors">Abrir editor →</span>
               </div>

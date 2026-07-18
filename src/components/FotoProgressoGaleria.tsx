@@ -80,14 +80,14 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
       {/* Header controls */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         {/* Angle Selector */}
-        <div className="flex p-1 bg-void rounded-2xl border border-white/5 w-full sm:w-auto">
+        <div className="flex p-1 bg-raise rounded-2xl border border-line w-full sm:w-auto">
           {(['frontal', 'lateral', 'costas'] as AnguloFoto[]).map((a) => (
             <button
               key={a}
               onClick={() => setActiveAngle(a)}
               className={`flex-1 sm:px-6 py-3 rounded-xl font-display font-bold text-[10px] uppercase tracking-widest transition-all ${
                 activeAngle === a 
-                  ? 'bg-surface-3 text-flame shadow-lg' 
+                  ? 'bg-surface text-flame shadow-md border border-line' 
                   : 'text-ink-3 hover:text-ink'
               }`}
             >
@@ -98,7 +98,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
 
         <button
           onClick={() => setShowUpload(true)}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-void border border-dashed border-white/10 rounded-xl text-[10px] font-bold text-ink hover:text-white hover:border-white/20 transition-all"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-surface border border-dashed border-line-strong rounded-xl text-[10px] font-bold text-ink hover:bg-raise transition-all cursor-pointer"
         >
           <Camera className="w-3.5 h-3.5 text-flame" />
           <span>ADICIONAR FOTO</span>
@@ -170,7 +170,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
             </div>
 
             {/* Labels */}
-            <div className="absolute top-6 left-6 px-3 py-1 bg-void/60 backdrop-blur-md rounded-full text-[8px] font-mono font-bold text-white uppercase tracking-widest border border-white/10">
+            <div className="absolute top-6 left-6 px-3 py-1 bg-void/60 backdrop-blur-md rounded-full text-[8px] font-mono font-bold text-white uppercase tracking-widest border border-line-strong">
               Início
             </div>
             <div className="absolute top-6 right-6 px-3 py-1 bg-flame/80 backdrop-blur-md rounded-full text-[8px] font-mono font-bold text-white uppercase tracking-widest border border-flame/20">
@@ -180,7 +180,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
         </div>
       ) : filteredFotos.length === 1 ? (
         <div className="space-y-4">
-          <div className="aspect-[3/4] bg-void rounded-[40px] overflow-hidden border border-white/10">
+          <div className="aspect-[3/4] bg-void rounded-[40px] overflow-hidden border border-line-strong">
             <img 
               src={filteredFotos[0].signed_url} 
               alt="Foto registrada"
@@ -192,7 +192,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
           </p>
         </div>
       ) : (
-        <div className="aspect-[3/4] bg-void/30 rounded-[40px] border border-dashed border-white/5 flex flex-col items-center justify-center p-8 text-center">
+        <div className="aspect-[3/4] bg-void/30 rounded-[40px] border border-dashed border-line flex flex-col items-center justify-center p-8 text-center">
           <ImageIcon className="w-12 h-12 text-ink-3 opacity-20 mb-4" />
           <p className="text-xs text-ink-3 font-medium">Nenhuma foto registrada para o ângulo <span className="text-flame font-bold">{activeAngle}</span>.</p>
         </div>
@@ -203,8 +203,8 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
         <h4 className="font-display font-bold text-sm text-ink">Histórico de Fotos</h4>
         <div className="grid grid-cols-1 gap-4">
           {filteredFotos.map((foto) => (
-            <div key={foto.id} className="bg-surface-2 border border-line rounded-3xl p-4 flex gap-4 transition-all hover:border-accent/20">
-              <div className="w-24 h-32 bg-void rounded-2xl overflow-hidden shrink-0 border border-white/5">
+            <div key={foto.id} className="bg-surface border border-line rounded-3xl p-4 flex gap-4 transition-all hover:border-accent/20 shadow-sm">
+              <div className="w-24 h-32 bg-void rounded-2xl overflow-hidden shrink-0 border border-line">
                 <img src={foto.signed_url} alt="Progresso" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0 space-y-3">
@@ -229,7 +229,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
                       value={tempObs}
                       onChange={(e) => setTempObs(e.target.value)}
                       placeholder="Adicione uma observação..."
-                      className="w-full bg-void border border-white/5 rounded-xl p-3 text-xs text-ink outline-none focus:border-flame/30"
+                      className="w-full bg-raise border border-line rounded-xl p-3 text-xs text-ink outline-none focus:border-flame/30"
                       rows={2}
                     />
                     <button 
@@ -279,7 +279,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-sm bg-surface border border-white/10 rounded-[32px] p-6 shadow-2xl"
+              className="relative w-full max-w-sm bg-surface border border-line rounded-[32px] p-6 shadow-2xl"
             >
               <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="w-6 h-6 text-rose-500" />
@@ -291,7 +291,7 @@ export default function FotoProgressoGaleria({ alunoId, isPersonalView = false }
               <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => setDeletingId(null)}
-                  className="py-3 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-ink-2 text-xs font-bold transition-all"
+                  className="py-3 px-4 rounded-xl border border-line hover:bg-raise text-ink-2 text-xs font-bold transition-all cursor-pointer"
                 >
                   CANCELAR
                 </button>

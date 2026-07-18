@@ -45,14 +45,14 @@ export default function CelebrationModal({ type, title, subtitle, onClose }: Cel
         initial={{ scale: 0.95, y: 10 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="w-full max-w-sm bg-surface border border-white/5 rounded-xl p-8 text-center relative overflow-hidden"
+        className="w-full max-w-sm bg-surface border border-line rounded-xl p-8 text-center relative overflow-hidden shadow-2xl"
       >
         {/* Animated background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[#F26A1B]/5 blur-[80px] rounded-full animate-pulse pointer-events-none" />
 
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full text-ink-3 transition-colors z-20"
+          className="absolute top-6 right-6 p-2 hover:bg-raise rounded-full text-ink-3 transition-colors z-20 cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -70,7 +70,7 @@ export default function CelebrationModal({ type, title, subtitle, onClose }: Cel
                 ease: "easeInOut"
               }}
               className={`w-20 h-20 rounded-lg flex items-center justify-center border ${
-                type === 'pr' ? 'bg-white/5 border-white/10' : 'bg-[#F26A1B]/5 border-[#F26A1B]/10'
+                type === 'pr' ? 'bg-raise border-line-strong' : 'bg-[#F26A1B]/5 border-[#F26A1B]/10'
               }`}
             >
               {type === 'pr' ? (

@@ -215,12 +215,12 @@ export default function App() {
       <div id="auth-flow-view" className="min-h-screen bg-void">
         {/* Floating Demo banner at the top of the auth screen */}
         {!isSupabaseConfigured && (
-          <div className="w-full bg-[#161A22] border-b border-white/5 py-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-2 z-50 relative">
+          <div className="w-full bg-raise border-b border-line py-3 px-6 flex flex-col sm:flex-row items-center justify-between gap-2 z-50 relative">
             <div className="flex items-center gap-2">
               <Terminal className="w-4 h-4 text-violet shrink-0" />
               <span className="text-[11px] font-mono text-ink-2">
                 <span className="text-violet font-semibold uppercase mr-1">⚙️ Modo Demo Ativo:</span>
-                Os dados serão salvos localmente. Configure <code className="text-white bg-white/5 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> para produção.
+                Os dados serão salvos localmente. Configure <code className="text-ink bg-surface border border-line px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> para produção.
               </span>
             </div>
           </div>

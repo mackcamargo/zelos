@@ -94,7 +94,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   return (
     <div className="space-y-8 pb-20">
       {/* RESUMO DO DIA */}
-      <div className="bg-surface-2 border border-white/5 rounded-[40px] p-8 shadow-2xl relative overflow-hidden">
+      <div className="bg-surface border border-line rounded-3xl p-8 shadow-sm relative overflow-hidden">
         {/* Decorative background flare */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-flame/5 blur-[100px] pointer-events-none" />
         
@@ -118,7 +118,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="12"
-                  className="text-white/5"
+                  className="text-line"
                 />
                 <motion.circle
                   cx="96"
@@ -222,7 +222,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
           <div className="space-y-4">
             {plano?.refeicoes?.map((ref) => (
-              <div key={ref.id} className="bg-surface-2 border border-white/5 rounded-3xl p-5 hover:bg-surface-3 transition-all group">
+              <div key={ref.id} className="bg-surface border border-line rounded-3xl p-5 hover:bg-raise transition-all group">
                 <div className="flex items-start justify-between mb-4">
                   <div className="space-y-1">
                     <h5 className="font-semibold text-ink group-hover:text-flame transition-colors">{ref.nome}</h5>
@@ -231,14 +231,14 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                       <span className="text-[12px] num">{ref.horario}</span>
                     </div>
                   </div>
-                  <button className="p-2 bg-void/50 rounded-xl text-ink-3 hover:text-green-500 transition-colors">
+                  <button className="p-2 bg-raise rounded-xl text-ink-3 hover:text-green-500 transition-colors">
                     <Check className="w-4 h-4" />
                   </button>
                 </div>
                 
                 <div className="space-y-2">
                   {ref.alimentos?.map((ali) => (
-                    <div key={ali.id} className="flex items-center justify-between py-2 border-t border-white/5">
+                    <div key={ali.id} className="flex items-center justify-between py-2 border-t border-line">
                       <div className="space-y-0.5">
                         <p className="text-xs text-ink font-medium">{ali.nome}</p>
                         <p className="text-[10px] text-ink-3">{ali.quantidade}</p>
@@ -252,7 +252,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               </div>
             ))}
             {!plano && (
-              <div className="p-12 text-center bg-surface-2 rounded-3xl border border-dashed border-white/5">
+              <div className="p-12 text-center bg-surface rounded-3xl border border-dashed border-line">
                 <p className="text-sm text-ink-3">Nenhum plano alimentar ativo.</p>
               </div>
             )}
@@ -272,7 +272,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   setShowAddModal(true);
                   tocar('tap');
                 }}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-semibold text-ink hover:bg-white/10 transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-surface border border-line rounded-xl text-xs font-semibold text-ink hover:bg-raise transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Registrar
               </button>
@@ -280,7 +280,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
             <div className="space-y-3">
               {registros.map((reg) => (
-                <div key={reg.id} className="bg-surface-2 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                <div key={reg.id} className="bg-surface border border-line rounded-2xl p-4 flex items-center justify-between">
                   <div className="space-y-0.5">
                     <p className="text-xs text-ink font-semibold">{reg.nome}</p>
                     <p className="text-[12px] text-ink-3 num">{new Date(reg.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
@@ -301,7 +301,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               <TrendingUp className="w-5 h-5 text-flame" />
               Tendência Semanal
             </h4>
-            <div className="h-48 bg-surface-2 border border-white/5 rounded-3xl p-4">
+            <div className="h-48 bg-surface border border-line rounded-3xl p-4">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={historico}>
                   <defs>
@@ -346,14 +346,14 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full max-w-sm bg-surface border border-white/10 rounded-[32px] p-6 shadow-2xl space-y-6"
+              className="w-full max-w-sm bg-surface border border-line rounded-[32px] p-6 shadow-2xl space-y-6"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg text-ink">Registrar refeição</h3>
                 <button onClick={() => {
                   setShowAddModal(false);
                   tocar('tap');
-                }} className="p-2 hover:bg-white/5 rounded-full text-ink-3">
+                }} className="p-2 hover:bg-raise rounded-full text-ink-3">
                   <X className="w-5 h-5" />
                 </button>
               </div>

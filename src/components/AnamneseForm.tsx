@@ -288,7 +288,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
         {/* STEP 2: PAR-Q */}
         {step === 2 && (
           <div className="space-y-5 animate-in fade-in duration-300">
-            <div className="p-4 bg-void/50 border border-white/5 rounded-2xl">
+            <div className="p-4 bg-raise border border-line rounded-2xl">
               <div className="flex items-start gap-3">
                 <ClipboardList className="w-5 h-5 text-flame shrink-0 mt-0.5" />
                 <div>
@@ -300,7 +300,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
               </div>
             </div>
 
-            <div className="space-y-3.5 divide-y divide-white/5">
+            <div className="space-y-3.5 divide-y divide-line">
               {[
                 { key: 'parq_problema_cardiaco', text: 'Algum médico já disse que você possui problema cardíaco?' },
                 { key: 'parq_dor_no_peito', text: 'Você sente dor no peito ao praticar atividade física?' },
@@ -320,7 +320,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                           checked
                             ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                            : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                            : 'bg-surface border-line text-ink-3 hover:bg-raise'
                         }`}
                       >
                         Sim
@@ -331,7 +331,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                           !checked
                             ? 'bg-[#F26A1B]/10 border-[#F26A1B]/20 text-[#F26A1B]'
-                            : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                            : 'bg-surface border-line text-ink-3 hover:bg-raise'
                         }`}
                       >
                         Não
@@ -384,7 +384,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                         formData.possui_lesao
                           ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                          : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                          : 'bg-surface border-line text-ink-3 hover:bg-raise'
                       }`}
                     >
                       Sim
@@ -395,7 +395,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                         !formData.possui_lesao
                           ? 'bg-[#F26A1B]/10 border-[#F26A1B]/20 text-[#F26A1B]'
-                          : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                          : 'bg-surface border-line text-ink-3 hover:bg-raise'
                       }`}
                     >
                       Não
@@ -439,7 +439,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                       className={`py-3 px-3.5 rounded-xl border text-xs font-semibold text-center transition-all flex items-center justify-between ${
                         active
                           ? 'bg-[#F26A1B]/15 border-[#F26A1B]/35 text-white shadow-sm'
-                          : 'bg-surface-2 border-white/5 text-ink-2 hover:bg-surface-3'
+                          : 'bg-surface border-line text-ink-2 hover:bg-raise'
                       }`}
                     >
                       <span>{dis.label}</span>
@@ -474,7 +474,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-void/30 border border-white/5 rounded-2xl">
+            <div className="flex items-center justify-between p-4 bg-raise border border-line rounded-2xl">
               <div className="space-y-0.5">
                 <span className="text-sm font-semibold text-ink">Possui Liberação Médica expressa?</span>
                 <p className="text-xs text-ink-3">Atestado médico carimbado autorizando musculação de alta intensidade.</p>
@@ -486,7 +486,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                     formData.possui_liberacao_medica
                       ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                      : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                      : 'bg-surface border-line text-ink-3 hover:bg-raise'
                   }`}
                 >
                   Sim
@@ -497,7 +497,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                     !formData.possui_liberacao_medica
                       ? 'bg-amber-500/10 border-amber-500/20 text-amber-500'
-                      : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                      : 'bg-surface border-line text-ink-3 hover:bg-raise'
                   }`}
                 >
                   Não
@@ -511,7 +511,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
         {step === 4 && (
           <div className="space-y-5 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="flex items-center justify-between p-4 bg-void/30 border border-white/5 rounded-2xl">
+              <div className="flex items-center justify-between p-4 bg-raise border border-line rounded-2xl">
                 <div className="space-y-0.5">
                   <span className="text-sm font-semibold text-ink">Fumante?</span>
                   <p className="text-xs text-ink-3">Usa tabaco ou vapes.</p>
@@ -523,7 +523,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                       formData.fumante
                         ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                        : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                        : 'bg-surface border-line text-ink-3 hover:bg-raise'
                     }`}
                   >
                     Sim
@@ -534,7 +534,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                       !formData.fumante
                         ? 'bg-[#F26A1B]/10 border-[#F26A1B]/20 text-[#F26A1B]'
-                        : 'bg-surface-2 border-white/5 text-ink-3 hover:bg-surface-3'
+                        : 'bg-surface border-line text-ink-3 hover:bg-raise'
                     }`}
                   >
                     Não
@@ -597,12 +597,12 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
         )}
 
         {/* Action controls */}
-        <div className="flex justify-between items-center pt-6 border-t border-white/5">
+        <div className="flex justify-between items-center pt-6 border-t border-line">
           {step > 1 ? (
             <button
               type="button"
               onClick={() => setStep(prev => prev - 1)}
-              className="py-2.5 px-5 rounded-xl bg-surface-3 hover:bg-surface-2 border border-white/5 text-ink-2 hover:text-ink text-xs font-semibold flex items-center gap-1.5 transition-colors duration-200"
+              className="py-2.5 px-5 rounded-xl bg-raise hover:bg-surface border border-line text-ink-2 hover:text-ink text-xs font-semibold flex items-center gap-1.5 transition-colors duration-200 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Voltar</span>

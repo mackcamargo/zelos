@@ -198,11 +198,11 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   const personalFirstName = getFirstName(personalName);
 
   return (
-    <div id="chat-aluno-container" className="flex flex-col flex-1 min-h-0 bg-surface-2 rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative">
+    <div id="chat-aluno-container" className="flex flex-col flex-1 min-h-0 bg-surface rounded-3xl border border-line overflow-hidden shadow-2xl relative">
       {/* Header */}
-      <div className="bg-surface-3 px-6 py-4 border-b border-white/5 flex items-center justify-between z-10">
+      <div className="bg-raise px-6 py-4 border-b border-line flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-2xl bg-surface-2 shadow-inner">
+          <div className="w-10 h-10 rounded-full border border-line flex items-center justify-center text-2xl bg-surface shadow-inner">
             {isFemale ? '👩' : '👨'}
           </div>
           <div>
@@ -271,7 +271,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                         </button>
                         
                         {openMenuId === msg.id && (
-                          <div className="absolute right-0 bottom-full mb-1 z-50 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl p-1 flex flex-col min-w-[100px] divide-y divide-white/5 animate-fade-in">
+                          <div className="absolute right-0 bottom-full mb-1 z-50 bg-surface border border-line-strong rounded-xl shadow-2xl p-1 flex flex-col min-w-[100px] divide-y divide-line animate-fade-in">
                             <button
                               type="button"
                               onClick={() => {
@@ -279,7 +279,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                                 setEditingText(msg.conteudo);
                                 setOpenMenuId(null);
                               }}
-                              className="px-3 py-1.5 text-xs text-ink hover:bg-white/5 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
+                              className="px-3 py-1.5 text-xs text-ink hover:bg-raise rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
                             >
                               <Pencil className="w-3 h-3 text-[#F26A1B]" />
                               Editar
@@ -305,7 +305,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                       className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                         isOwn
                           ? 'bg-[#F26A1B] text-white rounded-tr-none shadow-[0_4px_12px_rgba(242,106,27,0.2)]'
-                          : 'bg-surface-3 text-ink-2 rounded-tl-none border border-white/5'
+                          : 'bg-raise text-ink-2 rounded-tl-none border border-line'
                       }`}
                     >
                       {isMessageExcluded ? (
@@ -382,7 +382,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="p-4 bg-surface-3 border-t border-white/5 flex gap-2 z-10">
+      <form onSubmit={handleSend} className="p-4 bg-raise border-t border-line flex gap-2 z-10">
         <input
           type="text"
           value={inputText}
