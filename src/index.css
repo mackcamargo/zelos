@@ -11,6 +11,8 @@
   --color-ink-2: var(--z-text-2);
   --color-ink-3: var(--z-text-3);
   --color-accent: var(--z-accent);
+  --color-flame: var(--z-accent);
+  --color-flame-hover: var(--z-accent-hi);
   --color-ok: var(--z-ok);
   --color-warn: var(--z-warn);
   --color-danger: var(--z-danger);

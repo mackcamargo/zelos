@@ -161,27 +161,27 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   }
 
   return (
-    <div className="bg-surface border border-line rounded-3xl p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between group min-h-[320px]">
+    <div className="bg-surface border border-line rounded-3xl p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between group min-h-[300px]">
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
       <div className="relative z-10">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-accent/10 border border-line rounded-xl">
               <Droplets className="w-5 h-5 text-accent" />
             </div>
             <div>
-              <h3 className="font-semibold text-base text-ink">Registro de Hidratação</h3>
-              <p className="text-[12px] text-ink-3">Acompanhe seu consumo diário</p>
+              <h3 className="font-semibold text-sm text-ink leading-tight">Hidratação</h3>
+              <p className="text-[10px] text-ink-3 uppercase tracking-wider font-mono">Consumo diário</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 bg-bg hover:bg-raise border border-line rounded-lg text-ink-3 hover:text-ink transition-colors cursor-pointer"
+            className="p-1.5 bg-bg hover:bg-raise border border-line rounded-lg text-ink-3 hover:text-accent transition-colors cursor-pointer"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -324,11 +324,11 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       </AnimatePresence>
 
       {/* Histograma minimalista nos últimos 7 dias */}
-      <div className="border-t border-line pt-4 mt-6">
+      <div className="border-t border-line pt-4 mt-4">
         <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mb-3">Histórico de 7 dias</p>
-        <div className="h-10 w-full">
+        <div className="h-16 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={historico} margin={{ top: 0, bottom: 0, left: 4, right: 4 }} barSize={12}>
+            <BarChart data={historico} margin={{ top: 5, bottom: 0, left: 0, right: 0 }} barSize={14}>
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {

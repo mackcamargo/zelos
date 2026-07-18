@@ -94,22 +94,26 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   return (
     <div className="space-y-8 pb-20">
       {/* RESUMO DO DIA */}
-      <div className="bg-surface border border-line rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+      <div className="bg-surface border border-line rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
         {/* Decorative background flare */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-flame/5 blur-[100px] pointer-events-none" />
         
-        {!plano ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-flame animate-spin" />
+          </div>
+        ) : !plano ? (
           <div className="relative z-10 flex flex-col items-center justify-center text-center py-6">
-            <Utensils className="w-12 h-12 text-ink-3 mb-4 opacity-50 animate-pulse" />
-            <h3 className="font-semibold text-lg text-ink mb-2">Sem plano ativo</h3>
-            <p className="text-[14px] text-ink-3 max-w-md">
-              Nenhum plano alimentar ativo. Seu personal ainda não prescreveu suas metas.
+            <Utensils className="w-10 h-10 text-ink-3 mb-4 opacity-50 animate-pulse" />
+            <h3 className="font-semibold text-base text-ink mb-2">Sem plano ativo</h3>
+            <p className="text-[12px] text-ink-3 max-w-xs">
+              Seu personal ainda não prescreveu suas metas nutricionais.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+          <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
             {/* Calorias Ring */}
-            <div className="relative w-40 h-40 flex-shrink-0">
+            <div className="relative w-32 h-32 sm:w-36 sm:h-36 flex-shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 192 192">
                 <circle
                   cx="96"
@@ -117,7 +121,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   r="84"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="10"
+                  strokeWidth="8"
                   className="text-line"
                 />
                 <motion.circle
@@ -135,77 +139,78 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                 />
                 <defs>
                   <linearGradient id="flame-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#F5334F" />
-                    <stop offset="100%" stopColor="#F57633" />
+                    <stop offset="0%" stopColor="var(--z-accent)" />
+                    <stop offset="100%" stopColor="var(--z-accent-hi)" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-ink num">
+                <span className="text-xl sm:text-2xl font-bold text-ink num leading-none">
                   {consumidoCalorias}
                 </span>
-                <span className="text-[10px] text-ink-3 text-center px-4 uppercase tracking-wider font-mono">
+                <span className="text-[9px] sm:text-[10px] text-ink-3 text-center px-4 uppercase tracking-wider font-mono">
                   kcal
                 </span>
-                <div className="mt-1 text-[10px] text-flame font-bold bg-flame/10 px-2 py-0.5 rounded-full border border-flame/20 num">
+                <div className="mt-1 text-[9px] sm:text-[10px] text-flame font-bold bg-flame/10 px-2 py-0.5 rounded-full border border-flame/20 num">
                   Meta: {metaCalorias}
                 </div>
               </div>
             </div>
 
             {/* Macros Progress */}
-            <div className="flex-1 w-full space-y-6">
-              <div className="space-y-2">
+            <div className="flex-1 w-full space-y-4">
+              <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
-                  <span className="text-xs font-semibold text-ink flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-violet" /> Proteína
+                  <span className="text-[11px] font-bold text-ink flex items-center gap-2 uppercase tracking-tight">
+                    <div className="w-1.5 h-1.5 rounded-full bg-violet" /> Proteína
                   </span>
-                  <span className="text-[12px] text-ink-3 num">{consumidoProteina} / {metaProteina}g</span>
+                  <span className="text-[10px] text-ink-3 num font-mono">{consumidoProteina} / {metaProteina}g</span>
                 </div>
-                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
+                <div className="h-1.5 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${protPercent}%` }}
-                    className="h-full bg-violet rounded-full shadow-[0_0_10px_rgba(139,92,246,0.3)]"
+                    className="h-full bg-violet rounded-full shadow-[0_0_8px_rgba(139,92,246,0.2)]"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
-                  <span className="text-xs font-semibold text-ink flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-amber" /> Carboidratos
+                  <span className="text-[11px] font-bold text-ink flex items-center gap-2 uppercase tracking-tight">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber" /> Carboidratos
                   </span>
-                  <span className="text-[12px] text-ink-3 num">{consumidoCarbo} / {metaCarbo}g</span>
+                  <span className="text-[10px] text-ink-3 num font-mono">{consumidoCarbo} / {metaCarbo}g</span>
                 </div>
-                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
+                <div className="h-1.5 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${carboPercent}%` }}
-                    className="h-full bg-amber rounded-full shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                    className="h-full bg-amber rounded-full shadow-[0_0_8px_rgba(245,158,11,0.2)]"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex justify-between items-end">
-                  <span className="text-xs font-semibold text-ink flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-orange-500" /> Gorduras
+                  <span className="text-[11px] font-bold text-ink flex items-center gap-2 uppercase tracking-tight">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Gorduras
                   </span>
-                  <span className="text-[12px] text-ink-3 num">{consumidoGordura} / {metaGordura}g</span>
+                  <span className="text-[10px] text-ink-3 num font-mono">{consumidoGordura} / {metaGordura}g</span>
                 </div>
-                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
+                <div className="h-1.5 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${gorduraPercent}%` }}
-                    className="h-full bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                    className="h-full bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.2)]"
                   />
                 </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        )
+      }
+    </div>
 
       {/* HIDRATAÇÃO */}
       <HidratacaoCard alunoId={alunoId} />
@@ -272,7 +277,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   setShowAddModal(true);
                   tocar('tap');
                 }}
-                className="px-4 py-2 bg-accent text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer border border-accent/20 shadow-sm"
+                className="px-4 py-2 bg-flame text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer border border-white/10 shadow-lg shadow-flame/10"
               >
                 <Plus className="w-3.5 h-3.5" /> Registrar
               </button>

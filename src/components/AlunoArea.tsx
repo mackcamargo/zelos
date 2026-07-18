@@ -1432,7 +1432,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   tocar('abrir');
                 }}
                 data-sem-som
-                className="self-start sm:self-center bg-flame hover:bg-flame-hover text-white font-semibold text-xs py-2.5 px-4 rounded-xl flex items-center gap-2 shadow-lg shadow-flame/20 cursor-pointer transition-colors font-sans border-0 outline-none"
+                className="self-start sm:self-center bg-flame hover:bg-flame-hover text-white font-bold text-[11px] uppercase tracking-widest py-2.5 px-5 rounded-xl flex items-center gap-2 shadow-lg shadow-flame/30 cursor-pointer transition-all border border-white/10 active:scale-95"
               >
                 <Plus className="w-4 h-4" />
                 <span>Registrar Medida</span>

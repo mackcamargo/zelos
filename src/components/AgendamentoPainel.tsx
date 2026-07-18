@@ -135,8 +135,8 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden z-card !p-6 sm:!p-8"
         >
-          <div className="absolute top-2 right-2 opacity-[0.08] text-accent rotate-12 pointer-events-none">
-            <CalendarIcon className="w-24 h-24 sm:w-32 sm:h-32" />
+          <div className="absolute top-2 right-2 opacity-[0.05] text-accent rotate-12 pointer-events-none">
+            <CalendarIcon className="w-20 h-20 sm:w-24 sm:h-24" />
           </div>
           
           <div className="relative z-10 space-y-4">
@@ -194,7 +194,7 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
             setSuccessMsg(null);
             setShowModal(true);
           }}
-          className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-accent text-white rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-xs shadow-lg hover:scale-105 active:scale-95 transition-all uppercase tracking-widest border border-line-strong/20 shrink-0"
+          className="flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-2.5 bg-flame text-white rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-xs shadow-lg shadow-flame/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest border border-white/10 shrink-0"
         >
           <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Solicitar sessão
         </button>
