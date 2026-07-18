@@ -3,12 +3,13 @@ import { dbService } from '../lib/supabase';
 import { Plano } from '../types';
 import { useSubscription } from '../contexts/SubscriptionContext';
 import { CHECKOUT_KIWIFY } from '../lib/checkout';
-import { Check, Sparkles, Zap, Shield, Rocket } from 'lucide-react';
+import { Check, Sparkles, Zap, Shield, Rocket, AlertTriangle } from 'lucide-react';
 
 export default function PlanosArea({ userEmail }: { userEmail: string }) {
   const { assinatura, refreshSubscription } = useSubscription();
   const [planos, setPlanos] = useState<Plano[]>([]);
   const [loading, setLoading] = useState(true);
+  const [planoParaTrocar, setPlanoParaTrocar] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPlanos = async () => {
@@ -19,12 +20,29 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
     fetchPlanos();
   }, []);
 
-  const handleAssinar = (planoSlug: string) => {
+  const abrirCheckout = (planoSlug: string) => {
     const checkoutLink = CHECKOUT_KIWIFY[planoSlug];
     if (!checkoutLink) return;
 
     const url = `${checkoutLink}?email=${encodeURIComponent(userEmail)}`;
     window.open(url, "_blank");
+  };
+
+  const handleAssinar = (planoSlug: string) => {
+    // Se já existe uma assinatura paga ativa e o personal está tentando
+    // assinar um plano diferente, avisamos antes: a Kiwify não cancela a
+    // assinatura antiga sozinha, então isso geraria uma cobrança dupla.
+    const jaTemPlanoPagoDiferente =
+      assinatura?.status === 'ativa' &&
+      ['basico', 'pro', 'ilimitado'].includes(assinatura.plano) &&
+      assinatura.plano !== planoSlug;
+
+    if (jaTemPlanoPagoDiferente) {
+      setPlanoParaTrocar(planoSlug);
+      return;
+    }
+
+    abrirCheckout(planoSlug);
   };
 
   if (loading) {
@@ -44,6 +62,10 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
     }
   };
 
+  // Cancelamento agendado: o cliente já pagou o ciclo atual, então o acesso
+  // continua liberado até `expira_em` mesmo com a assinatura cancelada na Kiwify.
+  const emPeriodoDeGraca = !!assinatura?.cancelado_em && assinatura.status === 'ativa';
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="text-center space-y-2">
@@ -55,14 +77,31 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
         </p>
       </div>
 
+      {emPeriodoDeGraca && (
+        <div className="max-w-6xl mx-auto bg-warn/10 border border-warn/20 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-warn shrink-0 mt-0.5" strokeWidth={1.75} />
+          <p className="text-sm text-ink-2">
+            Sua assinatura foi cancelada e não será renovada automaticamente.
+            {assinatura?.expira_em && (
+              <>
+                {' '}Você continua com acesso completo até{' '}
+                <strong className="text-ink">
+                  {new Date(assinatura.expira_em).toLocaleDateString('pt-BR')}
+                </strong>.
+              </>
+            )}
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {planos.map((plano) => {
-          const isCurrent = assinatura?.plano === plano.id.toLowerCase();
+          const isCurrent = assinatura?.plano === plano.id.toLowerCase() && !emPeriodoDeGraca;
           const checkoutLink = CHECKOUT_KIWIFY[plano.id.toLowerCase()];
           const isAvailable = !!checkoutLink;
 
           return (
-            <div 
+            <div
               key={plano.id}
               className={`z-card relative flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] ${
                 isCurrent ? 'border-accent shadow-[0_0_20px_rgba(242,106,27,0.15)] bg-raise' : ''
@@ -120,7 +159,7 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                 disabled={isCurrent || !isAvailable}
                 onClick={() => handleAssinar(plano.id.toLowerCase())}
                 className={`z-btn w-full ${
-                  isCurrent 
+                  isCurrent
                     ? '!bg-raise !text-ink-3 cursor-not-allowed border-line'
                     : isAvailable
                       ? 'z-btn--primary'
@@ -133,6 +172,48 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
           );
         })}
       </div>
+
+      {planoParaTrocar && (
+        <div className="fixed inset-0 bg-void/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-surface border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-2xl bg-warn/10 border border-warn/20 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-warn" strokeWidth={1.75} />
+              </div>
+              <h2 className="text-xl font-semibold text-ink">
+                Atenção antes de trocar de plano
+              </h2>
+            </div>
+            <p className="text-sm text-ink-2 leading-relaxed mb-4">
+              Você já tem uma assinatura ativa. Assinar um novo plano agora vai gerar uma
+              cobrança separada na Kiwify — sua assinatura atual não é cancelada automaticamente.
+            </p>
+            <p className="text-sm text-ink-2 leading-relaxed mb-8">
+              Para não pagar os dois planos ao mesmo tempo, cancele antes a assinatura atual
+              pelo botão "gerenciar assinatura" no e-mail de "Pagamento de assinatura aprovado"
+              que a Kiwify te enviou.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  const alvo = planoParaTrocar;
+                  setPlanoParaTrocar(null);
+                  if (alvo) abrirCheckout(alvo);
+                }}
+                className="w-full py-4 bg-flame text-white rounded-2xl font-semibold hover:bg-orange-600 transition-all shadow-lg shadow-flame/20"
+              >
+                Entendi, continuar mesmo assim
+              </button>
+              <button
+                onClick={() => setPlanoParaTrocar(null)}
+                className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl font-semibold hover:bg-white/10 transition-all"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
