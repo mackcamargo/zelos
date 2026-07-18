@@ -1141,11 +1141,11 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           {/* Card Header (Clickable to Expand/Collapse) */}
                           <div
                             onClick={() => setExpandedExerciseId(isExpanded ? null : item.id)}
-                            className="p-5 flex items-center justify-between gap-4 cursor-pointer select-none clicavel"
+                            className="p-5 flex items-start justify-between gap-4 cursor-pointer select-none clicavel"
                           >
-                            <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="flex items-start gap-3.5 min-w-0 flex-1">
                               {/* Checkbox circle to check completion of the ENTIRE exercise */}
-                              <div className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                              <div className={`mt-1 w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ${
                                 isCompleted 
                                   ? 'bg-emerald-500 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
                                   : 'border-line bg-raise'
@@ -1159,7 +1159,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                               </div>
 
                               {/* Miniatura do vídeo */}
-                              <div className="w-12 h-12 rounded-xl bg-raise border border-line overflow-hidden flex items-center justify-center shrink-0 relative">
+                              <div className="mt-1 w-12 h-12 rounded-xl bg-raise border border-line overflow-hidden flex items-center justify-center shrink-0 relative">
                                 {videoSrc ? (
                                   <video
                                     src={videoSrc}
@@ -1174,21 +1174,25 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                 )}
                               </div>
 
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <span className="text-[10px] font-mono text-ink-3 uppercase block tracking-wider font-bold">
                                   {ex?.musculo_primario?.[0] || 'Geral'}
                                 </span>
-                                <h4 className="font-display font-bold text-base text-ink truncate mt-1">
+                                <h4 className="font-display font-bold text-base text-ink mt-1 leading-tight">
                                   {ex?.nome || 'Exercício'}
                                 </h4>
+
+                                {/* Prescrição: séries x repetições e carga (moved below name) */}
+                                <div className="mt-2.5">
+                                  <span className="font-mono text-[11px] font-semibold text-ink-2 bg-raise border border-line py-1 px-2.5 rounded-lg shadow-sm inline-block">
+                                    {item.series} × {item.repeticoes} {item.carga_kg ? ` ·  ${item.carga_kg} kg` : ''}
+                                  </span>
+                                </div>
                               </div>
                             </div>
 
-                            {/* Prescrição: séries x repetições e carga */}
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="font-mono text-xs font-semibold text-ink-2 bg-raise border border-line py-1.5 px-3 rounded-xl shadow-sm">
-                                {item.series} × {item.repeticoes} {item.carga_kg ? ` ·  ${item.carga_kg} kg` : ''}
-                              </span>
+                            {/* Arrow icon */}
+                            <div className="mt-1 shrink-0">
                               <span className={`w-5 h-5 flex items-center justify-center text-ink-3 transition-transform duration-200 ${
                                 isExpanded ? 'rotate-90 text-accent' : ''
                               }`}>
@@ -1222,9 +1226,102 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                     )}
 
                                   </div>
-                                  
+                                </div>
+
+                                {/* Series register checklist & Technical Tips */}
+                                <div className="space-y-4">
+                                  <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm space-y-4">
+                                    <div className="flex justify-between items-center pb-2.5 border-b border-line">
+                                      <span className="text-xs font-mono text-ink uppercase tracking-wider font-bold">Métricas das Séries</span>
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                      {Array.from({ length: numSeries }).map((_, sIdx) => {
+                                        const sNum = sIdx + 1;
+                                        const sKey = `${item.id}_${sNum}`;
+                                        const isDone = !!completedSeries[sKey];
+
+                                        const currentCarga = customCargas[sKey] !== undefined ? customCargas[sKey] : (item.carga_kg || 0);
+                                        const currentReps = customReps[sKey] !== undefined ? customReps[sKey] : (parseInt(item.repeticoes) || 10);
+
+                                        return (
+                                          <div
+                                            key={sKey}
+                                            className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                                              isDone 
+                                                ? 'bg-accent/5 border-accent/30 shadow-[0_2px_8px_rgba(242,106,27,0.06)]' 
+                                                : 'bg-raise border-line'
+                                            }`}
+                                          >
+                                            <div className="flex flex-col">
+                                              <span className="text-xs font-bold text-ink">Série {sNum}</span>
+                                              <span className="text-[10px] text-ink-3 font-mono mt-0.5">
+                                                Meta: {item.repeticoes} rps {item.carga_kg ? `· ${item.carga_kg} kg` : ''}
+                                              </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
+                                              {/* Inputs for weight and reps */}
+                                              <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1">
+                                                  <input
+                                                    type="number"
+                                                    value={currentCarga === 0 ? '' : currentCarga}
+                                                    placeholder={String(item.carga_kg || 0)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    onChange={(e) => {
+                                                      const val = parseFloat(e.target.value) || 0;
+                                                      handleCargaChange(sKey, val, item, sNum, isDone);
+                                                    }}
+                                                    className="w-12 text-center bg-surface border border-line rounded-lg py-1 text-xs font-mono text-ink focus:border-accent/50 focus:outline-none"
+                                                  />
+                                                  <span className="text-[10px] text-ink-3 font-mono">kg</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-1">
+                                                  <input
+                                                    type="number"
+                                                    value={currentReps === 0 ? '' : currentReps}
+                                                    placeholder={String(parseInt(item.repeticoes) || 10)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    onChange={(e) => {
+                                                      const val = parseInt(e.target.value) || 0;
+                                                      handleRepsChange(sKey, val, item, sNum, isDone);
+                                                    }}
+                                                    className="w-12 text-center bg-surface border border-line rounded-lg py-1 text-xs font-mono text-ink focus:border-accent/50 focus:outline-none"
+                                                  />
+                                                  <span className="text-[10px] text-ink-3 font-mono">reps</span>
+                                                </div>
+                                              </div>
+
+                                              {/* Circle checkbox for series check */}
+                                              <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  toggleSeriesDone(sKey, item, sNum);
+                                                }}
+                                                className={`w-7 h-7 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                                  isDone 
+                                                    ? 'bg-accent border-transparent text-white shadow-[0_0_10px_rgba(242,106,27,0.25)]' 
+                                                    : 'border-line hover:border-line-strong bg-surface'
+                                                }`}
+                                              >
+                                                {isDone ? (
+                                                  <Check className="w-4 h-4 stroke-[3.5]" />
+                                                ) : (
+                                                  <div className="w-1.5 h-1.5 rounded-full bg-line-strong" />
+                                                )}
+                                              </button>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+
                                   {ex?.dicas && ex.dicas.length > 0 && (
-                                    <div className="p-5 bg-surface border border-line rounded-2xl shadow-sm w-full max-w-[200px]">
+                                    <div className="p-5 bg-surface border border-line rounded-2xl shadow-sm w-full">
                                       <span className="text-[10px] font-mono text-accent uppercase tracking-wider block mb-2 font-bold">Cuidado Técnico</span>
                                       <ul className="text-xs text-ink-2 space-y-1.5 list-disc pl-4 leading-relaxed">
                                         {ex.dicas.map((dica: string, idx: number) => (
@@ -1233,97 +1330,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                       </ul>
                                     </div>
                                   )}
-                                </div>
-
-                                {/* Series register checklist */}
-                                <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm space-y-4">
-                                  <div className="flex justify-between items-center pb-2.5 border-b border-line">
-                                    <span className="text-xs font-mono text-ink uppercase tracking-wider font-bold">Métricas das Séries</span>
-                                  </div>
-
-                                  <div className="space-y-2.5">
-                                    {Array.from({ length: numSeries }).map((_, sIdx) => {
-                                      const sNum = sIdx + 1;
-                                      const sKey = `${item.id}_${sNum}`;
-                                      const isDone = !!completedSeries[sKey];
-
-                                      const currentCarga = customCargas[sKey] !== undefined ? customCargas[sKey] : (item.carga_kg || 0);
-                                      const currentReps = customReps[sKey] !== undefined ? customReps[sKey] : (parseInt(item.repeticoes) || 10);
-
-                                      return (
-                                        <div
-                                          key={sKey}
-                                          className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                            isDone 
-                                              ? 'bg-accent/5 border-accent/30 shadow-[0_2px_8px_rgba(242,106,27,0.06)]' 
-                                              : 'bg-raise border-line'
-                                          }`}
-                                        >
-                                          <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-ink">Série {sNum}</span>
-                                            <span className="text-[10px] text-ink-3 font-mono mt-0.5">
-                                              Meta: {item.repeticoes} rps {item.carga_kg ? `· ${item.carga_kg} kg` : ''}
-                                            </span>
-                                          </div>
-
-                                          <div className="flex items-center gap-3">
-                                            {/* Inputs for weight and reps */}
-                                            <div className="flex items-center gap-2">
-                                              <div className="flex items-center gap-1">
-                                                <input
-                                                  type="number"
-                                                  value={currentCarga === 0 ? '' : currentCarga}
-                                                  placeholder={String(item.carga_kg || 0)}
-                                                  onClick={(e) => e.stopPropagation()}
-                                                  onChange={(e) => {
-                                                    const val = parseFloat(e.target.value) || 0;
-                                                    handleCargaChange(sKey, val, item, sNum, isDone);
-                                                  }}
-                                                  className="w-12 text-center bg-surface border border-line rounded-lg py-1 text-xs font-mono text-ink focus:border-accent/50 focus:outline-none"
-                                                />
-                                                <span className="text-[10px] text-ink-3 font-mono">kg</span>
-                                              </div>
-
-                                              <div className="flex items-center gap-1">
-                                                <input
-                                                  type="number"
-                                                  value={currentReps === 0 ? '' : currentReps}
-                                                  placeholder={String(parseInt(item.repeticoes) || 10)}
-                                                  onClick={(e) => e.stopPropagation()}
-                                                  onChange={(e) => {
-                                                    const val = parseInt(e.target.value) || 0;
-                                                    handleRepsChange(sKey, val, item, sNum, isDone);
-                                                  }}
-                                                  className="w-12 text-center bg-surface border border-line rounded-lg py-1 text-xs font-mono text-ink focus:border-accent/50 focus:outline-none"
-                                                />
-                                                <span className="text-[10px] text-ink-3 font-mono">reps</span>
-                                              </div>
-                                            </div>
-
-                                            {/* Circle checkbox for series check */}
-                                            <button
-                                              type="button"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleSeriesDone(sKey, item, sNum);
-                                              }}
-                                              className={`w-7 h-7 rounded-full border flex items-center justify-center shrink-0 transition-all ${
-                                                isDone 
-                                                  ? 'bg-accent border-transparent text-white shadow-[0_0_10px_rgba(242,106,27,0.25)]' 
-                                                  : 'border-line hover:border-line-strong bg-surface'
-                                              }`}
-                                            >
-                                              {isDone ? (
-                                                <Check className="w-4 h-4 stroke-[3.5]" />
-                                              ) : (
-                                                <div className="w-1.5 h-1.5 rounded-full bg-line-strong" />
-                                              )}
-                                            </button>
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
                                 </div>
                               </div>
 
