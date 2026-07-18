@@ -161,7 +161,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   }
 
   return (
-    <div className="bg-surface border border-line rounded-3xl p-5 sm:p-6 relative overflow-hidden flex flex-col justify-between group min-h-[300px]">
+    <div className="bg-surface border border-line rounded-3xl p-4 sm:p-6 relative overflow-hidden flex flex-col justify-between group min-h-[300px]">
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 

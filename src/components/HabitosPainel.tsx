@@ -174,7 +174,7 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
   }
 
   return (
-    <div className="w-full bg-surface border border-line rounded-xl p-6 space-y-6 overflow-hidden relative group">
+    <div className="w-full bg-surface border border-line rounded-xl p-4 sm:p-6 space-y-6 overflow-hidden relative group">
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 

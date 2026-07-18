@@ -857,8 +857,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       className="bg-bg text-ink font-sans flex flex-col h-screen overflow-hidden"
     >
       {/* Top Header */}
-      <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-40 border-b border-line py-5 px-6 shrink-0">
-        <div className="max-w-[1200px] mx-auto flex justify-between items-center">
+      <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-40 border-b border-line py-4 px-4 sm:px-6 shrink-0">
+        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
           <div>
             <div className="flex items-center gap-2">
               <span className="font-display font-black text-2xl tracking-tight">
@@ -895,7 +895,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       </header>
 
       {/* Main View Area */}
-      <main className={`flex-1 max-w-[1200px] w-full mx-auto px-6 overflow-y-auto ${
+      <main className={`flex-1 max-w-[1400px] w-full mx-auto px-3 sm:px-6 overflow-y-auto ${
         activeTab === 'chat' 
           ? 'pt-4 pb-[88px] flex flex-col min-h-0 overflow-hidden' 
           : 'pt-8 pb-32 md:pb-16'
@@ -940,7 +940,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         <div
                           key={workout.id}
                           onClick={() => handleSelectWorkout(workout.id)}
-                          className={`bg-surface border rounded-2xl p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden clicavel ${
+                          className={`bg-surface border rounded-2xl p-4 sm:p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden clicavel ${
                             isWorkoutConcluido 
                               ? 'border-emerald-500/20 bg-emerald-500/[0.01]' 
                               : inProgress
@@ -1204,7 +1204,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
                           {/* Expanded Content (9:16 Video + Series Tracking) */}
                           {isExpanded && (
-                            <div className="px-5 pb-6 border-t border-line pt-5 bg-raise/30 space-y-5">
+                            <div className="px-4 sm:px-6 pb-6 border-t border-line pt-5 bg-raise/30 space-y-5">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                 
                                 {/* 9:16 Vertical video player */}
@@ -1234,7 +1234,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
                                 {/* Series register checklist & Technical Tips */}
                                 <div className="space-y-4">
-                                  <div className="bg-surface border border-line rounded-2xl p-5 shadow-sm space-y-4">
+                                  <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
                                     <div className="flex justify-between items-center pb-2.5 border-b border-line">
                                       <span className="text-xs font-mono text-ink uppercase tracking-wider font-bold">Métricas das Séries</span>
                                     </div>
@@ -1325,7 +1325,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                   </div>
 
                                   {ex?.dicas && ex.dicas.length > 0 && (
-                                    <div className="p-5 bg-surface border border-line rounded-2xl shadow-sm w-full">
+                                    <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl shadow-sm w-full">
                                       <span className="text-[10px] font-mono text-accent uppercase tracking-wider block mb-2 font-bold">Cuidado Técnico</span>
                                       <ul className="text-xs text-ink-2 space-y-1.5 list-disc pl-4 leading-relaxed">
                                         {ex.dicas.map((dica: string, idx: number) => (
@@ -1707,7 +1707,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
                   {/* HERO CARD: Weight Biometrics Progress */}
                   {currentPeso && (
-                    <div className="bg-surface border border-line rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-sm">
+                    <div className="bg-surface border border-line rounded-3xl p-5 sm:p-8 relative overflow-hidden shadow-sm">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
                         <div>
@@ -1764,7 +1764,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* CHART 1: LOAD PROGRESSION */}
-                    <div className="bg-surface border border-line rounded-3xl p-6 flex flex-col justify-between shadow-sm">
+                    <div className="bg-surface border border-line rounded-3xl p-5 sm:p-6 flex flex-col justify-between shadow-sm">
                       <div>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                           <div>
@@ -2297,7 +2297,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             </div>
 
             {/* Premium Profile Card */}
-            <div className="bg-raise border border-line rounded-[2rem] p-6 sm:p-8 space-y-8 relative overflow-hidden shadow-sm">
+            <div className="bg-raise border border-line rounded-[2rem] p-5 sm:p-8 space-y-8 relative overflow-hidden shadow-sm">
               <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[80px] pointer-events-none rounded-full -mr-20 -mt-20" />
 
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-line">
@@ -2323,7 +2323,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Goal section */}
                 {objetivo && (
-                  <div className="p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
+                  <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
                     <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
                       <Target className="w-5 h-5 text-accent" />
                     </div>
@@ -2335,7 +2335,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 )}
 
                 {/* Additional Account Metadata details */}
-                <div className="p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
+                    <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-flame/10 flex items-center justify-center shrink-0">
                     <Calendar className="w-5 h-5 text-flame" />
                   </div>
@@ -2347,8 +2347,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   </div>
                 </div>
 
-                {/* Privacy section */}
-                <div className="p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
+                    {/* Privacy section */}
+                <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
                     <ShieldCheck className="w-5 h-5 text-emerald-500" />
                   </div>
@@ -2359,7 +2359,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 </div>
 
                 {/* Sound Settings */}
-                <div className="p-5 bg-surface border border-line rounded-2xl flex items-center justify-between shadow-sm">
+                <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-center justify-between shadow-sm">
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${somHabilitado ? 'bg-accent/10' : 'bg-ink/5'}`}>
                       {somHabilitado ? <Volume2 className="w-5 h-5 text-accent" /> : <VolumeX className="w-5 h-5 text-ink-3" />}

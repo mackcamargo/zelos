@@ -94,7 +94,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   return (
     <div className="space-y-8 pb-20">
       {/* RESUMO DO DIA */}
-      <div className="bg-surface border border-line rounded-3xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+      <div className="bg-surface border border-line rounded-3xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
         {/* Decorative background flare */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-flame/5 blur-[100px] pointer-events-none" />
         
