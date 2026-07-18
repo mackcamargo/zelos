@@ -6,7 +6,7 @@ import {
   ShieldCheck, Heart, ArrowLeft, CheckCircle, Play, Sparkles, 
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
-  Trophy, Info,
+  Trophy, Info, X,
   Volume2, VolumeX
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -147,6 +147,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   // Selected state for active workout & exercise detail
   const [selectedWorkout, setSelectedWorkout] = useState<any | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
+  const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null);
   const [expandido, setExpandido] = useState(true);
 
   // Series-by-series tracking states
@@ -1208,7 +1209,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                 
                                 {/* 9:16 Vertical video player */}
                                 <div className="flex flex-col items-center gap-4">
-                                  <div className="relative w-full max-w-[200px] aspect-[9/16] bg-raise rounded-2xl border border-line-strong overflow-hidden shadow-md">
+                                  <div 
+                                    className="relative w-full max-w-[260px] aspect-[9/16] bg-raise rounded-2xl border border-line-strong overflow-hidden shadow-md cursor-zoom-in group"
+                                    onClick={() => videoSrc && setFullscreenVideo(videoSrc)}
+                                  >
                                     {videoSrc ? (
                                       <video
                                         src={videoSrc}
@@ -1216,7 +1220,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                         loop
                                         muted
                                         playsInline
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                       />
                                     ) : (
                                       <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center text-ink-3">
@@ -2293,90 +2297,97 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             </div>
 
             {/* Premium Profile Card */}
-            <div className="bg-surface border border-white/5 rounded-3xl p-8 space-y-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-violet/5 blur-3xl pointer-events-none rounded-full" />
+            <div className="bg-raise border border-line rounded-[2rem] p-6 sm:p-8 space-y-8 relative overflow-hidden shadow-sm">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[80px] pointer-events-none rounded-full -mr-20 -mt-20" />
 
-              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-white/5">
-                <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center text-4xl bg-surface-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-line">
+                <div className="w-24 h-24 rounded-3xl border border-line bg-surface flex items-center justify-center text-5xl shadow-sm shrink-0">
                   {isFemale ? '👩' : '👨'}
                 </div>
 
-                <div className="text-center sm:text-left space-y-1">
-                  <h3 className="font-display font-bold text-xl text-ink">{profile.nome}</h3>
-                  <p className="text-sm text-ink-2">{userEmail}</p>
-                  <div className="pt-2 flex flex-wrap justify-center sm:justify-start gap-2">
-                    <span className="text-[10px] font-mono bg-violet/10 border border-violet/20 text-violet px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                <div className="text-center sm:text-left flex-1 min-w-0">
+                  <h3 className="font-display font-bold text-2xl text-ink tracking-tight">{profile.nome}</h3>
+                  <p className="text-base text-ink-3 mt-1 truncate">{userEmail}</p>
+                  <div className="pt-4 flex flex-wrap justify-center sm:justify-start gap-2.5">
+                    <span className="text-[10px] font-mono bg-accent/10 border border-accent/20 text-accent px-3 py-1 rounded-lg uppercase tracking-wider font-bold">
                       Avatar {isFemale ? 'Feminino' : 'Masculino'}
                     </span>
-                    <span className="text-[10px] font-mono bg-white/5 border border-white/10 text-ink-2 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold">
+                    <span className="text-[10px] font-mono bg-ink/5 border border-line text-ink-3 px-3 py-1 rounded-lg uppercase tracking-wider font-bold">
                       Perfil Aluno
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Goal section */}
-              {objetivo && (
-                <div className="p-4 bg-violet/5 border border-violet/10 rounded-2xl flex items-center gap-3">
-                  <Target className="w-5 h-5 text-violet shrink-0" />
-                  <div>
-                    <span className="text-[10px] font-mono text-violet uppercase tracking-wider block">Objetivo Estabelecido</span>
-                    <p className="text-xs text-ink leading-relaxed font-semibold">{objetivo}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Additional Account Metadata details */}
-              <div className="grid grid-cols-1 gap-4">
-                <div className="p-4 bg-void/50 border border-white/5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider">Criado Em</span>
-                  <p className="text-xs font-mono text-ink flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-flame" />
-                    <span>{new Date(profile.criado_em).toLocaleDateString('pt-BR')}</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Safety notice / app status */}
-              <div className="p-4 bg-white/5 rounded-2xl flex gap-3 text-xs text-ink-2 leading-relaxed">
-                <ShieldCheck className="w-5 h-5 text-violet shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-ink font-semibold">Privacidade Protegida</p>
-                  <p className="mt-0.5 text-ink-3">Seus dados são privados e visíveis somente para você e seu personal trainer.</p>
-                </div>
-              </div>
-
-              {/* Sound Settings */}
-              <div className="p-5 bg-surface-2 border border-white/5 rounded-2xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-flame/10 rounded-xl">
-                      <Volume2 className="w-4 h-4 text-flame" />
+              {/* Grid of info cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Goal section */}
+                {objetivo && (
+                  <div className="p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                      <Target className="w-5 h-5 text-accent" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-ink">Sons do App</p>
-                      <p className="text-[10px] text-ink-3 uppercase font-mono">Feedback sonoro sintetizado</p>
+                      <span className="text-[10px] font-mono text-accent uppercase tracking-wider block font-bold mb-1">Objetivo Estabelecido</span>
+                      <p className="text-sm text-ink leading-relaxed font-semibold">{objetivo}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Account Metadata details */}
+                <div className="p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-flame/10 flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-flame" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block font-bold mb-1">Criado Em</span>
+                    <p className="text-sm font-mono text-ink font-semibold">
+                      {new Date(profile.criado_em).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Privacy section */}
+                <div className="p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-ink font-bold mb-0.5">Privacidade Protegida</p>
+                    <p className="text-[11px] text-ink-3 leading-tight">Dados visíveis somente para você e seu personal.</p>
+                  </div>
+                </div>
+
+                {/* Sound Settings */}
+                <div className="p-5 bg-surface border border-line rounded-2xl flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${somHabilitado ? 'bg-accent/10' : 'bg-ink/5'}`}>
+                      {somHabilitado ? <Volume2 className="w-5 h-5 text-accent" /> : <VolumeX className="w-5 h-5 text-ink-3" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-ink">Sons do App</p>
+                      <p className="text-[10px] text-ink-3 uppercase font-mono font-bold">Feedback sonoro</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={toggleSom}
-                    className={`w-12 h-6 rounded-full transition-colors relative ${somHabilitado ? 'bg-flame' : 'bg-white/10'}`}
+                    className={`w-12 h-6 rounded-full transition-all relative border border-line ${somHabilitado ? 'bg-accent' : 'bg-surface-2 shadow-inner'}`}
                   >
-                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${somHabilitado ? 'left-7' : 'left-1'}`} />
+                    <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-all ${somHabilitado ? 'left-6.5' : 'left-0.5'}`} />
                   </button>
                 </div>
               </div>
 
               {/* Sign out button */}
-              <div className="pt-4">
+              <div className="pt-4 flex justify-center sm:justify-start">
                 <button
                   id="btn-logout"
                   type="button"
                   onClick={onLogout}
-                  className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-white/5 hover:bg-white/10 text-sm font-semibold border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-2 text-rose-400 hover:text-rose-300 active:scale-[0.98]"
+                  className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-rose-500/5 hover:bg-rose-500 text-rose-500 hover:text-white text-sm font-bold border border-rose-500/20 hover:border-rose-500 transition-all flex items-center justify-center gap-2.5 active:scale-[0.98] shadow-sm group"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
                   <span>Sair da Conta</span>
                 </button>
               </div>
@@ -2389,32 +2400,40 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 onSave={checkAnamnese}
               />
             ) : (
-              <div className="bg-surface border border-white/5 rounded-3xl p-8 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
-                  <div>
-                    <h3 className="font-display font-bold text-xl text-ink">Ficha de Anamnese</h3>
-                    <p className="text-sm text-ink-2">Seu histórico de saúde, hábitos e questionário PAR-Q.</p>
+              <div className="bg-raise border border-line rounded-[2rem] p-8 space-y-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-line">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-bold text-xl text-ink">Ficha de Anamnese</h3>
+                      <p className="text-sm text-ink-3 mt-0.5">Seu histórico de saúde e questionário PAR-Q.</p>
+                    </div>
                   </div>
                   <button
                     id="btn-responder-anamnese"
                     type="button"
                     onClick={() => setShowAnamneseForm(true)}
-                    className="py-2.5 px-5 rounded-xl bg-[#F26A1B] text-white text-xs font-semibold hover:bg-[#D45914] transition-colors shadow-md"
+                    className="py-3 px-6 rounded-2xl bg-accent text-white text-sm font-bold hover:bg-accent-hover transition-all shadow-md active:scale-[0.97]"
                   >
-                    {hasAnamnese ? 'Atualizar anamnese' : 'Responder'}
+                    {hasAnamnese ? 'Atualizar anamnese' : 'Responder agora'}
                   </button>
                 </div>
                 
-                {hasAnamnese ? (
-                  <div className="text-xs text-ink-3 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    <span>Sua anamnese está preenchida e atualizada para o seu personal trainer.</span>
-                  </div>
-                ) : (
-                  <div className="text-xs text-ink-3">
-                    Você ainda não respondeu a sua anamnese. Responda para liberar treinos mais seguros e personalizados.
-                  </div>
-                )}
+                <div className={`p-4 rounded-xl border flex items-center gap-3 ${hasAnamnese ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+                  {hasAnamnese ? (
+                    <>
+                      <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <span className="text-xs font-semibold text-emerald-700">Sua anamnese está preenchida e atualizada para o seu personal trainer.</span>
+                    </>
+                  ) : (
+                    <>
+                      <Info className="w-5 h-5 text-amber-500 shrink-0" />
+                      <span className="text-xs font-semibold text-amber-700">Você ainda não respondeu a sua anamnese. Responda para liberar treinos mais seguros.</span>
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -2708,6 +2727,43 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           </div>
         )}
       </AnimatePresence>
+
+        {/* Fullscreen Video Modal */}
+        <AnimatePresence>
+          {fullscreenVideo && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-void/95 backdrop-blur-md flex items-center justify-center p-4 md:p-8"
+              onClick={() => setFullscreenVideo(null)}
+            >
+              <button 
+                className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10 cursor-pointer"
+                onClick={() => setFullscreenVideo(null)}
+              >
+                <X className="w-6 h-6" />
+              </button>
+              
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="relative w-full max-w-md aspect-[9/16] bg-void rounded-3xl border border-white/10 overflow-hidden shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <video
+                  src={fullscreenVideo}
+                  autoPlay
+                  loop
+                  playsInline
+                  controls
+                  className="w-full h-full object-contain"
+                />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       {/* Bottom Navigation Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface/90 backdrop-blur-md border-t border-line py-1 px-4 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.15)]">
