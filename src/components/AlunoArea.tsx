@@ -6,7 +6,7 @@ import {
   ShieldCheck, Heart, ArrowLeft, CheckCircle, Play, Sparkles, 
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
-  Trophy,
+  Trophy, Info,
   Volume2, VolumeX
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -154,6 +154,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const [customReps, setCustomReps] = useState<Record<string, number>>({});
   const [customCargas, setCustomCargas] = useState<Record<string, number>>({});
   const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
+  const [expandedTecnicoId, setExpandedTecnicoId] = useState<string | null>(null);
   const [personalName, setPersonalName] = useState<string>('Seu Personal');
   const [personalId, setPersonalId] = useState<string | null>(null);
   const [personalAvatar, setPersonalAvatar] = useState<string | null>(null);
@@ -1287,6 +1288,53 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                   })}
                                 </div>
                               </div>
+
+                              {/* Detalhes técnicos - discreto, oculto por padrão para não sobrecarregar o aluno */}
+                              {(ex?.equipamento || ex?.impacto || (ex?.publico_alvo && ex.publico_alvo.length > 0) || (ex?.contraindicacoes && ex.contraindicacoes.length > 0)) && (
+                                <div className="pt-3 border-t border-white/5">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedTecnicoId(expandedTecnicoId === item.id ? null : item.id);
+                                    }}
+                                    className="flex items-center gap-1.5 text-[9px] font-mono text-ink-3 hover:text-ink-2 uppercase tracking-wider transition-colors"
+                                  >
+                                    <Info className="w-3 h-3" />
+                                    <span>Detalhes técnicos</span>
+                                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${expandedTecnicoId === item.id ? 'rotate-180' : ''}`} />
+                                  </button>
+
+                                  {expandedTecnicoId === item.id && (
+                                    <div className="mt-2.5 flex flex-wrap gap-2 text-[10px]">
+                                      {ex?.equipamento && (
+                                        <span className="px-2.5 py-1 rounded-full bg-void/40 border border-white/5 text-ink-2 font-medium">
+                                          Equipamento: {ex.equipamento}
+                                        </span>
+                                      )}
+                                      {ex?.impacto && (
+                                        <span className={`px-2.5 py-1 rounded-full border font-medium ${
+                                          ex.impacto === 'alto' ? 'bg-danger/10 border-danger/20 text-danger' :
+                                          ex.impacto === 'medio' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                                          'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                        }`}>
+                                          Impacto articular: {ex.impacto === 'alto' ? 'Alto' : ex.impacto === 'medio' ? 'Médio' : 'Baixo'}
+                                        </span>
+                                      )}
+                                      {ex?.publico_alvo?.map((p: string) => (
+                                        <span key={p} className="px-2.5 py-1 rounded-full bg-violet/10 border border-violet/20 text-violet font-medium">
+                                          {p}
+                                        </span>
+                                      ))}
+                                      {ex?.contraindicacoes?.map((c: string) => (
+                                        <span key={c} className="px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 font-medium">
+                                          ⚠ {c}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -2424,6 +2472,36 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         <li key={idx}>{dica}</li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {/* Technical footer: equipamento, impacto, público-alvo, contraindicações */}
+                {(selectedExercise.equipamento || selectedExercise.impacto || (selectedExercise.publico_alvo && selectedExercise.publico_alvo.length > 0) || (selectedExercise.contraindicacoes && selectedExercise.contraindicacoes.length > 0)) && (
+                  <div className="pt-3 border-t border-white/5 flex flex-wrap gap-2 text-[10px]">
+                    {selectedExercise.equipamento && (
+                      <span className="px-2.5 py-1 rounded-full bg-void/40 border border-white/5 text-ink-2 font-medium">
+                        Equipamento: {selectedExercise.equipamento}
+                      </span>
+                    )}
+                    {selectedExercise.impacto && (
+                      <span className={`px-2.5 py-1 rounded-full border font-medium ${
+                        selectedExercise.impacto === 'alto' ? 'bg-danger/10 border-danger/20 text-danger' :
+                        selectedExercise.impacto === 'medio' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                        'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      }`}>
+                        Impacto articular: {selectedExercise.impacto === 'alto' ? 'Alto' : selectedExercise.impacto === 'medio' ? 'Médio' : 'Baixo'}
+                      </span>
+                    )}
+                    {selectedExercise.publico_alvo?.map((p: string) => (
+                      <span key={p} className="px-2.5 py-1 rounded-full bg-violet/10 border border-violet/20 text-violet font-medium">
+                        {p}
+                      </span>
+                    ))}
+                    {selectedExercise.contraindicacoes?.map((c: string) => (
+                      <span key={c} className="px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 font-medium">
+                        ⚠ {c}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>
