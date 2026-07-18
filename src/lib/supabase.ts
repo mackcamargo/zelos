@@ -143,7 +143,9 @@ export const authService = {
         }
       });
       if (error) return { data: null, error };
-      return { data: { user: data.user }, error: null };
+      // session é null quando a confirmação de e-mail está ativa (usuário
+      // precisa confirmar antes de logar).
+      return { data: { user: data.user, session: data.session }, error: null };
     }
 
     // ---- MODO DEMO (localStorage) ----
