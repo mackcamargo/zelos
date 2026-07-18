@@ -346,6 +346,7 @@ export interface Assinatura {
   expira_em: string;
   criado_em: string;
   updated_at: string;
+  cancelado_em?: string | null;
 }
 
 export interface Plano {
