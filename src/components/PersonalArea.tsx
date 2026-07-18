@@ -196,9 +196,50 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
     };
   }, [userId, activeTab]);
 
+  // BLOQUEIO TOTAL: assinatura inativa (trial expirado, cancelada ou vencida).
+  // O personal não navega mais pelo app — só vê a tela de reativação e pode sair.
+  if (!loading && isReadOnly) {
+    return (
+      <div className="min-h-screen bg-void text-ink font-sans overflow-y-auto">
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
+              <span className="font-display font-black text-2xl tracking-tight">
+                ZE<span className="brand-gradient-text">LOS</span>
+              </span>
+            </div>
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-2 text-sm text-ink-2 hover:text-ink px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </button>
+          </div>
+
+          <div className="max-w-2xl mx-auto text-center mb-10 space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-red-500" strokeWidth={1.75} />
+            </div>
+            <h1 className="font-display font-bold text-2xl text-ink">
+              Sua assinatura não está ativa
+            </h1>
+            <p className="text-sm text-ink-2 leading-relaxed">
+              Para voltar a acessar seus alunos, treinos e todo o restante do app,
+              escolha um plano abaixo e reative sua conta. Enquanto a assinatura estiver
+              inativa, o acesso fica bloqueado — inclusive para os seus alunos.
+            </p>
+          </div>
+
+          <PlanosArea userEmail={userEmail} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div 
-      id="personal-area-root" 
+    <div
+      id="personal-area-root"
       className="bg-bg text-ink font-sans flex h-screen overflow-hidden"
     >
       
