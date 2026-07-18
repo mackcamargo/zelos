@@ -158,6 +158,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const [personalName, setPersonalName] = useState<string>('Seu Personal');
   const [personalId, setPersonalId] = useState<string | null>(null);
   const [personalAvatar, setPersonalAvatar] = useState<string | null>(null);
+  const [acessoBloqueado, setAcessoBloqueado] = useState(false);
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [objetivo, setObjetivo] = useState<string | null>(null);
@@ -507,6 +508,18 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     };
     fetchPersonalId();
     checkAnamnese();
+
+    // Bloqueia o acesso do aluno se a assinatura do personal dele não estiver ativa.
+    const checarAcesso = async () => {
+      if (!isSupabaseConfigured || !supabase || isDemoMode) return;
+      try {
+        const { data, error } = await supabase.rpc('personal_do_aluno_ativo');
+        if (!error) setAcessoBloqueado(data === false);
+      } catch (err) {
+        console.error('Erro ao checar acesso do aluno:', err);
+      }
+    };
+    checarAcesso();
   }, [userId]);
 
   const loadStudentWorkouts = async () => {
@@ -810,9 +823,36 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const totalCompletedCount = Number(localStorage.getItem('zenite_finished_count') || '3');
   const userStreak = totalCompletedCount > 0 ? 5 : 0; // standard display
 
+  // Acesso pausado: a assinatura do personal deste aluno não está ativa.
+  if (acessoBloqueado) {
+    return (
+      <div className="min-h-screen bg-void text-ink font-sans flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-sm w-full bg-surface border border-white/10 rounded-3xl p-8 shadow-2xl space-y-5">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-warn/10 border border-warn/20 flex items-center justify-center">
+            <ShieldCheck className="w-8 h-8 text-warn" strokeWidth={1.75} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="font-display font-bold text-xl text-ink">Acesso pausado</h1>
+            <p className="text-sm text-ink-2 leading-relaxed">
+              O plano do seu personal não está ativo no momento, então o acesso aos seus
+              treinos e dados está temporariamente pausado. Fale com o seu personal para
+              que ele reative o plano e você volte a ter acesso.
+            </p>
+          </div>
+          <button
+            onClick={onLogout}
+            className="w-full py-4 bg-white/5 text-ink-2 rounded-2xl font-semibold hover:bg-white/10 transition-all"
+          >
+            Sair
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div 
-      id="aluno-area-root" 
+    <div
+      id="aluno-area-root"
       className="bg-bg text-ink font-sans flex flex-col h-screen overflow-hidden"
     >
       {/* Top Header */}
