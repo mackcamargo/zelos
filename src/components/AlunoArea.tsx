@@ -1210,7 +1210,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                                 {/* 9:16 Vertical video player */}
                                 <div className="flex flex-col items-center gap-4">
                                   <div 
-                                    className="relative w-full max-w-[260px] aspect-[9/16] bg-raise rounded-2xl border border-line-strong overflow-hidden shadow-md cursor-zoom-in group"
+                                    className="relative w-full max-w-[320px] aspect-[9/16] bg-raise rounded-2xl border border-line-strong overflow-hidden shadow-md cursor-zoom-in group"
                                     onClick={() => videoSrc && setFullscreenVideo(videoSrc)}
                                   >
                                     {videoSrc ? (
