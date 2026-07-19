@@ -956,31 +956,27 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                           onClick={() => handleSelectWorkout(workout.id)}
                           className={`bg-surface border rounded-2xl p-4 sm:p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden clicavel ${
                             isWorkoutConcluido 
-                              ? 'border-emerald-500/20 bg-emerald-500/[0.01]' 
-                              : inProgress
-                                ? 'border-[#F26A1B]/40 bg-[#F26A1B]/[0.02] shadow-[0_0_15px_rgba(242,106,27,0.05)]'
-                                : isNew
-                                  ? 'border-[#F26A1B] shadow-[0_0_20px_rgba(242,106,27,0.15)] animate-pulse motion-reduce:animate-none'
-                                  : 'border-line hover:border-line-strong'
+                              ? 'card-treino-concluido' 
+                              : 'animate-pulse-orange'
                           }`}
                         >
                           <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full" />
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                                 {isWorkoutConcluido ? (
-                                  <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-emerald-500/20">
+                                  <span className="text-[10px] font-mono bg-ok/10 text-ok px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-ok/20">
                                     <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
                                   </span>
                                 ) : inProgress ? (
-                                  <span className="text-[10px] font-mono bg-[#F26A1B]/10 text-[#F26A1B] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-[#F26A1B]/20">
+                                  <span className="text-[10px] font-mono bg-flame/15 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/30">
                                     EM ANDAMENTO
                                   </span>
                                 ) : isNew ? (
-                                  <span className="text-[10px] font-mono bg-[#F26A1B]/10 text-[#F26A1B] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-[#F26A1B]/20">
+                                  <span className="text-[10px] font-mono bg-flame/15 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/30">
                                     NOVO
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] font-mono bg-flame/10 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/20">
+                                  <span className="text-[10px] font-mono bg-flame/15 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/30">
                                     A FAZER
                                   </span>
                                 )}
@@ -996,7 +992,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                               {dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}
                             </span>
                             <span className={`text-xs font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform ${
-                              isWorkoutConcluido ? 'text-emerald-400' : 'text-flame'
+                              isWorkoutConcluido ? 'text-ok' : 'text-flame'
                             }`}>
                               <span>{isWorkoutConcluido ? 'Ver Detalhes' : 'Iniciar'}</span>
                               <ChevronRight className="w-4 h-4" />

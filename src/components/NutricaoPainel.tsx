@@ -158,51 +158,54 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
             </div>
 
             {/* Macros Progress */}
-            <div className="flex-1 w-full space-y-4">
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-end">
-                  <span className="text-[11px] font-bold text-ink flex items-center gap-2 uppercase tracking-tight">
-                    <div className="w-1.5 h-1.5 rounded-full bg-violet" /> Proteína
+            <div className="flex-1 w-full space-y-3">
+              {/* Proteína */}
+              <div className="bg-surface border border-line rounded-2xl p-3 shadow-[var(--z-shadow-1)] space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-ink flex items-center gap-1.5 uppercase tracking-tight">
+                    <div className="w-2 h-2 rounded-full bg-violet-500 shadow-[0_0_6px_rgba(139,92,246,0.4)]" /> Proteína
                   </span>
-                  <span className="text-[10px] text-ink-3 num font-mono">{consumidoProteina} / {metaProteina}g</span>
+                  <span className="text-[11px] text-ink-2 font-mono font-bold">{consumidoProteina} <span className="text-ink-3 font-normal">/ {metaProteina}g</span></span>
                 </div>
-                <div className="h-1.5 bg-raise rounded-full overflow-hidden border border-line">
+                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${protPercent}%` }}
-                    className="h-full bg-violet rounded-full shadow-[0_0_8px_rgba(139,92,246,0.2)]"
+                    className="h-full bg-violet-500 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)]"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-end">
-                  <span className="text-[11px] font-bold text-ink flex items-center gap-2 uppercase tracking-tight">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber" /> Carboidratos
+              {/* Carboidratos */}
+              <div className="bg-surface border border-line rounded-2xl p-3 shadow-[var(--z-shadow-1)] space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-ink flex items-center gap-1.5 uppercase tracking-tight">
+                    <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.4)]" /> Carboidratos
                   </span>
-                  <span className="text-[10px] text-ink-3 num font-mono">{consumidoCarbo} / {metaCarbo}g</span>
+                  <span className="text-[11px] text-ink-2 font-mono font-bold">{consumidoCarbo} <span className="text-ink-3 font-normal">/ {metaCarbo}g</span></span>
                 </div>
-                <div className="h-1.5 bg-raise rounded-full overflow-hidden border border-line">
+                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${carboPercent}%` }}
-                    className="h-full bg-amber rounded-full shadow-[0_0_8px_rgba(245,158,11,0.2)]"
+                    className="h-full bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.3)]"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-end">
-                  <span className="text-[11px] font-bold text-ink flex items-center gap-2 uppercase tracking-tight">
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500" /> Gorduras
+              {/* Gorduras */}
+              <div className="bg-surface border border-line rounded-2xl p-3 shadow-[var(--z-shadow-1)] space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-ink flex items-center gap-1.5 uppercase tracking-tight">
+                    <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_6px_rgba(249,115,22,0.4)]" /> Gorduras
                   </span>
-                  <span className="text-[10px] text-ink-3 num font-mono">{consumidoGordura} / {metaGordura}g</span>
+                  <span className="text-[11px] text-ink-2 font-mono font-bold">{consumidoGordura} <span className="text-ink-3 font-normal">/ {metaGordura}g</span></span>
                 </div>
-                <div className="h-1.5 bg-raise rounded-full overflow-hidden border border-line">
+                <div className="h-2 bg-raise rounded-full overflow-hidden border border-line">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${gorduraPercent}%` }}
-                    className="h-full bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.2)]"
+                    className="h-full bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.3)]"
                   />
                 </div>
               </div>
@@ -226,39 +229,40 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
           </div>
 
           <div className="space-y-3">
-            {plano?.refeicoes?.map((ref) => (
-              <div key={ref.id} className="bg-surface border border-line rounded-2xl p-4 hover:bg-raise transition-all group">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="space-y-0.5">
-                    <h5 className="font-semibold text-sm text-ink group-hover:text-flame transition-colors">{ref.nome}</h5>
-                    <div className="flex items-center gap-1.5 text-ink-3">
-                      <Clock className="w-3 h-3" />
-                      <span className="text-[11px] num">{ref.horario}</span>
+            {plano && plano.refeicoes && plano.refeicoes.length > 0 ? (
+              plano.refeicoes.map((ref) => (
+                <div key={ref.id} className="bg-surface border border-line rounded-2xl p-4 hover:bg-raise transition-all group shadow-[var(--z-shadow-1)]">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="space-y-0.5">
+                      <h5 className="font-semibold text-sm text-ink group-hover:text-flame transition-colors">{ref.nome}</h5>
+                      <div className="flex items-center gap-1.5 text-ink-3">
+                        <Clock className="w-3 h-3" />
+                        <span className="text-[11px] num">{ref.horario}</span>
+                      </div>
                     </div>
+                    <button className="p-1.5 bg-raise border border-line rounded-lg text-ink-3 hover:text-ok transition-colors">
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
                   </div>
-                  <button className="p-1.5 bg-raise border border-line rounded-lg text-ink-3 hover:text-ok transition-colors">
-                    <Check className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                
-                <div className="space-y-1.5">
-                  {ref.alimentos?.map((ali) => (
-                    <div key={ali.id} className="flex items-center justify-between py-1.5 border-t border-line/50">
-                      <div className="space-y-0.5">
-                        <p className="text-[11px] text-ink font-medium">{ali.nome}</p>
-                        <p className="text-[9px] text-ink-3 uppercase tracking-tight">{ali.quantidade}</p>
+                  
+                  <div className="space-y-1.5">
+                    {ref.alimentos?.map((ali) => (
+                      <div key={ali.id} className="flex items-center justify-between py-1.5 border-t border-line/50">
+                        <div className="space-y-0.5">
+                          <p className="text-[11px] text-ink font-medium">{ali.nome}</p>
+                          <p className="text-[9px] text-ink-3 uppercase tracking-tight">{ali.quantidade}</p>
+                        </div>
+                        <div className="text-[11px] text-ink-2 num">
+                          {ali.calorias} kcal
+                        </div>
                       </div>
-                      <div className="text-[11px] text-ink-2 num">
-                        {ali.calorias} kcal
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-            {!plano && (
-              <div className="p-8 text-center bg-surface rounded-2xl border border-dashed border-line">
-                <p className="text-xs text-ink-3">Nenhum plano alimentar ativo.</p>
+              ))
+            ) : (
+              <div className="p-8 text-center bg-surface rounded-2xl border border-dashed border-line shadow-[var(--z-shadow-1)]">
+                <p className="text-xs text-ink-3">Nenhum plano alimentar cadastrado para hoje.</p>
               </div>
             )}
           </div>
@@ -284,19 +288,22 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
             </div>
 
             <div className="space-y-3">
-              {registros.map((reg) => (
-                <div key={reg.id} className="bg-surface border border-line rounded-2xl p-4 flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <p className="text-xs text-ink font-semibold">{reg.nome}</p>
-                    <p className="text-[12px] text-ink-3 num">{new Date(reg.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                  </div>
-                  <div className="text-[14px] font-semibold text-flame num">
-                    +{reg.calorias} kcal
-                  </div>
+              {registros.length === 0 ? (
+                <div className="p-8 text-center bg-surface rounded-2xl border border-dashed border-line shadow-[var(--z-shadow-1)]">
+                  <p className="text-xs text-ink-3">Nenhum registro extra hoje.</p>
                 </div>
-              ))}
-              {registros.length === 0 && (
-                <p className="text-xs text-ink-3 text-center py-8">Nenhum registro extra hoje.</p>
+              ) : (
+                registros.map((reg) => (
+                  <div key={reg.id} className="bg-surface border border-line rounded-2xl p-4 flex items-center justify-between shadow-[var(--z-shadow-1)]">
+                    <div className="space-y-0.5">
+                      <p className="text-xs text-ink font-semibold">{reg.nome}</p>
+                      <p className="text-[12px] text-ink-3 num">{new Date(reg.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    <div className="text-[14px] font-semibold text-flame num">
+                      +{reg.calorias} kcal
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>

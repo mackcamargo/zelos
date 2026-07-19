@@ -58,3 +58,32 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Workout Card States: Orange pulsing for uncompleted, Green for completed */
+@keyframes pulse-orange {
+  0%, 100% {
+    background-color: rgba(242, 106, 27, 0.06);
+    border-color: rgba(242, 106, 27, 0.4);
+    box-shadow: 0 0 8px rgba(242, 106, 27, 0.05);
+  }
+  50% {
+    background-color: rgba(242, 106, 27, 0.18);
+    border-color: #f26a1b;
+    box-shadow: 0 0 22px rgba(242, 106, 27, 0.28);
+  }
+}
+
+.animate-pulse-orange {
+  animation: pulse-orange 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.card-treino-concluido {
+  background-color: var(--z-ok-soft) !important;
+  border-color: var(--z-ok) !important;
+  box-shadow: 0 0 15px rgba(63, 191, 127, 0.05);
+}
+
+.card-treino-concluido:hover {
+  background-color: rgba(63, 191, 127, 0.18) !important;
+  border-color: var(--z-ok) !important;
+}
