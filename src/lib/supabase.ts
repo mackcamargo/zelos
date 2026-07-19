@@ -143,8 +143,64 @@ export const authService = {
         }
       });
       if (error) return { data: null, error };
-      // session é null quando a confirmação de e-mail está ativa (usuário
-      // precisa confirmar antes de logar).
+      
+      const user = data.user;
+      if (user) {
+        // Se for aluno e tiver convite, vamos vincular de forma robusta e atômica
+        if (papel === 'aluno' && codigoConvite) {
+          try {
+            // 1. Buscar o convite para obter o personal_id e objetivo
+            const { data: convite, error: conviteError } = await supabase
+              .from('convites')
+              .select('*')
+              .eq('codigo', codigoConvite.trim().toUpperCase())
+              .maybeSingle();
+            
+            if (convite && !conviteError) {
+              const personalId = convite.personal_id;
+              const objetivo = convite.objetivo || 'Objetivo inicial';
+
+              // 2. Criar ou atualizar o profile do aluno
+              await supabase.from('profiles').upsert({
+                id: user.id,
+                nome: nome,
+                papel: 'aluno',
+                avatar_tipo: avatar_tipo,
+                criado_em: new Date().toISOString()
+              });
+
+              // 3. Criar ou atualizar o registro de aluno
+              await supabase.from('alunos').upsert({
+                id: user.id,
+                personal_id: personalId,
+                objetivo: objetivo,
+                ativo: true
+              });
+
+              // 4. Marcar o convite como usado
+              await supabase.from('convites').update({
+                usado: true,
+                usado_por: user.id
+              }).eq('id', convite.id);
+            }
+          } catch (e) {
+            console.error('Erro ao vincular aluno ao convite no banco:', e);
+          }
+        } else if (papel === 'personal') {
+          try {
+            await supabase.from('profiles').upsert({
+              id: user.id,
+              nome: nome,
+              papel: 'personal',
+              avatar_tipo: avatar_tipo,
+              criado_em: new Date().toISOString()
+            });
+          } catch (e) {
+            console.error('Erro ao criar profile de personal:', e);
+          }
+        }
+      }
+
       return { data: { user: data.user, session: data.session }, error: null };
     }
 
@@ -154,15 +210,40 @@ export const authService = {
       return { data: null, error: { message: 'Este email já está cadastrado.' } };
     }
     let personalIdToLink: string | null = 'personal-demo-id';
+    let objetivoConvite = 'Objetivo inicial';
     if (papel === 'aluno' && codigoConvite) {
       const convites = loadMockConvites();
       const convite = convites.find((c: any) => c.codigo.trim().toUpperCase() === codigoConvite.trim().toUpperCase());
       if (!convite) return { data: null, error: { message: 'Código de convite inválido ou não encontrado.' } };
       if (convite.usado) return { data: null, error: { message: 'Este código de convite já foi utilizado.' } };
       personalIdToLink = convite.personal_id;
+      objetivoConvite = convite.objetivo || 'Objetivo inicial';
+      
+      const newUserId = 'user-' + Math.random().toString(36).substring(2, 9);
       convite.usado = true;
+      convite.usado_por = newUserId;
       save('zenite_mock_convites', convites);
+      
+      const newUser: MockUser = {
+        id: newUserId,
+        email, nome, papel, avatar_tipo, avatar_url: null,
+        criado_em: new Date().toISOString()
+      };
+      users.push(newUser);
+      save('zenite_mock_users', users);
+      
+      const alunos = loadMockAlunos();
+      alunos.push({
+        id: newUser.id, personal_id: personalIdToLink, objetivo: objetivoConvite, ativo: true,
+        profile: { ...newUser, avatar_tipo: newUser.avatar_tipo || 'masculino' }
+      });
+      save('zenite_mock_alunos', alunos);
+      
+      const session = { user: { id: newUser.id, email, user_metadata: { nome, papel, avatar_tipo } } };
+      save('zenite_mock_session', session);
+      return { data: session, error: null };
     }
+
     const newUser: MockUser = {
       id: 'user-' + Math.random().toString(36).substring(2, 9),
       email, nome, papel, avatar_tipo, avatar_url: null,
@@ -170,14 +251,6 @@ export const authService = {
     };
     users.push(newUser);
     save('zenite_mock_users', users);
-    if (papel === 'aluno') {
-      const alunos = loadMockAlunos();
-      alunos.push({
-        id: newUser.id, personal_id: personalIdToLink, objetivo: 'Objetivo inicial', ativo: true,
-        profile: { ...newUser, avatar_tipo: newUser.avatar_tipo || 'masculino' }
-      });
-      save('zenite_mock_alunos', alunos);
-    }
     const session = { user: { id: newUser.id, email, user_metadata: { nome, papel, avatar_tipo } } };
     save('zenite_mock_session', session);
     return { data: session, error: null };
@@ -227,6 +300,64 @@ export const authService = {
     const convites = loadMockConvites();
     const c = convites.find((x: any) => x.codigo.trim().toUpperCase() === codigo.trim().toUpperCase() && !x.usado);
     return { valido: !!c, personalId: c?.personal_id ?? null };
+  },
+
+  async buscarConviteDetalhado(codigo: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data: convite, error: conviteError } = await supabase
+        .from('convites')
+        .select('*')
+        .eq('codigo', codigo.trim().toUpperCase())
+        .maybeSingle();
+      
+      if (conviteError) return { data: null, error: conviteError };
+      if (!convite) return { data: null, error: { message: 'Convite inválido' } };
+
+      if (convite.usado) {
+        return { data: null, error: { message: 'Convite já utilizado' } };
+      }
+      if (convite.expira_em && new Date(convite.expira_em) < new Date()) {
+        return { data: null, error: { message: 'Convite expirado' } };
+      }
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('nome')
+        .eq('id', convite.personal_id)
+        .maybeSingle();
+
+      const personalNome = profileData?.nome || 'Seu Personal';
+      return {
+        data: {
+          ...convite,
+          personal_nome: personalNome
+        },
+        error: null
+      };
+    }
+
+    const convites = loadMockConvites();
+    const convite = convites.find((c: any) => c.codigo.trim().toUpperCase() === codigo.trim().toUpperCase());
+    if (!convite) return { data: null, error: { message: 'Convite inválido' } };
+
+    if (convite.usado) {
+      return { data: null, error: { message: 'Convite já utilizado' } };
+    }
+    if (convite.expira_em && new Date(convite.expira_em) < new Date()) {
+      return { data: null, error: { message: 'Convite expirado' } };
+    }
+
+    const users = loadMockUsers();
+    const personal = users.find(u => u.id === convite.personal_id);
+    const personalNome = personal?.nome || 'Rodrigo Personal';
+
+    return {
+      data: {
+        ...convite,
+        personal_nome: personalNome
+      },
+      error: null
+    };
   },
 
   async resetPassword(email: string) {

@@ -106,6 +106,9 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const [avatarTipo, setAvatarTipo] = useState<TipoAvatar>('masculino');
   const [codigoConvite, setCodigoConvite] = useState('');
   const [isConviteLocked, setIsConviteLocked] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [invitePersonalName, setInvitePersonalName] = useState<string | null>(null);
   
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -132,6 +135,9 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     setIsLogin(login);
     setError(null);
     setSuccessMessage(null);
+    if (!login && !isConviteLocked) {
+      setPapel('personal');
+    }
     playWhoosh();
   };
 
@@ -168,13 +174,42 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   }, [initialRecoveryMode]);
 
   React.useEffect(() => {
+    const isCadastroPath = window.location.pathname.startsWith('/cadastro');
     const params = new URLSearchParams(window.location.search);
     const conviteParam = params.get('convite') || params.get('code');
+
     if (conviteParam) {
-      setCodigoConvite(conviteParam.toUpperCase());
+      const code = conviteParam.trim().toUpperCase();
+      setCodigoConvite(code);
       setPapel('aluno');
       setIsLogin(false);
       setIsConviteLocked(true);
+      setInviteLoading(true);
+      setInviteError(null);
+
+      authService.buscarConviteDetalhado(code)
+        .then(({ data, error: inviteErr }) => {
+          if (inviteErr) {
+            setInviteError(inviteErr.message || 'Convite inválido');
+          } else if (data) {
+            setInvitePersonalName(data.personal_nome);
+            if (data.nome_aluno) {
+              setNome(data.nome_aluno);
+            }
+          }
+        })
+        .catch((err) => {
+          setInviteError('Erro ao validar o convite.');
+          console.error(err);
+        })
+        .finally(() => {
+          setInviteLoading(false);
+        });
+    } else if (isCadastroPath) {
+      setPapel('aluno');
+      setIsLogin(false);
+      setIsConviteLocked(true);
+      setInviteError('O cadastro de aluno é feito por convite do seu personal. Peça o link de convite ao seu treinador.');
     }
   }, []);
 
@@ -284,6 +319,13 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
       } else {
         if (!nome.trim()) {
           setError('Por favor, informe seu nome completo.');
+          setLoading(false);
+          return;
+        }
+
+        // Aluno cadastrando sem convite travado
+        if (papel === 'aluno' && !isConviteLocked) {
+          setError('O cadastro de aluno é feito por convite do seu personal. Peça o link de convite ao seu treinador.');
           setLoading(false);
           return;
         }
@@ -586,6 +628,50 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             </p>
           </div>
 
+          {inviteLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+              <div className="w-10 h-10 border-4 border-[#F26A1B] border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs text-ink-2 font-mono uppercase tracking-wider text-center">Validando seu convite...</p>
+            </div>
+          ) : inviteError ? (
+            <div className="space-y-6">
+              <div className="p-4 bg-danger/10 border border-danger/20 rounded-xl text-center space-y-3">
+                <p className="text-sm text-danger font-bold">Falha no convite</p>
+                {codigoConvite ? (
+                  <>
+                    <p className="text-xs text-ink-2 font-sans leading-relaxed">
+                      Código: <span className="font-mono font-bold text-ink">{codigoConvite}</span> <br/>
+                      Motivo: {inviteError === 'Convite inválido' ? 'Convite inválido ou inexistente' : inviteError}.
+                    </p>
+                    <div className="h-px bg-line/20 my-2" />
+                    <p className="text-xs text-ink-2 font-medium">
+                      O cadastro de aluno é feito por convite do seu personal. Peça o link de convite ao seu treinador.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-ink-2 font-medium leading-relaxed">
+                    {inviteError}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConviteLocked(false);
+                  setCodigoConvite('');
+                  setPapel('personal');
+                  setIsLogin(true);
+                  setInviteError(null);
+                  window.history.replaceState({}, document.title, window.location.pathname);
+                }}
+                className="w-full py-3.5 rounded-xl bg-surface hover:bg-raise border border-line text-xs font-semibold text-ink transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Voltar ao Login / Cadastro de Personal
+              </button>
+            </div>
+          ) : (
+            <>
+
           {/* Tab switcher - Only show in auth view */}
           {view === 'auth' && (
             <div className="grid grid-cols-2 bg-raise/50 p-1 rounded-xl mb-6 border border-line/40">
@@ -671,45 +757,30 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                     </div>
                   </div>
 
-                  {/* Profile/Role selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Quem é você?</label>
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Personal Trainer Card */}
-                      <button
-                        id="role-personal"
-                        type="button"
-                        disabled={isConviteLocked}
-                        onClick={() => { setPapel('personal'); playWhoosh(); }}
-                        className={`p-4 rounded-xl border text-left flex flex-col items-start transition-all cursor-pointer ${
-                          papel === 'personal'
-                            ? 'bg-[#F26A1B]/5 border-[#F26A1B]'
-                            : 'bg-raise/20 border-line hover:border-[#F26A1B]/30'
-                        } disabled:opacity-40 disabled:cursor-not-allowed`}
-                      >
-                        <Dumbbell className={`w-5 h-5 mb-2 ${papel === 'personal' ? 'text-[#F26A1B]' : 'text-ink-3'}`} />
-                        <span className="font-bold text-xs text-ink">Sou personal</span>
-                        <span className="text-[10px] text-ink-2 mt-1 leading-normal">Gerencie alunos e treinos</span>
-                      </button>
-
-                      {/* Student/Aluno Card */}
-                      <button
-                        id="role-aluno"
-                        type="button"
-                        disabled={isConviteLocked}
-                        onClick={() => { setPapel('aluno'); playWhoosh(); }}
-                        className={`p-4 rounded-xl border text-left flex flex-col items-start transition-all cursor-pointer ${
-                          papel === 'aluno'
-                            ? 'bg-[#F26A1B]/5 border-[#F26A1B]'
-                            : 'bg-raise/20 border-line hover:border-[#F26A1B]/30'
-                        } disabled:opacity-75`}
-                      >
-                        <User className={`w-5 h-5 mb-2 ${papel === 'aluno' ? 'text-[#F26A1B]' : 'text-ink-3'}`} />
-                        <span className="font-bold text-xs text-ink">Sou aluno</span>
-                        <span className="text-[10px] text-ink-2 mt-1 leading-normal">Acompanhe sua ativação</span>
-                      </button>
+                  {/* Contextual Signup Info */}
+                  {isConviteLocked ? (
+                    invitePersonalName && (
+                      <div className="p-4 bg-[#F26A1B]/5 border border-[#F26A1B]/15 rounded-xl space-y-1.5">
+                        <span className="text-[10px] font-mono text-[#F26A1B] uppercase tracking-wider block font-semibold">Convite Ativo</span>
+                        <p className="text-xs text-ink font-semibold">
+                          Você foi convidado por <span className="text-[#F26A1B]">{invitePersonalName}</span>
+                        </p>
+                        <p className="text-[11px] text-ink-2 leading-relaxed">
+                          Preencha suas informações abaixo para criar sua conta de aluno e se vincular instantaneamente ao seu treinador.
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="p-4 bg-raise/20 border border-line rounded-xl space-y-1.5">
+                      <span className="text-[10px] font-mono text-[#F26A1B] uppercase tracking-wider block font-semibold">Acesso Profissional</span>
+                      <p className="text-[11px] text-ink-2 leading-relaxed">
+                        Este cadastro é exclusivo para <strong>Personal Trainers</strong> (profissionais de educação física).
+                      </p>
+                      <p className="text-[10px] text-ink-3 leading-relaxed">
+                        Se você é um aluno, solicite o link de convite exclusivo ao seu treinador para se cadastrar.
+                      </p>
                     </div>
-                  </div>
+                  )}
 
                   {/* Avatar Type Selector */}
                   <div className="space-y-1.5">
@@ -1019,6 +1090,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 </button>
               )}
             </form>
+          )}
+          </>
           )}
         </motion.div>
       </div>

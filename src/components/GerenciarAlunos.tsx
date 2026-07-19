@@ -6,7 +6,8 @@ import {
   ArrowLeft, Search, Plus, Target, Users, Check, Copy, 
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
   Activity, Award, CheckCircle, ExternalLink, ShieldCheck,
-  Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle
+  Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle,
+  Send, Link2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
@@ -42,6 +43,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
   const [generatingCode, setGeneratingCode] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState(false);
   const [conviteNome, setConviteNome] = useState('');
   const [conviteObjetivo, setConviteObjetivo] = useState('');
   const [convites, setConvites] = useState<any[]>([]);
@@ -303,12 +305,38 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  const getInvitationMessage = (nome: string, code: string) => {
+    const link = `https://www.zelospersonal.com.br/cadastro?convite=${code}`;
+    const saudacao = nome ? `${nome.trim()}` : '';
+    const part1 = saudacao ? `${saudacao}, seu treino no ZELOS Personal te espera! 🔥` : 'Seu treino no ZELOS Personal te espera! 🔥';
+    return `${part1}
+
+No app você vai ter:
+✅ Seu treino personalizado, com vídeos dos exercícios
+✅ Plano alimentar com calorias e macros
+✅ Hidratação, hábitos e sua evolução em fotos
+✅ Chat direto comigo
+
+É só fazer seu cadastro em 1 minuto pelo link abaixo que você já cai direto na minha base de alunos e seu acompanhamento começa na hora:
+👉 ${link}
+
+Bora juntos! 💪`;
+  };
+
   const handleCopyLink = (code: string) => {
-    const link = `${window.location.origin}/?convite=${code}`;
+    const link = `https://www.zelospersonal.com.br/cadastro?convite=${code}`;
     navigator.clipboard.writeText(link);
     setCopiedLink(true);
     showToast('Link de cadastro copiado!');
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleCopyMessage = (nome: string, code: string) => {
+    const message = getInvitationMessage(nome, code);
+    navigator.clipboard.writeText(message);
+    setCopiedMessage(true);
+    showToast('Mensagem de convite copiada!');
+    setTimeout(() => setCopiedMessage(false), 2000);
   };
 
   const handleResetConviteForm = () => {
@@ -1995,34 +2023,52 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                       </div>
 
                       <div className="space-y-2">
-                        <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Link de Convite:</span>
-                        <div className="bg-surface-2 p-3 rounded-xl border border-white/5 text-xs text-ink-2 font-mono truncate select-all">
-                          {`${window.location.origin}/?convite=${generatedCode}`}
+                        <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block font-semibold">Preview da Mensagem:</span>
+                        <div className="bg-surface-2 p-4 rounded-xl border border-white/5 text-xs text-ink-2 font-sans whitespace-pre-wrap leading-relaxed select-all max-h-48 overflow-y-auto">
+                          {getInvitationMessage(conviteNome, generatedCode)}
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          id="btn-copy-convite-link"
-                          type="button"
-                          onClick={() => handleCopyLink(generatedCode)}
-                          className="py-3 px-4 bg-surface-3 hover:bg-white/10 border border-white/5 text-ink text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                        >
-                          {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                          <span>{copiedLink ? 'Copiado!' : 'Copiar Link'}</span>
-                        </button>
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Link de Convite:</span>
+                        <div className="bg-surface-2 p-3 rounded-xl border border-white/5 text-xs text-ink-2 font-mono truncate select-all">
+                          {`https://www.zelospersonal.com.br/cadastro?convite=${generatedCode}`}
+                        </div>
+                      </div>
 
+                      <div className="flex flex-col gap-2.5">
                         <a
                           id="btn-whatsapp-share"
-                          href={`https://wa.me/?text=${encodeURIComponent(
-                            `Olá ${conviteNome}! Aqui está o seu link exclusivo para se cadastrar no ZELOS: ${window.location.origin}/?convite=${generatedCode}\n\nCódigo de convite: ${generatedCode}`
-                          )}`}
+                          href={`https://wa.me/?text=${encodeURIComponent(getInvitationMessage(conviteNome, generatedCode))}`}
                           target="_blank"
                           rel="noreferrer noopener"
-                          className="py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-center"
+                          className="py-3.5 px-4 bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-center cursor-pointer font-sans"
                         >
-                          <span>WhatsApp</span>
+                          <Send className="w-4 h-4" />
+                          <span>Enviar pelo WhatsApp</span>
                         </a>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            id="btn-copy-convite-link"
+                            type="button"
+                            onClick={() => handleCopyLink(generatedCode)}
+                            className="py-3 px-4 bg-surface-3 hover:bg-white/10 border border-white/5 text-ink text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                          >
+                            {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Link2 className="w-4 h-4" />}
+                            <span>{copiedLink ? 'Copiado!' : 'Copiar Link'}</span>
+                          </button>
+
+                          <button
+                            id="btn-copy-convite-message"
+                            type="button"
+                            onClick={() => handleCopyMessage(conviteNome, generatedCode)}
+                            className="py-3 px-4 bg-surface-3 hover:bg-white/10 border border-white/5 text-ink text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer"
+                          >
+                            {copiedMessage ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                            <span>{copiedMessage ? 'Copiado!' : 'Copiar Mensagem'}</span>
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex justify-center pt-2">
@@ -2030,7 +2076,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                           id="btn-novo-convite"
                           type="button"
                           onClick={handleResetConviteForm}
-                          className="text-xs text-flame hover:underline font-mono uppercase tracking-wider flex items-center gap-1.5"
+                          className="text-xs text-flame hover:underline font-mono uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Gerar Outro Convite</span>
