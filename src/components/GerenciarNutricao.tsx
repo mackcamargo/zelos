@@ -4,7 +4,7 @@ import {
   Clock, Flame, Apple, Wheat, Droplets, ChevronDown, ChevronUp, Target,
   Search, Scale, Check, X, Sparkles
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { dbService } from '../lib/supabase';
 import { PlanoAlimentar, RefeicaoPlano, AlimentoRefeicao } from '../types';
 import { tocar } from '../lib/som';
@@ -16,6 +16,7 @@ interface GerenciarNutricaoProps {
 }
 
 export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = false }: GerenciarNutricaoProps) {
+  const shouldReduceMotion = useReducedMotion();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -614,15 +615,26 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
       {/* MODAL DE BUSCA/AUTOCOMPLETE TACO */}
       <AnimatePresence>
         {activeMealForSearch !== null && (
-          <div className="fixed inset-0 bg-void/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop / Overlay */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface-2 border border-line rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { tocar('fechar'); setActiveMealForSearch(null); }}
+              className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+            />
+
+            {/* Modal Card */}
+            <motion.div 
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="relative bg-white border border-black/[0.08] rounded-[20px] w-full max-w-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex flex-col max-h-[85vh] z-10"
             >
               {/* Header do Modal */}
-              <div className="p-5 border-b border-line flex items-center justify-between bg-white/5">
+              <div className="p-5 border-b border-black/[0.06] flex items-center justify-between bg-white">
                 <div>
                   <h3 className="font-display font-bold text-lg text-ink flex items-center gap-2">
                     <Search className="w-5 h-5 text-flame" />
@@ -634,7 +646,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                 </div>
                 <button 
                   onClick={() => { tocar('fechar'); setActiveMealForSearch(null); }}
-                  className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-ink-3 hover:text-ink"
+                  className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors text-ink-3 hover:text-ink"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -679,7 +691,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                           className={`w-full p-3 rounded-2xl text-left border transition-all flex items-center justify-between gap-3 ${
                             isSelected 
                               ? 'bg-flame/10 border-flame text-ink' 
-                              : 'bg-void/10 border-line/40 hover:border-line hover:bg-void/25 text-ink-2'
+                              : 'bg-neutral-50/60 border-black/[0.04] hover:border-black/[0.08] hover:bg-neutral-100/60 text-ink-2'
                           }`}
                         >
                           <div className="min-w-0">
@@ -712,9 +724,9 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                 {/* Configuração de Quantidade e Preview de Macros */}
                 {alimentoSelecionado && (
                   <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-4 bg-void/30 rounded-2xl border border-line space-y-4"
+                    className="p-4 bg-neutral-50 rounded-2xl border border-black/[0.06] space-y-4"
                   >
                     <div className="flex items-center justify-between">
                       <div className="text-[12px] font-semibold text-ink-2">Ajuste de Quantidade</div>
@@ -723,7 +735,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
 
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 bg-void/50 px-3 py-2 rounded-2xl border border-line">
+                        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border border-black/[0.08]">
                           <Scale className="w-4 h-4 text-ink-3" />
                           <input 
                             type="number"
@@ -746,7 +758,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
                               quantidadeG === g 
                                 ? 'bg-flame text-void border-flame' 
-                                : 'bg-void/40 text-ink-3 border-line/60 hover:border-line'
+                                : 'bg-white text-ink-3 border border-black/[0.08] hover:border-black/[0.15]'
                             }`}
                           >
                             {g}g
@@ -756,7 +768,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                     </div>
 
                     {/* Preview de Macros Calculados */}
-                    <div className="p-3 bg-flame/5 border border-flame/15 rounded-xl">
+                    <div className="p-3 bg-flame/[0.04] border border-flame/15 rounded-xl">
                       <div className="text-[10px] text-flame font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
                         <Sparkles className="w-3.5 h-3.5 animate-bounce" />
                         Preview Nutricional do Item
@@ -776,17 +788,17 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
               </div>
 
               {/* Rodapé do Modal */}
-              <div className="p-5 border-t border-line bg-white/5 flex items-center justify-end gap-3">
+              <div className="p-5 border-t border-black/[0.06] bg-white flex items-center justify-end gap-3">
                 <button
                   onClick={() => { tocar('fechar'); setActiveMealForSearch(null); }}
-                  className="px-4 py-2 text-ink-3 hover:text-ink text-xs font-semibold rounded-xl hover:bg-white/5 transition-colors"
+                  className="px-4 py-2 text-ink-3 hover:text-ink text-xs font-semibold rounded-xl hover:bg-neutral-100 transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   disabled={!alimentoSelecionado}
                   onClick={handleConfirmAddAlimento}
-                  className="px-5 py-2.5 bg-flame hover:bg-flame-hover disabled:opacity-40 disabled:hover:bg-flame text-void text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-md"
+                  className="px-5 py-2.5 bg-flame hover:bg-flame-hover disabled:opacity-40 disabled:hover:bg-flame text-void text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
                 >
                   <Plus className="w-4 h-4" /> Confirmar e Adicionar
                 </button>
