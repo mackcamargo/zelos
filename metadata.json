@@ -1,5 +1,5 @@
 {
-  "name": "ZELOS",
+  "name": "ZELOS Personal",
   "description": "Plataforma de treino premium para personal trainers com módulos de biblioteca de exercícios, gestão de alunos e modelos de treino reutilizáveis.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

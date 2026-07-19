@@ -23,6 +23,7 @@ import FotoProgressoGaleria from './FotoProgressoGaleria';
 import NutricaoPainel from './NutricaoPainel';
 import AgendamentoPainel from './AgendamentoPainel';
 import ChatAluno from './ChatAluno';
+import LogoZelos from './LogoZelos';
 import { MessageSquare } from 'lucide-react';
 import { Checkin } from '../types';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
@@ -1061,9 +1062,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         <div className="w-full flex justify-between items-center">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-display font-black text-2xl tracking-tight">
-                ZE<span className="brand-gradient-text">LOS</span>
-              </span>
+              <LogoZelos size="sm" />
               <span className="text-[10px] font-mono uppercase bg-violet/15 text-violet px-2.5 py-0.5 rounded-full border border-violet/20 font-bold">
                 {isFemale ? 'ALUNA' : 'ALUNO'}
               </span>

@@ -15,6 +15,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
 import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
+import LogoZelos from './LogoZelos';
 
 interface PersonalAreaProps {
   userId: string;
@@ -204,9 +205,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         <div className="max-w-6xl mx-auto px-6 py-10">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2">
-              <span className="font-display font-black text-2xl tracking-tight">
-                ZE<span className="brand-gradient-text">LOS</span>
-              </span>
+              <LogoZelos size="sm" />
             </div>
             <button
               onClick={onLogout}
@@ -271,9 +270,9 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 type="button"
                 onClick={() => handleTabChange('dashboard')}
                 data-sem-som
-                className="font-display font-semibold text-xl tracking-tight truncate hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
+                className="hover:opacity-85 transition-opacity text-left focus:outline-none cursor-pointer"
               >
-                ZE<span className="text-accent">LOS</span>
+                <LogoZelos size="sm" />
               </button>
               <div className="flex items-center gap-1">
                 <button
@@ -437,9 +436,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-line/40 h-16 shrink-0">
-          <span className="font-display font-black text-xl tracking-tight">
-            ZE<span className="text-accent">LOS</span>
-          </span>
+          <LogoZelos size="sm" />
           <button
             type="button"
             onClick={() => setIsMobileOpen(false)}

@@ -597,22 +597,6 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                       }}
                       className="z-card z-card--tap flex flex-col justify-between relative overflow-hidden"
                     >
-                      <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
-                        {streak > 0 && (
-                          <div className="flex items-center gap-1 px-2.5 py-0.5 bg-accent/10 text-accent rounded-full border border-accent/20">
-                            <Flame className="w-3 h-3 animate-pulse" />
-                            <span className="text-[12px] font-semibold z-num">{streak}</span>
-                          </div>
-                        )}
-
-                        {!hasCheckin && isAtivo && (
-                          <div className="flex items-center gap-1 bg-danger/10 text-danger text-[11px] font-medium px-2 py-0.5 rounded-full border border-danger/20 animate-pulse">
-                            <AlertCircle className="w-3 h-3" />
-                            <span>Check-in pendente</span>
-                          </div>
-                        )}
-                      </div>
-
                       <div className="flex items-start gap-4">
                         {/* Avatar styling using ZELOS design avatar */}
                         <div className="z-avatar z-avatar--lg bg-raise text-ink flex items-center justify-center font-display font-bold text-accent overflow-hidden shrink-0">
@@ -622,13 +606,34 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                             name.charAt(0).toUpperCase()
                           )}
                         </div>
-                        <div className="min-w-0 pr-16">
-                          <h3 className="font-display font-semibold text-sm text-ink group-hover:text-accent transition-colors truncate">
-                            {name}
-                          </h3>
-                          <div className="flex items-center gap-1.5 text-[12px] text-ink-3 mt-1.5">
-                            <Target className="w-3.5 h-3.5 text-accent shrink-0" strokeWidth={1.75} />
-                            <span className="truncate">{aluno.objetivo || 'Foco geral / condicionamento'}</span>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          {/* Badges Line in natural flow to prevent any overlap */}
+                          {(streak > 0 || (!hasCheckin && isAtivo)) && (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {streak > 0 && (
+                                <div className="flex items-center gap-1 px-2.5 py-0.5 bg-accent/10 text-accent rounded-full border border-accent/20 shrink-0">
+                                  <Flame className="w-3 h-3 animate-pulse" />
+                                  <span className="text-[12px] font-semibold z-num">{streak}</span>
+                                </div>
+                              )}
+
+                              {!hasCheckin && isAtivo && (
+                                <div className="flex items-center gap-1 bg-danger/10 text-danger text-[11px] font-medium px-2 py-0.5 rounded-full border border-danger/20 animate-pulse shrink-0">
+                                  <AlertCircle className="w-3 h-3" />
+                                  <span>Check-in pendente</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div>
+                            <h3 className="font-display font-semibold text-sm text-ink group-hover:text-accent transition-colors truncate">
+                              {name}
+                            </h3>
+                            <div className="flex items-center gap-1.5 text-[12px] text-ink-3 mt-1.5">
+                              <Target className="w-3.5 h-3.5 text-accent shrink-0" strokeWidth={1.75} />
+                              <span className="truncate">{aluno.objetivo || 'Foco geral / condicionamento'}</span>
+                            </div>
                           </div>
                         </div>
                       </div>

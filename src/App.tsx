@@ -6,6 +6,7 @@ import PersonalArea from './components/PersonalArea';
 import AlunoArea from './components/AlunoArea';
 import { Sparkles, Terminal } from 'lucide-react';
 import { initSom, tocar } from './lib/som';
+import LogoZelos from './components/LogoZelos';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -194,10 +195,8 @@ export default function App() {
     return (
       <div id="loader-view" className="min-h-screen bg-void flex flex-col justify-center items-center relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#F26A1B]/5 blur-3xl rounded-full pointer-events-none" />
-        <div className="text-center relative z-10 space-y-4">
-          <span className="font-display font-black text-5xl tracking-tight select-none">
-            ZE<span className="brand-gradient-text">LOS</span>
-          </span>
+        <div className="text-center relative z-10 space-y-6 flex flex-col items-center">
+          <LogoZelos size="xl" center />
           <div className="flex justify-center items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full brand-gradient-bg animate-bounce [animation-delay:-0.3s]" />
             <span className="w-2.5 h-2.5 rounded-full brand-gradient-bg animate-bounce [animation-delay:-0.15s]" />
