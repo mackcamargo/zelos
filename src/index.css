@@ -96,3 +96,38 @@ body {
   background-color: rgba(63, 191, 127, 0.18) !important;
   border-color: var(--z-ok) !important;
 }
+
+@keyframes pulseNovoForte {
+  0%   { box-shadow: 0 0 0 0 rgba(242,106,27,0.7); transform: scale(1); }
+  50%  { box-shadow: 0 0 0 16px rgba(242,106,27,0); transform: scale(1.05); }
+  100% { box-shadow: 0 0 0 0 rgba(242,106,27,0); transform: scale(1); }
+}
+
+@keyframes flashBorda {
+  0%,100% { border-color: #F26A1B; background-color: rgba(242,106,27,0.10); }
+  50%     { border-color: #ff8a3d; background-color: rgba(242,106,27,0.22); }
+}
+
+.banner-novo-treino {
+  animation: pulseNovoForte 1.1s ease-in-out infinite, flashBorda 1.1s ease-in-out infinite;
+}
+
+@keyframes piscaSelo {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.selo-novo {
+  animation: piscaSelo 0.8s steps(1,end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-novo-treino {
+    animation: flashBorda 2s ease-in-out infinite;
+    transform: none !important;
+  }
+  .selo-novo {
+    animation: piscaSelo 1.5s ease-in-out infinite;
+  }
+}
+

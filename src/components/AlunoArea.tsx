@@ -7,7 +7,7 @@ import {
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
   Trophy, Info, X,
-  Volume2, VolumeX
+  Volume2, VolumeX, Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -142,6 +142,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const { streak, checkPR, checkAchievements } = useGamification();
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [novoTreino, setNovoTreino] = useState<any | null>(null);
   const [loadingWorkoutDetails, setLoadingWorkoutDetails] = useState(false);
 
   // Selected state for active workout & exercise detail
@@ -524,6 +525,70 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     checarAcesso();
   }, [userId]);
 
+  const fetchNovoTreino = async () => {
+    if (!userId) return;
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('treinos')
+          .select('id, titulo, data_treino, hora_treino')
+          .eq('aluno_id', userId)
+          .eq('status', 'publicado')
+          .order('criado_em', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!error) {
+          setNovoTreino(data);
+        } else {
+          console.error("Erro ao carregar novo treino:", error);
+        }
+      } catch (err) {
+        console.error("Erro inesperado ao buscar novo treino:", err);
+      }
+    } else {
+      // Demo/Fallback Mode using localStorage (zenite_mock_treinos)
+      const mockTreinos = JSON.parse(localStorage.getItem('zenite_mock_treinos') || '[]');
+      const alunoTreinos = mockTreinos.filter((t: any) => t.aluno_id === userId && t.status === 'publicado');
+      if (alunoTreinos.length > 0) {
+        const sorted = [...alunoTreinos].sort((a: any, b: any) => {
+          const cA = a.criado_em || '';
+          const cB = b.criado_em || '';
+          return cB.localeCompare(cA);
+        });
+        setNovoTreino(sorted[0]);
+      } else {
+        setNovoTreino(null);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+    
+    fetchNovoTreino();
+
+    let canal: any = null;
+    if (isSupabaseConfigured && supabase) {
+      canal = supabase
+        .channel('treinos-aluno')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'treinos', filter: `aluno_id=eq.${userId}` },
+          () => {
+            fetchNovoTreino();
+            loadStudentWorkouts();
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      if (canal && supabase) {
+        supabase.removeChannel(canal);
+      }
+    };
+  }, [userId]);
+
   const loadStudentWorkouts = async () => {
     setLoading(true);
     try {
@@ -845,6 +910,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       if (listData) {
         setWorkouts(listData);
       }
+      fetchNovoTreino();
     } catch (e) {
       console.error(e);
     }
@@ -941,6 +1007,60 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {activeTab === 'treino' && (
           <div id="tab-content-treino" className="space-y-6">
             
+            {/* BANNER DE TREINO NOVO */}
+            {novoTreino && (
+              <div 
+                id="banner-novo-treino"
+                onClick={() => handleSelectWorkout(novoTreino.id)}
+                className="banner-novo-treino relative w-full border-2 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 cursor-pointer hover:opacity-95 transition-all select-none shadow-lg group overflow-hidden"
+                style={{
+                  borderColor: '#F26A1B',
+                  backgroundColor: 'rgba(242, 106, 27, 0.12)'
+                }}
+              >
+                {/* Selo NOVO no canto superior */}
+                <div className="absolute -top-2.5 right-4 bg-[#F26A1B] text-white text-[10px] font-mono font-black uppercase px-2.5 py-0.5 rounded-full shadow-md selo-novo z-10 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  NOVO
+                </div>
+
+                {/* Esquerda: Sino + Textos */}
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[#F26A1B]/20 flex items-center justify-center shrink-0 shadow-inner">
+                    <Bell className="w-6 h-6 text-[#F26A1B] animate-bounce" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-sans font-black text-ink uppercase tracking-wider flex items-center gap-1.5">
+                      Novo treino disponível
+                    </h4>
+                    <p className="text-xs text-ink-2 mt-1 font-mono font-medium">
+                      {(() => {
+                        if (novoTreino.data_treino) {
+                          const [ano, mes, dia] = novoTreino.data_treino.split("-").map(Number);
+                          const dataFormatada = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                          return `${dataFormatada} - ${novoTreino.titulo}`;
+                        }
+                        return novoTreino.titulo;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Direita: Botão Iniciar */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectWorkout(novoTreino.id);
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-xs font-display font-bold uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 self-stretch sm:self-center shrink-0 active:scale-95"
+                >
+                  <span>Iniciar</span>
+                  <ChevronRight className="w-4 h-4 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
+                </button>
+              </div>
+            )}
+
             {/* WORKOUT LIST (If no active workout is selected) */}
             {!selectedWorkout ? (
               <div className="space-y-6">
