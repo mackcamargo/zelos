@@ -693,13 +693,13 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                             )}
                           </div>
 
-                          <div className="min-w-0">
-                            <span className="z-badge z-badge--accent">
-                              {primario}
-                            </span>
-                            <h4 className="font-semibold text-xs text-ink mt-1.5 truncate">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-sm sm:text-base text-ink mb-1 truncate">
                               {index + 1}. {name}
                             </h4>
+                            <span className="z-badge z-badge--accent text-[9.5px] h-5 px-2.5">
+                              {primario}
+                            </span>
                           </div>
                         </div>
 
