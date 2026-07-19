@@ -733,6 +733,11 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 </div>
               </div>
 
+              {/* Footer Copyright */}
+              <div className="py-4 text-center text-[11px] text-ink-3 font-mono">
+                © {new Date().getFullYear()} ZELOS Personal • Todos os direitos reservados
+              </div>
+
 
 
               {/* Admin Button */}

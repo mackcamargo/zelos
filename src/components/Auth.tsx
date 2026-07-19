@@ -16,7 +16,11 @@ import {
   Sun, 
   Moon, 
   ShieldCheck, 
-  Users 
+  Users,
+  MessageSquare,
+  TrendingUp,
+  HeartPulse,
+  Zap 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { traduzErro } from '../lib/erros';
@@ -469,52 +473,65 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         </div>
 
         {/* Mid copy */}
-        <div className="relative z-10 my-auto space-y-10">
+        <div className="relative z-10 my-auto space-y-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="space-y-4"
           >
-            <span className="z-eyebrow text-xs font-semibold text-[#F26A1B]">ZELOS PERSONAL</span>
-            <h1 className="text-4xl xl:text-5xl font-black font-display text-ink tracking-tight leading-tight max-w-md">
-              Performance de elite e <span className="text-[#F26A1B]">controle total</span> da sua evolução.
+            <span className="z-eyebrow text-xs font-semibold text-[#F26A1B] uppercase tracking-wider">ZELOS PERSONAL</span>
+            <h1 className="text-3xl xl:text-4xl font-black font-display text-ink tracking-tight leading-tight max-w-md">
+              Sua consultoria com <span className="text-[#F26A1B]">tecnologia de ponta</span> e controle total.
             </h1>
+            <p className="text-ink-2 text-xs leading-relaxed max-w-sm font-medium">
+              Chega de treinos soltos por WhatsApp, planilhas complexas ou papel e caneta. Uma plataforma completa de alta performance por um custo extremamente acessível.
+            </p>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="space-y-6 max-w-sm"
+            className="space-y-5 max-w-sm"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
-                <Dumbbell className="w-5 h-5" />
+            <div className="flex items-start gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
+                <Dumbbell className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink text-sm">Treinos e nutrição</h3>
-                <p className="text-ink-2 text-xs leading-relaxed mt-0.5">Acompanhamento completo de atividade física e dieta num só lugar.</p>
+                <h3 className="font-semibold text-ink text-xs">Adeus papel e WhatsApp</h3>
+                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Monte treinos práticos e tecnológicos em segundos e entregue direto no Zelos Personal do seu aluno.</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
-                <ShieldCheck className="w-5 h-5" />
+            <div className="flex items-start gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
+                <TrendingUp className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink text-sm">Segurança ortopédica</h3>
-                <p className="text-ink-2 text-xs leading-relaxed mt-0.5">Foco em integridade física com metodologias científicas para evitar lesões.</p>
+                <h3 className="font-semibold text-ink text-xs">Dashboard de Evolução</h3>
+                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Acompanhe métricas integradas, histórico de cargas, fotos e tenha feedback diário/semanal da rotina dos alunos.</p>
               </div>
             </div>
 
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
-                <Users className="w-5 h-5" />
+            <div className="flex items-start gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
+                <MessageSquare className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink text-sm">Acompanhamento em tempo real</h3>
-                <p className="text-ink-2 text-xs leading-relaxed mt-0.5">Feedbacks imediatos, métricas integradas e proximidade total entre você e seu Personal.</p>
+                <h3 className="font-semibold text-ink text-xs">Chat e Incentivo em Tempo Real</h3>
+                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Mantenha contato próximo por chat integrado, parabenize os focados e incentive a consistência de quem precisa de apoio.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
+                <HeartPulse className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-ink text-xs">Segurança Ortopédica e Cuidados</h3>
+                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Atenção especial com anamneses integradas de lesões, dores e limitações, totalmente atenta às recomendações de ortopedistas para adaptar os exercícios com precisão.</p>
               </div>
             </div>
           </motion.div>

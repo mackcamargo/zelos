@@ -2649,15 +2649,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                   </div>
                 </div>
 
-                    {/* Privacy section */}
-                <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-ink font-bold mb-0.5">Privacidade Protegida</p>
-                    <p className="text-[11px] text-ink-3 leading-tight">Dados visíveis somente para você e seu personal.</p>
-                  </div>
+                    {/* Footer Copyright */}
+                <div className="py-4 text-center text-[11px] text-ink-3 font-mono">
+                  © {new Date().getFullYear()} ZELOS Personal • Todos os direitos reservados
                 </div>
 
                 {/* Sound Settings */}
