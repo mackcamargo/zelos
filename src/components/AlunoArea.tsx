@@ -143,6 +143,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [novoTreino, setNovoTreino] = useState<any | null>(null);
+  const [headerProfile, setHeaderProfile] = useState<{ nome: string; avatar_url: string | null } | null>(null);
+  const [loadingHeaderProfile, setLoadingHeaderProfile] = useState(true);
   const [loadingWorkoutDetails, setLoadingWorkoutDetails] = useState(false);
 
   // Selected state for active workout & exercise detail
@@ -524,6 +526,59 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     };
     checarAcesso();
   }, [userId]);
+
+  useEffect(() => {
+    const fetchHeaderProfile = async () => {
+      if (!userId) {
+        setLoadingHeaderProfile(false);
+        return;
+      }
+      try {
+        if (isSupabaseConfigured && supabase) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: perfil, error } = await supabase
+              .from('profiles')
+              .select('nome, avatar_url')
+              .eq('id', user.id)
+              .maybeSingle();
+            
+            if (perfil && !error) {
+              setHeaderProfile({
+                nome: perfil.nome,
+                avatar_url: perfil.avatar_url || null
+              });
+            } else {
+              setHeaderProfile({
+                nome: profile?.nome || '...',
+                avatar_url: profile?.avatar_url || null
+              });
+            }
+          } else {
+            setHeaderProfile({
+              nome: profile?.nome || '...',
+              avatar_url: profile?.avatar_url || null
+            });
+          }
+        } else {
+          setHeaderProfile({
+            nome: profile?.nome || '...',
+            avatar_url: profile?.avatar_url || null
+          });
+        }
+      } catch (err) {
+        console.error("Erro ao carregar perfil do cabeçalho:", err);
+        setHeaderProfile({
+          nome: profile?.nome || '...',
+          avatar_url: profile?.avatar_url || null
+        });
+      } finally {
+        setLoadingHeaderProfile(false);
+      }
+    };
+
+    fetchHeaderProfile();
+  }, [userId, profile]);
 
   const fetchNovoTreino = async () => {
     if (!userId) return;
@@ -1009,21 +1064,37 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           <button
             type="button"
             onClick={() => setActiveTab('perfil')}
-            className="flex items-center gap-3 text-right hover:opacity-85 active:scale-[0.97] transition-all focus:outline-none cursor-pointer group"
+            className="flex items-center gap-2.5 sm:gap-3 text-right hover:opacity-85 active:scale-[0.97] transition-all focus:outline-none cursor-pointer group"
             id="header-avatar-btn"
           >
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-sm font-semibold text-ink group-hover:text-flame transition-colors">{profile.nome}</span>
-              {objetivo && objetivo !== 'A definir' && (
-                <span className="text-[10px] text-ink-3 font-mono uppercase tracking-wider group-hover:text-ink-2 transition-colors">
-                  {objetivo}
-                </span>
-              )}
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] sm:text-[10px] text-ink-3 font-mono uppercase tracking-wider">
+                Aluno
+              </span>
+              <span className="text-xs sm:text-sm font-medium text-ink group-hover:text-flame transition-colors truncate max-w-[90px] sm:max-w-[160px] block leading-tight">
+                {loadingHeaderProfile ? '...' : (headerProfile?.nome || profile?.nome || '...')}
+              </span>
             </div>
-            <div className="w-10 h-10 rounded-full border border-white/10 p-[1px] group-hover:border-flame/30 transition-colors">
-              <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-ink">
-                {isFemale ? '👩' : '👨'}
-              </div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/10 p-[1px] group-hover:border-flame/30 transition-colors shrink-0 overflow-hidden">
+              {headerProfile?.avatar_url ? (
+                <img 
+                  src={headerProfile.avatar_url} 
+                  alt="Avatar" 
+                  className="w-full h-full rounded-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : profile?.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt="Avatar" 
+                  className="w-full h-full rounded-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-surface-3 flex items-center justify-center font-display font-bold text-ink text-sm sm:text-base">
+                  {isFemale ? '👩' : '👨'}
+                </div>
+              )}
             </div>
           </button>
         </div>
