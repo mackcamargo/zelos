@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dbService } from '../lib/supabase';
+import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Aluno, Anamnese, AlunoCondicao, CondicaoOrtopedica } from '../types';
 import { AnamneseForm } from './AnamneseForm';
 import { 
@@ -100,6 +100,25 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  async function abrirLaudo(laudoUrl: string | null | undefined) {
+    if (!laudoUrl) return;
+    if (!isSupabaseConfigured || !supabase || laudoUrl.startsWith('blob:')) {
+      window.open(laudoUrl, '_blank');
+      return;
+    }
+    let path = laudoUrl || '';
+    const marker = '/laudos/';
+    if (path.includes(marker)) path = path.substring(path.indexOf(marker) + marker.length);
+    path = path.replace(/^\/+/, '');
+    const { data, error } = await supabase.storage.from('laudos').createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) {
+      console.error('Erro laudo:', error, 'path:', path);
+      alert('Não foi possível abrir o laudo.');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  }
 
   const loadAlunosList = async () => {
     setLoading(true);
@@ -1415,15 +1434,14 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                               Laudo técnico anexado
                             </span>
-                            <a
-                              href={ac.laudo_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                            <button
+                              type="button"
+                              onClick={() => abrirLaudo(ac.laudo_url)}
+                              className="text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer bg-transparent border-0 p-0"
                             >
                               <span>Ver laudo</span>
                               <ExternalLink className="w-3 h-3" />
-                            </a>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -1776,15 +1794,14 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                                     Laudo técnico
                                   </span>
-                                  <a
-                                    href={ac.laudo_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[#F26A1B] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                                  <button
+                                    type="button"
+                                    onClick={() => abrirLaudo(ac.laudo_url)}
+                                    className="text-[#F26A1B] hover:underline flex items-center gap-1 font-semibold cursor-pointer bg-transparent border-0 p-0"
                                   >
                                     <span>Ver laudo</span>
                                     <ExternalLink className="w-3 h-3" />
-                                  </a>
+                                  </button>
                                 </div>
                               )}
                             </div>

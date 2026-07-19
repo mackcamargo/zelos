@@ -2513,8 +2513,7 @@ export const dbService = {
         .from('laudos')
         .upload(fileName, file, { cacheControl: '3600', upsert: true });
       if (error) return { url: null, error };
-      const { data: { publicUrl } } = supabase.storage.from('laudos').getPublicUrl(fileName);
-      return { url: publicUrl, error: null };
+      return { url: fileName, error: null };
     }
     // Mock mode
     const fakeUrl = URL.createObjectURL(file);
