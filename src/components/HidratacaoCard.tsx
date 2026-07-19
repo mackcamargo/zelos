@@ -675,11 +675,13 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       <div className="border-t border-line pt-4 mt-5">
         <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mb-2">Histórico de 7 dias</p>
         
-        <div className="relative pt-6 pb-2">
+        <div className="relative pt-8 pb-2">
           {/* Dashed horizontal line marking 100% meta */}
-          <div className="absolute top-[28px] left-0 right-0 flex items-center gap-2 pointer-events-none">
+          <div className="absolute top-[46px] left-0 right-0 flex items-center gap-2 pointer-events-none z-10">
             <div className="flex-1 border-t border-dashed border-[#F26A1B]/30" />
-            <span className="text-[8px] font-mono text-[#F26A1B]/60 uppercase">Meta ({meta}ml)</span>
+            <span className="text-[8px] font-mono text-[#F26A1B] bg-surface border border-[#F26A1B]/20 px-1.5 py-0.5 rounded-md uppercase font-bold shadow-xs">
+              Meta ({meta}ml)
+            </span>
           </div>
 
           <div className="h-24 flex items-end justify-between gap-1 sm:gap-2">
@@ -701,12 +703,12 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                 >
                   {/* Tooltip above */}
                   <AnimatePresence>
-                    {(isSelected || isToday) && (
+                    {isSelected && (
                       <motion.div 
                         initial={{ opacity: 0, y: 5, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                        className="absolute -top-7 z-10 bg-void text-white text-[9px] font-mono px-1.5 py-0.5 rounded-md shadow-md whitespace-nowrap"
+                        className="absolute -top-7 z-20 bg-neutral-900 text-white dark:bg-neutral-800 text-[9px] font-mono px-2 py-0.5 rounded-md shadow-md whitespace-nowrap border border-neutral-700/50"
                       >
                         {day.total} ml
                       </motion.div>
