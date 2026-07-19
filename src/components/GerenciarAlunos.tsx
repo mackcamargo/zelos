@@ -716,7 +716,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     value={editObjetivo}
                     onChange={(e) => setEditObjetivo(e.target.value)}
                     placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
-                    className="flex-1 h-12 px-4 text-base rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
+                    className="flex-1 h-14 md:h-16 px-4 py-3.5 text-base md:text-lg rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
                   />
                   <datalist id="objetivos-detalhe">
                     <option value="Hipertrofia (ganho de massa muscular)" />
@@ -737,7 +737,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     type="button"
                     disabled={salvandoObjetivo || editObjetivo === selectedAluno.objetivo}
                     onClick={handleSaveObjective}
-                    className="h-12 px-6 rounded-xl bg-[#F26A1B] text-white font-display font-bold text-base hover:bg-[#D45914] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    className="h-14 md:h-16 px-8 rounded-xl bg-[#F26A1B] text-white font-display font-bold text-base md:text-lg hover:bg-[#D45914] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   >
                     {salvandoObjetivo ? 'Salvando...' : 'Salvar'}
                   </button>
