@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dbService } from '../lib/supabase';
-import { Aluno, Anamnese } from '../types';
+import { Aluno, Anamnese, AlunoCondicao, CondicaoOrtopedica } from '../types';
 import { AnamneseForm } from './AnamneseForm';
 import { 
   ArrowLeft, Search, Plus, Target, Users, Check, Copy, 
@@ -16,7 +16,7 @@ import GamificationDisplay from './GamificationDisplay';
 import FotoProgressoGaleria from './FotoProgressoGaleria';
 import GerenciarNutricao from './GerenciarNutricao';
 import HidratacaoStats from './HidratacaoStats';
-import { Flame, Camera, Utensils, Droplets, Heart } from 'lucide-react';
+import { Flame, Camera, Utensils, Droplets, Heart, Upload } from 'lucide-react';
 import { useSubscription } from '../contexts/SubscriptionContext';
 
 interface GerenciarAlunosProps {
@@ -67,6 +67,21 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
   const [studentAnamnese, setStudentAnamnese] = useState<Anamnese | null>(null);
   const [loadingAnamnese, setLoadingAnamnese] = useState(false);
   const [isPersonalEditingAnamnese, setIsPersonalEditingAnamnese] = useState(false);
+
+  // Orthopedic Profile states
+  const [alunoCondicoes, setAlunoCondicoes] = useState<AlunoCondicao[]>([]);
+  const [condicoesDisponiveis, setCondicoesDisponiveis] = useState<CondicaoOrtopedica[]>([]);
+  const [loadingCondicoes, setLoadingCondicoes] = useState(false);
+  const [showAddCondicaoModal, setShowAddCondicaoModal] = useState(false);
+  
+  // Form states
+  const [newCondicaoId, setNewCondicaoId] = useState<string | number>('');
+  const [newLado, setNewLado] = useState<'esquerdo' | 'direito' | 'bilateral' | null>(null);
+  const [newGrau, setNewGrau] = useState('');
+  const [newObservacao, setNewObservacao] = useState('');
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [uploadingLaudo, setUploadingLaudo] = useState(false);
+  const [salvandoCondicao, setSalvandoCondicao] = useState(false);
 
   // Workouts states
   const [isMontandoTreino, setIsMontandoTreino] = useState(false);
@@ -203,16 +218,36 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
     }
   };
 
+  const loadStudentCondicoes = async () => {
+    if (!selectedAluno) return;
+    setLoadingCondicoes(true);
+    try {
+      const { data: conds, error: err1 } = await dbService.getAlunoCondicoes(selectedAluno.id);
+      if (err1) console.error('Erro ao buscar condições do aluno:', err1);
+      if (conds) setAlunoCondicoes(conds);
+
+      const { data: disponiveis, error: err2 } = await dbService.getCondicoesOrtopedicas();
+      if (err2) console.error('Erro ao buscar condições disponíveis:', err2);
+      if (disponiveis) setCondicoesDisponiveis(disponiveis);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingCondicoes(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedAluno) {
       loadWorkoutsList();
       loadStudentProgressData();
       loadStudentAnamnese();
+      loadStudentCondicoes();
     } else {
       setWorkouts([]);
       setStudentMetrics([]);
       setStudentSeries([]);
       setStudentAnamnese(null);
+      setAlunoCondicoes([]);
     }
   }, [selectedAluno]);
 
@@ -648,6 +683,18 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
             })()}
 
             {/* Profile Overview Card */}
+             {alunoCondicoes.length > 0 && (
+               <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/20 rounded-2xl p-5 space-y-2 text-xs">
+                 <div className="flex items-center gap-2 text-accent">
+                   <AlertTriangle className="w-5 h-5 shrink-0 text-[#F26A1B]" />
+                   <span className="font-display font-bold text-sm uppercase tracking-wider text-[#F26A1B]">⚠️ Cuidados ortopédicos ativos</span>
+                 </div>
+                 <div className="text-ink-2">
+                   Este aluno possui <strong className="text-ink">{alunoCondicoes.length} {alunoCondicoes.length === 1 ? 'condição ortopédica ativa' : 'condições ortopédicas ativas'}</strong>. Verifique as recomendações especiais e regras de segurança descritas no perfil ortopédico abaixo ao prescrever treinos.
+                 </div>
+               </div>
+             )}
+
             <div className="z-card relative overflow-hidden">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-line/40">
                 <div className="flex items-center gap-4">
@@ -1241,6 +1288,388 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 )}
               </div>
             )}
+
+            {/* PERFIL ORTOPÉDICO / CUIDADOS ESPECIAIS */}
+            <div className="bg-surface border border-line rounded-3xl p-6 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line/40">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-accent" />
+                  <div>
+                    <h3 className="font-display font-bold text-base text-ink">Perfil Ortopédico / Cuidados Especiais</h3>
+                    <p className="text-[11px] text-ink-3">
+                      Restrições articulares, desvios posturais e cuidados no treinamento do aluno
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewCondicaoId('');
+                    setNewLado(null);
+                    setNewGrau('');
+                    setNewObservacao('');
+                    setNewFile(null);
+                    setShowAddCondicaoModal(true);
+                  }}
+                  className="py-2 px-4 rounded-lg bg-[#F26A1B] text-white text-xs font-semibold hover:bg-[#D45914] transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Adicionar Condição</span>
+                </button>
+              </div>
+
+              {loadingCondicoes ? (
+                <div className="py-8 text-center">
+                  <div className="w-6 h-6 border-2 border-[#F26A1B] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <p className="text-xs text-ink-3 mt-2">Carregando perfil ortopédico...</p>
+                </div>
+              ) : alunoCondicoes.length === 0 ? (
+                <div className="py-6 text-center bg-void/10 border border-line/30 rounded-2xl">
+                  <p className="text-sm text-ink-2 font-medium">Nenhum cuidado ortopédico cadastrado</p>
+                  <p className="text-xs text-ink-3 mt-1">Clique em "Adicionar Condição" para registrar limitações ou patologias.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {alunoCondicoes.map((ac) => {
+                    const cond = ac.condicoes_ortopedicas;
+                    return (
+                      <div key={ac.id} className="p-5 bg-raise/5 border border-line rounded-2xl space-y-4 relative group flex flex-col justify-between">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <h4 className="font-semibold text-sm text-ink">{cond?.nome || 'Condição'}</h4>
+                              <p className="text-[11px] text-ink-3 mt-0.5">Região: {cond?.regiao || 'Geral'}</p>
+                            </div>
+                            
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (confirm('Deseja inativar esta condição ortopédica para o aluno?')) {
+                                  try {
+                                    await dbService.inativarAlunoCondicao(ac.id);
+                                    showToast('Condição ortopédica removida.');
+                                    loadStudentCondicoes();
+                                  } catch (err) {
+                                    console.error(err);
+                                    showToast('Erro ao remover condição.');
+                                  }
+                                }
+                              }}
+                              className="text-ink-3 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-rose-500/10 shrink-0 cursor-pointer"
+                              title="Remover condição"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            {ac.lado && (
+                              <span className="px-2 py-0.5 rounded bg-surface border border-line text-[10px] font-semibold uppercase text-ink-2">
+                                Lado: {ac.lado === 'esquerdo' ? 'Esquerdo' : ac.lado === 'direito' ? 'Direito' : 'Bilateral'}
+                              </span>
+                            )}
+                            {ac.grau && (
+                              <span className="px-2 py-0.5 rounded bg-surface border border-line text-[10px] font-semibold text-ink-2">
+                                Grau/Detalhe: {ac.grau}
+                              </span>
+                            )}
+                            {cond?.requer_laudo && (
+                              <span className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[10px] font-semibold text-rose-500">
+                                Requer Laudo
+                              </span>
+                            )}
+                          </div>
+
+                          {cond?.orientacao_geral && (
+                            <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/20 p-3 rounded-xl text-xs text-[#F26A1B] leading-relaxed font-medium">
+                              <p className="font-bold text-[10px] uppercase tracking-wider mb-1 text-accent">Recomendação Geral:</p>
+                              {cond.orientacao_geral}
+                            </div>
+                          )}
+
+                          {ac.observacao && (
+                            <div className="text-xs text-ink-2 leading-relaxed bg-surface/80 border border-line/40 p-2.5 rounded-xl">
+                              <span className="font-semibold text-ink-3 text-[11px]">Observação do Professor:</span>
+                              <p className="mt-0.5 italic">{ac.observacao}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {ac.tem_laudo && ac.laudo_url && (
+                          <div className="pt-2 border-t border-line flex items-center justify-between text-xs mt-2">
+                            <span className="text-ink-3 flex items-center gap-1 font-medium">
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                              Laudo técnico anexado
+                            </span>
+                            <a
+                              href={ac.laudo_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                            >
+                              <span>Ver laudo</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* MODAL ADICIONAR CONDIÇÃO ORTOPÉDICA */}
+            <AnimatePresence>
+              {showAddCondicaoModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                  {/* Backdrop */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => {
+                      if (!salvandoCondicao) setShowAddCondicaoModal(false);
+                    }}
+                    className="fixed inset-0 bg-black/45 backdrop-blur-[2px]"
+                  />
+
+                  {/* Modal Box */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.18)] z-10 flex flex-col max-h-[90vh]"
+                  >
+                    {/* Header */}
+                    <div className="p-6 pb-4 border-b border-line flex items-center justify-between bg-raise/10">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-accent" />
+                        <h3 className="font-display font-bold text-lg text-ink">Adicionar Condição Ortopédica</h3>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={salvandoCondicao}
+                        onClick={() => setShowAddCondicaoModal(false)}
+                        className="text-ink-3 hover:text-ink transition-colors p-1 cursor-pointer"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Form Content */}
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (!newCondicaoId) {
+                          showToast('Selecione uma condição ortopédica.');
+                          return;
+                        }
+                        
+                        const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
+                        if (selectedCond?.requer_laudo && !newFile) {
+                          showToast('Esta condição requer o upload de um laudo técnico.');
+                          return;
+                        }
+
+                        setSalvandoCondicao(true);
+                        try {
+                          let laudoUrl: string | null = null;
+                          if (newFile) {
+                            const { url, error: uploadErr } = await dbService.uploadLaudo(selectedAluno!.id, newFile);
+                            if (uploadErr) {
+                              console.error('Erro ao fazer upload do laudo:', uploadErr);
+                              showToast('Erro ao enviar o arquivo de laudo.');
+                              setSalvandoCondicao(false);
+                              return;
+                            }
+                            laudoUrl = url;
+                          }
+
+                          await dbService.addAlunoCondicao({
+                            aluno_id: selectedAluno!.id,
+                            condicao_id: Number(newCondicaoId),
+                            lado: newLado,
+                            grau: newGrau.trim() || null,
+                            tem_laudo: !!laudoUrl,
+                            laudo_url: laudoUrl,
+                            observacao: newObservacao.trim() || null,
+                            ativo: true
+                          });
+
+                          showToast('Condição ortopédica adicionada com sucesso!');
+                          setShowAddCondicaoModal(false);
+                          loadStudentCondicoes();
+                        } catch (err) {
+                          console.error(err);
+                          showToast('Erro ao adicionar condição.');
+                        } finally {
+                          setSalvandoCondicao(false);
+                        }
+                      }}
+                      className="p-6 space-y-4 overflow-y-auto"
+                    >
+                      {/* Selecionar Condição */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-ink-2">Condição Ortopédica *</label>
+                        <select
+                          required
+                          value={newCondicaoId}
+                          onChange={(e) => {
+                            setNewCondicaoId(e.target.value);
+                            setNewFile(null);
+                          }}
+                          className="w-full h-11 px-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
+                        >
+                          <option value="">Selecione uma patologia/limitação...</option>
+                          {condicoesDisponiveis.map(c => (
+                            <option key={c.id} value={c.id}>
+                              {c.nome} ({c.regiao})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Show details of selected condition if any */}
+                      {(() => {
+                        const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
+                        if (!selectedCond) return null;
+                        return (
+                          <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/20 p-4 rounded-2xl text-xs space-y-1">
+                            <p className="font-semibold text-accent flex items-center gap-1">
+                              <AlertTriangle className="w-4 h-4 shrink-0 text-[#F26A1B]" />
+                              <span>Orientações da Condição:</span>
+                            </p>
+                            <p className="text-ink-2 leading-relaxed mt-1">{selectedCond.orientacao_geral}</p>
+                            {selectedCond.requer_laudo && (
+                              <p className="text-rose-500 font-bold mt-2 flex items-center gap-1 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
+                                ⚠️ Atenção: Esta condição requer anexo de laudo técnico médico ou de fisioterapeuta.
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Lado Acometido */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-ink-2">Lado Acometido</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { value: 'esquerdo', label: 'Esquerdo' },
+                            { value: 'direito', label: 'Direito' },
+                            { value: 'bilateral', label: 'Bilateral' }
+                          ].map(opt => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              onClick={() => setNewLado(newLado === opt.value ? null : opt.value as any)}
+                              className={`h-10 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                                newLado === opt.value
+                                  ? 'bg-[#F26A1B] text-white border-transparent'
+                                  : 'bg-surface hover:bg-raise text-ink-2 border-line'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Grau / Detalhe livre */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-ink-2">Grau, Nível ou Especificação (ex: L4-L5, Grau III)</label>
+                        <input
+                          type="text"
+                          value={newGrau}
+                          onChange={(e) => setNewGrau(e.target.value)}
+                          placeholder="Ex: Protrusão L4-S1, Grau II, etc."
+                          className="w-full h-11 px-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
+                        />
+                      </div>
+
+                      {/* Observações do Professor */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-ink-2">Observações / Cuidados Específicos do Treino</label>
+                        <textarea
+                          rows={3}
+                          value={newObservacao}
+                          onChange={(e) => setNewObservacao(e.target.value)}
+                          placeholder="Adicione notas do professor para este aluno sobre esta condição específica..."
+                          className="w-full p-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
+                        />
+                      </div>
+
+                      {/* File Upload (Laudo) */}
+                      {(() => {
+                        const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
+                        const isRequerido = selectedCond?.requer_laudo;
+                        
+                        return (
+                          <div className="space-y-2">
+                            <label className="text-xs font-semibold text-ink-2 flex items-center justify-between">
+                              <span>Laudo Técnico {isRequerido ? '(Obrigatório *)' : '(Opcional)'}</span>
+                            </label>
+                            
+                            <div className="border border-dashed border-ink/20 rounded-xl p-4 bg-surface text-center hover:bg-raise/20 transition-all cursor-pointer relative">
+                              <input
+                                type="file"
+                                accept=".pdf,.png,.jpg,.jpeg"
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    setNewFile(e.target.files[0]);
+                                  }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              />
+                              <div className="space-y-1 text-xs">
+                                <Upload className="w-5 h-5 mx-auto text-ink-3" />
+                                {newFile ? (
+                                  <p className="text-[#F26A1B] font-semibold">{newFile.name}</p>
+                                ) : (
+                                  <>
+                                    <p className="text-ink-2">Clique ou arraste o laudo médico aqui</p>
+                                    <p className="text-ink-3 text-[10px]">Formatos aceitos: PDF, PNG, JPG (Máx 5MB)</p>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Actions */}
+                      <div className="pt-4 border-t border-line flex gap-3 justify-end bg-raise/5 p-4">
+                        <button
+                          type="button"
+                          disabled={salvandoCondicao}
+                          onClick={() => setShowAddCondicaoModal(false)}
+                          className="h-11 px-5 rounded-xl border border-line hover:bg-raise transition-colors text-xs font-bold text-ink-2 cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={salvandoCondicao}
+                          className="h-11 px-6 rounded-xl bg-[#F26A1B] hover:bg-[#D45914] text-white transition-colors text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {salvandoCondicao ? (
+                            <>
+                              <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></span>
+                              <span>Salvando...</span>
+                            </>
+                          ) : (
+                            <span>Adicionar Condição</span>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
 
             {/* BLOCK 9: DESVINCULAR ALUNO */}
             <div className="pt-6 border-t border-white/5 flex justify-end">

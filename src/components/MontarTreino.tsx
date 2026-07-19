@@ -60,11 +60,44 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   // Student Anamnese for warning notices
   const [studentAnamnese, setStudentAnamnese] = useState<any | null>(null);
 
+  // Orthopedic conditions and rules for safety check
+  const [alunoCondicoes, setAlunoCondicoes] = useState<any[]>([]);
+  const [condicaoRegras, setCondicaoRegras] = useState<any[]>([]);
+  const [orthopedicSafetyModal, setOrthopedicSafetyModal] = useState<{
+    show: boolean;
+    exercicio: Exercicio | null;
+    regra: any | null;
+    onConfirm: () => void;
+  }>({
+    show: false,
+    exercicio: null,
+    regra: null,
+    onConfirm: () => {}
+  });
+
   useEffect(() => {
     if (aluno?.id) {
       dbService.getAnamnese(aluno.id).then(({ data }) => {
         if (data) {
           setStudentAnamnese(data);
+        }
+      });
+
+      // Load orthopedic conditions and rules
+      dbService.getAlunoCondicoes(aluno.id).then(async ({ data: conds }) => {
+        if (conds && conds.length > 0) {
+          setAlunoCondicoes(conds);
+          // Fetch rules for these active conditions
+          const activeCondIds = conds.map(c => c.condicao_id);
+          const { data: rules } = await dbService.getCondicaoRegras(activeCondIds);
+          if (rules) {
+            // Decorate rules with condition names
+            const decoratedRules = rules.map(r => {
+              const condName = conds.find(c => String(c.condicao_id) === String(r.condicao_id))?.condicoes_ortopedicas?.nome || 'Condição Ortopédica';
+              return { ...r, condicaoName: condName };
+            });
+            setCondicaoRegras(decoratedRules);
+          }
         }
       });
     }
@@ -226,9 +259,46 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
     }
   };
 
+  const checkOrthopedicConflict = (exercicio: Exercicio): any | null => {
+    if (!aluno || condicaoRegras.length === 0) return null;
+    
+    const conflictRules = condicaoRegras.filter(regra => {
+      if (regra.tipo !== 'evitar' && regra.tipo !== 'atencao') return false;
+      
+      const matchId = regra.exercicio_id && String(regra.exercicio_id) === String(exercicio.id);
+      const matchName = regra.padrao_nome && exercicio.nome.toLowerCase().includes(regra.padrao_nome.toLowerCase());
+      
+      return matchId || matchName;
+    });
+
+    return conflictRules.length > 0 ? conflictRules[0] : null;
+  };
+
   // Add exercise to list
   const handleAddExercise = (exercicio: Exercicio) => {
-    // Check if already in workout (allowing duplicate is fine, but warning can be cool. Let's allow duplicates)
+    const conflict = checkOrthopedicConflict(exercicio);
+    
+    if (conflict) {
+      setOrthopedicSafetyModal({
+        show: true,
+        exercicio,
+        regra: conflict,
+        onConfirm: () => {
+          const newEx = {
+            exercicio_id: exercicio.id,
+            series: 3,
+            repeticoes: '10',
+            carga_kg: null,
+            exercicio: exercicio
+          };
+          setSelectedExercises([...selectedExercises, newEx]);
+          showToast(`"${exercicio.nome}" adicionado mesmo assim!`);
+          setOrthopedicSafetyModal({ show: false, exercicio: null, regra: null, onConfirm: () => {} });
+        }
+      });
+      return;
+    }
+
     const newEx = {
       exercicio_id: exercicio.id,
       series: 3,
@@ -1054,6 +1124,99 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     ))}
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL DE ALERTAS ORTOPÉDICOS */}
+      <AnimatePresence>
+        {orthopedicSafetyModal.show && orthopedicSafetyModal.exercicio && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOrthopedicSafetyModal({ show: false, exercicio: null, regra: null, onConfirm: () => {} })}
+              className="fixed inset-0 bg-black/45 backdrop-blur-[2px]"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.18)] z-10 flex flex-col"
+            >
+              {/* Header */}
+              <div className="p-6 pb-4 border-b border-line flex items-center gap-3 bg-rose-500/5">
+                <AlertCircle className="w-6 h-6 text-[#F26A1B] shrink-0 animate-pulse" />
+                <div>
+                  <h3 className="font-display font-bold text-base text-rose-600">⚠️ Atenção Ortopédica</h3>
+                  <p className="text-[11px] text-ink-3">Aviso de segurança de prescrição</p>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                <div className="text-xs text-ink-2 leading-relaxed space-y-2">
+                  <p>
+                    O exercício <strong className="text-ink font-semibold">"{orthopedicSafetyModal.exercicio.nome}"</strong> entra em conflito com as recomendações clínicas registradas para este aluno.
+                  </p>
+                  
+                  <div className="p-3.5 rounded-2xl bg-[#F26A1B]/10 border border-[#F26A1B]/20 space-y-2.5">
+                    <div className="flex items-center gap-1.5 justify-between">
+                      <span className="text-[10px] font-bold text-accent uppercase tracking-wider">
+                        {orthopedicSafetyModal.regra.condicaoName || 'Restrição Ativa'}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
+                        orthopedicSafetyModal.regra.tipo === 'evitar' 
+                          ? 'bg-rose-500 text-white' 
+                          : 'bg-[#F26A1B] text-white'
+                      }`}>
+                        {orthopedicSafetyModal.regra.tipo === 'evitar' ? 'Evitar Totalmente' : 'Atenção Especial'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div>
+                        <span className="font-semibold text-ink-3 text-[10px] block uppercase">Motivo / Patologia:</span>
+                        <p className="text-ink-2 italic">"{orthopedicSafetyModal.regra.motivo}"</p>
+                      </div>
+                      {orthopedicSafetyModal.regra.sugestao && (
+                        <div>
+                          <span className="font-semibold text-ink-3 text-[10px] block uppercase text-emerald-600">Sugestão de substituição:</span>
+                          <p className="text-emerald-700 font-medium">"{orthopedicSafetyModal.regra.sugestao}"</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-ink-3 italic text-center leading-relaxed">
+                  Deseja ignorar o alerta e adicionar este exercício mesmo assim?
+                </p>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-4 bg-raise/5 border-t border-line flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setOrthopedicSafetyModal({ show: false, exercicio: null, regra: null, onConfirm: () => {} })}
+                  className="h-10 px-4 rounded-xl border border-line hover:bg-raise transition-colors text-xs font-bold text-ink-2 cursor-pointer"
+                >
+                  Escolher outro exercício
+                </button>
+                <button
+                  type="button"
+                  onClick={orthopedicSafetyModal.onConfirm}
+                  className="h-10 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors text-xs font-bold cursor-pointer"
+                >
+                  Adicionar mesmo assim
+                </button>
               </div>
             </motion.div>
           </div>

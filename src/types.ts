@@ -368,4 +368,42 @@ export interface Plano {
   recursos?: string[];
 }
 
+export interface CondicaoOrtopedica {
+  id: number | string;
+  slug: string;
+  nome: string;
+  regiao: string;
+  resumo?: string | null;
+  orientacao_geral: string;
+  requer_laudo: boolean;
+}
+
+export interface AlunoCondicao {
+  id: number | string;
+  aluno_id: string;
+  condicao_id: number | string;
+  lado: 'esquerdo' | 'direito' | 'bilateral' | null;
+  grau: string | null;
+  tem_laudo: boolean;
+  laudo_url: string | null;
+  observacao: string | null;
+  ativo: boolean;
+  // Joined field
+  condicoes_ortopedicas?: CondicaoOrtopedica;
+}
+
+export interface CondicaoRegra {
+  id: number | string;
+  condicao_id: number | string;
+  tipo: 'evitar' | 'atencao' | 'priorizar';
+  exercicio_id: string | null;
+  padrao_nome: string | null;
+  motivo: string;
+  sugestao: string;
+  condicoes_ortopedicas?: {
+    nome: string;
+  };
+}
+
+
 

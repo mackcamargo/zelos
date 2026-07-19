@@ -4,7 +4,7 @@ import {
   Conquista, AlunoConquista, RecordePessoal, FotoProgresso, AnguloFoto, 
   PlanoAlimentar, RegistroNutricao, RegistroHidratacao, SessaoBemEstar, 
   ConteudoEducativo, Agendamento, ResumoBemEstar, Treino, TreinoExercicio, 
-  Mensagem, Assinatura, Plano, Anamnese 
+  Mensagem, Assinatura, Plano, Anamnese, CondicaoOrtopedica, AlunoCondicao, CondicaoRegra 
 } from '../types';
 
 // Mock values for video placeholders
@@ -2396,5 +2396,148 @@ export const dbService = {
     }
     save('zenite_anamneses', list);
     return { data: updated as Anamnese, error: null };
+  },
+
+  async getCondicoesOrtopedicas(): Promise<{ data: CondicaoOrtopedica[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('condicoes_ortopedicas')
+        .select('*')
+        .order('nome');
+      return { data: data as CondicaoOrtopedica[], error };
+    }
+    const list = load('zenite_condicoes_ortopedicas', defaultCondicoesOrtopedicas);
+    return { data: list, error: null };
+  },
+
+  async getAlunoCondicoes(alunoId: string): Promise<{ data: AlunoCondicao[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('aluno_condicoes')
+        .select('*, condicoes_ortopedicas(nome, regiao, orientacao_geral, requer_laudo)')
+        .eq('aluno_id', alunoId)
+        .eq('ativo', true);
+      return { data: data as AlunoCondicao[], error };
+    }
+    const allCondicoes = load('zenite_condicoes_ortopedicas', defaultCondicoesOrtopedicas);
+    const list = load('zenite_aluno_condicoes', []);
+    const filtered = list.filter((x: any) => x.aluno_id === alunoId && x.ativo === true);
+    // Join manually for mock
+    const joined = filtered.map((ac: any) => {
+      const cond = allCondicoes.find((c: any) => String(c.id) === String(ac.condicao_id));
+      return {
+        ...ac,
+        condicoes_ortopedicas: cond || null
+      };
+    });
+    return { data: joined, error: null };
+  },
+
+  async addAlunoCondicao(alunoCondicao: Omit<AlunoCondicao, 'id'>): Promise<{ data: AlunoCondicao | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('aluno_condicoes')
+        .insert({ ...alunoCondicao, ativo: true })
+        .select()
+        .single();
+      return { data: data as AlunoCondicao, error };
+    }
+    const list = load('zenite_aluno_condicoes', []);
+    const newCond = {
+      ...alunoCondicao,
+      id: 'ac-' + Math.random().toString(36).substring(2, 9),
+      ativo: true
+    };
+    list.push(newCond);
+    save('zenite_aluno_condicoes', list);
+    
+    // Get full object with joined relation for return
+    const allCondicoes = load('zenite_condicoes_ortopedicas', defaultCondicoesOrtopedicas);
+    const cond = allCondicoes.find((c: any) => String(c.id) === String(newCond.condicao_id));
+    const joined = {
+      ...newCond,
+      condicoes_ortopedicas: cond || null
+    };
+    return { data: joined, error: null };
+  },
+
+  async inativarAlunoCondicao(id: string | number): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('aluno_condicoes')
+        .update({ ativo: false })
+        .eq('id', id);
+      return { error };
+    }
+    const list = load('zenite_aluno_condicoes', []);
+    const idx = list.findIndex((x: any) => String(x.id) === String(id));
+    if (idx >= 0) {
+      list[idx].ativo = false;
+      save('zenite_aluno_condicoes', list);
+    }
+    return { error: null };
+  },
+
+  async getCondicaoRegras(condicaoIds: (string | number)[]): Promise<{ data: CondicaoRegra[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('condicao_regras')
+        .select('*, condicoes_ortopedicas(nome)')
+        .in('condicao_id', condicaoIds);
+      return { data: data as CondicaoRegra[], error };
+    }
+    const allCondicoes = load('zenite_condicoes_ortopedicas', defaultCondicoesOrtopedicas);
+    const allRegras = load('zenite_condicao_regras', defaultCondicaoRegras);
+    const stringifiedIds = condicaoIds.map(String);
+    const filtered = allRegras.filter((r: any) => stringifiedIds.includes(String(r.condicao_id)));
+    // Join manually for mock
+    const joined = filtered.map((r: any) => {
+      const cond = allCondicoes.find((c: any) => String(c.id) === String(r.condicao_id));
+      return {
+        ...r,
+        condicoes_ortopedicas: cond ? { nome: cond.nome } : null
+      };
+    });
+    return { data: joined, error: null };
+  },
+
+  async uploadLaudo(alunoId: string, file: File): Promise<{ url: string | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${alunoId}/${Math.random().toString(36).substring(2, 9)}_${Date.now()}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from('laudos')
+        .upload(fileName, file, { cacheControl: '3600', upsert: true });
+      if (error) return { url: null, error };
+      const { data: { publicUrl } } = supabase.storage.from('laudos').getPublicUrl(fileName);
+      return { url: publicUrl, error: null };
+    }
+    // Mock mode
+    const fakeUrl = URL.createObjectURL(file);
+    return { url: fakeUrl, error: null };
   }
 };
+
+const defaultCondicoesOrtopedicas = [
+  { id: 1, slug: 'hernia_disco', nome: 'Hérnia de Disco Lombar', regiao: 'Coluna Lombar', resumo: 'Deslocamento do disco intervertebral na região lombar.', orientacao_geral: 'Evitar sobrecarga axial direta na coluna, flexão extrema do tronco sob carga (ex: agachamento livre pesado ou levantamento terra convencional) e priorizar fortalecimento de core profundo.', requer_laudo: true },
+  { id: 2, slug: 'condromalacia', nome: 'Condromalácia Patelar', regiao: 'Joelhos', resumo: 'Desgaste da cartilagem patelofemoral.', orientacao_geral: 'Evitar flexão de joelho acima de 90° sob carga excessiva e saltos repetitivos. Focar em fortalecimento de quadríceps (vasto medial) e glúteos.', requer_laudo: false },
+  { id: 3, slug: 'tendinite_ombro', nome: 'Tendinite do Manguito Rotador', regiao: 'Ombro', resumo: 'Inflamação ou pinçamento dos tendões do ombro.', orientacao_geral: 'Evitar desenvolvimento de ombros com barra livre pesada, abdução/elevação acima de 90° sob carga e rotação interna sob esforço. Focar em rotação externa e estabilização escapular.', requer_laudo: false },
+  { id: 4, slug: 'espondiloliste', nome: 'Espondilolistese', regiao: 'Coluna Lombar', resumo: 'Deslizamento de uma vértebra sobre a outra.', orientacao_geral: 'Evitar hiperextensão da coluna e cargas axiais elevadas. Focar em estabilização de core e fortalecimento de glúteos.', requer_laudo: true }
+];
+
+const defaultCondicaoRegras = [
+  // Hérnia de disco
+  { id: 1, condicao_id: 1, tipo: 'evitar', exercicio_id: 'ex-agachamento', padrao_nome: 'Agachamento', motivo: 'Compressão axial excessiva na coluna vertebral sob carga.', sugestao: 'Leg Press 45 com lombar bem apoiada ou Agachamento Goblet leve.' },
+  { id: 2, condicao_id: 1, tipo: 'evitar', exercicio_id: null, padrao_nome: 'Levantamento Terra', motivo: 'Alto cisalhamento lombar na fase inicial do movimento.', sugestao: 'Elevação pélvica controlada ou Extensora de pernas.' },
+  { id: 3, condicao_id: 1, tipo: 'atencao', exercicio_id: null, padrao_nome: 'Desenvolvimento', motivo: 'Carga axial sobre a coluna em pé.', sugestao: 'Desenvolvimento sentado com apoio total das costas.' },
+  
+  // Condromalácia
+  { id: 4, condicao_id: 2, tipo: 'evitar', exercicio_id: 'ex-agachamento', padrao_nome: 'Agachamento Livre', motivo: 'Elevada força de compressão patelofemoral acima de 90° de flexão.', sugestao: 'Agachamento Sumô parcial (até 70° de flexão) ou Cadeira Extensora isométrica.' },
+  { id: 5, condicao_id: 2, tipo: 'atencao', exercicio_id: null, padrao_nome: 'Leg Press', motivo: 'Evitar flexão profunda do joelho sob carga média/alta.', sugestao: 'Executar com amplitude controlada até 90° de flexão.' },
+  { id: 6, condicao_id: 2, tipo: 'priorizar', exercicio_id: null, padrao_nome: 'Cadeira Extensora', motivo: 'Excelente isolador de quadríceps, seguro para a patela se executado em amplitudes confortáveis.', sugestao: 'Dar prioridade com repetições controladas e foco em contração.' },
+  
+  // Tendinite do ombro
+  { id: 7, condicao_id: 3, tipo: 'evitar', exercicio_id: null, padrao_nome: 'Desenvolvimento com Barra', motivo: 'Risco de pinçamento subacromial ao elevar barra livre acima da linha dos ombros.', sugestao: 'Elevação lateral com halteres no plano da escápula (ligeiramente à frente) até 80°.' },
+  { id: 8, condicao_id: 3, tipo: 'atencao', exercicio_id: 'ex-supino', padrao_nome: 'Supino', motivo: 'Estresse na porção anterior do ombro se a barra tocar o peito de forma abrupta.', sugestao: 'Reduzir ligeiramente a amplitude ou usar pegada neutra com halteres.' }
+];
+
