@@ -21,6 +21,19 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   const [showRipple, setShowRipple] = useState<boolean>(false);
   const [historico, setHistorico] = useState<{ data: string; total: number }[]>([]);
   const [activeBarDate, setActiveBarDate] = useState<string | null>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setPrefersReducedMotion(mediaQuery.matches);
+      const listener = (e: MediaQueryListEvent) => {
+        setPrefersReducedMotion(e.matches);
+      };
+      mediaQuery.addEventListener('change', listener);
+      return () => mediaQuery.removeEventListener('change', listener);
+    }
+  }, []);
 
   // Sound preference state
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
@@ -201,7 +214,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
 
       // Check for celebration crossing 100% (Once per day)
       if (p >= 100 && percent < 100) {
-        const keyCelebrated = `zelos_celebrated_${alunoId}_${hoje}`;
+        const keyCelebrated = `zelos_hidratacao_meta_${hoje}`;
         if (localStorage.getItem(keyCelebrated) !== 'true') {
           localStorage.setItem(keyCelebrated, 'true');
           setCelebrate(true);
@@ -214,7 +227,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
             setCelebrate(false);
             setShowRain(false);
             setShowRipple(false);
-          }, 4000);
+          }, 1500);
         }
       }
 
@@ -247,6 +260,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
 
       // Clear celebration status for today
       localStorage.removeItem(`zelos_celebrated_${alunoId}_${hoje}`);
+      localStorage.removeItem(`zelos_hidratacao_meta_${hoje}`);
 
       setConsumido(0);
       setPercent(0);
@@ -361,12 +375,13 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
           animation: waveFlow 4s linear infinite;
         }
         @keyframes dropletRain {
-          0% { transform: translateY(-20px) scale(0); opacity: 0; }
-          40% { opacity: 0.9; }
-          100% { transform: translateY(180px) scale(1.1); opacity: 0; }
+          0% { transform: translateY(-10px) scale(0.6); opacity: 0; }
+          20% { opacity: 0.7; }
+          80% { opacity: 0.7; }
+          100% { transform: translateY(140px) scale(0.8); opacity: 0; }
         }
         .animate-droplet {
-          animation: dropletRain 1.5s cubic-bezier(0.1, 0.4, 0.4, 0.9) infinite;
+          animation: dropletRain 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
         @keyframes ripple {
           0% { transform: scale(0.85); opacity: 0.7; }
@@ -396,21 +411,23 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
       {/* Droplets Rain celebration effect */}
-      {showRain && (
+      {showRain && !prefersReducedMotion && (
         <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
           {[...Array(14)].map((_, i) => {
-            const left = `${(i * 7.5) + (Math.random() * 5)}%`;
-            const delay = `${Math.random() * 0.9}s`;
-            const size = `${Math.random() * 8 + 6}px`;
+            const left = `${5 + (i * 6.5) + (Math.random() * 3)}%`;
+            const delay = `${Math.random() * 0.3}s`;
+            const size = `${Math.random() * 4 + 8}px`;
+            const opacity = 0.4 + Math.random() * 0.3;
             return (
               <div
                 key={i}
-                className="absolute text-[#F26A1B]/80 animate-droplet select-none font-mono"
+                className="absolute text-[#F26A1B] animate-droplet select-none font-mono pointer-events-none"
                 style={{
                   left,
                   animationDelay: delay,
                   fontSize: size,
-                  top: '-20px'
+                  opacity,
+                  top: '-15px'
                 }}
               >
                 💧
@@ -630,27 +647,25 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
         </AnimatePresence>
       </div>
 
-      {/* Celebration animation overlay inside the card */}
+      {/* Celebration animation badge inside the card */}
       <AnimatePresence>
         {celebrate && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-void/60 z-30 flex flex-col items-center justify-center text-center p-4 backdrop-blur-xs"
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 z-35 flex items-center justify-center p-4 pointer-events-none select-none"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 10 }}
-              animate={{ scale: 1, y: 0 }}
-              className="space-y-4"
+              initial={{ scale: 0.8, y: 15, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.8, y: -15, opacity: 0 }}
+              transition={{ type: "spring", damping: 12, stiffness: 150 }}
+              className="bg-[#F26A1B] text-white border border-[#F26A1B]/20 shadow-xl px-5 py-3 rounded-2xl flex items-center gap-2 text-xs font-bold pointer-events-none"
             >
-              <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto animate-bounce">
-                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-semibold text-white text-sm">Meta batida! 💧🎉</h4>
-                <p className="text-[11px] text-white/80 max-w-[180px]">Hidratação completa para suas articulações, foco e recuperação!</p>
-              </div>
+              <span className="text-sm">💧</span>
+              <span>Meta batida! 🎉</span>
             </motion.div>
           </motion.div>
         )}
