@@ -484,24 +484,21 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             <h1 className="text-3xl xl:text-4xl font-black font-display text-ink tracking-tight leading-tight max-w-md">
               Sua consultoria com <span className="text-[#F26A1B]">tecnologia de ponta</span> e controle total.
             </h1>
-            <p className="text-ink-2 text-xs leading-relaxed max-w-sm font-medium">
-              Chega de treinos soltos por WhatsApp, planilhas complexas ou papel e caneta. Uma plataforma completa de alta performance por um custo extremamente acessível.
-            </p>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="space-y-5 max-w-sm"
+            className="space-y-6 max-w-sm"
           >
             <div className="flex items-start gap-3.5">
               <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
                 <Dumbbell className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink text-xs">Adeus papel e WhatsApp</h3>
-                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Monte treinos práticos e tecnológicos em segundos e entregue direto no Zelos Personal do seu aluno.</p>
+                <h3 className="font-bold text-ink text-sm">Adeus papel e WhatsApp</h3>
+                <p className="text-ink-2 text-xs/relaxed mt-1 font-medium">Monte treinos práticos e tecnológicos em segundos e entregue direto no Zelos Personal do seu aluno.</p>
               </div>
             </div>
             
@@ -510,8 +507,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 <TrendingUp className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink text-xs">Dashboard de Evolução</h3>
-                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Acompanhe métricas integradas, histórico de cargas, fotos e tenha feedback diário/semanal da rotina dos alunos.</p>
+                <h3 className="font-bold text-ink text-sm">Dashboard de Evolução</h3>
+                <p className="text-ink-2 text-xs/relaxed mt-1 font-medium">Acompanhe métricas integradas, histórico de cargas, fotos e tenha feedback diário/semanal da rotina dos alunos.</p>
               </div>
             </div>
 
@@ -520,8 +517,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 <MessageSquare className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink text-xs">Chat e Incentivo em Tempo Real</h3>
-                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Mantenha contato próximo por chat integrado, parabenize os focados e incentive a consistência de quem precisa de apoio.</p>
+                <h3 className="font-bold text-ink text-sm">Chat e Incentivo em Tempo Real</h3>
+                <p className="text-ink-2 text-xs/relaxed mt-1 font-medium">Mantenha contato próximo por chat integrado, parabenize os focados e incentive a consistência de quem precisa de apoio.</p>
               </div>
             </div>
 
@@ -530,8 +527,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                 <HeartPulse className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="font-semibold text-ink text-xs">Segurança Ortopédica e Cuidados</h3>
-                <p className="text-ink-3 text-[11px] leading-relaxed mt-0.5">Atenção especial com anamneses integradas de lesões, dores e limitações, totalmente atenta às recomendações de ortopedistas para adaptar os exercícios com precisão.</p>
+                <h3 className="font-bold text-ink text-sm">Segurança Ortopédica e Cuidados</h3>
+                <p className="text-ink-2 text-xs/relaxed mt-1 font-medium">Atenção especial com anamneses integradas de lesões, dores e limitações, totalmente atenta às recomendações de ortopedistas para adaptar os exercícios com precisão.</p>
               </div>
             </div>
           </motion.div>
