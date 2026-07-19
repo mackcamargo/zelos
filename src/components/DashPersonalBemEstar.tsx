@@ -37,7 +37,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
   if (loading) {
     return (
       <div className="z-page pb-20 space-y-8">
-        <section className="grid grid-cols-2 gap-4">
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="z-card h-28 z-skeleton" />
           <div className="z-card h-28 z-skeleton" />
         </section>
@@ -69,7 +69,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ pers
   return (
     <div className="z-page pb-20 space-y-8">
       {/* Overview Stats */}
-      <section className="grid grid-cols-2 gap-4">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI: Média Geral */}
         <div className="z-card z-card--rail z-rail-ok">
           <div className="z-eyebrow mb-2 flex items-center gap-1">

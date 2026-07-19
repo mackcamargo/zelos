@@ -146,6 +146,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
   // Selected state for active workout & exercise detail
   const [selectedWorkout, setSelectedWorkout] = useState<any | null>(null);
+  const [lastSelectedWorkoutId, setLastSelectedWorkoutId] = useState<string | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
   const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null);
   const [expandido, setExpandido] = useState(true);
@@ -562,6 +563,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
   const handleSelectWorkout = async (workoutId: string) => {
     setLoadingWorkoutDetails(true);
+    setLastSelectedWorkoutId(workoutId);
     try {
       const { data, error } = await dbService.getTreinoCompleto(workoutId);
       if (error) {
@@ -908,9 +910,21 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
             {/* WORKOUT LIST (If no active workout is selected) */}
             {!selectedWorkout ? (
               <div className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-baseline gap-x-3 gap-y-1">
-                  <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight leading-none">Meu Treino de Hoje</h1>
-                  <p className="text-sm text-ink-2 leading-none">Seus treinos, cargas e exercícios personalizados publicados pelo seu Personal</p>
+                <div className="flex items-center gap-4">
+                  {lastSelectedWorkoutId && (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectWorkout(lastSelectedWorkoutId)}
+                      className="p-2.5 bg-surface border border-line rounded-xl text-ink-2 hover:text-ink hover:border-line-strong transition-all flex items-center justify-center shrink-0 active:scale-95"
+                      title="Voltar para o treino ativo"
+                    >
+                      <ArrowLeft className="w-5 h-5 text-flame" />
+                    </button>
+                  )}
+                  <div className="flex flex-col md:flex-row md:items-baseline gap-x-3 gap-y-1">
+                    <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight leading-none">Meu Treino de Hoje</h1>
+                    <p className="text-sm text-ink-2 leading-none">Seus treinos, cargas e exercícios personalizados publicados pelo seu Personal</p>
+                  </div>
                 </div>
 
                 {loading ? (
