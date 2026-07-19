@@ -85,6 +85,7 @@ export interface Anamnese {
   nivel_atividade_diaria: 'sedentario' | 'leve' | 'moderado' | 'intenso';
   observacoes: string | null;
   criado_em?: string;
+  respondido_em?: string;
   updated_at?: string;
 }
 

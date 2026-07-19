@@ -1122,11 +1122,17 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                     <Heart className="w-5 h-5 text-rose-500" />
                     <div>
                       <h3 className="font-display font-bold text-base text-ink">Anamnese do Aluno</h3>
-                      {studentAnamnese && (
-                        <p className="text-[11px] text-ink-3">
-                          Respondida em: {new Date(studentAnamnese.criado_em).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
+                      {studentAnamnese && (() => {
+                        const d = studentAnamnese?.respondido_em ? new Date(studentAnamnese.respondido_em) : null;
+                        const texto = d && !isNaN(d.getTime())
+                          ? d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                          : 'Data não informada';
+                        return (
+                          <p className="text-[11px] text-ink-3">
+                            Respondida em: {texto}
+                          </p>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

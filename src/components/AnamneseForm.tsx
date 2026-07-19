@@ -134,7 +134,8 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
       const payload: Anamnese = {
         ...formData,
         frequencia_semanal_desejada: Number(formData.frequencia_semanal_desejada) || 0,
-        horas_sono: Number(formData.horas_sono) || 0
+        horas_sono: Number(formData.horas_sono) || 0,
+        respondido_em: new Date().toISOString()
       };
 
       const { data, error } = await dbService.salvarAnamnese(payload);

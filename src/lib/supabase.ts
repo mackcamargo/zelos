@@ -2387,7 +2387,11 @@ export const dbService = {
     }
     const list = load('zenite_anamneses', []);
     const index = list.findIndex((x: any) => x.aluno_id === anamnese.aluno_id);
-    const updated = { ...anamnese, updated_at: new Date().toISOString() };
+    const updated = { 
+      ...anamnese, 
+      updated_at: new Date().toISOString(),
+      respondido_em: anamnese.respondido_em || new Date().toISOString()
+    };
     if (index >= 0) {
       list[index] = { ...list[index], ...updated };
     } else {
