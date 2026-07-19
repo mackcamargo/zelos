@@ -1040,70 +1040,54 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
         {activeTab === 'treino' && (
           <div id="tab-content-treino" className="space-y-6">
             
-            {/* BANNER DE TREINO NOVO */}
+            {/* BANNER DE TREINO NOVO (FAIXA COMPACTA) */}
             {novoTreino && (
               <div 
                 id="banner-novo-treino"
                 onClick={() => handleSelectWorkout(novoTreino.id)}
-                className="banner-novo-treino relative w-full border-2 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-5 cursor-pointer hover:opacity-95 transition-all select-none shadow-lg group overflow-hidden"
+                className="banner-novo-treino w-full border-[1.5px] rounded-xl py-3 px-4 flex flex-row justify-between items-center gap-3 cursor-pointer hover:opacity-95 transition-all select-none shadow-md group overflow-hidden"
                 style={{
                   borderColor: '#F26A1B',
-                  backgroundColor: 'rgba(242, 106, 27, 0.12)'
+                  backgroundColor: 'rgba(242, 106, 27, 0.10)'
                 }}
               >
-                {/* Selo NOVO no canto superior - posicionado dentro para nunca cortar */}
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-5 bg-[#F26A1B] text-white text-[10px] font-mono font-black uppercase px-2.5 py-0.5 rounded-full shadow-md selo-novo z-10 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  NOVO
-                </div>
-
-                {/* Esquerda: Sino + Textos com alinhamento refinado */}
-                <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 w-full sm:w-auto">
-                  <div className="w-12 h-12 rounded-full bg-[#F26A1B]/20 flex items-center justify-center shrink-0 shadow-inner">
-                    <Bell className="w-6 h-6 text-[#F26A1B] animate-bounce" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-sans font-black text-ink uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5">
-                      Novo treino disponível
-                    </h4>
-                    <p className="text-base font-display font-bold text-ink mt-1 block truncate">
-                      {novoTreino.titulo}
-                    </p>
-                    <p className="text-xs text-ink-2 mt-1.5 font-mono font-medium flex items-center justify-center sm:justify-start gap-1">
+                {/* Esquerda: Sino + Textos empilhados */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <Bell className="w-5 h-5 text-[#F26A1B] shrink-0 animate-bounce" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-[11px] font-sans font-black text-[#F26A1B] uppercase tracking-wider">
+                        Novo treino disponível
+                      </h4>
+                      <span className="bg-[#F26A1B] text-white text-[8px] font-mono font-black uppercase px-1.5 py-0.5 rounded shadow-sm selo-novo flex items-center gap-0.5 shrink-0">
+                        <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                        NOVO
+                      </span>
+                    </div>
+                    <p className="text-xs font-sans font-bold text-ink truncate mt-0.5">
                       {(() => {
-                        const [dataPostado, horaPostado] = (() => {
-                          if (novoTreino.criado_em) {
-                            const d = new Date(novoTreino.criado_em);
-                            const dataFormatted = d.toLocaleDateString('pt-BR');
-                            const horaFormatted = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                            return [dataFormatted, horaFormatted];
-                          }
-                          if (novoTreino.data_treino) {
-                            const [ano, mes, dia] = novoTreino.data_treino.split("-").map(Number);
-                            const dataFormatted = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
-                            const horaFormatted = novoTreino.hora_treino ? novoTreino.hora_treino.substring(0, 5) : '00:00';
-                            return [dataFormatted, horaFormatted];
-                          }
-                          return ['', ''];
-                        })();
-
-                        return `Postado em ${dataPostado} às ${horaPostado}`;
+                        if (novoTreino.data_treino) {
+                          const [ano, mes, dia] = novoTreino.data_treino.split("-").map(Number);
+                          const dataFormatada = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                          return `${dataFormatada} - ${novoTreino.titulo}`;
+                        }
+                        return novoTreino.titulo;
                       })()}
                     </p>
                   </div>
                 </div>
 
-                {/* Direita: Botão Iniciar com tamanho ajustado para mobile */}
+                {/* Direita: Botão Iniciar compacto */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSelectWorkout(novoTreino.id);
                   }}
-                  className="w-full sm:w-auto px-6 py-3 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-xs font-display font-bold uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 self-stretch sm:self-center shrink-0 active:scale-95"
+                  className="px-3.5 py-1.5 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-[11px] font-display font-bold uppercase rounded-lg shadow-sm transition-all flex items-center gap-1 shrink-0 active:scale-95"
                 >
                   <span>Iniciar</span>
-                  <ChevronRight className="w-4 h-4 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight className="w-3.5 h-3.5 stroke-[2.5] group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
             )}

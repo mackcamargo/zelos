@@ -97,19 +97,13 @@ body {
   border-color: var(--z-ok) !important;
 }
 
-@keyframes pulseNovoForte {
-  0%   { box-shadow: 0 0 0 0 rgba(242,106,27,0.5); transform: scale(1); }
-  50%  { box-shadow: 0 0 0 12px rgba(242,106,27,0); transform: scale(1.015); }
-  100% { box-shadow: 0 0 0 0 rgba(242,106,27,0); transform: scale(1); }
-}
-
-@keyframes flashBorda {
-  0%,100% { border-color: #F26A1B; background-color: rgba(242,106,27,0.10); }
-  50%     { border-color: #ff8a3d; background-color: rgba(242,106,27,0.18); }
+@keyframes pulseFaixa {
+  0%,100% { box-shadow: 0 0 0 0 rgba(242,106,27,0.55); }
+  50%     { box-shadow: 0 0 0 8px rgba(242,106,27,0); }
 }
 
 .banner-novo-treino {
-  animation: pulseNovoForte 2.4s ease-in-out infinite, flashBorda 2.4s ease-in-out infinite;
+  animation: pulseFaixa 1.3s ease-in-out infinite;
 }
 
 @keyframes piscaSelo {
@@ -123,11 +117,12 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .banner-novo-treino {
-    animation: flashBorda 2s ease-in-out infinite;
+    animation: none !important;
+    box-shadow: none !important;
     transform: none !important;
   }
   .selo-novo {
-    animation: piscaSelo 1.5s ease-in-out infinite;
+    animation: piscaSelo 2s ease-in-out infinite;
   }
 }
 
