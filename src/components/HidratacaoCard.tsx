@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Droplets, Plus, Settings, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, Cell, XAxis, YAxis, Tooltip } from 'recharts';
+import { Droplets, Plus, Settings, Trash2, Loader2, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
 import { dbService } from '../lib/supabase';
 import { tocar } from '../lib/som';
 
@@ -11,19 +10,72 @@ interface HidratacaoCardProps {
 
 export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   const [consumido, setConsumido] = useState<number>(0);
+  const [displayConsumido, setDisplayConsumido] = useState<number>(0);
   const [meta, setMeta] = useState<number>(2000);
   const [percent, setPercent] = useState<number>(0);
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [celebrate, setCelebrate] = useState<boolean>(false);
+  const [showRain, setShowRain] = useState<boolean>(false);
+  const [showRipple, setShowRipple] = useState<boolean>(false);
   const [historico, setHistorico] = useState<{ data: string; total: number }[]>([]);
+  const [activeBarDate, setActiveBarDate] = useState<string | null>(null);
+
+  // Sound preference state
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('zelos_hidratacao_som') !== 'false';
+    } catch {
+      return true;
+    }
+  });
+
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (alunoId) {
       loadData();
     }
   }, [alunoId]);
+
+  // Count-up animation with requestAnimationFrame
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      setDisplayConsumido(consumido);
+      return;
+    }
+
+    let startTimestamp: number | null = null;
+    const startValue = displayConsumido;
+    const endValue = consumido;
+    const duration = 500; // 500ms transition
+
+    if (startValue === endValue) return;
+
+    let animationFrameId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // Ease out quadratic
+      const easeProgress = progress * (2 - progress);
+      const currentValue = Math.floor(easeProgress * (endValue - startValue) + startValue);
+      setDisplayConsumido(currentValue);
+
+      if (progress < 1) {
+        animationFrameId = window.requestAnimationFrame(step);
+      } else {
+        setDisplayConsumido(endValue);
+      }
+    };
+
+    animationFrameId = window.requestAnimationFrame(step);
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [consumido]);
 
   const loadData = async () => {
     if (!alunoId) return;
@@ -68,11 +120,70 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
     }
   };
 
+  // Synthesized water-drop bubble sound using Web Audio API as fallback/accompaniment
+  const playSynthWaterDrop = () => {
+    try {
+      const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      // Bloop sweep up frequency
+      osc.frequency.setValueAtTime(350, now);
+      osc.frequency.exponentialRampToValueAtTime(1050, now + 0.1);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.3, now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } catch (e) {
+      // Ignore
+    }
+  };
+
+  const playWaterSound = () => {
+    if (!soundEnabled) return;
+    try {
+      // 1. Try to play standard /sounds/water.mp3 preloaded clipe
+      const audio = new Audio('/sounds/water.mp3');
+      audio.volume = 0.4;
+      audio.play().catch(() => {
+        // Fallback to high quality synthesized drop sound
+        playSynthWaterDrop();
+      });
+    } catch (err) {
+      playSynthWaterDrop();
+    }
+  };
+
+  const triggerVibrate = () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(30);
+      } catch (e) {
+        // Safe check
+      }
+    }
+  };
+
   const handleAddWater = async (ml: number) => {
     if (!alunoId) return;
 
     try {
-      tocar('toggleOn');
+      // Sound & Haptic immediate feedback
+      playWaterSound();
+      triggerVibrate();
+
       setSaving(true);
       const hoje = new Date().toISOString().split('T')[0];
       const novoConsumo = consumido + ml;
@@ -88,10 +199,23 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       const p = Math.min((novoConsumo / meta) * 100, 100);
       setPercent(p);
 
+      // Check for celebration crossing 100% (Once per day)
       if (p >= 100 && percent < 100) {
-        setCelebrate(true);
-        tocar('celebracao');
-        setTimeout(() => setCelebrate(false), 4000);
+        const keyCelebrated = `zelos_celebrated_${alunoId}_${hoje}`;
+        if (localStorage.getItem(keyCelebrated) !== 'true') {
+          localStorage.setItem(keyCelebrated, 'true');
+          setCelebrate(true);
+          setShowRain(true);
+          setShowRipple(true);
+          playWaterSound();
+          tocar('celebracao');
+
+          setTimeout(() => {
+            setCelebrate(false);
+            setShowRain(false);
+            setShowRipple(false);
+          }, 4000);
+        }
       }
 
       // Update chart locally
@@ -120,6 +244,9 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
         data: hoje,
         ml: 0
       });
+
+      // Clear celebration status for today
+      localStorage.removeItem(`zelos_celebrated_${alunoId}_${hoje}`);
 
       setConsumido(0);
       setPercent(0);
@@ -152,37 +279,182 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
     }
   };
 
+  const toggleSound = () => {
+    const nextState = !soundEnabled;
+    setSoundEnabled(nextState);
+    try {
+      localStorage.setItem('zelos_hidratacao_som', nextState ? 'true' : 'false');
+    } catch (e) {
+      // Safe check
+    }
+    tocar('tap');
+  };
+
+  // 3) Dynamic message per percentage range
+  const getDynamicMessage = (p: number) => {
+    if (p >= 100) return "Meta batida! 💧🎉";
+    if (p >= 70) return "Quase lá, mais um gole!";
+    if (p >= 30) return "No caminho certo!";
+    return "Bora começar 💧";
+  };
+
+  // 5) Streak count from 7 days history
+  const getStreak = () => {
+    if (!historico || historico.length === 0) return 0;
+
+    let streak = 0;
+    const todayMet = (historico[6]?.total || 0) >= meta;
+    const yesterdayMet = (historico[5]?.total || 0) >= meta;
+
+    // Streak is alive only if met today OR yesterday
+    if (!todayMet && !yesterdayMet) {
+      return 0;
+    }
+
+    if (todayMet) {
+      for (let i = 6; i >= 0; i--) {
+        if ((historico[i]?.total || 0) >= meta) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+    } else {
+      for (let i = 5; i >= 0; i--) {
+        if ((historico[i]?.total || 0) >= meta) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    return streak;
+  };
+
+  const streak = getStreak();
+
+  // Helper to map weekday names
+  const getWeekdayInitials = (dataStr: string) => {
+    const d = new Date(dataStr + 'T00:00:00');
+    const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    return days[d.getDay()];
+  };
+
   if (loading) {
     return (
       <div className="bg-surface border border-line rounded-xl p-8 flex justify-center items-center">
-        <Loader2 className="w-6 h-6 text-accent animate-spin" />
+        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="bg-surface border border-line rounded-3xl p-4 sm:p-6 relative overflow-hidden flex flex-col justify-between group min-h-[300px]">
+      {/* Styles inject for the customized smooth wave, droplets and ripple animations */}
+      <style>{`
+        @keyframes waveFlow {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-wave-flow {
+          animation: waveFlow 4s linear infinite;
+        }
+        @keyframes dropletRain {
+          0% { transform: translateY(-20px) scale(0); opacity: 0; }
+          40% { opacity: 0.9; }
+          100% { transform: translateY(180px) scale(1.1); opacity: 0; }
+        }
+        .animate-droplet {
+          animation: dropletRain 1.5s cubic-bezier(0.1, 0.4, 0.4, 0.9) infinite;
+        }
+        @keyframes ripple {
+          0% { transform: scale(0.85); opacity: 0.7; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        .animate-ripple {
+          animation: ripple 1.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+          .animate-wave-flow {
+            animation: none !important;
+            transform: none !important;
+          }
+          .animate-droplet {
+            animation: none !important;
+            display: none !important;
+          }
+          .animate-ripple {
+            animation: none !important;
+            display: none !important;
+          }
+        }
+      `}</style>
+
       {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+
+      {/* Droplets Rain celebration effect */}
+      {showRain && (
+        <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+          {[...Array(14)].map((_, i) => {
+            const left = `${(i * 7.5) + (Math.random() * 5)}%`;
+            const delay = `${Math.random() * 0.9}s`;
+            const size = `${Math.random() * 8 + 6}px`;
+            return (
+              <div
+                key={i}
+                className="absolute text-[#F26A1B]/80 animate-droplet select-none font-mono"
+                style={{
+                  left,
+                  animationDelay: delay,
+                  fontSize: size,
+                  top: '-20px'
+                }}
+              >
+                💧
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-accent/10 border border-line rounded-xl">
-              <Droplets className="w-5 h-5 text-accent" />
+            <div className="p-2 bg-[#F26A1B]/10 border border-[#F26A1B]/15 rounded-xl">
+              <Droplets className="w-5 h-5 text-[#F26A1B]" />
             </div>
             <div>
               <h3 className="font-semibold text-sm text-ink leading-tight">Hidratação</h3>
               <p className="text-[10px] text-ink-3 uppercase tracking-wider font-mono">Consumo diário</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-1.5 bg-bg hover:bg-raise border border-line rounded-lg text-ink-3 hover:text-accent transition-colors cursor-pointer"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </button>
+          
+          <div className="flex items-center gap-2">
+            {/* Toggle sound button */}
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="p-1.5 bg-bg hover:bg-raise border border-line rounded-lg text-ink-3 hover:text-[#F26A1B] transition-colors cursor-pointer"
+              title={soundEnabled ? "Mutar sons" : "Ativar sons"}
+            >
+              {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-ink-4" />}
+            </button>
+
+            {/* Settings button */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowSettings(!showSettings);
+                tocar('tap');
+              }}
+              className="p-1.5 bg-bg hover:bg-raise border border-line rounded-lg text-ink-3 hover:text-[#F26A1B] transition-colors cursor-pointer"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
@@ -200,15 +472,18 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                   type="number"
                   value={meta}
                   onChange={(e) => setMeta(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-void border border-line rounded-lg p-3 text-sm text-ink outline-none focus:border-accent/50"
+                  className="w-full bg-void border border-line rounded-lg p-3 text-sm text-ink outline-none focus:border-[#F26A1B]/50"
                   step="250"
                 />
               </div>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowSettings(false)}
-                  className="flex-1 py-2.5 bg-bg hover:bg-raise border border-line rounded-lg text-xs font-semibold text-ink-2 transition-colors"
+                  onClick={() => {
+                    setShowSettings(false);
+                    tocar('tap');
+                  }}
+                  className="flex-1 py-2.5 bg-bg hover:bg-raise border border-line rounded-lg text-xs font-semibold text-ink-2 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -216,7 +491,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                   type="button"
                   onClick={handleSaveMeta}
                   disabled={saving}
-                  className="flex-1 py-2.5 bg-accent text-white border border-line rounded-lg text-xs font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-[#F26A1B] text-white border border-[#F26A1B]/20 rounded-lg text-xs font-semibold hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   Salvar
@@ -233,49 +508,107 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
             >
               {/* Progress Circle & Text */}
               <div className="flex items-center gap-6">
-                <div className="relative w-20 h-20 flex-shrink-0">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                
+                {/* 1) ANEL COM ÁGUA ANIMADA */}
+                <div className="relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                  
+                  {/* Ripple effects when 100% achieved or active */}
+                  {showRipple && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                      <div className="w-24 h-24 rounded-full border-4 border-[#FF8A3D] animate-ripple absolute" />
+                      <div className="w-24 h-24 rounded-full border-4 border-[#F26A1B] animate-ripple absolute" style={{ animationDelay: '0.3s' }} />
+                    </div>
+                  )}
+
+                  <svg className="w-full h-full transform -rotate-90 z-10" viewBox="0 0 36 36">
                     <path
                       className="text-line"
-                      strokeWidth="3.5"
+                      strokeWidth="3.2"
                       stroke="currentColor"
                       fill="none"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      className="text-accent transition-all duration-500 ease-out"
+                      className="text-[#F26A1B] transition-all duration-500 ease-out"
                       strokeDasharray={`${percent}, 100`}
-                      strokeWidth="3.5"
+                      strokeWidth="3.2"
                       strokeLinecap="round"
                       stroke="currentColor"
                       fill="none"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-bold text-ink num">{Math.round(percent)}%</span>
+
+                  {/* Inner container shaped as circle for water effect */}
+                  <div className="absolute inset-[6px] rounded-full overflow-hidden bg-raise/50 z-10 flex items-center justify-center">
+                    
+                    {/* Water layer with orange gradient */}
+                    <div 
+                      className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F26A1B] to-[#FF8A3D] transition-all duration-700 ease-out"
+                      style={{ height: `${percent}%` }}
+                    >
+                      {/* Horizontal moving waves at the top water level */}
+                      {percent > 0 && percent < 100 && (
+                        <div className="absolute top-0 left-0 w-[200%] h-3 -translate-y-[80%] pointer-events-none">
+                          <svg viewBox="0 0 120 28" className="w-full h-full text-[#FF8A3D] fill-current animate-wave-flow">
+                            <path d="M0 15 Q 30 0, 60 15 T 120 15 L 120 28 L 0 28 Z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Central percentage text inside the water ring */}
+                    <div className="z-20 text-center flex flex-col items-center">
+                      <span className={`text-[16px] font-black leading-none transition-colors duration-500 ${percent > 55 ? 'text-void font-black' : 'text-ink'}`}>
+                        {Math.round(percent)}%
+                      </span>
+                      <span className={`text-[8px] uppercase tracking-wider font-extrabold mt-0.5 transition-colors duration-500 ${percent > 70 ? 'text-void/80' : 'text-ink-3'}`}>
+                        Água
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-2xl font-bold text-ink num flex items-baseline gap-1">
-                    {consumido} <span className="text-xs font-normal text-ink-3">/ {meta}ml</span>
+                  {/* Animating count up display */}
+                  <p className="text-2xl font-extrabold text-ink num flex items-baseline gap-1">
+                    {displayConsumido} <span className="text-xs font-normal text-ink-3">/ {meta}ml</span>
                   </p>
-                  <p className="text-[12px] text-ink-3">
-                    {percent >= 100 ? 'Meta de água batida!' : 'Mantenha-se hidratado.'}
+                  
+                  {/* Dynamic Message for Remaining & Milestone */}
+                  <p className="text-[12px] text-ink-2 font-semibold">
+                    {percent >= 100 ? (
+                      <span className="text-emerald-600 flex items-center gap-1">
+                        Meta concluída! 🎉
+                      </span>
+                    ) : (
+                      <span>Faltam {Math.max(0, meta - consumido)}ml</span>
+                    )}
                   </p>
+
+                  {/* 3) MENSAGEM DINÂMICA por faixa de % */}
+                  <div className="text-[10px] font-bold text-[#F26A1B] uppercase tracking-wide bg-[#F26A1B]/10 px-2 py-0.5 rounded-md w-fit">
+                    {getDynamicMessage(percent)}
+                  </div>
                 </div>
               </div>
 
+              {/* 5) OFENSIVA (streak) */}
+              {streak >= 2 && (
+                <div className="flex items-center gap-1.5 bg-[#F26A1B]/10 border border-[#F26A1B]/15 text-[#F26A1B] text-[10px] font-bold px-2.5 py-1 rounded-full w-fit">
+                  <span>🔥</span> {streak} dias seguidos na meta
+                </div>
+              )}
+
               {/* Water Adders */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 pt-1">
                 {[250, 500, 1000].map(ml => (
                   <button
                     key={ml}
                     type="button"
                     onClick={() => handleAddWater(ml)}
                     disabled={saving}
-                    className="px-4 py-2 bg-bg border border-line hover:border-accent/30 rounded-lg text-xs font-semibold text-ink hover:text-accent transition-all flex items-center gap-1 cursor-pointer"
+                    className="px-4 py-2 bg-bg border border-line hover:border-[#F26A1B]/30 rounded-xl text-xs font-bold text-ink hover:text-[#F26A1B] hover:bg-[#F26A1B]/5 transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" /> {ml}ml
                   </button>
@@ -285,7 +618,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
                     type="button"
                     onClick={handleReset}
                     disabled={saving}
-                    className="p-2 bg-bg border border-line hover:border-red-500/20 text-ink-3 hover:text-red-500 rounded-lg transition-all cursor-pointer"
+                    className="p-2 bg-bg border border-line hover:border-red-500/20 text-ink-3 hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all cursor-pointer"
                     title="Zerar hoje"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -304,58 +637,89 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-void/60 z-20 flex flex-col items-center justify-center text-center p-4"
+            className="absolute inset-0 bg-void/60 z-30 flex flex-col items-center justify-center text-center p-4 backdrop-blur-xs"
           >
             <motion.div
               initial={{ scale: 0.9, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               className="space-y-4"
             >
-              <div className="w-12 h-12 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6 text-green-500" />
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto animate-bounce">
+                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-semibold text-ink text-sm">Meta de hoje batida!</h4>
-                <p className="text-[11px] text-ink-3 max-w-[180px]">Hidratação completa para suas articulações e foco.</p>
+                <h4 className="font-semibold text-white text-sm">Meta batida! 💧🎉</h4>
+                <p className="text-[11px] text-white/80 max-w-[180px]">Hidratação completa para suas articulações, foco e recuperação!</p>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Histograma minimalista nos últimos 7 dias */}
-      <div className="border-t border-line pt-4 mt-4">
-        <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mb-3">Histórico de 7 dias</p>
-        <div className="h-16 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={historico} margin={{ top: 5, bottom: 0, left: 0, right: 0 }} barSize={14}>
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const dataObj = payload[0].payload;
-                    return (
-                      <div className="bg-surface/90 backdrop-blur-md border border-line p-2 rounded-lg text-[10px] text-ink num">
-                        {dataObj.total}ml
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Bar dataKey="total" radius={4}>
-                {historico.map((entry, index) => {
-                  const isDone = entry.total >= meta;
-                  return (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={isDone ? 'var(--z-ok)' : 'var(--z-accent)'}
-                      opacity={entry.total === 0 ? 0.05 : 0.6}
+      {/* 6) HISTÓRICO DE 7 DIAS mais bonito (Custom Interactive bar chart) */}
+      <div className="border-t border-line pt-4 mt-5">
+        <p className="text-[10px] font-mono text-ink-3 uppercase tracking-widest mb-2">Histórico de 7 dias</p>
+        
+        <div className="relative pt-6 pb-2">
+          {/* Dashed horizontal line marking 100% meta */}
+          <div className="absolute top-[28px] left-0 right-0 flex items-center gap-2 pointer-events-none">
+            <div className="flex-1 border-t border-dashed border-[#F26A1B]/30" />
+            <span className="text-[8px] font-mono text-[#F26A1B]/60 uppercase">Meta ({meta}ml)</span>
+          </div>
+
+          <div className="h-24 flex items-end justify-between gap-1 sm:gap-2">
+            {historico.map((day, idx) => {
+              const pct = Math.min((day.total / meta) * 100, 110); // cap at 110% of meta height
+              const isToday = day.data === today;
+              const isMet = day.total >= meta;
+              const weekday = getWeekdayInitials(day.data);
+              const isSelected = activeBarDate === day.data;
+
+              return (
+                <div 
+                  key={day.data} 
+                  className="flex-1 flex flex-col items-center group/bar cursor-pointer relative"
+                  onClick={() => {
+                    setActiveBarDate(activeBarDate === day.data ? null : day.data);
+                    tocar('tap');
+                  }}
+                >
+                  {/* Tooltip above */}
+                  <AnimatePresence>
+                    {(isSelected || isToday) && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 5, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 5, scale: 0.9 }}
+                        className="absolute -top-7 z-10 bg-void text-white text-[9px] font-mono px-1.5 py-0.5 rounded-md shadow-md whitespace-nowrap"
+                      >
+                        {day.total} ml
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Bar track and custom fill */}
+                  <div className="w-full h-16 bg-raise border border-line rounded-md flex items-end overflow-hidden p-[2px] relative">
+                    <motion.div 
+                      className={`w-full rounded-xs transition-all duration-500 ${
+                        isToday 
+                          ? 'bg-gradient-to-t from-[#F26A1B] to-[#FF8A3D] shadow-[0_0_8px_rgba(242,106,27,0.4)]' 
+                          : isMet 
+                            ? 'bg-[#F26A1B]' 
+                            : 'bg-[#F26A1B]/35'
+                      }`}
+                      style={{ height: `${Math.max(4, pct)}%` }}
                     />
-                  );
-                })}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                  </div>
+
+                  {/* Weekday label */}
+                  <span className={`text-[9px] font-bold mt-1.5 ${isToday ? 'text-[#F26A1B]' : 'text-ink-3'}`}>
+                    {weekday}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
