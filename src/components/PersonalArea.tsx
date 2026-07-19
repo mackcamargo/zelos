@@ -733,14 +733,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 </div>
               </div>
 
-              {/* Safety notice / app status */}
-              <div className="p-4 bg-raise border border-line rounded-2xl flex gap-3 text-xs text-ink-2 leading-relaxed">
-                <ShieldCheck className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-ink font-semibold">Privacidade Protegida</p>
-                  <p className="mt-0.5">Seus dados são privados e visíveis somente para você e seu personal trainer.</p>
-                </div>
-              </div>
+
 
               {/* Admin Button */}
               <div className="p-5 bg-accent/5 hover:bg-accent/10 border border-accent/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
