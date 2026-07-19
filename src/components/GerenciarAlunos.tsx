@@ -73,6 +73,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
   const [condicoesDisponiveis, setCondicoesDisponiveis] = useState<CondicaoOrtopedica[]>([]);
   const [loadingCondicoes, setLoadingCondicoes] = useState(false);
   const [showAddCondicaoModal, setShowAddCondicaoModal] = useState(false);
+  const [showActiveCondicoesModal, setShowActiveCondicoesModal] = useState(false);
   
   // Form states
   const [newCondicaoId, setNewCondicaoId] = useState<string | number>('');
@@ -684,15 +685,20 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
 
             {/* Profile Overview Card */}
              {alunoCondicoes.length > 0 && (
-               <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/20 rounded-2xl p-5 space-y-2 text-xs">
-                 <div className="flex items-center gap-2 text-accent">
-                   <AlertTriangle className="w-5 h-5 shrink-0 text-[#F26A1B]" />
-                   <span className="font-display font-bold text-sm uppercase tracking-wider text-[#F26A1B]">⚠️ Cuidados ortopédicos ativos</span>
+               <button type="button" onClick={() => setShowActiveCondicoesModal(true)} className="w-full text-left bg-[#F26A1B]/10 hover:bg-[#F26A1B]/15 border border-[#F26A1B]/20 rounded-2xl p-5 space-y-2 text-xs cursor-pointer transition-all duration-200 active:scale-[0.99] block mb-4">
+                 <div className="flex items-center justify-between gap-4 flex-wrap text-accent w-full">
+                   <div className="flex items-center gap-2">
+                     <AlertTriangle className="w-5 h-5 shrink-0 text-[#F26A1B]" />
+                     <span className="font-display font-bold text-sm uppercase tracking-wider text-[#F26A1B]">⚠️ Cuidados ortopédicos ativos</span>
+                   </div>
+                   <span className="text-[11px] font-bold text-[#F26A1B]">
+                     Toque para ver os detalhes ›
+                   </span>
                  </div>
-                 <div className="text-ink-2">
+                 <div className="text-ink-2 leading-relaxed">
                    Este aluno possui <strong className="text-ink">{alunoCondicoes.length} {alunoCondicoes.length === 1 ? 'condição ortopédica ativa' : 'condições ortopédicas ativas'}</strong>. Verifique as recomendações especiais e regras de segurança descritas no perfil ortopédico abaixo ao prescrever treinos.
                  </div>
-               </div>
+               </button>
              )}
 
             <div className="z-card relative overflow-hidden">
@@ -740,56 +746,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                 </div>
               </div>
 
-              {/* Editable Goal/Objective Field */}
-              <div className="pt-6 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-[12px] text-ink-2 flex items-center gap-1.5 font-medium">
-                    <Target className="w-3.5 h-3.5 text-accent" strokeWidth={1.75} />
-                    <span>Foco e objetivo do aluno</span>
-                  </label>
-                  
-                  {savedFeedback && (
-                    <span className="text-[11px] text-ok font-semibold flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> Salvo!
-                    </span>
-                  )}
-                </div>
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input
-                    id="input-edit-objective"
-                    type="text"
-                    list="objetivos-detalhe"
-                    value={editObjetivo}
-                    onChange={(e) => setEditObjetivo(e.target.value)}
-                    placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
-                    className="flex-1 h-14 md:h-16 px-4 py-3.5 text-base md:text-lg rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
-                  />
-                  <datalist id="objetivos-detalhe">
-                    <option value="Hipertrofia (ganho de massa muscular)" />
-                    <option value="Emagrecimento / perda de gordura" />
-                    <option value="Definição muscular" />
-                    <option value="Condicionamento físico / cardio" />
-                    <option value="Força" />
-                    <option value="Resistência muscular" />
-                    <option value="Saúde e qualidade de vida" />
-                    <option value="Reabilitação / fortalecimento" />
-                    <option value="Performance esportiva" />
-                    <option value="Mobilidade e flexibilidade" />
-                    <option value="Ganho de peso" />
-                    <option value="Preparação para prova física / concurso" />
-                  </datalist>
-                  <button
-                    id="btn-save-objective"
-                    type="button"
-                    disabled={salvandoObjetivo || editObjetivo === selectedAluno.objetivo}
-                    onClick={handleSaveObjective}
-                    className="h-14 md:h-16 px-8 rounded-xl bg-[#F26A1B] text-white font-display font-bold text-base md:text-lg hover:bg-[#D45914] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                  >
-                    {salvandoObjetivo ? 'Salvando...' : 'Salvar'}
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Three Blocks: Treinos, Progresso, Desvincular */}
@@ -1164,6 +1121,57 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         </button>
                       </>
                     )}
+                  </div>
+                </div>
+
+                {/* Editable Goal/Objective Field */}
+                <div className="bg-raise/10 border border-line rounded-2xl p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[12px] text-ink-2 flex items-center gap-1.5 font-medium">
+                      <Target className="w-3.5 h-3.5 text-accent" strokeWidth={1.75} />
+                      <span>Foco e objetivo do aluno</span>
+                    </label>
+                    
+                    {savedFeedback && (
+                      <span className="text-[11px] text-ok font-semibold flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" /> Salvo!
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      id="input-edit-objective"
+                      type="text"
+                      list="objetivos-detalhe"
+                      value={editObjetivo}
+                      onChange={(e) => setEditObjetivo(e.target.value)}
+                      placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
+                      className="flex-1 h-12 px-4 py-3 text-sm rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
+                    />
+                    <datalist id="objetivos-detalhe">
+                      <option value="Hipertrofia (ganho de massa muscular)" />
+                      <option value="Emagrecimento / perda de gordura" />
+                      <option value="Definição muscular" />
+                      <option value="Condicionamento físico / cardio" />
+                      <option value="Força" />
+                      <option value="Resistência muscular" />
+                      <option value="Saúde e qualidade de vida" />
+                      <option value="Reabilitação / fortalecimento" />
+                      <option value="Performance esportiva" />
+                      <option value="Mobilidade e flexibilidade" />
+                      <option value="Ganho de peso" />
+                      <option value="Preparação para prova física / concurso" />
+                    </datalist>
+                    <button
+                      id="btn-save-objective"
+                      type="button"
+                      disabled={salvandoObjetivo || editObjetivo === selectedAluno.objetivo}
+                      onClick={handleSaveObjective}
+                      className="h-12 px-6 rounded-xl bg-[#F26A1B] text-white font-display font-bold text-xs hover:bg-[#D45914] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer"
+                    >
+                      {salvandoObjetivo ? 'Salvando...' : 'Salvar'}
+                    </button>
                   </div>
                 </div>
 
@@ -1672,6 +1680,129 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
                         </button>
                       </div>
                     </form>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
+            {/* MODAL CUIDADOS ORTOPÉDICOS ATIVOS */}
+            <AnimatePresence>
+              {showActiveCondicoesModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                  {/* Backdrop */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowActiveCondicoesModal(false)}
+                    className="fixed inset-0 bg-black/45 backdrop-blur-[2px] cursor-pointer"
+                  />
+
+                  {/* Modal Box */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="relative w-full max-w-2xl bg-white rounded-[20px] overflow-hidden border border-black/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.18)] z-10 flex flex-col max-h-[85vh]"
+                  >
+                    {/* Header */}
+                    <div className="p-6 pb-4 border-b border-line flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-[#F26A1B]" />
+                        <h3 className="font-display font-bold text-lg text-ink">Cuidados ortopédicos</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowActiveCondicoesModal(false)}
+                        className="text-ink-3 hover:text-ink transition-colors p-1 cursor-pointer"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-4 overflow-y-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {alunoCondicoes.map((ac) => {
+                          const cond = ac.condicoes_ortopedicas;
+                          return (
+                            <div key={ac.id} className="p-5 bg-raise/5 border border-line rounded-2xl space-y-4 flex flex-col justify-between">
+                              <div className="space-y-3">
+                                <div>
+                                  <h4 className="font-semibold text-sm text-ink">{cond?.nome || 'Condição'}</h4>
+                                  <p className="text-[11px] text-ink-3 mt-0.5">Região: {cond?.regiao || 'Geral'}</p>
+                                </div>
+
+                                <div className="flex flex-wrap gap-1.5">
+                                  {ac.lado && (
+                                    <span className="px-2 py-0.5 rounded bg-surface border border-line text-[10px] font-semibold uppercase text-ink-2">
+                                      Lado: {ac.lado === 'esquerdo' ? 'Esquerdo' : ac.lado === 'direito' ? 'Direito' : 'Bilateral'}
+                                    </span>
+                                  )}
+                                  {ac.grau && (
+                                    <span className="px-2 py-0.5 rounded bg-surface border border-line text-[10px] font-semibold text-ink-2">
+                                      Grau: {ac.grau}
+                                    </span>
+                                  )}
+                                  {cond?.requer_laudo && (
+                                    <span className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[10px] font-semibold text-rose-500">
+                                      Requer Laudo
+                                    </span>
+                                  )}
+                                </div>
+
+                                {cond?.orientacao_geral && (
+                                  <div className="bg-[#F26A1B14] border border-[#F26A1B]/20 p-3 rounded-xl text-xs text-[#F26A1B] leading-relaxed font-medium">
+                                    <p className="font-bold text-[10px] uppercase tracking-wider mb-1 text-[#F26A1B]">Recomendação Geral:</p>
+                                    {cond.orientacao_geral}
+                                  </div>
+                                )}
+
+                                {ac.observacao && (
+                                  <div className="text-xs text-ink-2 leading-relaxed bg-surface/80 border border-line/40 p-2.5 rounded-xl">
+                                    <span className="font-semibold text-ink-3 text-[11px]">Observação do Professor:</span>
+                                    <p className="mt-0.5 italic">{ac.observacao}</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {ac.tem_laudo && ac.laudo_url && (
+                                <div className="pt-2 border-t border-line flex items-center justify-between text-xs mt-2">
+                                  <span className="text-ink-3 flex items-center gap-1 font-medium">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                                    Laudo técnico
+                                  </span>
+                                  <a
+                                    href={ac.laudo_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[#F26A1B] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                                  >
+                                    <span>Ver laudo</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="p-4 bg-raise/5 border-t border-line flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowActiveCondicoesModal(false)}
+                        className="h-11 px-6 rounded-xl bg-[#F26A1B] hover:bg-[#D45914] text-white transition-colors text-xs font-bold cursor-pointer"
+                      >
+                        Fechar
+                      </button>
+                    </div>
                   </motion.div>
                 </div>
               )}
