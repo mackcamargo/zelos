@@ -240,6 +240,13 @@ export interface RegistroNutricao {
   calorias: number;
   data: string;
   criado_em: string;
+  refeicao?: string;
+  alimento?: string;
+  alimento_id?: number | null;
+  quantidade_g?: number | null;
+  proteina?: number | null;
+  carbo?: number | null;
+  gordura?: number | null;
 }
 
 export interface RegistroHidratacao {

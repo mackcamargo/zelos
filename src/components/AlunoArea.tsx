@@ -143,7 +143,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [novoTreino, setNovoTreino] = useState<any | null>(null);
-  const [headerProfile, setHeaderProfile] = useState<{ nome: string; avatar_url: string | null } | null>(null);
+  const [headerProfile, setHeaderProfile] = useState<{ nome: string; avatar_url: string | null; avatar_tipo?: string | null; papel?: string | null } | null>(null);
   const [loadingHeaderProfile, setLoadingHeaderProfile] = useState(true);
   const [loadingWorkoutDetails, setLoadingWorkoutDetails] = useState(false);
 
@@ -430,7 +430,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     }
   }, [activeTab, userId]);
 
-  const isFemale = profile.avatar_tipo === 'feminino';
+  const isFemale = (headerProfile?.avatar_tipo || profile?.avatar_tipo) === 'feminino';
 
   // Resolve signed URLs for AlunoArea exercises (selectedWorkout & selectedExercise)
   useEffect(() => {
@@ -539,38 +539,48 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           if (user) {
             const { data: perfil, error } = await supabase
               .from('profiles')
-              .select('nome, avatar_url')
+              .select('nome, avatar_url, avatar_tipo, papel')
               .eq('id', user.id)
               .maybeSingle();
             
             if (perfil && !error) {
               setHeaderProfile({
                 nome: perfil.nome,
-                avatar_url: perfil.avatar_url || null
+                avatar_url: perfil.avatar_url || null,
+                avatar_tipo: perfil.avatar_tipo || null,
+                papel: perfil.papel || null
               });
             } else {
               setHeaderProfile({
                 nome: profile?.nome || '...',
-                avatar_url: profile?.avatar_url || null
+                avatar_url: profile?.avatar_url || null,
+                avatar_tipo: profile?.avatar_tipo || null,
+                papel: profile?.papel || null
               });
             }
           } else {
             setHeaderProfile({
               nome: profile?.nome || '...',
-              avatar_url: profile?.avatar_url || null
+              avatar_url: profile?.avatar_url || null,
+              avatar_tipo: profile?.avatar_tipo || null,
+              papel: profile?.papel || null
             });
           }
         } else {
           setHeaderProfile({
             nome: profile?.nome || '...',
-            avatar_url: profile?.avatar_url || null
+            avatar_url: profile?.avatar_url || null,
+            avatar_tipo: profile?.avatar_tipo || null,
+            papel: profile?.papel || null
           });
         }
       } catch (err) {
         console.error("Erro ao carregar perfil do cabeçalho:", err);
         setHeaderProfile({
           nome: profile?.nome || '...',
-          avatar_url: profile?.avatar_url || null
+          avatar_url: profile?.avatar_url || null,
+          avatar_tipo: profile?.avatar_tipo || null,
+          papel: profile?.papel || null
         });
       } finally {
         setLoadingHeaderProfile(false);
@@ -1055,7 +1065,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                 ZE<span className="brand-gradient-text">LOS</span>
               </span>
               <span className="text-[10px] font-mono uppercase bg-violet/15 text-violet px-2.5 py-0.5 rounded-full border border-violet/20 font-bold">
-                Aluno
+                {isFemale ? 'ALUNA' : 'ALUNO'}
               </span>
             </div>
             <p className="text-xs text-ink-3 mt-1 font-mono tracking-wider">WORKSPACE · ÁREA DE ATIVAÇÃO</p>
@@ -1069,7 +1079,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           >
             <div className="flex flex-col items-end">
               <span className="text-[9px] sm:text-[10px] text-ink-3 font-mono uppercase tracking-wider">
-                Aluno
+                {isFemale ? 'ALUNA' : 'ALUNO'}
               </span>
               <span className="text-xs sm:text-sm font-medium text-ink group-hover:text-flame transition-colors truncate max-w-[90px] sm:max-w-[160px] block leading-tight">
                 {loadingHeaderProfile ? '...' : (headerProfile?.nome || profile?.nome || '...')}

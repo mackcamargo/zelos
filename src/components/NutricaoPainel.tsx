@@ -21,14 +21,50 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   const [registros, setRegistros] = useState<RegistroNutricao[]>([]);
   const [historico, setHistorico] = useState<{ data: string; calorias: number }[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newMeal, setNewMeal] = useState({ nome: '', calorias: '' });
   const [saving, setSaving] = useState(false);
+
+  // States for search & autocomplete & calculations
+  const [refeicao, setRefeicao] = useState('Café da manhã');
+  const [buscaTermo, setBuscaTermo] = useState('');
+  const [alimentosEncontrados, setAlimentosEncontrados] = useState<any[]>([]);
+  const [alimentoSelecionado, setAlimentoSelecionado] = useState<any | null>(null);
+  const [quantidadeG, setQuantidadeG] = useState<number>(100);
+  const [loadingBusca, setLoadingBusca] = useState(false);
   
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     loadData();
   }, [alunoId]);
+
+  useEffect(() => {
+    if (buscaTermo.trim().length < 2) {
+      setAlimentosEncontrados([]);
+      return;
+    }
+    
+    setLoadingBusca(true);
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const res = await dbService.buscarAlimentos(buscaTermo);
+        setAlimentosEncontrados(res.data || []);
+      } catch (err) {
+        console.error("Erro ao buscar alimentos:", err);
+      } finally {
+        setLoadingBusca(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [buscaTermo]);
+
+  const resetForm = () => {
+    setRefeicao('Café da manhã');
+    setBuscaTermo('');
+    setAlimentoSelecionado(null);
+    setQuantidadeG(100);
+    setAlimentosEncontrados([]);
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -40,44 +76,78 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
       ]);
       setPlano(planoRes.data);
       setRegistros(registrosRes.data || []);
-      setHistorico(historicoRes.data || []);
+      
+      // Group historico by date
+      const groupedMap: { [key: string]: number } = {};
+      (historicoRes.data || []).forEach((row: any) => {
+        const d = row.data;
+        groupedMap[d] = (groupedMap[d] || 0) + (Number(row.calorias) || 0);
+      });
+      const sortedHistory = Object.keys(groupedMap).map(d => ({
+        data: d,
+        calorias: groupedMap[d]
+      })).sort((a, b) => a.data.localeCompare(b.data));
+      setHistorico(sortedHistory);
     } finally {
       setLoading(false);
     }
+  };
+
+  const round = (val: number, decimals: number = 0) => {
+    const p = Math.pow(10, decimals);
+    return Math.round((val || 0) * p) / p;
   };
 
   const metaCalorias = plano ? Number(plano.meta_calorias) || 0 : 0;
   const consumidoCalorias = registros.reduce((acc, curr) => acc + (Number(curr.calorias) || 0), 0);
   const calPercent = metaCalorias > 0 ? Math.min(100, Math.round((consumidoCalorias / metaCalorias) * 100)) : 0;
 
-  const pctCal = metaCalorias > 0 ? (consumidoCalorias / metaCalorias) : 0;
-
+  const consumidoProteina = round(registros.reduce((acc, curr) => acc + (Number(curr.proteina) || 0), 0), 1);
   const metaProteina = plano ? Number(plano.meta_proteina) || 0 : 0;
-  const consumidoProteina = plano && metaCalorias > 0 ? Math.round(pctCal * metaProteina) : 0;
   const protPercent = metaProteina > 0 ? Math.min(100, Math.round((consumidoProteina / metaProteina) * 100)) : 0;
 
+  const consumidoCarbo = round(registros.reduce((acc, curr) => acc + (Number(curr.carbo) || 0), 0), 1);
   const metaCarbo = plano ? Number(plano.meta_carboidrato ?? (plano as any).meta_carbo) || 0 : 0;
-  const consumidoCarbo = plano && metaCalorias > 0 ? Math.round(pctCal * metaCarbo) : 0;
   const carboPercent = metaCarbo > 0 ? Math.min(100, Math.round((consumidoCarbo / metaCarbo) * 100)) : 0;
 
+  const consumidoGordura = round(registros.reduce((acc, curr) => acc + (Number(curr.gordura) || 0), 0), 1);
   const metaGordura = plano ? Number(plano.meta_gordura) || 0 : 0;
-  const consumidoGordura = plano && metaCalorias > 0 ? Math.round(pctCal * metaGordura) : 0;
   const gorduraPercent = metaGordura > 0 ? Math.min(100, Math.round((consumidoGordura / metaGordura) * 100)) : 0;
 
   const handleAddMeal = async () => {
-    if (!newMeal.nome || !newMeal.calorias) return;
+    if (!alimentoSelecionado || !refeicao) return;
     setSaving(true);
     try {
       tocar('sucesso');
+      
+      const kcal100g = Number(alimentoSelecionado.kcal_100g) || 0;
+      const prot100g = Number(alimentoSelecionado.proteina_100g) || 0;
+      const carbo100g = Number(alimentoSelecionado.carbo_100g) || 0;
+      const gord100g = Number(alimentoSelecionado.gordura_100g) || 0;
+
+      const fator = quantidadeG / 100;
+      const calorias = Math.round(kcal100g * fator);
+      const proteina = round(prot100g * fator, 1);
+      const carbo = round(carbo100g * fator, 1);
+      const gordura = round(gord100g * fator, 1);
+
       await dbService.saveRegistroNutricao({
         aluno_id: alunoId,
-        nome: newMeal.nome,
-        calorias: Number(newMeal.calorias),
+        refeicao: refeicao,
+        alimento: alimentoSelecionado.nome,
+        alimento_id: alimentoSelecionado.id,
+        quantidade_g: quantidadeG,
+        calorias: calorias,
+        proteina: proteina,
+        carbo: carbo,
+        gordura: gordura,
         data: today
       });
       setShowAddModal(false);
-      setNewMeal({ nome: '', calorias: '' });
+      resetForm();
       loadData();
+    } catch (err) {
+      console.error("Erro ao salvar registro de refeição:", err);
     } finally {
       setSaving(false);
     }
@@ -294,14 +364,29 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                 </div>
               ) : (
                 registros.map((reg) => (
-                  <div key={reg.id} className="bg-surface border border-line rounded-2xl p-4 flex items-center justify-between shadow-[var(--z-shadow-1)]">
-                    <div className="space-y-0.5">
-                      <p className="text-xs text-ink font-semibold">{reg.nome}</p>
-                      <p className="text-[12px] text-ink-3 num">{new Date(reg.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  <div key={reg.id} className="bg-surface border border-line rounded-2xl p-4 flex flex-col gap-2 shadow-[var(--z-shadow-1)] hover:bg-raise/30 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-0.5 min-w-0">
+                        <span className="text-[9px] font-bold text-flame bg-flame/10 px-2 py-0.5 rounded-full border border-flame/15 inline-block">
+                          {reg.refeicao || 'Refeição'}
+                        </span>
+                        <p className="text-xs text-ink font-semibold mt-1 truncate">{reg.alimento || reg.nome}</p>
+                        {reg.quantidade_g !== undefined && reg.quantidade_g !== null && (
+                          <p className="text-[11px] text-ink-3 font-medium">Quantidade: {reg.quantidade_g}g</p>
+                        )}
+                        <p className="text-[10px] text-ink-3 font-mono">{new Date(reg.criado_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                      <div className="text-[14px] font-semibold text-flame num shrink-0">
+                        +{reg.calorias} kcal
+                      </div>
                     </div>
-                    <div className="text-[14px] font-semibold text-flame num">
-                      +{reg.calorias} kcal
-                    </div>
+                    {(reg.proteina !== undefined || reg.carbo !== undefined || reg.gordura !== undefined) && (
+                      <div className="flex items-center gap-3 pt-2 border-t border-line/40 text-[10px] font-mono text-ink-3">
+                        <span>P: <strong className="text-ink-2 font-semibold">{reg.proteina ?? 0}g</strong></span>
+                        <span>C: <strong className="text-ink-2 font-semibold">{reg.carbo ?? 0}g</strong></span>
+                        <span>G: <strong className="text-ink-2 font-semibold">{reg.gordura ?? 0}g</strong></span>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -358,12 +443,13 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="w-full max-w-sm bg-surface border border-line rounded-[32px] p-6 shadow-2xl space-y-6"
+              className="w-full max-w-sm bg-surface border border-line rounded-[32px] p-6 shadow-2xl space-y-6 relative"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg text-ink">Registrar refeição</h3>
                 <button onClick={() => {
                   setShowAddModal(false);
+                  resetForm();
                   tocar('tap');
                 }} className="p-2 hover:bg-raise rounded-full text-ink-3">
                   <X className="w-5 h-5" />
@@ -371,31 +457,129 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               </div>
 
               <div className="space-y-4">
+                {/* REFEIÇÃO FIELD */}
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-medium text-ink-3">O que você comeu?</label>
-                  <input 
-                    value={newMeal.nome}
-                    onChange={(e) => setNewMeal(prev => ({ ...prev, nome: e.target.value }))}
-                    placeholder="Ex: Frango com Batata"
-                    className="z-input !h-12"
-                  />
+                  <label className="text-[12px] font-medium text-ink-3">Refeição</label>
+                  <select
+                    value={refeicao}
+                    onChange={(e) => setRefeicao(e.target.value)}
+                    className="z-input !h-12 w-full bg-raise text-ink border border-line rounded-xl px-3 outline-none focus:border-flame cursor-pointer text-xs"
+                  >
+                    <option value="Café da manhã">Café da manhã</option>
+                    <option value="Almoço">Almoço</option>
+                    <option value="Café da tarde">Café da tarde</option>
+                    <option value="Jantar">Jantar</option>
+                    <option value="Lanche">Lanche</option>
+                    <option value="Pré-treino">Pré-treino</option>
+                    <option value="Pós-treino">Pós-treino</option>
+                    <option value="Outros">Outros</option>
+                  </select>
                 </div>
+
+                {/* ALIMENTO FIELD (BUSCA/AUTOCOMPLETE) */}
+                <div className="space-y-1.5 relative">
+                  <label className="text-[12px] font-medium text-ink-3">Alimento</label>
+                  {alimentoSelecionado ? (
+                    <div className="flex items-center justify-between bg-raise border border-line rounded-xl px-3 py-2.5">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-ink truncate">{alimentoSelecionado.nome}</p>
+                        <p className="text-[10px] text-ink-3 font-mono">{alimentoSelecionado.kcal_100g} kcal / 100g</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAlimentoSelecionado(null);
+                          setBuscaTermo("");
+                        }}
+                        className="ml-2 text-ink-3 hover:text-flame p-1 rounded-md hover:bg-line/40"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <input 
+                          value={buscaTermo}
+                          onChange={(e) => setBuscaTermo(e.target.value)}
+                          placeholder="Digite o nome do alimento..."
+                          className="z-input !h-12 w-full pr-10 text-xs"
+                        />
+                        {loadingBusca && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <Loader2 className="w-4 h-4 text-flame animate-spin" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {alimentosEncontrados.length > 0 && (
+                        <div className="absolute z-[60] left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-surface border border-line rounded-xl shadow-xl divide-y divide-line/40">
+                          {alimentosEncontrados.map((ali) => (
+                            <button
+                              key={ali.id}
+                              type="button"
+                              onClick={() => {
+                                setAlimentoSelecionado(ali);
+                                setAlimentosEncontrados([]);
+                                setBuscaTermo("");
+                                tocar('tap');
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-raise text-xs transition-colors flex flex-col gap-0.5 cursor-pointer"
+                            >
+                              <span className="font-medium text-ink">{ali.nome}</span>
+                              <span className="text-[10px] text-ink-3 font-mono">
+                                {ali.kcal_100g} kcal · P: {ali.proteina_100g || 0}g · C: {ali.carbo_100g || 0}g · G: {ali.gordura_100g || 0}g
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* QUANTIDADE FIELD */}
                 <div className="space-y-1.5">
-                  <label className="text-[12px] font-medium text-ink-3">Calorias estimadas</label>
+                  <label className="text-[12px] font-medium text-ink-3">Quantidade (g)</label>
                   <input 
                     type="number"
-                    value={newMeal.calorias}
-                    onChange={(e) => setNewMeal(prev => ({ ...prev, calorias: e.target.value }))}
-                    placeholder="400"
-                    className="z-input !h-12 num"
+                    value={quantidadeG === 0 ? "" : quantidadeG}
+                    onChange={(e) => setQuantidadeG(Math.max(0, Number(e.target.value) || 0))}
+                    className="z-input !h-12 w-full num text-xs"
+                    placeholder="100"
                   />
                 </div>
+
+                {/* REAL-TIME PREVIEW CARD */}
+                {alimentoSelecionado && (
+                  <div className="bg-raise/50 border border-line rounded-2xl p-4 space-y-2.5">
+                    <p className="text-[10px] font-bold text-ink uppercase tracking-wider text-center">Valores Nutricionais Calculados</p>
+                    <div className="text-center py-1">
+                      <span className="text-2xl font-black text-flame num">{Math.round((Number(alimentoSelecionado.kcal_100g) || 0) * (quantidadeG / 100))}</span>
+                      <span className="text-xs text-ink-3 font-bold ml-1">kcal</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono border-t border-line/40 pt-2.5 text-ink-2">
+                      <div>
+                        <p className="text-ink-3 uppercase text-[9px] tracking-tight">Proteína</p>
+                        <p className="font-bold text-ink">{round((Number(alimentoSelecionado.proteina_100g) || 0) * (quantidadeG / 100), 1)}g</p>
+                      </div>
+                      <div>
+                        <p className="text-ink-3 uppercase text-[9px] tracking-tight">Carbo</p>
+                        <p className="font-bold text-ink">{round((Number(alimentoSelecionado.carbo_100g) || 0) * (quantidadeG / 100), 1)}g</p>
+                      </div>
+                      <div>
+                        <p className="text-ink-3 uppercase text-[9px] tracking-tight">Gordura</p>
+                        <p className="font-bold text-ink">{round((Number(alimentoSelecionado.gordura_100g) || 0) * (quantidadeG / 100), 1)}g</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <button
                 onClick={handleAddMeal}
-                disabled={saving || !newMeal.nome || !newMeal.calorias}
-                className="w-full py-4 brand-gradient-bg rounded-2xl font-semibold text-void flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                disabled={saving || !alimentoSelecionado || quantidadeG <= 0}
+                className="w-full py-4 brand-gradient-bg rounded-2xl font-semibold text-void flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
                 <span>Salvar registro</span>

@@ -1597,14 +1597,50 @@ export const dbService = {
         data: registro.data || new Date().toISOString().split('T')[0],
         refeicao: registro.refeicao || registro.tipo || 'Refeição',
         alimento: registro.alimento || registro.nome || 'Alimento',
-        calorias: (registro.calorias === '' || registro.calorias === undefined) ? null : Number(registro.calorias)
+        alimento_id: registro.alimento_id || null,
+        quantidade_g: registro.quantidade_g !== undefined ? Number(registro.quantidade_g) : null,
+        calorias: (registro.calorias === '' || registro.calorias === undefined) ? null : Number(registro.calorias),
+        proteina: registro.proteina !== undefined ? Number(registro.proteina) : null,
+        carbo: registro.carbo !== undefined ? Number(registro.carbo) : null,
+        gordura: registro.gordura !== undefined ? Number(registro.gordura) : null
       });
       return { error };
     }
     const registros = load('zenite_nutricao', []);
-    registros.push({ id: Math.floor(Math.random() * 1000000), ...registro });
+    registros.push({ 
+      id: Math.floor(Math.random() * 1000000), 
+      ...registro,
+      nome: registro.alimento || registro.nome || 'Alimento',
+      refeicao: registro.refeicao || registro.tipo || 'Refeição'
+    });
     save('zenite_nutricao', registros);
     return { error: null };
+  },
+
+  async buscarAlimentos(termo: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('alimentos')
+        .select('id, nome, kcal_100g, proteina_100g, carbo_100g, gordura_100g, fibra_100g')
+        .ilike('nome', `%${termo}%`)
+        .order('nome')
+        .limit(15);
+      return { data: data || [], error };
+    }
+    const mockAlimentos = [
+      { id: 1, nome: "Arroz integral cozido", kcal_100g: 124, proteina_100g: 2.6, carbo_100g: 25.8, gordura_100g: 1.0 },
+      { id: 2, nome: "Peito de frango grelhado", kcal_100g: 159, proteina_100g: 32.0, carbo_100g: 0.0, gordura_100g: 2.5 },
+      { id: 3, nome: "Batata doce cozida", kcal_100g: 77, proteina_100g: 0.6, carbo_100g: 18.4, gordura_100g: 0.1 },
+      { id: 4, nome: "Ovo de galinha cozido", kcal_100g: 155, proteina_100g: 13.0, carbo_100g: 1.0, gordura_100g: 11.0 },
+      { id: 5, nome: "Banana nanica", kcal_100g: 92, proteina_100g: 1.4, carbo_100g: 23.8, gordura_100g: 0.1 },
+      { id: 6, nome: "Azeite de oliva extra virgem", kcal_100g: 884, proteina_100g: 0.0, carbo_100g: 0.0, gordura_100g: 100.0 },
+      { id: 7, nome: "Feijão carioca cozido", kcal_100g: 76, proteina_100g: 4.8, carbo_100g: 13.6, gordura_100g: 0.5 },
+      { id: 8, nome: "Tapioca pronta", kcal_100g: 240, proteina_100g: 0.0, carbo_100g: 60.0, gordura_100g: 0.0 },
+      { id: 9, nome: "Whey protein concentrado", kcal_100g: 400, proteina_100g: 80.0, carbo_100g: 8.0, gordura_100g: 6.0 },
+      { id: 10, nome: "Pão de forma integral", kcal_100g: 244, proteina_100g: 9.4, carbo_100g: 48.9, gordura_100g: 1.2 }
+    ];
+    const filtered = mockAlimentos.filter(a => a.nome.toLowerCase().includes(termo.toLowerCase()));
+    return { data: filtered, error: null };
   },
 
   async getResumoBemEstarAluno(alunoId: string): Promise<{ data: ResumoBemEstar | null; error: any }> {
