@@ -544,12 +544,46 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       } else if (treinos && treinos.length > 0) {
         setWorkouts(treinos);
         
-        // Find today's workout (YYYY-MM-DD) or get the most recent one
-        const todayStr = new Date().toISOString().split('T')[0];
-        const todayWorkout = treinos.find((w: any) => w.data_treino === todayStr);
-        const workoutToLoad = todayWorkout || treinos[0]; // de hoje ou o mais recente
+        // Prioridade de seleção do treino de destaque ao carregar a tela:
+        // 1ª prioridade: treino pendente/não iniciado (status !== 'concluido'). Se houver mais de um, mostrar o mais antigo.
+        const pendingWorkouts = treinos.filter((w: any) => w.status !== 'concluido');
+        let workoutToLoad;
+        if (pendingWorkouts.length > 0) {
+          // Ordena pendentes por data_treino crescente (mais antigo primeiro)
+          const sortedPending = [...pendingWorkouts].sort((a: any, b: any) => {
+            const dateA = a.data_treino || '';
+            const dateB = b.data_treino || '';
+            const dateComp = dateA.localeCompare(dateB);
+            if (dateComp !== 0) return dateComp;
+            
+            const horaA = a.hora_treino || '';
+            const horaB = b.hora_treino || '';
+            return horaA.localeCompare(horaB);
+          });
+          workoutToLoad = sortedPending[0];
+        } else {
+          // 2ª prioridade: último treino concluído (mais recente primeiro)
+          const completedWorkouts = treinos.filter((w: any) => w.status === 'concluido');
+          const sortedCompleted = [...completedWorkouts].sort((a: any, b: any) => {
+            const dateA = a.data_treino || '';
+            const dateB = b.data_treino || '';
+            const dateComp = dateB.localeCompare(dateA); // decrescente (mais recente primeiro)
+            if (dateComp !== 0) return dateComp;
+            
+            const horaA = a.hora_treino || '';
+            const horaB = b.hora_treino || '';
+            return horaB.localeCompare(horaA);
+          });
+          workoutToLoad = sortedCompleted[0] || treinos[0];
+        }
 
-        await handleSelectWorkout(workoutToLoad.id);
+        // Se o usuário já tiver um treino selecionado manualmente no estado, o mantemos.
+        // Caso contrário, carrega o treino priorizado.
+        const workoutIdToLoad = lastSelectedWorkoutId && treinos.some((w: any) => w.id === lastSelectedWorkoutId)
+          ? lastSelectedWorkoutId
+          : workoutToLoad.id;
+
+        await handleSelectWorkout(workoutIdToLoad);
       } else {
         setWorkouts([]);
         setSelectedWorkout(null);
@@ -1039,9 +1073,16 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         )}
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[9px] font-mono uppercase bg-flame/10 text-flame px-2.5 py-0.5 rounded-full font-bold">
-                              Executando Treino Ativo
-                            </span>
+                            {selectedWorkout.status !== 'concluido' ? (
+                              <span className="text-[9px] font-mono uppercase bg-[#F26A1B] text-white px-2.5 py-0.5 rounded-full font-bold animate-novo flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                NOVO TREINO
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-mono uppercase bg-flame/10 text-flame px-2.5 py-0.5 rounded-full font-bold">
+                                Executando Treino Ativo
+                              </span>
+                            )}
                             {selectedWorkout.status === 'concluido' && (
                               <span className="text-[9px] font-mono uppercase bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/20 flex items-center gap-1">
                                 <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
@@ -1093,6 +1134,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                             <Check className="w-4 h-4 stroke-[3]" />
                             <span>Concluído</span>
                           </div>
+                        ) : !expandido ? (
+                          <button
+                            type="button"
+                            onClick={() => setExpandido(true)}
+                            className="w-full sm:w-auto py-2.5 px-5 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs shadow-lg hover:opacity-95 transition-all"
+                          >
+                            Iniciar
+                          </button>
                         ) : (
                           <button
                             type="button"
@@ -1119,6 +1168,18 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                       </div>
                     </div>
                   </div>
+
+                  {workouts.filter((w: any) => w.status !== 'concluido').length > 1 && (
+                    <div className="text-xs text-[#F26A1B] font-semibold flex items-center gap-1.5 px-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#F26A1B] animate-pulse" />
+                      <span>
+                        +{workouts.filter((w: any) => w.status !== 'concluido').length - 1}{' '}
+                        {workouts.filter((w: any) => w.status !== 'concluido').length - 1 === 1
+                          ? 'treino novo aguardando'
+                          : 'treinos novos aguardando'}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Exercises list - Accordion */}
                   <AnimatePresence initial={false}>
