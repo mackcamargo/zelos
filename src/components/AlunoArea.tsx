@@ -531,7 +531,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       try {
         const { data, error } = await supabase
           .from('treinos')
-          .select('id, titulo, data_treino, hora_treino')
+          .select('id, titulo, data_treino, hora_treino, criado_em')
           .eq('aluno_id', userId)
           .eq('status', 'publicado')
           .order('criado_em', { ascending: false })
@@ -589,6 +589,24 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
     };
   }, [userId]);
 
+  const getWorkoutCompletionTime = (workoutId: string, treinosSeriesRealizadas: any[]) => {
+    // 1. Check local storage first (immediate feedback)
+    const localTime = localStorage.getItem(`zenite_completed_at_${workoutId}`);
+    if (localTime) return new Date(localTime).getTime();
+
+    // 2. Check series completion times
+    const workoutSeries = treinosSeriesRealizadas.filter((sr: any) => sr.treino_exercicios?.treino_id === workoutId);
+    if (workoutSeries.length > 0) {
+      const times = workoutSeries
+        .map((sr: any) => sr.concluida_em ? new Date(sr.concluida_em).getTime() : 0)
+        .filter((t: number) => t > 0);
+      if (times.length > 0) {
+        return Math.max(...times);
+      }
+    }
+    return 0;
+  };
+
   const loadStudentWorkouts = async () => {
     setLoading(true);
     try {
@@ -627,12 +645,20 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           });
           workoutToLoad = sortedPending[0];
         } else {
-          // 2ª prioridade: último treino concluído (mais recente primeiro)
+          // 2ª prioridade: último treino concluído (mais recente concluído primeiro, por data de finalização real)
           const completedWorkouts = treinos.filter((w: any) => w.status === 'concluido');
           const sortedCompleted = [...completedWorkouts].sort((a: any, b: any) => {
+            const timeA = getWorkoutCompletionTime(a.id, seriesRealizadas || []);
+            const timeB = getWorkoutCompletionTime(b.id, seriesRealizadas || []);
+            
+            if (timeA !== timeB) {
+              return timeB - timeA; // decrescente (mais recentemente completado primeiro)
+            }
+            
+            // Fallback para data_treino se nenhum tiver data real de conclusão
             const dateA = a.data_treino || '';
             const dateB = b.data_treino || '';
-            const dateComp = dateB.localeCompare(dateA); // decrescente (mais recente primeiro)
+            const dateComp = dateB.localeCompare(dateA); // decrescente
             if (dateComp !== 0) return dateComp;
             
             const horaA = a.hora_treino || '';
@@ -844,6 +870,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
               localStorage.setItem('zenite_finished_count', String(finishedCount));
               localStorage.setItem('zenite_last_workout_date', new Date().toISOString().split('T')[0]);
+              localStorage.setItem(`zenite_completed_at_${selectedWorkout.id}`, new Date().toISOString());
             } catch (e) {
               console.error(e);
             }
@@ -870,6 +897,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
   const handleFinishWorkout = async () => {
     if (selectedWorkout) {
+      // Force database status update
+      await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
+
       if (supabase && isSupabaseConfigured) {
         try {
           const { data: updatedTreino } = await supabase
@@ -885,7 +915,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           console.error(err);
         }
       } else {
-        await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
+        setSelectedWorkout(prev => prev ? { ...prev, status: 'concluido' } : null);
       }
       
       if (userId) {
@@ -900,6 +930,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
       const finishedCount = Number(localStorage.getItem('zenite_finished_count') || '0') + 1;
       localStorage.setItem('zenite_finished_count', String(finishedCount));
       localStorage.setItem('zenite_last_workout_date', new Date().toISOString().split('T')[0]);
+      if (selectedWorkout) {
+        localStorage.setItem(`zenite_completed_at_${selectedWorkout.id}`, new Date().toISOString());
+      }
     } catch (e) {
       console.error(e);
     }
@@ -918,7 +951,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
 
   const handleCloseCelebration = () => {
     setShowCelebration(false);
-    setSelectedWorkout(null);
+    // Do not set selectedWorkout to null, so it stays on screen
     loadStudentWorkouts();
   };
 
@@ -1012,48 +1045,62 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               <div 
                 id="banner-novo-treino"
                 onClick={() => handleSelectWorkout(novoTreino.id)}
-                className="banner-novo-treino relative w-full border-2 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 cursor-pointer hover:opacity-95 transition-all select-none shadow-lg group overflow-hidden"
+                className="banner-novo-treino relative w-full border-2 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-center gap-5 cursor-pointer hover:opacity-95 transition-all select-none shadow-lg group overflow-hidden"
                 style={{
                   borderColor: '#F26A1B',
                   backgroundColor: 'rgba(242, 106, 27, 0.12)'
                 }}
               >
-                {/* Selo NOVO no canto superior */}
-                <div className="absolute -top-2.5 right-4 bg-[#F26A1B] text-white text-[10px] font-mono font-black uppercase px-2.5 py-0.5 rounded-full shadow-md selo-novo z-10 flex items-center gap-1">
+                {/* Selo NOVO no canto superior - posicionado dentro para nunca cortar */}
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-5 bg-[#F26A1B] text-white text-[10px] font-mono font-black uppercase px-2.5 py-0.5 rounded-full shadow-md selo-novo z-10 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                   NOVO
                 </div>
 
-                {/* Esquerda: Sino + Textos */}
-                <div className="flex items-center gap-4">
+                {/* Esquerda: Sino + Textos com alinhamento refinado */}
+                <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 w-full sm:w-auto">
                   <div className="w-12 h-12 rounded-full bg-[#F26A1B]/20 flex items-center justify-center shrink-0 shadow-inner">
                     <Bell className="w-6 h-6 text-[#F26A1B] animate-bounce" />
                   </div>
-                  <div>
-                    <h4 className="text-sm font-sans font-black text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-sans font-black text-ink uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5">
                       Novo treino disponível
                     </h4>
-                    <p className="text-xs text-ink-2 mt-1 font-mono font-medium">
+                    <p className="text-base font-display font-bold text-ink mt-1 block truncate">
+                      {novoTreino.titulo}
+                    </p>
+                    <p className="text-xs text-ink-2 mt-1.5 font-mono font-medium flex items-center justify-center sm:justify-start gap-1">
                       {(() => {
-                        if (novoTreino.data_treino) {
-                          const [ano, mes, dia] = novoTreino.data_treino.split("-").map(Number);
-                          const dataFormatada = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
-                          return `${dataFormatada} - ${novoTreino.titulo}`;
-                        }
-                        return novoTreino.titulo;
+                        const [dataPostado, horaPostado] = (() => {
+                          if (novoTreino.criado_em) {
+                            const d = new Date(novoTreino.criado_em);
+                            const dataFormatted = d.toLocaleDateString('pt-BR');
+                            const horaFormatted = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                            return [dataFormatted, horaFormatted];
+                          }
+                          if (novoTreino.data_treino) {
+                            const [ano, mes, dia] = novoTreino.data_treino.split("-").map(Number);
+                            const dataFormatted = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                            const horaFormatted = novoTreino.hora_treino ? novoTreino.hora_treino.substring(0, 5) : '00:00';
+                            return [dataFormatted, horaFormatted];
+                          }
+                          return ['', ''];
+                        })();
+
+                        return `Postado em ${dataPostado} às ${horaPostado}`;
                       })()}
                     </p>
                   </div>
                 </div>
 
-                {/* Direita: Botão Iniciar */}
+                {/* Direita: Botão Iniciar com tamanho ajustado para mobile */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSelectWorkout(novoTreino.id);
                   }}
-                  className="w-full sm:w-auto px-5 py-2.5 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-xs font-display font-bold uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 self-stretch sm:self-center shrink-0 active:scale-95"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-xs font-display font-bold uppercase rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 self-stretch sm:self-center shrink-0 active:scale-95"
                 >
                   <span>Iniciar</span>
                   <ChevronRight className="w-4 h-4 stroke-[2.5] group-hover:translate-x-1 transition-transform" />
