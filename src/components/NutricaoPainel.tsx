@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Utensils, Plus, Check, Loader2, Target, 
   Flame, Apple, Wheat, Droplets, Clock,
-  ChevronRight, History, TrendingUp, X,
+  ChevronRight, History, TrendingUp, X, ClipboardList,
   AlertTriangle, Search, Info, Sparkles, BookOpen, Settings, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -199,6 +199,12 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   const [suplementoRegistros, setSuplementoRegistros] = useState<any[]>([]);
   const [dicasNutricao, setDicasNutricao] = useState<any[]>([]);
   
+  // --- ORIENTAÇÃO DE SUPLEMENTOS DO PERSONAL ---
+  const [planoSuplementos, setPlanoSuplementos] = useState<any | null>(null);
+  const [loadingPlanoSup, setLoadingPlanoSup] = useState(true);
+  const [confirmingPlanoSup, setConfirmingPlanoSup] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
   const [showManageSuplementos, setShowManageSuplementos] = useState(false);
   const [selectedSuplementoModal, setSelectedSuplementoModal] = useState<any | null>(null);
   const [suplementoSearchTerm, setSuplementoSearchTerm] = useState('');
@@ -223,6 +229,107 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
   useEffect(() => {
     loadData();
+  }, [alunoId]);
+
+  const loadPlanoSuplementos = async () => {
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const { data, error } = await supabase
+          .from('plano_suplementos')
+          .select(`
+            *,
+            plano_suplemento_itens (
+              id,
+              plano_id,
+              suplemento_id,
+              orientacao,
+              ordem,
+              suplementos (*)
+            )
+          `)
+          .eq('aluno_id', alunoId)
+          .maybeSingle();
+
+        if (!error && data) {
+          if (data.plano_suplemento_itens) {
+            data.plano_suplemento_itens.sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0));
+          }
+          setPlanoSuplementos(data);
+        } else {
+          setPlanoSuplementos(null);
+        }
+      } else {
+        const stored = localStorage.getItem(`plano_suplementos_${alunoId}`);
+        if (stored) {
+          setPlanoSuplementos(JSON.parse(stored));
+        } else {
+          setPlanoSuplementos(null);
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao carregar orientação de suplementos:", err);
+    } finally {
+      setLoadingPlanoSup(false);
+    }
+  };
+
+  const handleConfirmarPlanoSuplementos = async () => {
+    if (!planoSuplementos || confirmingPlanoSup) return;
+    setConfirmingPlanoSup(true);
+    tocar('celebracao');
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const { error } = await supabase.rpc('confirmar_plano_suplementos', {
+          p_plano_id: planoSuplementos.id
+        });
+        if (error) throw error;
+        setToastMessage("Confirmado! Seu personal foi avisado.");
+        await loadPlanoSuplementos();
+      } else {
+        const updated = {
+          ...planoSuplementos,
+          confirmado: true,
+          confirmado_versao: planoSuplementos.versao,
+          confirmado_em: new Date().toISOString()
+        };
+        localStorage.setItem(`plano_suplementos_${alunoId}`, JSON.stringify(updated));
+        setPlanoSuplementos(updated);
+        setToastMessage("Confirmado! Seu personal foi avisado.");
+      }
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 4000);
+    } catch (err) {
+      console.error("Erro ao confirmar orientação de suplementos:", err);
+    } finally {
+      setConfirmingPlanoSup(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPlanoSuplementos();
+
+    if (isSupabaseConfigured && supabase) {
+      const channel = supabase
+        .channel(`plano-sup-aluno-${alunoId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'plano_suplementos',
+            filter: `aluno_id=eq.${alunoId}`
+          },
+          (payload) => {
+            loadPlanoSuplementos();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [alunoId]);
 
   useEffect(() => {
@@ -985,6 +1092,142 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
           
           {/* AVISO EDUCATIVO FIXO DE ENQUADRAMENTO LEGAL */}
           <AvisoEducativo />
+
+          {/* Toast de Sucesso para confirmação do aluno */}
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20, x: '-50%' }}
+                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                exit={{ opacity: 0, y: -20, x: '-50%' }}
+                className="fixed top-4 left-1/2 bg-ok text-void px-6 py-3 rounded-2xl shadow-xl z-50 flex items-center gap-2.5 text-sm font-semibold border border-white/20"
+              >
+                <Check className="w-4 h-4 bg-void/25 p-0.5 rounded-full" />
+                <span>{toastMessage}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* BLOCO: ORIENTAÇÃO DO SEU TREINADOR */}
+          <div className="bg-surface border border-line rounded-3xl p-4 sm:p-6 shadow-sm space-y-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-flame/5 blur-3xl pointer-events-none rounded-full" />
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 border-b border-line/40 pb-4">
+              <div className="space-y-0.5">
+                <h4 className="font-display font-bold text-ink flex items-center gap-2 text-sm sm:text-base">
+                  <ClipboardList className="w-5 h-5 text-flame" />
+                  Orientação do seu Personal
+                </h4>
+                <p className="text-[11px] text-ink-3">Veja a orientação de suplementação educacional sugerida para você</p>
+              </div>
+
+              {/* Status de Confirmação */}
+              {planoSuplementos && (
+                <div>
+                  {planoSuplementos.confirmado === true && planoSuplementos.confirmado_versao === planoSuplementos.versao ? (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-ok/10 border border-ok/20 text-ok text-[11px] font-bold">
+                      <Check className="w-3.5 h-3.5" />
+                      Você está seguindo esta orientação
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[11px] font-bold animate-pulse">
+                      <AlertTriangle className="w-3 h-3" />
+                      Novo / Atualizado
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {loadingPlanoSup ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-5 h-5 text-flame animate-spin" />
+              </div>
+            ) : !planoSuplementos ? (
+              <div className="text-center py-10 px-4 bg-raise/20 border border-dashed border-line rounded-2xl flex flex-col items-center justify-center gap-3">
+                <span className="text-3xl">🥛</span>
+                <p className="text-xs text-ink-3 max-w-xs leading-relaxed">Seu personal ainda não enviou uma orientação de suplementação para você.</p>
+              </div>
+            ) : (
+              <div className="space-y-6 relative z-10 animate-fadeIn">
+                
+                {/* ENQUADRAMENTO LEGAL / AVISO FIXO OBRIGATÓRIO EM CADA PLANO */}
+                <div className="bg-amber-500/10 border border-amber-500/15 rounded-2xl p-4 flex gap-3 text-xs text-amber-500 leading-relaxed">
+                  <div className="shrink-0 w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <p className="font-sans text-left">
+                    <strong className="block text-amber-400 font-bold mb-0.5">Enquadramento Legal:</strong>
+                    Orientação de acompanhamento. Não substitui a prescrição de um nutricionista. A dose adequada deve ser definida por um profissional habilitado.
+                  </p>
+                </div>
+
+                {/* Itens da Orientação */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(planoSuplementos.plano_suplemento_itens || []).map((item: any) => {
+                    const icone = item.suplementos?.icone || '🥛';
+                    const nome = item.suplementos?.nome || 'Suplemento';
+                    const categoria = item.suplementos?.categoria || 'Geral';
+                    return (
+                      <div key={item.id} className="bg-raise/25 border border-line rounded-2xl p-4 flex flex-col gap-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-xl">{icone}</span>
+                          <div className="text-left">
+                            <h5 className="font-bold text-xs sm:text-sm text-ink">{nome}</h5>
+                            <span className="text-[9px] text-ink-3 uppercase font-semibold tracking-wider">{categoria}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-ink-2 leading-relaxed bg-void/25 p-2.5 rounded-xl border border-line/30 italic text-left">
+                          {item.orientacao || 'Acompanhar conforme indicação do nutricionista.'}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Observação Geral do Plano */}
+                {planoSuplementos.observacao && (
+                  <div className="bg-raise/30 border border-line/50 p-4 rounded-2xl space-y-1.5 text-left">
+                    <span className="text-[10px] font-bold text-ink-3 uppercase tracking-wider block">Observações do Treinador:</span>
+                    <p className="text-xs text-ink-2 leading-relaxed italic">{planoSuplementos.observacao}</p>
+                  </div>
+                )}
+
+                {/* BOTÃO DE CONFIRMAÇÃO DO ALUNO */}
+                {!(planoSuplementos.confirmado === true && planoSuplementos.confirmado_versao === planoSuplementos.versao) ? (
+                  <div className="pt-2">
+                    <button
+                      onClick={handleConfirmarPlanoSuplementos}
+                      disabled={confirmingPlanoSup}
+                      className="w-full py-3 bg-flame hover:bg-flame-hover text-white text-xs sm:text-sm font-bold rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-flame/15 hover:shadow-lg disabled:opacity-50"
+                    >
+                      {confirmingPlanoSup ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Processando confirmação...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 stroke-[3px]" />
+                          <span>Estou seguindo a orientação ✓</span>
+                        </>
+                      )}
+                    </button>
+                    <p className="text-[10px] text-ink-3 text-center mt-2">Ao clicar, seu treinador receberá uma notificação em tempo real informando que você está seguindo esta recomendação.</p>
+                  </div>
+                ) : (
+                  <div className="pt-2 bg-ok/10 border border-ok/20 rounded-2xl p-4 text-center space-y-1">
+                    <p className="text-xs font-bold text-ok flex items-center justify-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Você confirmou esta orientação!
+                    </p>
+                    <p className="text-[10px] text-ink-3">Confirmado em {new Date(planoSuplementos.confirmado_em).toLocaleDateString('pt-BR')} às {new Date(planoSuplementos.confirmado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (versão {planoSuplementos.versao})</p>
+                  </div>
+                )}
+
+              </div>
+            )}
+          </div>
 
           {/* BLOCO 2 — MEUS SUPLEMENTOS (REGISTRO DIÁRIO) */}
           <div className="bg-surface border border-line rounded-3xl p-4 sm:p-6 shadow-sm space-y-6 relative overflow-hidden">

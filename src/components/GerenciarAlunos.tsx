@@ -7,7 +7,7 @@ import {
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
   Activity, Award, CheckCircle, ExternalLink, ShieldCheck,
   Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle,
-  Send, Link2
+  Send, Link2, ClipboardList
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
@@ -16,6 +16,7 @@ import GerenciarHabitos from './GerenciarHabitos';
 import GamificationDisplay from './GamificationDisplay';
 import FotoProgressoGaleria from './FotoProgressoGaleria';
 import GerenciarNutricao from './GerenciarNutricao';
+import GerenciarSuplementos from './GerenciarSuplementos';
 import HidratacaoStats from './HidratacaoStats';
 import { Flame, Camera, Utensils, Droplets, Heart, Upload } from 'lucide-react';
 import { useSubscription } from '../contexts/SubscriptionContext';
@@ -1100,6 +1101,20 @@ Bora juntos! 💪`;
                   <h3 className="font-display font-bold text-lg text-ink">Plano Alimentar</h3>
                 </div>
                 <GerenciarNutricao alunoId={selectedAluno.id} personalId={personalId} isReadOnly={isReadOnly} />
+              </div>
+
+              {/* BLOCK 7.5: ORIENTAÇÃO DE SUPLEMENTOS */}
+              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+                <div className="flex items-center gap-3 pb-4 border-b border-line">
+                  <ClipboardList className="w-5 h-5 text-flame" />
+                  <h3 className="font-display font-bold text-lg text-ink">Orientação de Suplementos</h3>
+                </div>
+                <GerenciarSuplementos 
+                  alunoId={selectedAluno.id} 
+                  alunoNome={selectedAluno.profile?.nome || 'Aluno'} 
+                  personalId={personalId} 
+                  isReadOnly={isReadOnly} 
+                />
               </div>
 
               {/* BLOCK 8: HIDRATAÇÃO (Personal View) */}
