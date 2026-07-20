@@ -146,6 +146,34 @@ const MOCK_DICAS_NUTRICAO = [
   }
 ];
 
+class ErrorBoundary extends React.Component<{ children: React.ReactNode; fallbackMessage?: string }, { hasError: boolean }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs text-center space-y-2 my-4">
+          <p className="font-bold">Ops! Algo deu errado ao carregar esta seção.</p>
+          <p className="text-[10px] text-ink-3">{this.props.fallbackMessage || "Tente recarregar a página."}</p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   const [loading, setLoading] = useState(true);
   const [plano, setPlano] = useState<PlanoAlimentar | null>(null);
@@ -458,12 +486,12 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
   // Calcula a sequência atual de dias consecutivos de uso
   const calcularStreak = (supId: string | number) => {
-    const tomados = suplementoRegistros
-      .filter(r => r.suplemento_id === supId && r.tomado)
+    const tomados = (suplementoRegistros || [])
+      .filter(r => r && r.suplemento_id === supId && r.tomado && typeof r.data === 'string')
       .map(r => r.data)
       .sort((a, b) => b.localeCompare(a)); // desc
 
-    if (tomados.length === 0) return 0;
+    if (!tomados || tomados.length === 0) return 0;
 
     const dataOntem = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     const temHoje = tomados.includes(today);
@@ -474,7 +502,10 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
     let streak = 0;
     let dataAtual = temHoje ? today : dataOntem;
 
-    while (true) {
+    // Coloca um limite de segurança de 100 iterações para evitar loops infinitos catastróficos em qualquer circunstância
+    let seguranca = 0;
+    while (seguranca < 100) {
+      seguranca++;
       if (tomados.includes(dataAtual)) {
         streak++;
         const d = new Date(dataAtual + 'T12:00:00');
@@ -512,18 +543,18 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
   };
 
   const metaCalorias = plano ? Number(plano.meta_calorias) || 0 : 0;
-  const consumidoCalorias = registros.reduce((acc, curr) => acc + (Number(curr.calorias) || 0), 0);
+  const consumidoCalorias = (registros || []).reduce((acc, curr) => acc + (Number(curr?.calorias) || 0), 0);
   const calPercent = metaCalorias > 0 ? Math.min(100, Math.round((consumidoCalorias / metaCalorias) * 100)) : 0;
 
-  const consumidoProteina = round(registros.reduce((acc, curr) => acc + (Number(curr.proteina) || 0), 0), 1);
+  const consumidoProteina = round((registros || []).reduce((acc, curr) => acc + (Number(curr?.proteina) || 0), 0), 1);
   const metaProteina = plano ? Number(plano.meta_proteina) || 0 : 0;
   const protPercent = metaProteina > 0 ? Math.min(100, Math.round((consumidoProteina / metaProteina) * 100)) : 0;
 
-  const consumidoCarbo = round(registros.reduce((acc, curr) => acc + (Number(curr.carbo) || 0), 0), 1);
+  const consumidoCarbo = round((registros || []).reduce((acc, curr) => acc + (Number(curr?.carbo) || 0), 0), 1);
   const metaCarbo = plano ? Number(plano.meta_carboidrato ?? (plano as any).meta_carbo) || 0 : 0;
   const carboPercent = metaCarbo > 0 ? Math.min(100, Math.round((consumidoCarbo / metaCarbo) * 100)) : 0;
 
-  const consumidoGordura = round(registros.reduce((acc, curr) => acc + (Number(curr.gordura) || 0), 0), 1);
+  const consumidoGordura = round((registros || []).reduce((acc, curr) => acc + (Number(curr?.gordura) || 0), 0), 1);
   const metaGordura = plano ? Number(plano.meta_gordura) || 0 : 0;
   const gorduraPercent = metaGordura > 0 ? Math.min(100, Math.round((consumidoGordura / metaGordura) * 100)) : 0;
 
@@ -566,6 +597,56 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
     }
   };
 
+  // Filtro de categorias dinâmico
+  const categoriasUnicas = useMemo(() => {
+    const cats = (suplementos || []).map(s => s?.categoria).filter(Boolean);
+    const unique = Array.from(new Set(cats));
+    return ['Todos', ...unique];
+  }, [suplementos]);
+
+  // Filtros dos suplementos do Guia (com normalização de acentos e busca e filtro de categoria)
+  const filteredSuplementosGuia = useMemo(() => {
+    const term = normalizarTexto(debouncedSuplementoSearchTerm);
+    
+    let list = suplementos || [];
+    if (term) {
+      list = list.filter(s => 
+        s && (
+          normalizarTexto(s.nome || '').includes(term) ||
+          normalizarTexto(s.categoria || '').includes(term) ||
+          normalizarTexto(s.para_que_serve || '').includes(term)
+        )
+      );
+    }
+    
+    if (selectedCategoria !== 'Todos') {
+      list = list.filter(s => s && s.categoria === selectedCategoria);
+    }
+    
+    return list;
+  }, [suplementos, debouncedSuplementoSearchTerm, selectedCategoria]);
+
+  // Agrupamento por categoria
+  const groupedSuplementos = useMemo(() => {
+    const groups: { [key: string]: any[] } = {};
+    (filteredSuplementosGuia || []).forEach(s => {
+      if (!s) return;
+      const cat = s.categoria || 'Geral';
+      if (!groups[cat]) {
+        groups[cat] = [];
+      }
+      groups[cat].push(s);
+    });
+    return groups;
+  }, [filteredSuplementosGuia]);
+
+  // Lista dos suplementos que o aluno selecionou para acompanhar diariamente
+  const followedSuplementosList = useMemo(() => {
+    const list = suplementos || [];
+    const ids = Array.isArray(alunoSuplementosIds) ? alunoSuplementosIds : [];
+    return list.filter(s => s && ids.includes(s.id));
+  }, [suplementos, alunoSuplementosIds]);
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -586,51 +667,6 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
       </p>
     </div>
   );
-
-  // Filtro de categorias dinâmico
-  const categoriasUnicas = useMemo(() => {
-    const cats = suplementos.map(s => s.categoria).filter(Boolean);
-    const unique = Array.from(new Set(cats));
-    return ['Todos', ...unique];
-  }, [suplementos]);
-
-  // Filtros dos suplementos do Guia (com normalização de acentos e busca e filtro de categoria)
-  const filteredSuplementosGuia = useMemo(() => {
-    const term = normalizarTexto(debouncedSuplementoSearchTerm);
-    
-    let list = suplementos;
-    if (term) {
-      list = list.filter(s => 
-        normalizarTexto(s.nome).includes(term) ||
-        normalizarTexto(s.categoria || '').includes(term) ||
-        normalizarTexto(s.para_que_serve || '').includes(term)
-      );
-    }
-    
-    if (selectedCategoria !== 'Todos') {
-      list = list.filter(s => s.categoria === selectedCategoria);
-    }
-    
-    return list;
-  }, [suplementos, debouncedSuplementoSearchTerm, selectedCategoria]);
-
-  // Agrupamento por categoria
-  const groupedSuplementos = useMemo(() => {
-    const groups: { [key: string]: any[] } = {};
-    filteredSuplementosGuia.forEach(s => {
-      const cat = s.categoria || 'Geral';
-      if (!groups[cat]) {
-        groups[cat] = [];
-      }
-      groups[cat].push(s);
-    });
-    return groups;
-  }, [filteredSuplementosGuia]);
-
-  // Lista dos suplementos que o aluno selecionou para acompanhar diariamente
-  const followedSuplementosList = useMemo(() => {
-    return suplementos.filter(s => alunoSuplementosIds.includes(s.id));
-  }, [suplementos, alunoSuplementosIds]);
 
   return (
     <div className="space-y-6 pb-20">
@@ -671,7 +707,8 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
       {/* --- ABA 1: ALIMENTAÇÃO (O QUE JÁ EXISTIA) --- */}
       {subAba === 'alimentacao' && (
-        <div className="space-y-8 animate-fadeIn">
+        <ErrorBoundary fallbackMessage="Erro ao carregar os dados de alimentação.">
+          <div className="space-y-8 animate-fadeIn">
           {/* RESUMO DO DIA */}
           <div className="bg-surface border border-line rounded-3xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-flame/5 blur-[100px] pointer-events-none" />
@@ -938,11 +975,13 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
             </div>
           </div>
         </div>
+        </ErrorBoundary>
       )}
 
       {/* --- ABA 2: SUPLEMENTOS (NOVOS BLOCOS 1 E 2) --- */}
       {subAba === 'suplementos' && (
-        <div className="space-y-8 animate-fadeIn">
+        <ErrorBoundary fallbackMessage="Erro ao carregar o painel de suplementação.">
+          <div className="space-y-8 animate-fadeIn">
           
           {/* AVISO EDUCATIVO FIXO DE ENQUADRAMENTO LEGAL */}
           <AvisoEducativo />
@@ -1244,11 +1283,13 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
             </div>
           </div>
         </div>
+        </ErrorBoundary>
       )}
 
       {/* --- ABA 3: TIMING (NOVO BLOCO 3) --- */}
       {subAba === 'timing' && (
-        <div className="space-y-8 animate-fadeIn">
+        <ErrorBoundary fallbackMessage="Erro ao carregar as informações de timing nutricional.">
+          <div className="space-y-8 animate-fadeIn">
           
           {/* AVISO EDUCATIVO FIXO DE ENQUADRAMENTO LEGAL */}
           <AvisoEducativo />
@@ -1345,6 +1386,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
           </div>
 
         </div>
+        </ErrorBoundary>
       )}
 
       {/* --- MODAL DETALHADO DO SUPLEMENTO (GUIA EDUCATIVO) --- */}
