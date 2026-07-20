@@ -209,6 +209,65 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
     ...(isAdmin ? [{ id: 'cortesias', label: 'Cortesias', icon: ShieldCheck }] : []),
   ];
 
+  const getPlanoLabel = (plano: string | null | undefined) => {
+    if (!plano) return "Sem plano ativo";
+    const p = plano.toLowerCase();
+    switch (p) {
+      case 'basico':
+        return "Plano Básico";
+      case 'pro':
+        return "Plano Pro";
+      case 'ilimitado':
+        return "Plano Ilimitado";
+      case 'cortesia':
+        return "Cortesia";
+      case 'trial':
+        return "Plano Teste";
+      default:
+        return `Plano ${plano.charAt(0).toUpperCase() + plano.slice(1)}`;
+    }
+  };
+
+  const getPlanoStyles = (plano: string | null | undefined) => {
+    if (!plano) return "bg-zinc-500/10 border border-zinc-500/20 text-zinc-400";
+    const p = plano.toLowerCase();
+    if (p === 'cortesia') {
+      return "bg-purple-500/10 border border-purple-500/20 text-purple-400";
+    }
+    return "bg-[#F26A1B]/10 border border-[#F26A1B]/20 text-[#F26A1B]";
+  };
+
+  const getStatusBadge = (status: string | null | undefined, plano: string | null | undefined) => {
+    const s = status ? status.toLowerCase() : '';
+    const p = plano ? plano.toLowerCase() : '';
+
+    if (p === 'cortesia') {
+      return {
+        label: "Cortesia ativa",
+        className: "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+      };
+    }
+
+    if (s === 'ativa') {
+      return {
+        label: "Assinatura ativa",
+        className: "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+      };
+    }
+
+    if (s === 'trial') {
+      return {
+        label: "Em teste",
+        className: "bg-amber-500/10 border border-amber-500/20 text-amber-400"
+      };
+    }
+
+    return {
+      label: "Assinatura inativa",
+      className: "bg-red-500/10 border border-red-500/20 text-red-400"
+    };
+  };
+
   const getPlanBadge = () => {
     if (!assinatura) return null;
 
@@ -222,9 +281,14 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
     }
 
     if (assinatura.status === 'ativa' || assinatura.plano === 'cortesia') {
-      const planoNome = (assinatura.plano === 'ilimitado') ? 'Ilimitado' : (assinatura.plano === 'cortesia' ? 'Pro' : assinatura.plano.charAt(0).toUpperCase() + assinatura.plano.slice(1));
+      const planoNome = getPlanoLabel(assinatura.plano);
+      const isCortesia = assinatura.plano && assinatura.plano.toLowerCase() === 'cortesia';
       return (
-        <div className="mx-4 mb-4 px-3 py-1.5 bg-[#F26A1B] text-white rounded-lg text-center shadow-lg shadow-flame/20">
+        <div className={`mx-4 mb-4 px-3 py-1.5 text-white rounded-lg text-center shadow-lg ${
+          isCortesia 
+            ? 'bg-purple-600 shadow-purple-600/20' 
+            : 'bg-[#F26A1B] shadow-flame/20'
+        }`}>
           <span className="text-[9px] font-semibold">
             {planoNome}
           </span>
@@ -904,11 +968,11 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
                   <h3 className="font-display font-semibold text-xl text-ink">{profile.nome}</h3>
                   <p className="text-sm text-ink-2">{userEmail}</p>
                   <div className="pt-2 flex flex-wrap justify-center sm:justify-start items-center gap-2">
-                    <span className="text-[12px] bg-accent/10 border border-accent/20 text-accent px-2.5 py-0.5 rounded-full">
-                      Plano Black
+                    <span className={`text-[12px] px-2.5 py-0.5 rounded-full ${getPlanoStyles(assinatura?.plano)}`}>
+                      {getPlanoLabel(assinatura?.plano)}
                     </span>
-                    <span className="text-[12px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full">
-                      Assinatura ativa
+                    <span className={`text-[12px] px-2.5 py-0.5 rounded-full ${getStatusBadge(assinatura?.status, assinatura?.plano).className}`}>
+                      {getStatusBadge(assinatura?.status, assinatura?.plano).label}
                     </span>
                     {profile.avatar_url && (
                       <button
