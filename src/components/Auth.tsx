@@ -481,8 +481,8 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             className="space-y-4"
           >
             <span className="z-eyebrow text-xs font-semibold text-[#F26A1B] uppercase tracking-wider">ZELOS PERSONAL</span>
-            <h1 className="text-3xl xl:text-4xl font-black font-display text-ink tracking-tight leading-tight max-w-md">
-              Sua consultoria com <span className="text-[#F26A1B]">tecnologia de ponta</span> e controle total.
+            <h1 className="text-lg xl:text-xl font-black font-display text-ink tracking-tight leading-relaxed max-w-md">
+              Monte os treinos dos seus alunos com o <span className="text-[#F26A1B]">Zelos Personal</span> em menos de um minuto. Eles recebem os treinos em seus <span className="text-[#F26A1B]">smartphones na hora</span> e você acompanha os feedbacks e as evoluções <span className="text-[#F26A1B]">em tempo real</span>.
             </h1>
           </motion.div>
 
@@ -492,16 +492,6 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             transition={{ delay: 0.3, duration: 0.8 }}
             className="space-y-6 max-w-sm"
           >
-            <div className="flex items-start gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
-                <Dumbbell className="w-4.5 h-4.5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-ink text-sm">Adeus papel e WhatsApp</h3>
-                <p className="text-ink-2 text-xs/relaxed mt-1 font-medium">Monte treinos práticos e tecnológicos em segundos e entregue direto no Zelos Personal do seu aluno.</p>
-              </div>
-            </div>
-            
             <div className="flex items-start gap-3.5">
               <div className="w-9 h-9 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center border border-[#F26A1B]/15 text-[#F26A1B] shrink-0">
                 <TrendingUp className="w-4.5 h-4.5" />

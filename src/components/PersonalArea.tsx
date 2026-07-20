@@ -4,6 +4,7 @@ import { Aluno, Profile } from '../types';
 import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
+import GerenciarCortesias from './GerenciarCortesias';
 import GerenciarAgendaPersonal from './GerenciarAgendaPersonal';
 import GerenciarAlunos from './GerenciarAlunos';
 import GerenciarTemplates from './GerenciarTemplates';
@@ -25,9 +26,10 @@ interface PersonalAreaProps {
   isDemoMode: boolean;
 }
 
-type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos';
+type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos' | 'cortesias';
 
 function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
+  const isAdmin = userId === 'fdcb50c9-9057-4922-b2f8-c6093d6941f4';
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -48,6 +50,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
     window.addEventListener('changeTab', handleTabChangeScroll);
     return () => window.removeEventListener('changeTab', handleTabChangeScroll);
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'cortesias' && !isAdmin) {
+      setActiveTab('dashboard');
+    }
+  }, [activeTab, isAdmin]);
 
   const toggleSom = () => {
     const novo = !somHabilitado;
@@ -72,6 +80,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
     { id: 'chat', label: 'Mensagens', icon: MessageSquare },
     { id: 'planos', label: 'Assinatura', icon: CreditCard },
     { id: 'perfil', label: 'Perfil', icon: User },
+    ...(isAdmin ? [{ id: 'cortesias', label: 'Cortesias', icon: ShieldCheck }] : []),
   ];
 
   const getPlanBadge = () => {
@@ -598,6 +607,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   {activeTab === 'chat' && 'Mensagens'}
                   {activeTab === 'perfil' && 'Seu perfil'}
                   {activeTab === 'gerenciar' && 'Gestão'}
+                  {activeTab === 'cortesias' && 'Códigos de Cortesia'}
                 </h1>
                 <p className="text-sm text-ink-2 leading-none">
                   {activeTab === 'dashboard' && 'Aqui está o resumo dos seus alunos hoje'}
@@ -609,6 +619,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                   {activeTab === 'chat' && 'Converse com seus alunos e tire dúvidas em tempo real'}
                   {activeTab === 'perfil' && 'Gerencie seus dados cadastrais e assinatura'}
                   {activeTab === 'gerenciar' && 'Painel administrativo para adicionar e editar movimentos'}
+                  {activeTab === 'cortesias' && 'Gerencie e distribua códigos de acesso gratuito para alunos'}
                 </p>
               </div>
             </div>
@@ -765,6 +776,31 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 )}
               </div>
 
+              {/* Admin Cortesias Button */}
+              {isAdmin && (
+                <div className="p-5 bg-accent/5 hover:bg-accent/10 border border-accent/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
+                  <div className="flex gap-3 text-xs text-ink-2 leading-relaxed">
+                    <span className="text-xl">🎟️</span>
+                    <div>
+                      <p className="text-ink font-semibold flex items-center gap-2">
+                        <span>Códigos de cortesia</span>
+                        <span className="text-[9px] bg-accent/20 text-accent px-2 py-0.5 rounded-full border border-accent/30 font-semibold">Admin</span>
+                      </p>
+                      <p className="mt-0.5 text-[11px]">Gerencie códigos de cortesia e controle de acessos de alunos.</p>
+                    </div>
+                  </div>
+                  <button
+                    id="btn-goto-cortesias"
+                    type="button"
+                    onClick={() => handleTabChange('cortesias')}
+                    data-sem-som
+                    className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all hover:bg-accent/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
+                  >
+                    🎟️ Códigos de Cortesia
+                  </button>
+                </div>
+              )}
+
               {/* Sound Settings */}
               <div className="p-5 bg-surface border border-line rounded-2xl space-y-4">
                 <div className="flex items-center justify-between">
@@ -842,6 +878,13 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         {activeTab === 'gerenciar' && profile.is_admin && (
           <div id="tab-content-gerenciar" className="space-y-6">
             <GerenciarExercicios personalId={userId} isReadOnly={isReadOnly} />
+          </div>
+        )}
+
+        {/* TAB: CORTESIAS ADMIN */}
+        {activeTab === 'cortesias' && isAdmin && (
+          <div id="tab-content-cortesias" className="space-y-6">
+            <GerenciarCortesias />
           </div>
         )}
 
