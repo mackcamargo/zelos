@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { authService, isSupabaseConfigured } from '../lib/supabase';
+import { authService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { PapelUsuario, TipoAvatar } from '../types';
 import { 
   Eye, 
@@ -109,6 +109,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const [papel, setPapel] = useState<PapelUsuario>('personal');
   const [avatarTipo, setAvatarTipo] = useState<TipoAvatar>('masculino');
   const [codigoConvite, setCodigoConvite] = useState('');
+  const [codigoCortesia, setCodigoCortesia] = useState('');
   const [isConviteLocked, setIsConviteLocked] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
@@ -180,9 +181,15 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   React.useEffect(() => {
     const isCadastroPath = window.location.pathname.startsWith('/cadastro');
     const params = new URLSearchParams(window.location.search);
+    const cortesiaParam = params.get('cortesia');
     const conviteParam = params.get('convite') || params.get('code');
 
-    if (conviteParam) {
+    if (cortesiaParam) {
+      const code = cortesiaParam.trim().toUpperCase();
+      setCodigoCortesia(code);
+      setPapel('personal');
+      setIsLogin(false);
+    } else if (conviteParam) {
       const code = conviteParam.trim().toUpperCase();
       setCodigoConvite(code);
       setPapel('aluno');
@@ -371,6 +378,42 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
             setPendingUser(data.user);
             playSuccess();
             setShowWelcomeModal(true);
+          } else if (papel === 'personal' && codigoCortesia.trim()) {
+            try {
+              if (isSupabaseConfigured && supabase) {
+                const { data: rpcRes, error: rpcErr } = await supabase.rpc('aplicar_codigo_cortesia', {
+                  p_codigo: codigoCortesia.trim().toUpperCase()
+                });
+
+                if (rpcErr) {
+                  console.error("Erro rpc aplicar_codigo_cortesia:", rpcErr);
+                  setError(`Código de cortesia não aplicado: ${rpcErr.message}`);
+                  setPendingUser(data.user);
+                } else if (rpcRes) {
+                  if (rpcRes.ok) {
+                    setSuccessMessage("Cortesia ativada! 🎉");
+                    playSuccess();
+                    await new Promise(resolve => setTimeout(resolve, 1800));
+                    onAuthSuccess(data.user);
+                  } else {
+                    setError(rpcRes.erro || 'Este código de cortesia não pôde ser aplicado.');
+                    setPendingUser(data.user);
+                  }
+                } else {
+                  setError('Resposta inválida ao aplicar o código de cortesia.');
+                  setPendingUser(data.user);
+                }
+              } else {
+                setSuccessMessage("Cortesia ativada! 🎉 (Modo Demo)");
+                playSuccess();
+                await new Promise(resolve => setTimeout(resolve, 1800));
+                onAuthSuccess(data.user);
+              }
+            } catch (err: any) {
+              console.error("Exception applying courtesy:", err);
+              setError('Erro ao processar o seu código de cortesia.');
+              setPendingUser(data.user);
+            }
           } else {
             playSuccess();
             onAuthSuccess(data.user);
@@ -720,8 +763,18 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
 
           {/* Error and Success Messages */}
           {error && (
-            <div className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-xl text-xs text-danger font-medium font-sans">
-              {error}
+            <div className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-xl text-xs text-danger font-medium font-sans space-y-3">
+              <p>{error}</p>
+              {pendingUser && papel === 'personal' && (
+                <button
+                  type="button"
+                  onClick={handleStartApp}
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#F26A1B] text-white font-bold hover:opacity-90 active:scale-[0.98] transition-all text-center cursor-pointer text-xs flex items-center justify-center gap-1.5 shadow-sm shadow-[#F26A1B]/20"
+                >
+                  <span>Entrar no Aplicativo sem Cortesia</span>
+                  <span>➜</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -819,6 +872,33 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       </button>
                     </div>
                   </div>
+
+                  {/* Optional Courtesy Code for Personal Trainers */}
+                  {!isConviteLocked && papel === 'personal' && (
+                    <div className="space-y-1.5 p-4 bg-raise/10 border border-line rounded-xl">
+                      <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider flex items-center justify-between">
+                        <span>Código de cortesia</span>
+                        <span className="text-[10px] text-ink-3 lowercase italic font-normal">opcional</span>
+                      </label>
+                      <input
+                        id="input-codigo-cortesia"
+                        type="text"
+                        value={codigoCortesia}
+                        onChange={(e) => setCodigoCortesia(e.target.value.toUpperCase())}
+                        placeholder="Ex: CORTESIA123"
+                        className="z-input !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 uppercase num"
+                      />
+                      {codigoCortesia.trim() && (
+                        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/5 border border-emerald-500/10 py-1 px-2.5 rounded-lg w-fit">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>Código de cortesia aplicado: {codigoCortesia.trim().toUpperCase()}</span>
+                        </div>
+                      )}
+                      <p className="text-[10px] text-ink-3 font-sans leading-relaxed">
+                        Se você possui um código de cortesia, insira-o para obter acesso gratuito.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Optional invitation code for students */}
                   {papel === 'aluno' && (

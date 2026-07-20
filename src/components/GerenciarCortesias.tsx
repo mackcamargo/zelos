@@ -249,10 +249,35 @@ export default function GerenciarCortesias() {
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyLinkToClipboard = (code: string) => {
+    const link = `https://www.zelospersonal.com.br/cadastro?cortesia=${code.toUpperCase()}`;
+    navigator.clipboard.writeText(link);
     tocar('tap');
-    showToast(`Código ${text} copiado para a área de transferência!`);
+    showToast('Link com código copiado! 🔗');
+  };
+
+  const copyCodeToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code.toUpperCase());
+    tocar('tap');
+    showToast('Código copiado! 📋');
+  };
+
+  const getWhatsAppUrl = (code: string) => {
+    const link = `https://www.zelospersonal.com.br/cadastro?cortesia=${code.toUpperCase()}`;
+    const text = `Você foi convidado(a) para testar o ZELOS Personal com acesso de CORTESIA! 🎉
+
+No app você vai ter:
+✅ Gestão completa dos seus alunos
+✅ Montagem de treinos + biblioteca de exercícios
+✅ Plano alimentar com calorias e macros
+✅ Perfil ortopédico e segurança no treino
+✅ Progresso, hábitos e muito mais
+
+É só abrir o link, criar sua conta e o acesso já é ativado:
+👉 ${link}
+
+Qualquer dúvida, me chama. Aproveita! 💪`;
+    return `https://wa.me/?text=${encodeURIComponent(text)}`;
   };
 
   const filteredCodes = codes.filter(c => 
@@ -535,18 +560,43 @@ export default function GerenciarCortesias() {
                       return (
                         <tr key={c.codigo} className="hover:bg-raise/10 transition-colors">
                           <td className="py-4 px-6">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-accent text-xs bg-accent/5 px-2.5 py-1 rounded-lg border border-accent/10 select-all">
-                                {c.codigo}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => copyToClipboard(c.codigo)}
-                                className="p-1 rounded hover:bg-raise text-ink-3 hover:text-accent transition-colors"
-                                title="Copiar código"
-                              >
-                                <Copy className="w-3.5 h-3.5" />
-                              </button>
+                            <div className="space-y-2.5">
+                              <div>
+                                <span className="font-mono font-bold text-accent text-xs bg-accent/5 px-2.5 py-1 rounded-lg border border-accent/10 select-all">
+                                  {c.codigo}
+                                </span>
+                              </div>
+                              <div className="flex flex-col gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => copyLinkToClipboard(c.codigo)}
+                                  className="w-fit flex items-center gap-1 py-1 px-2 bg-[#F26A1B] text-white hover:bg-[#F26A1B]/90 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                                  title="Copiar link de cadastro com código embutido"
+                                >
+                                  <Copy className="w-2.5 h-2.5 shrink-0" />
+                                  <span>Copiar Link</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => copyCodeToClipboard(c.codigo)}
+                                  className="w-fit flex items-center gap-1 py-1 px-2 bg-raise hover:bg-raise/80 border border-line text-ink-2 hover:text-ink rounded-lg text-[9px] font-semibold transition-all cursor-pointer"
+                                  title="Copiar apenas o texto do código"
+                                >
+                                  <Ticket className="w-2.5 h-2.5 shrink-0 text-ink-3" />
+                                  <span>Copiar Código</span>
+                                </button>
+                                <a
+                                  href={getWhatsAppUrl(c.codigo)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => tocar('tap')}
+                                  className="w-fit flex items-center gap-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+                                  title="Compartilhar via WhatsApp"
+                                >
+                                  <span className="text-[10px] leading-none">💬</span>
+                                  <span>WhatsApp</span>
+                                </a>
+                              </div>
                             </div>
                           </td>
                           <td className="py-4 px-6">
@@ -627,13 +677,6 @@ export default function GerenciarCortesias() {
                           <span className="font-mono font-bold text-accent text-xs bg-accent/5 px-2.5 py-1 rounded-lg border border-accent/10">
                             {c.codigo}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(c.codigo)}
-                            className="p-1 rounded hover:bg-raise text-ink-3 hover:text-accent transition-colors"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </button>
                         </div>
 
                         <button
@@ -658,6 +701,37 @@ export default function GerenciarCortesias() {
                             <span>Limite Alunos: {c.limite_alunos}</span>
                           </p>
                         )}
+                      </div>
+
+                      <div className="flex flex-col gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => copyLinkToClipboard(c.codigo)}
+                          className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-[#F26A1B] text-white hover:bg-[#F26A1B]/90 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copiar Link Completo</span>
+                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => copyCodeToClipboard(c.codigo)}
+                            className="flex items-center justify-center gap-1.5 py-2 px-3 bg-raise hover:bg-raise/80 border border-line text-ink-2 hover:text-ink rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                          >
+                            <Ticket className="w-3.5 h-3.5 text-ink-3" />
+                            <span>Copiar Código</span>
+                          </button>
+                          <a
+                            href={getWhatsAppUrl(c.codigo)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => tocar('tap')}
+                            className="flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                          >
+                            <span className="text-sm">💬</span>
+                            <span>WhatsApp</span>
+                          </a>
+                        </div>
                       </div>
 
                       <div className="pt-3 border-t border-line flex justify-between items-center text-[11px]">
