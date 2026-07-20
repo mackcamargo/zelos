@@ -3,7 +3,7 @@ import {
   Users, Calendar, Bell, Clock, MessageSquare, TrendingDown, 
   TrendingUp, RefreshCw, AlertCircle, ArrowRight, Sparkles, User, Loader2
 } from 'lucide-react';
-import { dbService } from '../lib/supabase';
+import { dbService, supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
 
 interface DashPersonalBemEstarProps {
@@ -43,12 +43,30 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
   useEffect(() => {
     loadDashboardData();
 
-    // Auto refresh every 3 minutes
-    const interval = setInterval(() => {
-      loadDashboardData(false);
-    }, 180000);
+    if (!supabase) return;
 
-    return () => clearInterval(interval);
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const onChange = (payload: any) => {
+      console.log('Realtime change received:', payload);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadDashboardData(false);
+      }, 800);
+    };
+
+    const canal = supabase.channel('dashboard-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'treinos', filter: `personal_id=eq.${personalId}` }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'checkins', filter: `personal_id=eq.${personalId}` }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agendamentos', filter: `personal_id=eq.${personalId}` }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alunos', filter: `personal_id=eq.${personalId}` }, onChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'aluno_condicoes' }, onChange)
+      .subscribe();
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(canal);
+    };
   }, [personalId]);
 
   if (loading) {
@@ -149,9 +167,15 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
     <div className="space-y-4 md:space-y-6">
       {/* Action Header bar inside tab */}
       <div className="flex justify-between items-center bg-surface/30 border border-line/20 rounded-xl p-2 px-3 shrink-0">
-        <span className="text-[10px] md:text-xs font-medium text-ink-3">
-          Resumo atualizado automaticamente a cada 3 minutos
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="text-[10px] md:text-xs font-medium text-ink-3">
+            Painel em tempo real
+          </span>
+        </div>
         <button 
           onClick={() => loadDashboardData(true)}
           className="p-1.5 rounded-lg bg-raise hover:bg-raise/80 hover:text-accent text-ink-2 transition-all cursor-pointer flex items-center gap-1 text-[10px] md:text-xs font-bold border border-line/40"
