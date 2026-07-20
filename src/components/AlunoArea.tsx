@@ -1787,7 +1787,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     tocar('abrir');
                   }}
                   data-sem-som
-                  className="w-full sm:w-auto px-8 py-3 bg-white text-void rounded-xl font-display font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all z-10"
+                  className="w-full sm:w-auto px-8 py-3 bg-flame hover:brightness-110 text-white rounded-xl font-display font-bold text-sm shadow-xl shadow-flame/20 hover:scale-105 active:scale-95 transition-all z-10 cursor-pointer border-0"
                 >
                   FAZER CHECK-IN
                 </button>
