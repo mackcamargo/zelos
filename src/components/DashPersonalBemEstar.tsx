@@ -205,14 +205,37 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
     if (showLoading) setLoading(true);
     setError(null);
     try {
+      if (supabase) {
+        // Garantir que o usuário está autenticado antes de prosseguir
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('getDashboardPersonal - Erro ao verificar sessão do Supabase:', sessionError);
+          throw sessionError;
+        }
+        if (!session) {
+          console.warn('getDashboardPersonal - Sem sessão ativa no momento. Tentando obter usuário...');
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (userError || !user) {
+            console.error('getDashboardPersonal - Usuário não autenticado:', userError);
+            throw new Error('Sessão expirada ou não autenticada. Por favor, faça login novamente.');
+          }
+        }
+      }
+
       const { data, error: dbErr } = await dbService.getDashboardPersonal(personalId);
       if (dbErr) {
+        console.error('dashboard_personal error detalhado:', {
+          message: dbErr.message || dbErr,
+          code: dbErr.code,
+          details: dbErr.details,
+          hint: dbErr.hint
+        });
         throw dbErr;
       }
       setDashboardData(data);
     } catch (err: any) {
-      console.error('Erro ao buscar dados do dashboard:', err);
-      setError('Não foi possível carregar os dados do painel. Verifique sua conexão e tente novamente.');
+      console.error('Erro ao buscar dados do dashboard (catch):', err);
+      setError(`Não foi possível carregar os dados do painel. Detalhes: ${err.message || err.details || err}`);
     } finally {
       if (showLoading) setLoading(false);
     }

@@ -1795,10 +1795,27 @@ export const dbService = {
 
   async getDashboardPersonal(personalId: string): Promise<{ data: any; error: any }> {
     if (isSupabaseConfigured && supabase) {
+      // Garantir autenticação e obter sessão ativa
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.error('getDashboardPersonal: Erro ao obter sessão do Supabase:', sessionError);
+        return { data: null, error: sessionError };
+      }
+      if (!sessionData.session) {
+        console.warn('getDashboardPersonal: Usuário não autenticado no Supabase. Aguardando...');
+        return { data: null, error: { message: 'Sessão do Supabase indisponível no momento.' } };
+      }
+
       // Tenta primeiro sem argumentos, caso a função use o auth.uid() do usuário autenticado
       let result = await supabase.rpc('dashboard_personal');
       
       if (result.error) {
+        console.error('dashboard_personal error:', {
+          message: result.error.message,
+          code: result.error.code,
+          details: result.error.details,
+          hint: result.error.hint
+        });
         console.warn('Erro ao chamar RPC dashboard_personal sem parâmetros. Tentando com p_personal...', result.error);
         const retry1 = await supabase.rpc('dashboard_personal', { p_personal: personalId });
         if (!retry1.error) {
