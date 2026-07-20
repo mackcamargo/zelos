@@ -1124,15 +1124,15 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
               {/* Status de Confirmação */}
               {planoSuplementos && (
                 <div>
-                  {planoSuplementos.confirmado === true && planoSuplementos.confirmado_versao === planoSuplementos.versao ? (
+                  {planoSuplementos.confirmado === true ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-ok/10 border border-ok/20 text-ok text-[11px] font-bold">
                       <Check className="w-3.5 h-3.5" />
                       Você está seguindo esta orientação
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[11px] font-bold animate-pulse">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[11px] font-bold">
                       <AlertTriangle className="w-3 h-3" />
-                      Novo / Atualizado
+                      Aguardando Confirmação
                     </span>
                   )}
                 </div>
@@ -1194,7 +1194,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                 )}
 
                 {/* BOTÃO DE CONFIRMAÇÃO DO ALUNO */}
-                {!(planoSuplementos.confirmado === true && planoSuplementos.confirmado_versao === planoSuplementos.versao) ? (
+                {!(planoSuplementos.confirmado === true) ? (
                   <div className="pt-2">
                     <button
                       onClick={handleConfirmarPlanoSuplementos}
@@ -1209,7 +1209,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                       ) : (
                         <>
                           <Check className="w-4 h-4 stroke-[3px]" />
-                          <span>Estou seguindo a orientação ✓</span>
+                          <span>Recebido, estou seguindo ✓</span>
                         </>
                       )}
                     </button>
@@ -1219,182 +1219,14 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                   <div className="pt-2 bg-ok/10 border border-ok/20 rounded-2xl p-4 text-center space-y-1">
                     <p className="text-xs font-bold text-ok flex items-center justify-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4" />
-                      Você confirmou esta orientação!
+                      Você está seguindo esta orientação
                     </p>
-                    <p className="text-[10px] text-ink-3">Confirmado em {new Date(planoSuplementos.confirmado_em).toLocaleDateString('pt-BR')} às {new Date(planoSuplementos.confirmado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (versão {planoSuplementos.versao})</p>
+                    <p className="text-[10px] text-ink-3">Confirmado em {new Date(planoSuplementos.confirmado_em).toLocaleDateString('pt-BR')} às {new Date(planoSuplementos.confirmado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
                   </div>
                 )}
 
               </div>
             )}
-          </div>
-
-          {/* BLOCO 2 — MEUS SUPLEMENTOS (REGISTRO DIÁRIO) */}
-          <div className="bg-surface border border-line rounded-3xl p-4 sm:p-6 shadow-sm space-y-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-flame/5 blur-3xl pointer-events-none rounded-full" />
-            
-            <div className="flex items-center justify-between relative z-10">
-              <div className="space-y-0.5">
-                <h4 className="font-display font-bold text-ink flex items-center gap-2 text-sm sm:text-base">
-                  <Flame className="w-5 h-5 text-flame" />
-                  Minha Rotina Diária
-                </h4>
-                <p className="text-[11px] text-ink-3">Acompanhe e registre seu consumo diário de suplementos</p>
-              </div>
-              <button
-                onClick={() => { tocar('tap'); setShowManageSuplementos(!showManageSuplementos); }}
-                className="px-3.5 py-2 bg-raise hover:bg-line/40 text-ink-2 hover:text-ink border border-line rounded-xl text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Settings className="w-3.5 h-3.5 text-flame" />
-                {showManageSuplementos ? 'Fechar' : 'Gerenciar'}
-              </button>
-            </div>
-
-            {/* SEÇÃO INLINE DE GERENCIAMENTO */}
-            <AnimatePresence>
-              {showManageSuplementos && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden border-t border-line/50 pt-4 mt-4 space-y-4"
-                >
-                  <p className="text-xs text-ink-2 font-medium">Selecione os suplementos educativos que você deseja incluir no seu painel de acompanhamento diário:</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {suplementos.map((sup) => {
-                      const isFollowed = alunoSuplementosIds.includes(sup.id);
-                      return (
-                        <button
-                          key={sup.id}
-                          onClick={() => handleToggleAcompanhar(sup.id)}
-                          className={`flex items-center justify-between p-3 rounded-2xl border text-left transition-all cursor-pointer ${
-                            isFollowed 
-                              ? 'bg-flame/10 border-flame/30 text-ink' 
-                              : 'bg-raise/50 border-line text-ink-3 hover:border-line-strong'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-xl">{sup.icone}</span>
-                            <div>
-                              <p className="text-xs font-bold text-ink">{sup.nome}</p>
-                              <p className="text-[10px] text-ink-3">{sup.categoria}</p>
-                            </div>
-                          </div>
-                          <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                            isFollowed 
-                              ? 'bg-flame border-flame text-white' 
-                              : 'border-line text-transparent'
-                          }`}>
-                            <Check className="w-3.5 h-3.5 stroke-[3px]" />
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* LISTA DE MEUS SUPLEMENTOS COM REGISTRO DIÁRIO */}
-            <div className="space-y-4 relative z-10">
-              {followedSuplementosList.length === 0 ? (
-                <div className="text-center py-10 px-4 bg-raise/25 border border-dashed border-line rounded-2xl flex flex-col items-center justify-center gap-3">
-                  <span className="text-3xl">🥛</span>
-                  <p className="text-xs text-ink-3 max-w-xs leading-relaxed">Você ainda não acompanha nenhum suplemento em sua rotina diária.</p>
-                  <button
-                    onClick={() => { tocar('tap'); setShowManageSuplementos(true); }}
-                    className="mt-1 px-4 py-2 bg-flame/10 text-flame hover:bg-flame hover:text-white border border-flame/20 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                  >
-                    Adicionar Suplemento
-                  </button>
-                </div>
-              ) : (
-                followedSuplementosList.map((sup) => {
-                  const isTakenToday = suplementoRegistros.some(r => r.suplemento_id === sup.id && r.data === today && r.tomado);
-                  const streak = calcularStreak(sup.id);
-                  const ultimos7Dias = obterUltimos7Dias();
-
-                  return (
-                    <div 
-                      key={sup.id} 
-                      className="bg-raise/45 border border-line rounded-2xl p-4 flex flex-col gap-4 shadow-[var(--z-shadow-1)] hover:bg-raise/70 transition-colors"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        {/* Checkbox + Informação */}
-                        <div className="flex items-center gap-3.5">
-                          <button
-                            onClick={() => handleToggleTomadoHoje(sup.id)}
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all cursor-pointer ${
-                              isTakenToday
-                                ? 'bg-flame border-flame text-white shadow-md shadow-flame/20 scale-105'
-                                : 'border-line-strong hover:border-flame/45 text-transparent hover:scale-105'
-                            }`}
-                          >
-                            <Check className="w-5 h-5 stroke-[3px]" />
-                          </button>
-                          
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{sup.icone}</span>
-                              <h5 className="font-bold text-xs sm:text-sm text-ink">{sup.nome}</h5>
-                            </div>
-                            <span className="text-[10px] text-ink-3 uppercase font-semibold tracking-wider block mt-0.5">{sup.categoria}</span>
-                          </div>
-                        </div>
-
-                        {/* Streak Badge */}
-                        <div className="flex items-center self-end sm:self-center">
-                          {streak > 0 ? (
-                            <div className="bg-flame/15 border border-flame/30 text-flame text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 shadow-sm num animate-bounce">
-                              <span>🔥</span>
-                              <span>{streak} {streak === 1 ? 'dia' : 'dias'}</span>
-                            </div>
-                          ) : (
-                            <div className="bg-raise border border-line text-ink-3 text-[10px] sm:text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1 num">
-                              <span>⏳</span>
-                              <span>Sem sequência</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Histórico Curto de 7 dias */}
-                      <div className="pt-3 border-t border-line/40">
-                        <p className="text-[9px] font-mono font-bold text-ink-3 uppercase tracking-wider mb-2 text-center sm:text-left">Acompanhamento (Últimos 7 dias)</p>
-                        <div className="grid grid-cols-7 gap-2.5 max-w-sm sm:max-w-xs">
-                          {ultimos7Dias.map((dia) => {
-                            const tomadoNaqueleDia = suplementoRegistros.some(r => r.suplemento_id === sup.id && r.data === dia.data && r.tomado);
-                            const ehHoje = dia.data === today;
-                            
-                            return (
-                              <div key={dia.data} className="flex flex-col items-center gap-1.5">
-                                <span className={`text-[9px] font-bold ${ehHoje ? 'text-flame' : 'text-ink-3'}`}>
-                                  {dia.nomeExibicao}
-                                </span>
-                                <button
-                                  disabled={!ehHoje}
-                                  onClick={() => handleToggleTomadoHoje(sup.id)}
-                                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold num transition-all ${
-                                    tomadoNaqueleDia
-                                      ? 'bg-flame text-white font-black shadow-sm'
-                                      : ehHoje
-                                      ? 'bg-raise/85 border border-dashed border-flame/30 text-ink-3 hover:border-flame'
-                                      : 'bg-line/40 text-ink-3/40'
-                                  }`}
-                                  title={tomadoNaqueleDia ? `Tomado em ${dia.diaMes}` : `Não tomado`}
-                                >
-                                  {tomadoNaqueleDia ? '✓' : dia.diaMes}
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
           </div>
 
           {/* BLOCO 1 — GUIA DE SUPLEMENTOS (EDUCATIVO) */}

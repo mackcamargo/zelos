@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Trash2, Save, Loader2, Search, Check, X, Sparkles, 
-  AlertTriangle, ArrowUp, ArrowDown, ClipboardList, RefreshCw
+  AlertTriangle, ArrowUp, ArrowDown, ClipboardList, RefreshCw, Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -52,6 +52,14 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
   const [itensEditar, setItensEditar] = useState<ItemPlano[]>([]);
   const [observacaoEditar, setObservacaoEditar] = useState('');
   
+  // Lista de todos os alunos e seus status de plano para o professor
+  const [alunos, setAlunos] = useState<any[]>([]);
+  const [planosStatus, setPlanosStatus] = useState<Record<string, any>>({});
+  
+  // Envio múltiplo states
+  const [multiEnvio, setMultiEnvio] = useState(false);
+  const [selectedAlunosEnvio, setSelectedAlunosEnvio] = useState<string[]>([alunoId]);
+
   // Toast notifications
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -63,9 +71,8 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
     }, 4000);
   };
 
-  // Carrega catálogo e plano
+  // Carrega catálogo, alunos e planos de todos
   const carregarDados = async () => {
-    setLoading(true);
     try {
       // 1. Carrega catálogo de suplementos
       let list: any[] = [];
@@ -85,7 +92,15 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
       }
       setCatalogo(list);
 
-      // 2. Carrega plano do aluno
+      // 2. Carrega lista de alunos do personal
+      let listAlunos: any[] = [];
+      const { data: dataAlunos } = await dbService.getAlunos(personalId);
+      if (dataAlunos) {
+        listAlunos = dataAlunos;
+      }
+      setAlunos(listAlunos);
+
+      // 3. Carrega plano do aluno atual
       if (isSupabaseConfigured && supabase) {
         const { data, error } = await supabase
           .from('plano_suplementos')
@@ -104,7 +119,6 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
           .maybeSingle();
 
         if (!error && data) {
-          // Normaliza itens ordenados
           const rawItens = data.plano_suplemento_itens || [];
           rawItens.sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0));
           
@@ -128,8 +142,22 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
           setItensEditar([]);
           setObservacaoEditar('');
         }
+
+        // 4. Carrega status de planos de todos os alunos do personal
+        const { data: planosData } = await supabase
+          .from('plano_suplementos')
+          .select('id, aluno_id, confirmado, confirmado_em')
+          .eq('personal_id', personalId);
+        
+        const statusMap: Record<string, any> = {};
+        if (planosData) {
+          planosData.forEach((p: any) => {
+            statusMap[p.aluno_id] = p;
+          });
+        }
+        setPlanosStatus(statusMap);
       } else {
-        // Fallback LocalStorage
+        // Fallback LocalStorage para o aluno atual
         const localData = localStorage.getItem(`plano_suplementos_${alunoId}`);
         if (localData) {
           const parsed = JSON.parse(localData);
@@ -141,6 +169,16 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
           setItensEditar([]);
           setObservacaoEditar('');
         }
+
+        // Fallback LocalStorage para todos os alunos
+        const statusMap: Record<string, any> = {};
+        listAlunos.forEach(al => {
+          const stored = localStorage.getItem(`plano_suplementos_${al.id}`);
+          if (stored) {
+            statusMap[al.id] = JSON.parse(stored);
+          }
+        });
+        setPlanosStatus(statusMap);
       }
     } catch (e) {
       console.error("Erro ao carregar orientação de suplementos:", e);
@@ -152,10 +190,10 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
   useEffect(() => {
     carregarDados();
 
-    // 3. TEMPO REAL: Assinar mudanças na tabela plano_suplementos do personal
+    // 5. NOTIFICAÇÃO EM TEMPO REAL PARA O PROFESSOR (Assina mudanças em plano_suplementos)
     if (isSupabaseConfigured && supabase) {
       const channel = supabase
-        .channel(`plano-sup-prof-${alunoId}`)
+        .channel('plano-sup-prof')
         .on(
           'postgres_changes',
           {
@@ -165,17 +203,22 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
             filter: `personal_id=eq.${personalId}`
           },
           (payload) => {
-            // Se o plano alterado for do aluno atual e confirmado virou true, avisa o personal
-            if (payload.new && (payload.new as any).aluno_id === alunoId) {
+            const newRecord = payload.new as any;
+            if (newRecord) {
               const oldRecord = payload.old as any;
-              const newRecord = payload.new as any;
               
+              // Se foi confirmado agora
               if (newRecord.confirmado && (!oldRecord || !oldRecord.confirmado)) {
-                tocar('celebracao');
-                mostrarToast(`✅ ${alunoNome} confirmou que está seguindo a orientação de suplementos!`);
+                // Busca o nome do aluno no estado local de alunos
+                setAlunos((currentAlunos) => {
+                  const alunoObj = currentAlunos.find(a => a.id === newRecord.aluno_id);
+                  const nome = alunoObj?.profile?.nome || 'Um aluno';
+                  tocar('celebracao');
+                  mostrarToast(`✅ ${nome} confirmou que está seguindo a orientação de suplementos!`);
+                  return currentAlunos;
+                });
               }
-              
-              // Recarrega os dados para atualizar o selo de confirmação
+              // Atualiza a lista e status
               carregarDados();
             }
           }
@@ -198,7 +241,7 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
     );
   }, [catalogo, searchTerm]);
 
-  // Salvar orientação de suplementação
+  // Salvar orientação de suplementação (para 1 ou vários alunos)
   const handleSalvar = async () => {
     if (saving) return;
     setSaving(true);
@@ -211,38 +254,52 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
       ordem: idx + 1
     }));
 
+    const targets = multiEnvio ? selectedAlunosEnvio : [alunoId];
+
+    if (targets.length === 0) {
+      mostrarToast("Selecione pelo menos um aluno para enviar!");
+      setSaving(false);
+      return;
+    }
+
     try {
       if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.rpc('salvar_plano_suplementos', {
-          p_aluno_id: alunoId,
-          p_observacao: observacaoEditar,
-          p_itens: itensPayload
-        });
-
-        if (error) throw error;
-        mostrarToast("Orientação enviada ao aluno. Ele precisará confirmar.");
+        // Envia para todos os alunos selecionados
+        await Promise.all(
+          targets.map(async (targetId) => {
+            const { error } = await supabase.rpc('salvar_plano_suplementos', {
+              p_aluno_id: targetId,
+              p_observacao: observacaoEditar,
+              p_itens: itensPayload
+            });
+            if (error) throw error;
+          })
+        );
+        mostrarToast(`Orientação enviada com sucesso para ${targets.length} ${targets.length === 1 ? 'aluno' : 'alunos'}!`);
       } else {
         // Fallback LocalStorage
-        const novaVersao = (plano?.versao || 0) + 1;
-        const planoMock = {
-          id: plano?.id || Date.now(),
-          aluno_id: alunoId,
-          personal_id: personalId,
-          observacao: observacaoEditar,
-          versao: novaVersao,
-          confirmado: false,
-          confirmado_versao: null,
-          confirmado_em: null,
-          atualizado_em: new Date().toISOString(),
-          itens: itensEditar.map((it, idx) => ({ ...it, ordem: idx + 1 }))
-        };
+        targets.forEach((targetId) => {
+          const stored = localStorage.getItem(`plano_suplementos_${targetId}`);
+          const currentPlano = stored ? JSON.parse(stored) : null;
+          const planoMock = {
+            id: currentPlano?.id || Date.now() + Math.random(),
+            aluno_id: targetId,
+            personal_id: personalId,
+            observacao: observacaoEditar,
+            confirmado: false,
+            confirmado_em: null,
+            atualizado_em: new Date().toISOString(),
+            itens: itensEditar.map((it, idx) => ({ ...it, ordem: idx + 1 }))
+          };
 
-        localStorage.setItem(`plano_suplementos_${alunoId}`, JSON.stringify(planoMock));
-        setPlano(planoMock);
-        mostrarToast("Orientação salva localmente! (Modo de Demonstração)");
+          localStorage.setItem(`plano_suplementos_${targetId}`, JSON.stringify(planoMock));
+        });
+        mostrarToast(`Orientação salva localmente para ${targets.length} ${targets.length === 1 ? 'aluno' : 'alunos'}! (Modo Demo)`);
       }
       
       setIsEditing(false);
+      setMultiEnvio(false);
+      setSelectedAlunosEnvio([alunoId]);
       await carregarDados();
     } catch (e) {
       console.error("Erro ao salvar orientação:", e);
@@ -264,7 +321,7 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
       nome: sup.nome,
       categoria: sup.categoria,
       icone: sup.icone,
-      orientacao: 'conforme orientação do seu nutricionista',
+      orientacao: 'Acompanhar conforme indicação do nutricionista.',
       ordem: itensEditar.length + 1
     };
     setItensEditar([...itensEditar, novo]);
@@ -297,6 +354,28 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
     setItensEditar(novosItens);
   };
 
+  const handleToggleAlunoEnvio = (id: string) => {
+    tocar('tap');
+    if (selectedAlunosEnvio.includes(id)) {
+      if (selectedAlunosEnvio.length === 1) {
+        mostrarToast("Pelo menos um aluno deve estar selecionado!");
+        return;
+      }
+      setSelectedAlunosEnvio(selectedAlunosEnvio.filter(x => x !== id));
+    } else {
+      setSelectedAlunosEnvio([...selectedAlunosEnvio, id]);
+    }
+  };
+
+  const selecionarTodosAlunos = () => {
+    tocar('tap');
+    if (selectedAlunosEnvio.length === alunos.length) {
+      setSelectedAlunosEnvio([alunoId]);
+    } else {
+      setSelectedAlunosEnvio(alunos.map(a => a.id));
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-8">
@@ -305,8 +384,8 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
     );
   }
 
-  // Define se o aluno já confirmou a versão mais atual
-  const isConfirmadoNaVersaoAtual = plano && plano.confirmado === true && plano.confirmado_versao === plano.versao;
+  // Se o aluno já confirmou
+  const isConfirmado = plano && plano.confirmado === true;
 
   return (
     <div className="space-y-6">
@@ -336,15 +415,15 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
           
           <div className="flex items-center gap-2">
             {plano ? (
-              isConfirmadoNaVersaoAtual ? (
+              isConfirmado ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ok/10 border border-ok/25 text-ok text-[11px] font-bold">
                   <Check className="w-3.5 h-3.5" />
-                  Aluno confirmou (v{plano.versao}) em {new Date(plano.confirmado_em).toLocaleDateString('pt-BR')}
+                  Aluno seguindo {plano.confirmado_em ? `desde ${new Date(plano.confirmado_em).toLocaleDateString('pt-BR')}` : ''}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-500 text-[11px] font-bold">
                   <RefreshCw className="w-3 h-3 animate-spin" />
-                  Aguardando confirmação do aluno (v{plano.versao})
+                  Aguardando confirmação do aluno
                 </span>
               )
             ) : (
@@ -361,9 +440,11 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
               if (!isEditing) {
                 setItensEditar(plano?.itens || []);
                 setObservacaoEditar(plano?.observacao || '');
+                setMultiEnvio(false);
+                setSelectedAlunosEnvio([alunoId]);
               }
             }}
-            className="px-4 py-2.5 bg-flame hover:bg-flame-hover text-white text-xs font-bold rounded-2xl flex items-center gap-1.5 shadow-md shadow-flame/15 self-start sm:self-center transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-flame hover:bg-flame-hover text-white text-xs font-bold rounded-2xl flex items-center gap-1.5 shadow-md shadow-flame/15 self-start sm:self-center transition-all cursor-pointer font-sans"
           >
             <Sparkles className="w-3.5 h-3.5" />
             {isEditing ? "Visualizar Orientação" : (plano ? "Editar orientação" : "Montar orientação")}
@@ -376,7 +457,7 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
         <div className="shrink-0 w-8 h-8 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-500">
           <AlertTriangle className="w-4 h-4" />
         </div>
-        <p className="font-sans">
+        <p className="font-sans text-left">
           <strong className="block text-amber-400 font-bold mb-0.5">Aviso de Enquadramento:</strong>
           Orientação de acompanhamento. Não substitui a prescrição de um nutricionista. A dose adequada deve ser definida por um profissional habilitado.
         </p>
@@ -505,7 +586,6 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
                           placeholder="Ex: acompanhar conforme orientação do seu nutricionista"
                           className="w-full bg-surface border border-line focus:border-flame rounded-xl py-1.5 px-2.5 text-xs text-ink outline-none transition-all placeholder:text-ink-4"
                         />
-                        <p className="text-[9px] text-ink-3 italic leading-tight">Dica: Evite dosagens clínicas específicas. Prefira orientações gerais de uso educativo ou referências ao nutricionista.</p>
                       </div>
 
                     </div>
@@ -531,12 +611,86 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
             />
           </div>
 
-          {/* BOTÃO SALVAR */}
+          {/* DISTRIBUIÇÃO MULTI-ALUNOS */}
+          <div className="border-t border-line/50 pt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-flame" />
+                <span className="text-xs font-bold text-ink">Enviar para múltiplos alunos</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  tocar('tap');
+                  setMultiEnvio(!multiEnvio);
+                  if(!multiEnvio) {
+                    setSelectedAlunosEnvio([alunoId]); // Reseta com o aluno atual
+                  }
+                }}
+                className={`px-3 py-1 rounded-xl text-[10px] font-bold uppercase transition-all cursor-pointer border ${
+                  multiEnvio 
+                    ? 'bg-flame/15 text-flame border-flame/30' 
+                    : 'bg-raise text-ink-3 border-line hover:text-ink'
+                }`}
+              >
+                {multiEnvio ? "Habilitado ✓" : "Habilitar envio múltiplo"}
+              </button>
+            </div>
+
+            {multiEnvio && (
+              <div className="bg-raise/30 rounded-2xl p-4 border border-line space-y-3">
+                <div className="flex items-center justify-between border-b border-line/40 pb-2">
+                  <span className="text-[10px] font-bold text-ink-3 uppercase">Selecione os Alunos para Receber</span>
+                  <button
+                    type="button"
+                    onClick={selecionarTodosAlunos}
+                    className="text-[10px] text-flame hover:underline font-bold cursor-pointer"
+                  >
+                    {selectedAlunosEnvio.length === alunos.length ? "Desmarcar Outros" : "Selecionar Todos"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+                  {alunos.map((al) => {
+                    const isSelected = selectedAlunosEnvio.includes(al.id);
+                    const isCurrent = al.id === alunoId;
+                    return (
+                      <button
+                        key={al.id}
+                        type="button"
+                        onClick={() => handleToggleAlunoEnvio(al.id)}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+                          isSelected 
+                            ? 'bg-surface border-flame text-ink' 
+                            : 'bg-raise/40 border-line text-ink-3 hover:border-line-strong'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="text-xs font-bold text-ink truncate">
+                            {al.profile?.nome || 'Aluno'}
+                            {isCurrent && <span className="text-[10px] text-flame font-normal ml-1">(Atual)</span>}
+                          </p>
+                        </div>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${
+                          isSelected ? 'bg-flame border-flame text-white' : 'border-line text-transparent'
+                        }`}>
+                          <Check className="w-3 h-3 stroke-[3px]" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-ink-3">A mesma orientação de suplementação montada acima será distribuída de forma independente para cada aluno marcado.</p>
+              </div>
+            )}
+          </div>
+
+          {/* BOTÕES SALVAR */}
           <div className="flex justify-end pt-2">
             <button
               onClick={handleSalvar}
               disabled={saving}
-              className="px-5 py-2.5 bg-ok hover:bg-ok/90 text-void text-xs font-bold rounded-2xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50"
+              className="px-5 py-2.5 bg-ok hover:bg-ok/90 text-void text-xs font-bold rounded-2xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50 font-sans"
             >
               {saving ? (
                 <>
@@ -546,7 +700,7 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
               ) : (
                 <>
                   <Save className="w-3.5 h-3.5" />
-                  <span>Salvar & Enviar Orientação</span>
+                  <span>{multiEnvio ? `Enviar para ${selectedAlunosEnvio.length} alunos` : 'Enviar para o aluno'}</span>
                 </>
               )}
             </button>
@@ -555,7 +709,7 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
         </div>
       ) : (
         /* --- MODO VISUALIZAÇÃO --- */
-        <div className="space-y-4">
+        <div className="space-y-6">
           {!plano ? (
             <div className="text-center py-12 px-4 border border-dashed border-line rounded-3xl bg-surface/30 flex flex-col items-center justify-center gap-3">
               <span className="text-4xl">🥛</span>
@@ -571,7 +725,7 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
               <div className="space-y-2.5">
                 <h5 className="text-xs font-bold text-ink uppercase tracking-wider">Suplementos Orientados</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {(plano.itens || []).map((item: any, i: number) => (
+                  {(plano.itens || []).map((item: any) => (
                     <div key={item.suplemento_id} className="bg-raise/20 border border-line/60 rounded-2xl p-3.5 flex items-start gap-3">
                       <span className="text-xl shrink-0 mt-0.5">{item.icone}</span>
                       <div className="min-w-0">
@@ -588,7 +742,7 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
 
               {/* OBSERVAÇÃO GERAL SALVA */}
               {plano.observacao && (
-                <div className="bg-raise/30 border border-line/50 p-4 rounded-2xl mt-4 space-y-1.5">
+                <div className="bg-raise/30 border border-line/50 p-4 rounded-2xl mt-4 space-y-1.5 text-left">
                   <span className="text-[10px] font-bold text-ink-3 uppercase tracking-wider block">Observações do Treinador:</span>
                   <p className="text-xs text-ink-2 leading-relaxed italic">{plano.observacao}</p>
                 </div>
@@ -596,11 +750,46 @@ export default function GerenciarSuplementos({ alunoId, alunoNome, personalId, i
 
               {/* METADADOS DA ÚLTIMA ATUALIZAÇÃO */}
               <div className="text-[10px] text-ink-3 pt-2 text-right border-t border-line/30">
-                Última atualização: {new Date(plano.atualizado_em || Date.now()).toLocaleDateString('pt-BR')} às {new Date(plano.atualizado_em || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (versão {plano.versao})
+                Última atualização: {new Date(plano.atualizado_em || Date.now()).toLocaleDateString('pt-BR')} às {new Date(plano.atualizado_em || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
               </div>
 
             </div>
           )}
+
+          {/* PAINEL DE STATUS DE TODOS OS ALUNOS PARA O PROFESSOR */}
+          <div className="bg-raise/10 border border-line rounded-3xl p-5 space-y-3 text-left">
+            <div className="flex items-center gap-2 border-b border-line/45 pb-2">
+              <Users className="w-4 h-4 text-flame" />
+              <h5 className="text-xs font-bold text-ink uppercase tracking-wider">Status de Confirmação dos Alunos</h5>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1">
+              {alunos.map((al) => {
+                const pl = planosStatus[al.id];
+                const isSeguindo = pl && pl.confirmado;
+                return (
+                  <div key={al.id} className="flex flex-col p-3 rounded-2xl border border-line/50 bg-surface/50 text-xs gap-1.5">
+                    <div className="min-w-0">
+                      <p className="font-bold text-ink truncate">{al.profile?.nome || 'Aluno'}</p>
+                      <p className="text-[10px] text-ink-3 truncate leading-normal">{al.objetivo || 'Sem objetivo de treino'}</p>
+                    </div>
+                    <div className="shrink-0 pt-1 border-t border-line/20 flex justify-between items-center text-[10px]">
+                      <span className="text-ink-3 uppercase font-semibold">Status:</span>
+                      {isSeguindo ? (
+                        <span className="text-ok font-bold flex items-center gap-1 bg-ok/10 border border-ok/25 px-2 py-0.5 rounded-full">
+                          ✓ Seguindo {pl.confirmado_em ? `(${new Date(pl.confirmado_em).toLocaleDateString('pt-BR')})` : ''}
+                        </span>
+                      ) : (
+                        <span className="text-ink-3 font-semibold bg-raise px-2 py-0.5 rounded-full border border-line/30">
+                          Aguardando
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
