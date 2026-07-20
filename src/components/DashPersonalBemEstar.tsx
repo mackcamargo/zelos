@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Calendar, Bell, Clock, MessageSquare, TrendingDown, 
-  TrendingUp, RefreshCw, AlertCircle, ArrowRight, Sparkles, User, Loader2
+  TrendingUp, RefreshCw, AlertCircle, ArrowRight, Sparkles, User, Loader2,
+  X, MapPin, Video, FileText, CheckCircle2, XCircle
 } from 'lucide-react';
 import { dbService, supabase } from '../lib/supabase';
 import { motion } from 'motion/react';
@@ -22,6 +23,92 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dashboardData, setDashboardData] = useState<any>(null);
+
+  const [selectedAgendamento, setSelectedAgendamento] = useState<any | null>(null);
+  const [loadingAgendamento, setLoadingAgendamento] = useState<boolean>(false);
+  const [cancelLoading, setCancelLoading] = useState<boolean>(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState<boolean>(false);
+
+  const handleOpenSessao = async (id: number, initialData: any) => {
+    setSelectedAgendamento(initialData);
+    setLoadingAgendamento(true);
+    setShowCancelConfirm(false);
+    try {
+      if (supabase) {
+        const { data, error: dbErr } = await supabase
+          .from('agendamentos')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        if (data && !dbErr) {
+          setSelectedAgendamento({
+            ...initialData,
+            ...data
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao buscar detalhes da sessão:', err);
+    } finally {
+      setLoadingAgendamento(false);
+    }
+  };
+
+  const handleCancelarSessao = async (id: number) => {
+    setCancelLoading(true);
+    try {
+      if (supabase) {
+        const { error: dbErr } = await supabase
+          .from('agendamentos')
+          .update({ status: 'cancelado' })
+          .eq('id', id);
+        if (dbErr) throw dbErr;
+        
+        loadDashboardData(false);
+        setSelectedAgendamento((prev: any) => prev ? { ...prev, status: 'cancelado' } : null);
+        setShowCancelConfirm(false);
+      }
+    } catch (err) {
+      console.error('Erro ao cancelar sessão:', err);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const getStatusBadgeStyle = (status: string) => {
+    const s = status?.toLowerCase();
+    if (s === 'confirmado') return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+    if (s === 'cancelado') return 'text-red-400 bg-red-500/10 border-red-500/20';
+    return 'text-amber bg-amber/10 border-amber/20';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const s = status?.toLowerCase();
+    if (s === 'confirmado') return 'Confirmado';
+    if (s === 'cancelado') return 'Cancelado';
+    return 'Solicitado';
+  };
+
+  const formatSessaoDataHora = (dataHoraStr: string) => {
+    try {
+      const dateObj = new Date(dataHoraStr);
+      if (isNaN(dateObj.getTime())) return dataHoraStr;
+      
+      const today = new Date();
+      const isToday = dateObj.toDateString() === today.toDateString();
+      
+      const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      
+      if (isToday) {
+        return `Hoje, ${timeStr}`;
+      } else {
+        const dayStr = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        return `${dayStr}, ${timeStr}`;
+      }
+    } catch (e) {
+      return dataHoraStr;
+    }
+  };
 
   const loadDashboardData = async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -382,7 +469,11 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                       <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-wider text-accent font-bold">Hoje</span>
                       <div className="space-y-1.5 md:space-y-2">
                         {sessoesHojeList.map((item: any) => (
-                          <div key={item.id} className="flex items-center justify-between gap-2 md:gap-3 p-2 md:p-2.5 bg-raise/50 border border-line/40 rounded-xl">
+                          <button 
+                            key={item.id} 
+                            onClick={() => handleOpenSessao(item.id, item)}
+                            className="w-full text-left flex items-center justify-between gap-2 md:gap-3 p-2 md:p-2.5 bg-raise/50 border border-line/40 hover:border-accent/40 rounded-xl cursor-pointer hover:bg-raise/80 transition-all duration-200 active:scale-[0.99]"
+                          >
                             <div className="flex items-center gap-2 md:gap-2.5 min-w-0">
                               <span className="text-[10px] md:text-xs font-bold text-accent font-mono num">
                                 {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -393,7 +484,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                               </div>
                             </div>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                          </div>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -405,7 +496,11 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                       <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-wider text-ink-3 font-bold">Próximas</span>
                       <div className="space-y-1.5 md:space-y-2">
                         {sessoesProximasList.map((item: any) => (
-                          <div key={item.id} className="flex items-center justify-between gap-2 md:gap-3 p-2 md:p-2.5 bg-raise/20 border border-line/20 rounded-xl">
+                          <button 
+                            key={item.id} 
+                            onClick={() => handleOpenSessao(item.id, item)}
+                            className="w-full text-left flex items-center justify-between gap-2 md:gap-3 p-2 md:p-2.5 bg-raise/20 border border-line/20 hover:border-accent/30 rounded-xl cursor-pointer hover:bg-raise/40 transition-all duration-200 active:scale-[0.99]"
+                          >
                             <div className="flex items-center gap-2 md:gap-2.5 min-w-0">
                               <span className="text-[10px] md:text-xs font-bold text-ink-3 font-mono num">
                                 {new Date(item.data_hora).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
@@ -416,7 +511,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                               </div>
                             </div>
                             <span className="w-1.5 h-1.5 rounded-full bg-ink-3 shrink-0" />
-                          </div>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -496,6 +591,216 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
         </div>
 
       </div>
+
+      {/* POP-UP (modal) de Detalhes do Agendamento */}
+      {selectedAgendamento && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Overlay escuro rgba(0,0,0,0.6) */}
+          <div 
+            className="absolute inset-0 bg-black/60 transition-opacity" 
+            onClick={() => setSelectedAgendamento(null)} 
+          />
+          
+          {/* Card sólido opaco com borda 1px rgba(255,255,255,0.08) e radius 20px */}
+          <motion.div 
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              y: 0 
+            }}
+            initial={{ 
+              opacity: 0, 
+              scale: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 0.95, 
+              y: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 12 
+            }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            style={{ 
+              border: '1px solid rgba(255,255,255,0.08)' 
+            }}
+            className="bg-surface rounded-[20px] shadow-2xl relative w-full max-w-md overflow-hidden z-10 flex flex-col max-h-[90vh]"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-line/40">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#F26A1B]">Detalhes da Sessão</span>
+              <button 
+                onClick={() => setSelectedAgendamento(null)}
+                className="p-1.5 rounded-full hover:bg-raise border border-line text-ink-3 hover:text-ink transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-4 overflow-y-auto">
+              {loadingAgendamento ? (
+                <div className="py-8 flex flex-col items-center justify-center gap-2 text-ink-3">
+                  <Loader2 className="w-6 h-6 animate-spin text-accent" />
+                  <span className="text-xs">Carregando detalhes...</span>
+                </div>
+              ) : (
+                <>
+                  {/* Student Avatar + Name */}
+                  <div className="flex items-center gap-3 bg-raise/20 p-3 rounded-xl border border-line/20">
+                    <div className="w-12 h-12 rounded-full brand-gradient-bg p-[1px] shrink-0">
+                      <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-bold text-ink text-sm overflow-hidden">
+                        {selectedAgendamento.aluno_avatar ? (
+                          <img 
+                            src={selectedAgendamento.aluno_avatar} 
+                            alt={selectedAgendamento.aluno_nome}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          selectedAgendamento.aluno_nome?.charAt(0).toUpperCase() || <User className="w-5 h-5 text-ink-3" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">Aluno(a)</span>
+                      <h4 className="font-bold text-sm md:text-base text-ink truncate">
+                        {selectedAgendamento.aluno_nome}
+                      </h4>
+                    </div>
+                    
+                    {/* Status Badge */}
+                    <div className={`px-2.5 py-1 rounded-full border text-[9px] font-bold uppercase tracking-wider shrink-0 ${getStatusBadgeStyle(selectedAgendamento.status)}`}>
+                      {getStatusLabel(selectedAgendamento.status)}
+                    </div>
+                  </div>
+
+                  {/* Date & Duration Info */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-raise/40 border border-line/30 rounded-xl space-y-1">
+                      <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">Data e Hora</span>
+                      <span className="text-xs md:text-sm font-semibold text-ink num">
+                        {formatSessaoDataHora(selectedAgendamento.data_hora)}
+                      </span>
+                    </div>
+                    <div className="p-3 bg-raise/40 border border-line/30 rounded-xl space-y-1">
+                      <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">Duração</span>
+                      <span className="text-xs md:text-sm font-semibold text-ink num">
+                        {selectedAgendamento.duracao_min || 60} min
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Type of Session */}
+                  <div className="p-3 bg-raise/40 border border-line/30 rounded-xl flex items-center gap-2.5">
+                    {selectedAgendamento.tipo === 'presencial' ? (
+                      <>
+                        <MapPin className="w-4 h-4 text-accent shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">Formato</span>
+                          <span className="text-xs font-semibold text-ink">Presencial</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Video className="w-4 h-4 text-accent shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">Formato</span>
+                          <span className="text-xs font-semibold text-ink">Online / Remoto</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Observação / Notas */}
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-bold text-ink-3 uppercase tracking-wider block">Observações</span>
+                    <div className="p-3 bg-raise/20 border border-line/20 rounded-xl min-h-[60px] text-xs text-ink-2">
+                      {selectedAgendamento.observacao && selectedAgendamento.observacao.trim() !== '' ? (
+                        <p className="whitespace-pre-wrap">{selectedAgendamento.observacao}</p>
+                      ) : (
+                        <p className="italic text-ink-3">Sem observações ou recados para esta sessão.</p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer / Actions */}
+            <div className="p-4 border-t border-line/40 bg-raise/20 flex flex-col gap-2">
+              {!loadingAgendamento && selectedAgendamento && (
+                <>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        if (selectedAgendamento.aluno_id) {
+                          onSelectAluno(selectedAgendamento.aluno_id);
+                          setSelectedAgendamento(null);
+                        }
+                      }}
+                      className="flex-1 py-2 px-3 rounded-xl bg-raise hover:bg-raise-strong border border-line text-ink text-xs font-bold transition-all active:scale-[0.98] cursor-pointer text-center"
+                    >
+                      Ver ficha do aluno
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (selectedAgendamento.aluno_id) {
+                          onSelectAlunoAndChat(selectedAgendamento.aluno_id);
+                          setSelectedAgendamento(null);
+                        }
+                      }}
+                      className="flex-1 py-2 px-3 rounded-xl bg-accent hover:bg-accent/95 text-white text-xs font-bold transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Mensagem</span>
+                    </button>
+                  </div>
+                  
+                  {selectedAgendamento.status !== 'cancelado' && (
+                    <div className="border-t border-line/20 pt-2 flex gap-2">
+                      <button 
+                        onClick={() => {
+                          onNavigateToTab?.('agenda');
+                          setSelectedAgendamento(null);
+                        }}
+                        className="flex-1 py-2 px-3 rounded-xl bg-raise/60 hover:bg-raise border border-line/60 text-ink-2 text-xs font-bold transition-all cursor-pointer text-center"
+                      >
+                        Editar na Agenda
+                      </button>
+                      
+                      {showCancelConfirm ? (
+                        <div className="flex-1 flex gap-1">
+                          <button 
+                            disabled={cancelLoading}
+                            onClick={() => handleCancelarSessao(selectedAgendamento.id)}
+                            className="flex-1 py-2 px-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 text-[11px] font-bold transition-all cursor-pointer text-center"
+                          >
+                            {cancelLoading ? 'Cancelando...' : 'Confirmar'}
+                          </button>
+                          <button 
+                            onClick={() => setShowCancelConfirm(false)}
+                            className="py-2 px-2.5 rounded-xl bg-raise border border-line text-ink-2 text-[11px] font-bold transition-all cursor-pointer text-center"
+                          >
+                            Voltar
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => setShowCancelConfirm(true)}
+                          className="flex-1 py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold transition-all cursor-pointer text-center"
+                        >
+                          Cancelar sessão
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+              
+              <button 
+                onClick={() => setSelectedAgendamento(null)}
+                className="w-full py-2 px-3 rounded-xl bg-raise hover:bg-raise-strong border border-line text-ink-2 hover:text-ink text-xs font-bold transition-all cursor-pointer text-center mt-1"
+              >
+                Fechar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
