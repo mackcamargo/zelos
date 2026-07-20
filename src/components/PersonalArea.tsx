@@ -230,10 +230,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
 
   const getPlanoStyles = (plano: string | null | undefined) => {
     if (!plano) return "bg-zinc-500/10 border border-zinc-500/20 text-zinc-400";
-    const p = plano.toLowerCase();
-    if (p === 'cortesia') {
-      return "bg-purple-500/10 border border-purple-500/20 text-purple-400";
-    }
     return "bg-[#F26A1B]/10 border border-[#F26A1B]/20 text-[#F26A1B]";
   };
 
@@ -272,7 +268,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
     if (!assinatura) return null;
 
     if (assinatura.status === 'trial') {
-      const text = daysRemaining === 1 ? 'Último dia de trial' : `Trial — ${daysRemaining} dias restantes`;
+      const text = daysRemaining === 1 ? 'Último dia de trial' : `Trial — {daysRemaining} dias restantes`;
       return (
         <div className="mx-4 mb-4 px-3 py-1.5 bg-amber text-void rounded-lg text-center shadow-lg shadow-amber/20">
           <span className="text-[9px] font-semibold num">{text}</span>
@@ -282,13 +278,8 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
 
     if (assinatura.status === 'ativa' || assinatura.plano === 'cortesia') {
       const planoNome = getPlanoLabel(assinatura.plano);
-      const isCortesia = assinatura.plano && assinatura.plano.toLowerCase() === 'cortesia';
       return (
-        <div className={`mx-4 mb-4 px-3 py-1.5 text-white rounded-lg text-center shadow-lg ${
-          isCortesia 
-            ? 'bg-purple-600 shadow-purple-600/20' 
-            : 'bg-[#F26A1B] shadow-flame/20'
-        }`}>
+        <div className="mx-4 mb-4 px-3 py-1.5 text-white bg-[#F26A1B] rounded-lg text-center shadow-lg shadow-flame/20">
           <span className="text-[9px] font-semibold">
             {planoNome}
           </span>

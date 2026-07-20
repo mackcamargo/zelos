@@ -146,66 +146,66 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Action Header bar inside tab */}
-      <div className="flex justify-between items-center bg-surface/30 border border-line/20 rounded-2xl p-3 px-4 shrink-0">
-        <span className="text-xs font-medium text-ink-3">
+      <div className="flex justify-between items-center bg-surface/30 border border-line/20 rounded-xl p-2 px-3 shrink-0">
+        <span className="text-[10px] md:text-xs font-medium text-ink-3">
           Resumo atualizado automaticamente a cada 3 minutos
         </span>
         <button 
           onClick={() => loadDashboardData(true)}
-          className="p-2 rounded-xl bg-raise hover:bg-raise/80 hover:text-accent text-ink-2 transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold border border-line/40"
+          className="p-1.5 rounded-lg bg-raise hover:bg-raise/80 hover:text-accent text-ink-2 transition-all cursor-pointer flex items-center gap-1 text-[10px] md:text-xs font-bold border border-line/40"
           title="Recarregar dados"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className="w-3 h-3 md:w-3.5 md:h-3.5" />
           <span>Atualizar</span>
         </button>
       </div>
 
       {/* 1) TOP KPIS ROW */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
         {/* KPI 1: Alunos Ativos */}
-        <div className="bg-surface border border-line hover:border-line-strong transition-all rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bg-surface border border-line hover:border-line-strong transition-all rounded-2xl md:rounded-3xl p-3 md:p-5 flex flex-col justify-between relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-2">Alunos ativos</span>
-            <div className="p-2 bg-accent/10 rounded-xl">
-              <Users className="w-4 h-4 text-accent" />
+            <span className="text-[10px] md:text-xs font-semibold text-ink-2">Alunos ativos</span>
+            <div className="p-1.5 bg-accent/10 rounded-lg md:rounded-xl">
+              <Users className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-3xl font-display font-bold text-ink tracking-tight num">
+          <div className="mt-2 md:mt-4">
+            <h3 className="text-xl md:text-3xl font-display font-bold text-ink tracking-tight num">
               {kpis.alunos_ativos}
             </h3>
-            <p className="text-[10px] text-ink-3 mt-1">Cadastrados na sua base</p>
+            <p className="text-[9px] md:text-[10px] text-ink-3 mt-0.5 md:mt-1">Na sua base</p>
           </div>
         </div>
 
         {/* KPI 2: Adesão da Semana */}
-        <div className="bg-surface border border-line hover:border-line-strong transition-all rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden group">
+        <div className="bg-surface border border-line hover:border-line-strong transition-all rounded-2xl md:rounded-3xl p-3 md:p-5 flex flex-col justify-between relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-2">Adesão da semana</span>
-            <div className="p-2 bg-[#F26A1B]/10 rounded-xl">
-              <TrendingUp className="w-4 h-4 text-[#F26A1B]" />
+            <span className="text-[10px] md:text-xs font-semibold text-ink-2">Adesão da semana</span>
+            <div className="p-1.5 bg-[#F26A1B]/10 rounded-lg md:rounded-xl">
+              <TrendingUp className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#F26A1B]" />
             </div>
           </div>
-          <div className="mt-4 space-y-1.5">
-            <div className="flex items-baseline gap-1.5">
-              <h3 className="text-3xl font-display font-bold text-ink tracking-tight num">
+          <div className="mt-2 md:mt-4 space-y-1 md:space-y-1.5">
+            <div className="flex items-baseline gap-1 md:gap-1.5 flex-wrap">
+              <h3 className="text-xl md:text-3xl font-display font-bold text-ink tracking-tight num">
                 {percentAdesao !== null ? `${percentAdesao}%` : '—'}
               </h3>
-              <span className="text-[11px] font-medium text-ink-2 num">
+              <span className="text-[9px] md:text-[11px] font-medium text-ink-2 num">
                 ({concluidosTreinos}/{totalTreinos})
               </span>
             </div>
             {percentAdesao !== null ? (
-              <div className="w-full h-1.5 bg-line rounded-full overflow-hidden">
+              <div className="w-full h-1 bg-line rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-[#F26A1B]" 
                   style={{ width: `${percentAdesao}%` }}
                 />
               </div>
             ) : (
-              <p className="text-[10px] text-ink-3">Sem treinos prescritos</p>
+              <p className="text-[9px] md:text-[10px] text-ink-3">Sem treinos prescritos</p>
             )}
           </div>
         </div>
@@ -213,21 +213,21 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
         {/* KPI 3: Check-ins Pendentes */}
         <button 
           onClick={() => onNavigateToTab?.('checkins')}
-          className="bg-surface border border-line hover:border-[#F26A1B]/50 hover:shadow-lg hover:shadow-[#F26A1B]/5 transition-all rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden group text-left cursor-pointer"
+          className="bg-surface border border-line hover:border-[#F26A1B]/50 hover:shadow-lg hover:shadow-[#F26A1B]/5 transition-all rounded-2xl md:rounded-3xl p-3 md:p-5 flex flex-col justify-between relative overflow-hidden group text-left cursor-pointer"
         >
           <div className="flex items-center justify-between w-full">
-            <span className="text-xs font-semibold text-ink-2">Check-ins pendentes</span>
-            <div className={`p-2 rounded-xl transition-colors ${kpis.checkins_pendentes > 0 ? 'bg-[#F26A1B]/20 text-[#F26A1B]' : 'bg-surface border border-line text-ink-3'}`}>
-              <Bell className="w-4 h-4" />
+            <span className="text-[10px] md:text-xs font-semibold text-ink-2">Check-ins pendentes</span>
+            <div className={`p-1.5 rounded-lg md:rounded-xl transition-colors ${kpis.checkins_pendentes > 0 ? 'bg-[#F26A1B]/20 text-[#F26A1B]' : 'bg-surface border border-line text-ink-3'}`}>
+              <Bell className="w-3.5 h-3.5 md:w-4 md:h-4" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className={`text-3xl font-display font-bold tracking-tight num ${kpis.checkins_pendentes > 0 ? 'text-[#F26A1B]' : 'text-ink'}`}>
+          <div className="mt-2 md:mt-4">
+            <h3 className={`text-xl md:text-3xl font-display font-bold tracking-tight num ${kpis.checkins_pendentes > 0 ? 'text-[#F26A1B]' : 'text-ink'}`}>
               {kpis.checkins_pendentes}
             </h3>
-            <p className="text-[10px] text-ink-3 mt-1 flex items-center gap-1 group-hover:text-accent transition-colors">
-              <span>Ver respostas semanais</span>
-              <ArrowRight className="w-3 h-3" />
+            <p className="text-[9px] md:text-[10px] text-ink-3 mt-0.5 md:mt-1 flex items-center gap-0.5 md:gap-1 group-hover:text-accent transition-colors">
+              <span>Ver respostas</span>
+              <ArrowRight className="w-2.5 h-2.5 md:w-3 md:h-3" />
             </p>
           </div>
         </button>
@@ -235,54 +235,54 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
         {/* KPI 4: Sessões Hoje */}
         <button 
           onClick={() => onNavigateToTab?.('agenda')}
-          className="bg-surface border border-line hover:border-accent/50 hover:shadow-lg hover:shadow-accent/5 transition-all rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden group text-left cursor-pointer"
+          className="bg-surface border border-line hover:border-accent/50 hover:shadow-lg hover:shadow-accent/5 transition-all rounded-2xl md:rounded-3xl p-3 md:p-5 flex flex-col justify-between relative overflow-hidden group text-left cursor-pointer"
         >
           <div className="flex items-center justify-between w-full">
-            <span className="text-xs font-semibold text-ink-2">Sessões hoje</span>
-            <div className="p-2 bg-accent/10 rounded-xl">
-              <Calendar className="w-4 h-4 text-accent" />
+            <span className="text-[10px] md:text-xs font-semibold text-ink-2">Sessões hoje</span>
+            <div className="p-1.5 bg-accent/10 rounded-lg md:rounded-xl">
+              <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" />
             </div>
           </div>
-          <div className="mt-4">
-            <h3 className="text-3xl font-display font-bold text-ink tracking-tight num">
+          <div className="mt-2 md:mt-4">
+            <h3 className="text-xl md:text-3xl font-display font-bold text-ink tracking-tight num">
               {kpis.sessoes_hoje}
             </h3>
-            <p className="text-[10px] text-ink-3 mt-1 flex items-center gap-1 group-hover:text-accent transition-colors">
-              <span>Ver agenda completa</span>
-              <ArrowRight className="w-3 h-3" />
+            <p className="text-[9px] md:text-[10px] text-ink-3 mt-0.5 md:mt-1 flex items-center gap-0.5 md:gap-1 group-hover:text-accent transition-colors">
+              <span>Ver agenda</span>
+              <ArrowRight className="w-2.5 h-2.5 md:w-3 md:h-3" />
             </p>
           </div>
         </button>
       </div>
 
       {/* Main Grid: Atencao & Agenda/Termometro */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         
         {/* 2) PRECISAM DA SUA ATENÇÃO (Col Span 2) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <AlertCircle className="w-4.5 h-4.5 text-[#F26A1B]" />
-            <h2 className="font-display font-bold text-lg text-ink">Precisam da sua atenção</h2>
-            <span className="bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider num">
+        <div className="lg:col-span-2 space-y-3 md:space-y-4">
+          <div className="flex items-center gap-1.5 px-0.5">
+            <AlertCircle className="w-4 md:w-4.5 md:h-4.5 text-[#F26A1B]" />
+            <h2 className="font-display font-bold text-sm md:text-lg text-ink">Precisam da sua atenção</h2>
+            <span className="bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-bold tracking-wider num">
               {atencao.length} ALUNOS
             </span>
           </div>
 
-          <div className="bg-surface border border-line rounded-3xl p-6 relative overflow-hidden">
+          <div className="bg-surface border border-line rounded-2xl md:rounded-3xl p-3 md:p-6 relative overflow-hidden">
             {atencao.length === 0 ? (
-              <div className="py-12 flex flex-col items-center text-center gap-3">
-                <span className="text-4xl">🎉</span>
-                <p className="font-display font-bold text-base text-ink">Tudo excelente por aqui!</p>
-                <p className="text-xs text-ink-2 max-w-sm">Nenhum aluno precisando de atenção especial agora. Bom trabalho!</p>
+              <div className="py-8 md:py-12 flex flex-col items-center text-center gap-2 md:gap-3">
+                <span className="text-3xl md:text-4xl">🎉</span>
+                <p className="font-display font-bold text-sm md:text-base text-ink">Tudo excelente por aqui!</p>
+                <p className="text-[11px] md:text-xs text-ink-2 max-w-sm">Nenhum aluno precisando de atenção especial agora. Bom trabalho!</p>
               </div>
             ) : (
-              <div className="divide-y divide-line/40 -my-3">
+              <div className="divide-y divide-line/40 -my-2 md:-my-3">
                 {atencao.map((aluno: any) => (
-                  <div key={aluno.aluno_id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors group">
-                    <div className="flex items-center gap-3 min-w-0">
+                  <div key={aluno.aluno_id} className="py-2.5 md:py-4 flex flex-row items-center justify-between gap-2 md:gap-4 transition-colors group">
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
                       {/* Aluno Avatar */}
-                      <div className="w-10 h-10 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                        <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-bold text-ink text-sm overflow-hidden">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full brand-gradient-bg p-[1px] shrink-0">
+                        <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-bold text-ink text-xs md:text-sm overflow-hidden">
                           {aluno.avatar_url ? (
                             <img 
                               src={aluno.avatar_url} 
@@ -291,21 +291,21 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                               referrerPolicy="no-referrer"
                             />
                           ) : (
-                            aluno.nome?.charAt(0).toUpperCase() || <User className="w-4 h-4 text-ink-3" />
+                            aluno.nome?.charAt(0).toUpperCase() || <User className="w-3.5 h-3.5 text-ink-3" />
                           )}
                         </div>
                       </div>
 
                       {/* Aluno Nome & Motivos */}
-                      <div className="min-w-0 space-y-1.5">
-                        <h4 className="font-semibold text-sm text-ink truncate">
+                      <div className="min-w-0 space-y-0.5 md:space-y-1.5 flex-1">
+                        <h4 className="font-semibold text-xs md:text-sm text-ink truncate">
                           {aluno.nome}
                         </h4>
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-1">
                           {aluno.motivos?.map((motivo: string, idx: number) => (
                             <span 
                               key={idx} 
-                              className={`text-[9px] font-mono px-2 py-0.5 rounded-lg font-bold tracking-wider uppercase ${getReasonBadgeStyle(motivo)}`}
+                              className={`text-[8px] md:text-[9px] font-mono px-1.5 py-0.5 rounded-md font-bold tracking-wider uppercase ${getReasonBadgeStyle(motivo)}`}
                             >
                               {motivo}
                             </span>
@@ -315,20 +315,20 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                     </div>
 
                     {/* Action buttons */}
-                    <div className="flex items-center gap-2 shrink-0 sm:self-center self-end">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         onClick={() => onSelectAluno(aluno.aluno_id)}
-                        className="py-2 px-3.5 rounded-xl bg-raise hover:bg-raise-strong border border-line text-ink text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                        className="py-1 px-2 md:py-2 md:px-3.5 rounded-lg md:rounded-xl bg-raise hover:bg-raise-strong border border-line text-ink text-[10px] md:text-xs font-bold transition-all active:scale-[0.98] cursor-pointer"
                       >
                         Ver ficha
                       </button>
                       <button
                         onClick={() => onSelectAlunoAndChat(aluno.aluno_id)}
-                        className="p-2 rounded-xl bg-accent hover:bg-accent/95 text-white transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1 text-xs font-bold"
+                        className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-accent hover:bg-accent/95 text-white transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1 text-[10px] md:text-xs font-bold"
                         title="Enviar mensagem"
                       >
-                        <MessageSquare className="w-4 h-4" />
-                        <span className="sm:inline hidden px-1">Mensagem</span>
+                        <MessageSquare className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <span className="md:inline hidden px-0.5">Mensagem</span>
                       </button>
                     </div>
                   </div>
@@ -339,44 +339,44 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
         </div>
 
         {/* Right column: Agenda & Termometro */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           
           {/* 3) AGENDA (HOJE / PRÓXIMAS) */}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             <button 
               onClick={() => onNavigateToTab?.('agenda')}
               className="flex items-center justify-between w-full px-1 text-left group cursor-pointer"
             >
-              <div className="flex items-center gap-2">
-                <Clock className="w-4.5 h-4.5 text-[#F26A1B]" />
-                <h2 className="font-display font-bold text-lg text-ink">Agenda das sessões</h2>
+              <div className="flex items-center gap-1.5">
+                <Clock className="w-4 md:w-4.5 md:h-4.5 text-[#F26A1B]" />
+                <h2 className="font-display font-bold text-sm md:text-lg text-ink">Agenda das sessões</h2>
               </div>
-              <span className="text-xs text-ink-3 group-hover:text-accent transition-colors flex items-center gap-0.5 font-semibold">
-                Ver tudo <ArrowRight className="w-3 h-3" />
+              <span className="text-[10px] md:text-xs text-ink-3 group-hover:text-accent transition-colors flex items-center gap-0.5 font-semibold">
+                Ver tudo <ArrowRight className="w-2.5 h-2.5 md:w-3 md:h-3" />
               </span>
             </button>
 
-            <div className="bg-surface border border-line rounded-3xl p-6 space-y-4 relative overflow-hidden">
+            <div className="bg-surface border border-line rounded-2xl md:rounded-3xl p-3 md:p-6 space-y-3 md:space-y-4 relative overflow-hidden">
               {agenda.length === 0 ? (
-                <div className="py-6 text-center text-xs text-ink-3">
+                <div className="py-4 md:py-6 text-center text-xs text-ink-3">
                   Sem sessões agendadas.
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 md:space-y-4">
                   {/* Sessões de Hoje */}
                   {sessoesHojeList.length > 0 && (
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-accent font-bold">Hoje</span>
-                      <div className="space-y-2">
+                    <div className="space-y-1.5 md:space-y-2">
+                      <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-wider text-accent font-bold">Hoje</span>
+                      <div className="space-y-1.5 md:space-y-2">
                         {sessoesHojeList.map((item: any) => (
-                          <div key={item.id} className="flex items-center justify-between gap-3 p-2.5 bg-raise/50 border border-line/40 rounded-xl">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="text-xs font-bold text-accent font-mono num">
+                          <div key={item.id} className="flex items-center justify-between gap-2 md:gap-3 p-2 md:p-2.5 bg-raise/50 border border-line/40 rounded-xl">
+                            <div className="flex items-center gap-2 md:gap-2.5 min-w-0">
+                              <span className="text-[10px] md:text-xs font-bold text-accent font-mono num">
                                 {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                               </span>
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-ink truncate">{item.aluno_nome}</p>
-                                <p className="text-[10px] text-ink-3">{item.tipo}</p>
+                                <p className="text-[9px] md:text-[10px] text-ink-3">{item.tipo}</p>
                               </div>
                             </div>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
@@ -388,18 +388,18 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
 
                   {/* Próximas Sessões */}
                   {sessoesProximasList.length > 0 && (
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-ink-3 font-bold">Próximas</span>
-                      <div className="space-y-2">
+                    <div className="space-y-1.5 md:space-y-2">
+                      <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-wider text-ink-3 font-bold">Próximas</span>
+                      <div className="space-y-1.5 md:space-y-2">
                         {sessoesProximasList.map((item: any) => (
-                          <div key={item.id} className="flex items-center justify-between gap-3 p-2.5 bg-raise/20 border border-line/20 rounded-xl">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="text-xs font-bold text-ink-3 font-mono num">
+                          <div key={item.id} className="flex items-center justify-between gap-2 md:gap-3 p-2 md:p-2.5 bg-raise/20 border border-line/20 rounded-xl">
+                            <div className="flex items-center gap-2 md:gap-2.5 min-w-0">
+                              <span className="text-[10px] md:text-xs font-bold text-ink-3 font-mono num">
                                 {new Date(item.data_hora).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                               </span>
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-ink truncate">{item.aluno_nome}</p>
-                                <p className="text-[10px] text-ink-3">{item.tipo}</p>
+                                <p className="text-[9px] md:text-[10px] text-ink-3">{item.tipo}</p>
                               </div>
                             </div>
                             <span className="w-1.5 h-1.5 rounded-full bg-ink-3 shrink-0" />
@@ -414,20 +414,20 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
           </div>
 
           {/* 4) TERMÔMETRO DA BASE */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 px-1">
-              <Sparkles className="w-4.5 h-4.5 text-[#F26A1B]" />
-              <h2 className="font-display font-bold text-lg text-ink">Termômetro da base</h2>
+          <div className="space-y-3 md:space-y-4">
+            <div className="flex items-center gap-1.5 px-1">
+              <Sparkles className="w-4 md:w-4.5 md:h-4.5 text-[#F26A1B]" />
+              <h2 className="font-display font-bold text-sm md:text-lg text-ink">Termômetro da base</h2>
             </div>
 
-            <div className="bg-surface border border-line rounded-3xl p-5 space-y-4 relative overflow-hidden">
+            <div className="bg-surface border border-line rounded-2xl md:rounded-3xl p-3.5 md:p-5 space-y-3 md:space-y-4 relative overflow-hidden">
               {/* Taxa de adesão do termômetro */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-ink-2">Adesão global</span>
-                  <span className="text-xs font-bold text-ink num">{termometro.taxa_adesao_semana}%</span>
+                  <span className="text-[11px] md:text-xs text-ink-2">Adesão global</span>
+                  <span className="text-[11px] md:text-xs font-bold text-ink num">{termometro.taxa_adesao_semana}%</span>
                 </div>
-                <div className="w-full h-2 bg-line rounded-full overflow-hidden flex">
+                <div className="w-full h-1 md:h-1.5 bg-line rounded-full overflow-hidden flex">
                   <div 
                     className={`h-full rounded-full ${
                       termometro.taxa_adesao_semana >= 80 ? 'bg-emerald-500' :
@@ -436,27 +436,27 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                     style={{ width: `${termometro.taxa_adesao_semana}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-ink-3 flex items-center gap-1">
+                <p className="text-[9px] md:text-[10px] text-ink-3 flex items-center gap-1">
                   <span className={`w-1.5 h-1.5 rounded-full ${
                     termometro.taxa_adesao_semana >= 80 ? 'bg-emerald-500' :
                     termometro.taxa_adesao_semana >= 50 ? 'bg-amber-500' : 'bg-red-500'
                   }`} />
                   <span>
                     {termometro.taxa_adesao_semana >= 80 ? 'Engajamento excelente' :
-                     termometro.taxa_adesao_semana >= 50 ? 'Atenção ao engajamento médio' : 'Engajamento crítico'}
+                     termometro.taxa_adesao_semana >= 50 ? 'Engajamento médio' : 'Engajamento crítico'}
                   </span>
                 </p>
               </div>
 
               {/* Variação de Peso Média */}
-              <div className="border-t border-line/40 pt-4 flex items-center justify-between gap-3">
-                <span className="text-xs text-ink-2">Variação média de peso</span>
+              <div className="border-t border-line/40 pt-3 md:pt-4 flex items-center justify-between gap-3">
+                <span className="text-[11px] md:text-xs text-ink-2">Variação média de peso</span>
                 {termometro.peso_variacao_media !== null && termometro.peso_variacao_media !== undefined ? (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold">
+                  <div className="flex items-center gap-1 md:gap-1.5 text-[11px] md:text-xs font-semibold">
                     {termometro.peso_variacao_media < 0 ? (
                       <>
                         <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-400">
-                          <TrendingDown className="w-3.5 h-3.5" />
+                          <TrendingDown className="w-3 h-3 md:w-3.5 md:h-3.5" />
                         </div>
                         <span className="text-emerald-400 num">
                           {termometro.peso_variacao_media} kg em média
@@ -465,7 +465,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                     ) : (
                       <>
                         <div className="p-1 rounded-lg bg-[#F26A1B]/10 text-[#F26A1B]">
-                          <TrendingUp className="w-3.5 h-3.5" />
+                          <TrendingUp className="w-3 h-3 md:w-3.5 md:h-3.5" />
                         </div>
                         <span className="text-[#F26A1B] num">
                           +{termometro.peso_variacao_media} kg em média
@@ -474,7 +474,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                     )}
                   </div>
                 ) : (
-                  <span className="text-xs text-ink-3 italic">Sem dados suficientes</span>
+                  <span className="text-[11px] md:text-xs text-ink-3 italic">Sem dados</span>
                 )}
               </div>
             </div>
