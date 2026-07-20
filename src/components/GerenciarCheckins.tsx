@@ -146,119 +146,223 @@ export default function GerenciarCheckins({ personalId }: { personalId: string }
         </div>
       </div>
 
-      <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-3"}>
+      <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 gap-3.5 items-start" : "space-y-2.5"}>
         <AnimatePresence mode="popLayout">
-          {alunosFiltrados.map((aluno) => (
-            <motion.div
-              layout
-              key={aluno.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              onClick={() => {
-                if (aluno.ultimoCheckin) {
-                  setSelectedAluno({ id: aluno.id, nome: aluno.profile.nome });
-                }
-              }}
-              className={`z-card z-card--tap space-y-4 ${
-                !aluno.ultimoCheckin 
-                  ? 'opacity-60' 
-                  : ''
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-raise border border-line flex items-center justify-center font-display font-bold text-accent overflow-hidden">
-                    {aluno.profile.avatar_url ? (
-                      <img src={aluno.profile.avatar_url} alt={aluno.profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    ) : (
-                      aluno.profile.nome.charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-display font-bold text-ink leading-none">{aluno.profile.nome}</h4>
-                    {aluno.ultimoCheckin ? (
-                      <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-mono text-ink-3">
-                        <Calendar className="w-3 h-3" />
-                        <span>Semana: {(() => {
-                          const [ano, mes, dia] = aluno.ultimoCheckin.semana.split("-").map(Number);
-                          return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
-                        })()}</span>
-                      </div>
-                    ) : (
-                      <p className="z-eyebrow mt-1 text-danger">Sem check-in ainda</p>
-                    )}
-                  </div>
-                </div>
-
-                {aluno.ultimoCheckin?.dores && (
-                  <div className="flex items-center gap-1 bg-danger/10 border border-danger/20 text-danger px-2 py-1 rounded-lg animate-pulse">
-                    <AlertCircle className="w-3 h-3" />
-                    <span className="text-[9px] font-mono font-bold uppercase">Dor relatada</span>
-                  </div>
-                )}
-              </div>
-
-              {aluno.ultimoCheckin ? (
-                <>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-bg p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-line">
-                      <Zap className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.energia, 'normal')}`} />
-                      <span className="text-sm font-mono font-black text-ink z-num">{aluno.ultimoCheckin.energia}/5</span>
-                      <span className="text-[9px] z-eyebrow text-ink-3">Energia</span>
-                    </div>
-                    <div className="bg-bg p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-line">
-                      <Moon className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.qualidade_sono, 'normal')}`} />
-                      <span className="text-sm font-mono font-black text-ink z-num">{aluno.ultimoCheckin.qualidade_sono}/5</span>
-                      <span className="text-[9px] z-eyebrow text-ink-3">Sono</span>
-                    </div>
-                    <div className="bg-bg p-2.5 rounded-2xl flex flex-col items-center gap-1 border border-line">
-                      <Flame className={`w-3.5 h-3.5 ${getIndicatorColor(aluno.ultimoCheckin.nivel_estresse, 'inverted')}`} />
-                      <span className="text-sm font-mono font-black text-ink z-num">{aluno.ultimoCheckin.nivel_estresse}/5</span>
-                      <span className="text-[9px] z-eyebrow text-ink-3">Estresse</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-[10px] font-mono">
-                      {aluno.ultimoCheckin.peso_kg && (
-                        <div className="flex items-center gap-2 text-ink-2">
-                          <Scale className="w-3.5 h-3.5" />
-                          <span>Peso: <span className="z-num">{aluno.ultimoCheckin.peso_kg} kg</span></span>
-                        </div>
+          {alunosFiltrados.map((aluno) => {
+            const hasCheckin = !!aluno.ultimoCheckin;
+            
+            if (viewMode === 'list') {
+              return (
+                <motion.div
+                  layout
+                  key={aluno.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => {
+                    if (hasCheckin) {
+                      setSelectedAluno({ id: aluno.id, nome: aluno.profile.nome });
+                    }
+                  }}
+                  className={`bg-surface border border-line hover:border-line-strong transition-all rounded-2xl px-3.5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer ${
+                    !hasCheckin ? 'opacity-50' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-raise border border-line flex items-center justify-center font-display font-bold text-accent text-xs overflow-hidden shrink-0">
+                      {aluno.profile.avatar_url ? (
+                        <img src={aluno.profile.avatar_url} alt={aluno.profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        aluno.profile.nome.charAt(0).toUpperCase()
                       )}
-                      <span className="text-ink-3 ml-auto italic">
-                        Enviado {new Date(aluno.ultimoCheckin.criado_em).toLocaleDateString('pt-BR')}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-display font-semibold text-xs text-ink truncate leading-tight">{aluno.profile.nome}</h4>
+                      {hasCheckin ? (
+                        <p className="text-[9px] text-ink-3">
+                          Semana: {(() => {
+                            const [ano, mes, dia] = aluno.ultimoCheckin!.semana.split("-").map(Number);
+                            return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                          })()}
+                        </p>
+                      ) : (
+                        <p className="text-[9px] font-mono text-red-400 font-bold uppercase tracking-wider">Sem check-in</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {hasCheckin ? (
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-mono ml-11 sm:ml-0">
+                      {/* Compact energy / sono / estresse */}
+                      <div className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-1 text-[10px] text-ink-2 bg-bg px-1.5 py-0.5 rounded-lg border border-line/50">
+                          <Zap className={`w-2.5 h-2.5 ${getIndicatorColor(aluno.ultimoCheckin!.energia, 'normal')}`} />
+                          <span className="font-bold text-ink num">{aluno.ultimoCheckin!.energia}</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] text-ink-2 bg-bg px-1.5 py-0.5 rounded-lg border border-line/50">
+                          <Moon className={`w-2.5 h-2.5 ${getIndicatorColor(aluno.ultimoCheckin!.qualidade_sono, 'normal')}`} />
+                          <span className="font-bold text-ink num">{aluno.ultimoCheckin!.qualidade_sono}</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] text-ink-2 bg-bg px-1.5 py-0.5 rounded-lg border border-line/50">
+                          <Flame className={`w-2.5 h-2.5 ${getIndicatorColor(aluno.ultimoCheckin!.nivel_estresse, 'inverted')}`} />
+                          <span className="font-bold text-ink num">{aluno.ultimoCheckin!.nivel_estresse}</span>
+                        </span>
+                      </div>
+
+                      {/* Weight if present */}
+                      {aluno.ultimoCheckin!.peso_kg && (
+                        <span className="text-[10px] text-ink-2 flex items-center gap-1 bg-bg px-1.5 py-0.5 rounded-lg border border-line/50">
+                          <Scale className="w-2.5 h-2.5 text-ink-3" />
+                          <span className="font-semibold text-ink num">{aluno.ultimoCheckin!.peso_kg} kg</span>
+                        </span>
+                      )}
+
+                      {/* Pain / Obs badges */}
+                      <div className="flex items-center gap-1.5">
+                        {aluno.ultimoCheckin!.dores && aluno.ultimoCheckin!.dores.trim() !== '' && (
+                          <span className="flex items-center gap-0.5 bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider">
+                            <AlertCircle className="w-2.5 h-2.5" /> Dor
+                          </span>
+                        )}
+                        {aluno.ultimoCheckin!.observacoes && aluno.ultimoCheckin!.observacoes.trim() !== '' && (
+                          <span className="flex items-center gap-0.5 bg-accent/10 border border-accent/20 text-accent px-1.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider">
+                            <MessageSquare className="w-2.5 h-2.5" /> Obs
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Sent Date */}
+                      <span className="text-[9px] text-ink-3 italic ml-auto sm:ml-0">
+                        Enviado {new Date(aluno.ultimoCheckin!.criado_em).toLocaleDateString('pt-BR')}
                       </span>
                     </div>
+                  ) : (
+                    <div className="text-[10px] text-ink-3 italic ml-11 sm:ml-0">
+                      Aguardando check-in
+                    </div>
+                  )}
+                </motion.div>
+              );
+            }
 
-                    {aluno.ultimoCheckin.dores && (
-                      <div className="bg-danger/5 border border-danger/10 p-3 rounded-xl">
-                        <p className="text-[10px] text-danger font-bold uppercase mb-1 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" /> Relato de Dor
-                        </p>
-                        <p className="text-xs text-ink-2 leading-relaxed italic">"{aluno.ultimoCheckin.dores}"</p>
-                      </div>
-                    )}
-
-                    {aluno.ultimoCheckin.observacoes && (
-                      <div className="bg-bg p-3 rounded-xl border border-line">
-                        <div className="flex items-center gap-2 mb-1">
-                          <MessageSquare className="w-3 h-3 text-ink-3" />
-                          <span className="text-[10px] font-mono text-ink-3 uppercase">Obs:</span>
+            return (
+              <motion.div
+                layout
+                key={aluno.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                onClick={() => {
+                  if (hasCheckin) {
+                    setSelectedAluno({ id: aluno.id, nome: aluno.profile.nome });
+                  }
+                }}
+                className={`bg-surface border border-line hover:border-line-strong transition-all rounded-3xl p-4 space-y-3.5 cursor-pointer ${
+                  !hasCheckin ? 'opacity-60' : ''
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8.5 h-8.5 rounded-full bg-raise border border-line flex items-center justify-center font-display font-bold text-accent overflow-hidden shrink-0">
+                      {aluno.profile.avatar_url ? (
+                        <img src={aluno.profile.avatar_url} alt={aluno.profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        aluno.profile.nome.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-display font-semibold text-sm text-ink leading-tight truncate max-w-[130px] sm:max-w-[200px]">
+                        {aluno.profile.nome}
+                      </h4>
+                      {hasCheckin ? (
+                        <div className="flex items-center gap-1 mt-1 text-[9px] font-mono text-ink-3">
+                          <Calendar className="w-2.5 h-2.5" />
+                          <span>Semana: {(() => {
+                            const [ano, mes, dia] = aluno.ultimoCheckin!.semana.split("-").map(Number);
+                            return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+                          })()}</span>
                         </div>
-                        <p className="text-xs text-ink-2 italic leading-relaxed">"{aluno.ultimoCheckin.observacoes}"</p>
-                      </div>
-                    )}
+                      ) : (
+                        <p className="text-[9px] font-mono text-red-400 font-bold uppercase tracking-wider mt-0.5">Sem check-in</p>
+                      )}
+                    </div>
                   </div>
-                </>
-              ) : (
-                <div className="py-6 flex flex-col items-center justify-center bg-bg rounded-2xl border border-dashed border-line">
-                  <p className="z-eyebrow text-ink-3">Aguardando check-in do aluno</p>
+
+                  {hasCheckin && aluno.ultimoCheckin!.dores && aluno.ultimoCheckin!.dores.trim() !== '' && (
+                    <div className="flex items-center gap-0.5 bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded-md shrink-0">
+                      <AlertCircle className="w-2.5 h-2.5" />
+                      <span className="text-[8px] font-mono font-bold uppercase tracking-wider">Dor</span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </motion.div>
-          ))}
+
+                {hasCheckin ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <div className="bg-bg py-1 px-1.5 rounded-xl flex flex-col items-center justify-center border border-line/40">
+                        <div className="flex items-center gap-1">
+                          <Zap className={`w-3 h-3 ${getIndicatorColor(aluno.ultimoCheckin!.energia, 'normal')}`} />
+                          <span className="text-xs font-mono font-bold text-ink num">{aluno.ultimoCheckin!.energia}/5</span>
+                        </div>
+                        <span className="text-[8px] uppercase tracking-wider text-ink-3 font-semibold mt-0.5">Energia</span>
+                      </div>
+                      <div className="bg-bg py-1 px-1.5 rounded-xl flex flex-col items-center justify-center border border-line/40">
+                        <div className="flex items-center gap-1">
+                          <Moon className={`w-3 h-3 ${getIndicatorColor(aluno.ultimoCheckin!.qualidade_sono, 'normal')}`} />
+                          <span className="text-xs font-mono font-bold text-ink num">{aluno.ultimoCheckin!.qualidade_sono}/5</span>
+                        </div>
+                        <span className="text-[8px] uppercase tracking-wider text-ink-3 font-semibold mt-0.5">Sono</span>
+                      </div>
+                      <div className="bg-bg py-1 px-1.5 rounded-xl flex flex-col items-center justify-center border border-line/40">
+                        <div className="flex items-center gap-1">
+                          <Flame className={`w-3 h-3 ${getIndicatorColor(aluno.ultimoCheckin!.nivel_estresse, 'inverted')}`} />
+                          <span className="text-xs font-mono font-bold text-ink num">{aluno.ultimoCheckin!.nivel_estresse}/5</span>
+                        </div>
+                        <span className="text-[8px] uppercase tracking-wider text-ink-3 font-semibold mt-0.5">Estresse</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[9px] font-mono text-ink-3 border-t border-line/20 pt-2 mt-1">
+                        {aluno.ultimoCheckin!.peso_kg ? (
+                          <div className="flex items-center gap-1">
+                            <Scale className="w-2.5 h-2.5 text-ink-3" />
+                            <span>Peso: <span className="text-ink font-semibold num">{aluno.ultimoCheckin!.peso_kg} kg</span></span>
+                          </div>
+                        ) : (
+                          <span />
+                        )}
+                        <span>Enviado {new Date(aluno.ultimoCheckin!.criado_em).toLocaleDateString('pt-BR')}</span>
+                      </div>
+
+                      {aluno.ultimoCheckin!.dores && aluno.ultimoCheckin!.dores.trim() !== '' && (
+                        <div className="bg-danger/5 border border-danger/10 p-2 rounded-xl text-left">
+                          <p className="text-[9px] text-danger font-bold uppercase mb-0.5 flex items-center gap-1">
+                            <AlertCircle className="w-2.5 h-2.5" /> Relato de Dor
+                          </p>
+                          <p className="text-[11px] text-ink-2 leading-relaxed italic">"{aluno.ultimoCheckin!.dores}"</p>
+                        </div>
+                      )}
+
+                      {aluno.ultimoCheckin!.observacoes && aluno.ultimoCheckin!.observacoes.trim() !== '' && (
+                        <div className="bg-bg p-2 rounded-xl border border-line/60 text-left">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <MessageSquare className="w-2.5 h-2.5 text-ink-3" />
+                            <span className="text-[9px] font-mono text-ink-3 uppercase font-bold">Obs:</span>
+                          </div>
+                          <p className="text-[11px] text-ink-2 italic leading-relaxed">"{aluno.ultimoCheckin!.observacoes}"</p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-4 flex flex-col items-center justify-center bg-bg/50 rounded-xl border border-dashed border-line">
+                    <p className="text-[10px] font-mono text-ink-3 uppercase">Aguardando check-in</p>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
 
