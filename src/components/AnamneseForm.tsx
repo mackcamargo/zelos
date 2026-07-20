@@ -448,12 +448,12 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
                       onClick={() => handleDiseaseToggle(dis.id)}
                       className={`py-3 px-3.5 rounded-xl border text-xs font-semibold text-center transition-all flex items-center justify-between ${
                         active
-                          ? 'bg-[#F26A1B]/15 border-[#F26A1B]/35 text-white shadow-sm'
+                          ? 'bg-[#F26A1B] border-[#F26A1B] text-white shadow-sm'
                           : 'bg-surface border-line text-ink-2 hover:bg-raise'
                       }`}
                     >
                       <span>{dis.label}</span>
-                      {active && <Check className="w-3.5 h-3.5 text-[#F26A1B] shrink-0 ml-1" />}
+                      {active && <Check className="w-3.5 h-3.5 text-white shrink-0 ml-1" />}
                     </button>
                   );
                 })}

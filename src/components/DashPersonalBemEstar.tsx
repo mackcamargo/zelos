@@ -27,9 +27,60 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
   const [selectedAgendamento, setSelectedAgendamento] = useState<any | null>(null);
   const [loadingAgendamento, setLoadingAgendamento] = useState<boolean>(false);
   const [cancelLoading, setCancelLoading] = useState<boolean>(false);
+  const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const handleOpenSessao = async (id: number, initialData: any) => {
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
+
+  const isTodayInBrazil = (dataHoraStr: string) => {
+    try {
+      const dateObj = new Date(dataHoraStr);
+      if (isNaN(dateObj.getTime())) return false;
+      
+      const dateInSP = dateObj.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      const todayInSP = new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      
+      return dateInSP === todayInSP;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const formatTimeInBrazil = (dataHoraStr: string) => {
+    try {
+      const d = new Date(dataHoraStr);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        timeZone: 'America/Sao_Paulo' 
+      });
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const formatDateInBrazil = (dataHoraStr: string) => {
+    try {
+      const d = new Date(dataHoraStr);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        timeZone: 'America/Sao_Paulo' 
+      });
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const handleOpenSessao = async (id: number | string, initialData: any) => {
     setSelectedAgendamento(initialData);
     setLoadingAgendamento(true);
     setShowCancelConfirm(false);
@@ -54,24 +105,66 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
     }
   };
 
-  const handleCancelarSessao = async (id: number) => {
+  const handleCancelarSessao = async (id: number | string) => {
     setCancelLoading(true);
     try {
       if (supabase) {
-        const { error: dbErr } = await supabase
+        const { data, error: dbErr } = await supabase
           .from('agendamentos')
           .update({ status: 'cancelado' })
-          .eq('id', id);
+          .eq('id', id)
+          .select();
+          
         if (dbErr) throw dbErr;
         
-        loadDashboardData(false);
-        setSelectedAgendamento((prev: any) => prev ? { ...prev, status: 'cancelado' } : null);
+        if (!data || data.length === 0) {
+          showToast('Nenhuma sessão encontrada para cancelar ou você não tem permissão.');
+          return;
+        }
+
+        showToast('Sessão cancelada com sucesso!');
+        await loadDashboardData(false);
+        setSelectedAgendamento(null);
         setShowCancelConfirm(false);
+      } else {
+        showToast('Supabase não configurado.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao cancelar sessão:', err);
+      showToast(`Erro ao cancelar: ${err.message || err}`);
     } finally {
       setCancelLoading(false);
+    }
+  };
+
+  const handleConfirmarSessao = async (id: number | string) => {
+    setConfirmLoading(true);
+    try {
+      if (supabase) {
+        const { data, error: dbErr } = await supabase
+          .from('agendamentos')
+          .update({ status: 'confirmado' })
+          .eq('id', id)
+          .select();
+          
+        if (dbErr) throw dbErr;
+        
+        if (!data || data.length === 0) {
+          showToast('Nenhuma sessão encontrada para confirmar ou você não tem permissão.');
+          return;
+        }
+
+        showToast('Sessão confirmada com sucesso!');
+        await loadDashboardData(false);
+        setSelectedAgendamento(null);
+      } else {
+        showToast('Supabase não configurado.');
+      }
+    } catch (err: any) {
+      console.error('Erro ao confirmar sessão:', err);
+      showToast(`Erro ao confirmar: ${err.message || err}`);
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -94,15 +187,13 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
       const dateObj = new Date(dataHoraStr);
       if (isNaN(dateObj.getTime())) return dataHoraStr;
       
-      const today = new Date();
-      const isToday = dateObj.toDateString() === today.toDateString();
-      
-      const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const isToday = isTodayInBrazil(dataHoraStr);
+      const timeStr = formatTimeInBrazil(dataHoraStr);
       
       if (isToday) {
         return `Hoje, ${timeStr}`;
       } else {
-        const dayStr = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        const dayStr = formatDateInBrazil(dataHoraStr);
         return `${dayStr}, ${timeStr}`;
       }
     } catch (e) {
@@ -227,13 +318,8 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
   const percentAdesao = totalTreinos > 0 ? Math.round((concluidosTreinos / totalTreinos) * 100) : null;
 
   // Split sessions into Today and Upcoming
-  const todayStr = new Date().toDateString();
-  const sessoesHojeList = agenda.filter((item: any) => {
-    return new Date(item.data_hora).toDateString() === todayStr;
-  });
-  const sessoesProximasList = agenda.filter((item: any) => {
-    return new Date(item.data_hora).toDateString() !== todayStr;
-  });
+  const sessoesHojeList = agenda.filter((item: any) => isTodayInBrazil(item.data_hora));
+  const sessoesProximasList = agenda.filter((item: any) => !isTodayInBrazil(item.data_hora));
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -455,7 +541,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                           >
                             <div className="flex items-center gap-2 md:gap-2.5 min-w-0">
                               <span className="text-[10px] md:text-xs font-bold text-accent font-mono num">
-                                {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                {formatTimeInBrazil(item.data_hora)}
                               </span>
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-ink truncate">{item.aluno_nome}</p>
@@ -482,7 +568,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                           >
                             <div className="flex items-center gap-2 md:gap-2.5 min-w-0">
                               <span className="text-[10px] md:text-xs font-bold text-ink-3 font-mono num">
-                                {new Date(item.data_hora).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} {new Date(item.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                {formatDateInBrazil(item.data_hora)} {formatTimeInBrazil(item.data_hora)}
                               </span>
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-ink truncate">{item.aluno_nome}</p>
@@ -730,41 +816,60 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                   </div>
                   
                   {selectedAgendamento.status !== 'cancelado' && (
-                    <div className="border-t border-line/20 pt-2 flex gap-2">
-                      <button 
-                        onClick={() => {
-                          onNavigateToTab?.('agenda');
-                          setSelectedAgendamento(null);
-                        }}
-                        className="flex-1 py-2 px-3 rounded-xl bg-raise/60 hover:bg-raise border border-line/60 text-ink-2 text-xs font-bold transition-all cursor-pointer text-center"
-                      >
-                        Editar na Agenda
-                      </button>
-                      
-                      {showCancelConfirm ? (
-                        <div className="flex-1 flex gap-1">
+                    <div className="border-t border-line/20 pt-2 flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        {selectedAgendamento.status !== 'confirmado' && (
                           <button 
-                            disabled={cancelLoading}
-                            onClick={() => handleCancelarSessao(selectedAgendamento.id)}
-                            className="flex-1 py-2 px-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 text-[11px] font-bold transition-all cursor-pointer text-center"
+                            disabled={confirmLoading}
+                            onClick={() => handleConfirmarSessao(selectedAgendamento.id)}
+                            className="flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer text-center flex items-center justify-center gap-1.5"
                           >
-                            {cancelLoading ? 'Cancelando...' : 'Confirmar'}
+                            {confirmLoading ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            )}
+                            <span>Confirmar sessão</span>
                           </button>
-                          <button 
-                            onClick={() => setShowCancelConfirm(false)}
-                            className="py-2 px-2.5 rounded-xl bg-raise border border-line text-ink-2 text-[11px] font-bold transition-all cursor-pointer text-center"
-                          >
-                            Voltar
-                          </button>
-                        </div>
-                      ) : (
+                        )}
+                        
                         <button 
-                          onClick={() => setShowCancelConfirm(true)}
-                          className="flex-1 py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold transition-all cursor-pointer text-center"
+                          onClick={() => {
+                            onNavigateToTab?.('agenda');
+                            setSelectedAgendamento(null);
+                          }}
+                          className="flex-1 py-2 px-3 rounded-xl bg-raise/60 hover:bg-raise border border-line/60 text-ink-2 text-xs font-bold transition-all cursor-pointer text-center"
                         >
-                          Cancelar sessão
+                          Editar na Agenda
                         </button>
-                      )}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        {showCancelConfirm ? (
+                          <div className="flex-1 flex gap-1">
+                            <button 
+                              disabled={cancelLoading}
+                              onClick={() => handleCancelarSessao(selectedAgendamento.id)}
+                              className="flex-1 py-2 px-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-400 text-xs font-bold transition-all cursor-pointer text-center"
+                            >
+                              {cancelLoading ? 'Cancelando...' : 'Confirmar'}
+                            </button>
+                            <button 
+                              onClick={() => setShowCancelConfirm(false)}
+                              className="py-2 px-3 rounded-xl bg-raise border border-line text-ink-2 text-xs font-bold transition-all cursor-pointer text-center"
+                            >
+                              Voltar
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => setShowCancelConfirm(true)}
+                            className="w-full py-2 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold transition-all cursor-pointer text-center"
+                          >
+                            Cancelar sessão
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </>
@@ -778,6 +883,17 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
               </button>
             </div>
           </motion.div>
+        </div>
+      )}
+
+      {/* Floating Toast notification */}
+      {toastMessage && (
+        <div 
+          id="toast-notification"
+          className="fixed bottom-6 right-6 z-50 bg-surface border border-line px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-fade-in"
+        >
+          <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+          <span className="text-xs font-medium text-ink">{toastMessage}</span>
         </div>
       )}
     </div>

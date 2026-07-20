@@ -1795,86 +1795,54 @@ export const dbService = {
 
   async getDashboardPersonal(personalId: string): Promise<{ data: any; error: any }> {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.rpc('dashboard_personal');
-      if (!error) {
-        return { data, error: null };
+      // Tenta primeiro sem argumentos, caso a função use o auth.uid() do usuário autenticado
+      let result = await supabase.rpc('dashboard_personal');
+      
+      if (result.error) {
+        console.warn('Erro ao chamar RPC dashboard_personal sem parâmetros. Tentando com p_personal...', result.error);
+        const retry1 = await supabase.rpc('dashboard_personal', { p_personal: personalId });
+        if (!retry1.error) {
+          result = retry1;
+        } else {
+          console.warn('Erro ao chamar RPC com p_personal. Tentando com personal_id...', retry1.error);
+          const retry2 = await supabase.rpc('dashboard_personal', { personal_id: personalId });
+          if (!retry2.error) {
+            result = retry2;
+          } else {
+            console.warn('Erro ao chamar RPC com personal_id. Tentando com p_personal_id...', retry2.error);
+            const retry3 = await supabase.rpc('dashboard_personal', { p_personal_id: personalId });
+            if (!retry3.error) {
+              result = retry3;
+            }
+          }
+        }
       }
-      console.warn('Erro ao chamar RPC dashboard_personal, usando fallback mock:', error);
+
+      if (!result.error) {
+        return { data: result.data, error: null };
+      }
+      
+      console.error('Falha ao executar o RPC dashboard_personal com qualquer assinatura:', result.error);
+      return { data: null, error: result.error };
     }
 
-    // Mock data fallback using mock alunos
-    const mockAlunos = loadMockAlunos().filter(a => a.personal_id === personalId);
-    const totalAlunos = mockAlunos.length || 2;
-    const mockData = {
+    // Se o Supabase não estiver configurado, retorna apenas a estrutura vazia necessária, sem nenhum dado mock de exemplo
+    const emptyData = {
       kpis: {
-        alunos_ativos: totalAlunos,
-        treinos_concluidos_semana: 14,
-        treinos_total_semana: 20,
-        checkins_pendentes: 3,
-        sessoes_hoje: 4
+        alunos_ativos: 0,
+        treinos_concluidos_semana: 0,
+        treinos_total_semana: 0,
+        checkins_pendentes: 0,
+        sessoes_hoje: 0
       },
-      atencao: [
-        {
-          aluno_id: mockAlunos[0]?.id || 'student-1',
-          nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
-          avatar_url: mockAlunos[0]?.profile?.avatar_url || null,
-          motivos: ["Sem treino concluído há 7+ dias", "Cuidado ortopédico ativo"]
-        },
-        {
-          aluno_id: mockAlunos[1]?.id || 'student-2',
-          nome: mockAlunos[1]?.profile?.nome || 'Fernanda Lima',
-          avatar_url: mockAlunos[1]?.profile?.avatar_url || null,
-          motivos: ["Check-in de atenção", "Check-in atrasado"]
-        }
-      ],
-      agenda: [
-        {
-          id: 'session-1',
-          data_hora: new Date(new Date().setHours(8, 0, 0, 0)).toISOString(),
-          tipo: 'Presencial',
-          status: 'confirmado',
-          aluno_nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
-          aluno_avatar: mockAlunos[0]?.profile?.avatar_url || null
-        },
-        {
-          id: 'session-2',
-          data_hora: new Date(new Date().setHours(10, 30, 0, 0)).toISOString(),
-          tipo: 'Presencial',
-          status: 'confirmado',
-          aluno_nome: mockAlunos[1]?.profile?.nome || 'Fernanda Lima',
-          aluno_avatar: mockAlunos[1]?.profile?.avatar_url || null
-        },
-        {
-          id: 'session-3',
-          data_hora: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
-          tipo: 'Consultoria Online',
-          status: 'confirmado',
-          aluno_nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
-          aluno_avatar: mockAlunos[0]?.profile?.avatar_url || null
-        },
-        {
-          id: 'session-4',
-          data_hora: new Date(new Date().setHours(17, 0, 0, 0)).toISOString(),
-          tipo: 'Presencial',
-          status: 'confirmado',
-          aluno_nome: mockAlunos[1]?.profile?.nome || 'Fernanda Lima',
-          aluno_avatar: mockAlunos[1]?.profile?.avatar_url || null
-        },
-        {
-          id: 'session-5',
-          data_hora: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          tipo: 'Presencial',
-          status: 'pendente',
-          aluno_nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
-          aluno_avatar: mockAlunos[0]?.profile?.avatar_url || null
-        }
-      ],
+      atencao: [],
+      agenda: [],
       termometro: {
-        taxa_adesao_semana: 85,
-        peso_variacao_media: -1.2
+        taxa_adesao_semana: 0,
+        peso_variacao_media: null
       }
     };
-    return { data: mockData, error: null };
+    return { data: emptyData, error: null };
   },
 
   async getConteudosEducativos(personalIdOuCategoria?: string): Promise<{ data: any[]; error: any }> {
@@ -2422,14 +2390,22 @@ export const dbService = {
     return { data: filtered, error: null };
   },
 
-  async enviarMensagem(personalId: string, alunoId: string, autorId: string, conteudo: string): Promise<{ data: Mensagem | null; error: any }> {
+  async enviarMensagem(
+    personalId: string, 
+    alunoId: string, 
+    autorId: string, 
+    conteudo: string, 
+    tipo: 'texto' | 'imagem' | 'arquivo' = 'texto', 
+    arquivoUrl?: string | null
+  ): Promise<{ data: Mensagem | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.from('mensagens').insert({
         personal_id: personalId,
         aluno_id: alunoId,
         autor_id: autorId,
-        tipo: 'texto',
+        tipo,
         conteudo: conteudo.trim(),
+        arquivo_url: arquivoUrl || null,
         lida: false
       }).select().single();
       return { data, error };
@@ -2440,8 +2416,9 @@ export const dbService = {
       personal_id: personalId,
       aluno_id: alunoId,
       autor_id: autorId,
-      tipo: 'texto',
+      tipo,
       conteudo: conteudo.trim(),
+      arquivo_url: arquivoUrl || null,
       lida: false,
       criado_em: new Date().toISOString()
     };

@@ -291,11 +291,11 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
             onClick={handleSubmit}
             disabled={saving || loading || success}
             className={`w-full py-4 rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50 ${
-              success ? 'bg-emerald-500 text-white' : 'brand-gradient-bg text-void hover:opacity-95'
+              success ? 'bg-emerald-500 text-white' : 'brand-gradient-bg text-white hover:opacity-95'
             }`}
           >
             {saving ? (
-              <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : success ? (
               <>
                 <CheckCircle2 className="w-5 h-5" />

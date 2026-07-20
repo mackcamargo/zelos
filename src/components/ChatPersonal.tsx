@@ -1,8 +1,54 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Aluno, Mensagem } from '../types';
-import { Send, MessageSquare, Search, ArrowLeft, Clock, Sparkles, Pencil, Trash2, X, Check, MoreVertical } from 'lucide-react';
+import { Send, MessageSquare, Search, ArrowLeft, Clock, Sparkles, Pencil, Trash2, X, Check, MoreVertical, Paperclip, Camera } from 'lucide-react';
 import { tocar } from '../lib/som';
+
+const compressImage = (file: File, maxWidth = 1280, maxHeight = 1280): Promise<Blob | File> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = () => {
+        resolve(file);
+      };
+    };
+    reader.onerror = () => {
+      resolve(file);
+    };
+  });
+};
 
 interface ChatPersonalProps {
   personalId: string;
@@ -35,6 +81,77 @@ export default function ChatPersonal({
   const [editingText, setEditingText] = useState('');
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Image Upload and Preview States
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch signed URLs when active messages change
+  useEffect(() => {
+    const fetchUrls = async () => {
+      const imageMsgs = activeMessages.filter(m => m.tipo === 'imagem' && m.arquivo_url && !m.excluida);
+      if (imageMsgs.length === 0) return;
+      
+      const newUrls = { ...signedUrls };
+      let changed = false;
+      
+      for (const msg of imageMsgs) {
+        const path = msg.arquivo_url!;
+        if (newUrls[path]) continue;
+        
+        if (path.startsWith('data:') || path.startsWith('blob:') || path.startsWith('http')) {
+          newUrls[path] = path;
+          changed = true;
+        } else if (isSupabaseConfigured && supabase) {
+          try {
+            const { data, error } = await supabase.storage.from('chat').createSignedUrl(path, 3600);
+            if (data?.signedUrl) {
+              newUrls[path] = data.signedUrl;
+              changed = true;
+            }
+          } catch (err) {
+            console.error('Error getting signed URL:', err);
+          }
+        } else {
+          newUrls[path] = path;
+          changed = true;
+        }
+      }
+      
+      if (changed) {
+        setSignedUrls(newUrls);
+      }
+    };
+    fetchUrls();
+  }, [activeMessages]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, isCamera = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Por favor, selecione apenas arquivos de imagem.');
+      return;
+    }
+    
+    try {
+      const compressed = await compressImage(file);
+      setSelectedFile(compressed as File);
+      
+      const previewUrl = URL.createObjectURL(compressed);
+      setSelectedPreview(previewUrl);
+    } catch (err) {
+      console.error('Erro ao processar imagem:', err);
+      setErrorMsg('Erro ao processar a imagem.');
+    }
+    e.target.value = '';
+  };
 
   const handleSaveEdit = async (msgId: string | number) => {
     if (!editingText.trim()) return;
@@ -286,30 +403,80 @@ export default function ChatPersonal({
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAlunoId || !inputText.trim()) return;
+    if (!selectedAlunoId) return;
 
     const currentText = inputText.trim();
+    const hasFile = !!selectedFile;
+    if (!currentText && !hasFile) return;
+
     setInputText('');
     tocar('enviar');
+    setUploadingImage(true);
 
-    const { data: newMsg, error } = await dbService.enviarMensagem(personalId, selectedAlunoId, personalId, currentText);
-    if (error) {
-      console.error('Erro ao enviar mensagem:', error);
-      setErrorMsg(`Erro ao enviar: ${error.message || 'Erro desconhecido'}`);
-    } else if (newMsg) {
-      setActiveMessages((prev) => {
-        if (prev.some((m) => m.id === newMsg.id)) return prev;
-        return [...prev, newMsg];
-      });
-      // Update conversations list with latest message
-      setConversations((prev) => {
-        return prev.map((c) => {
-          if (c.aluno.id === selectedAlunoId) {
-            return { ...c, lastMessage: newMsg };
+    try {
+      let arquivoUrl: string | null = null;
+      let msgTipo: 'texto' | 'imagem' = 'texto';
+
+      if (selectedFile) {
+        msgTipo = 'imagem';
+        if (isSupabaseConfigured && supabase) {
+          const path = `${personalId}_${selectedAlunoId}/${Date.now()}.jpg`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('chat')
+            .upload(path, selectedFile, { upsert: false, cacheControl: '3600' });
+
+          if (uploadError) {
+            throw uploadError;
           }
-          return c;
+          arquivoUrl = path;
+        } else {
+          // Demo/Mock mode: Convert to base64
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(selectedFile);
+          });
+          arquivoUrl = base64;
+        }
+      }
+
+      const { data: newMsg, error } = await dbService.enviarMensagem(
+        personalId,
+        selectedAlunoId,
+        personalId,
+        currentText,
+        msgTipo,
+        arquivoUrl
+      );
+
+      if (error) {
+        console.error('Erro ao enviar mensagem:', error);
+        setErrorMsg(`Erro ao enviar: ${error.message || 'Erro desconhecido'}`);
+      } else if (newMsg) {
+        setActiveMessages((prev) => {
+          if (prev.some((m) => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
         });
-      });
+
+        // Clear file state
+        setSelectedFile(null);
+        setSelectedPreview(null);
+
+        // Update conversations list with latest message
+        setConversations((prev) => {
+          return prev.map((c) => {
+            if (c.aluno.id === selectedAlunoId) {
+              return { ...c, lastMessage: newMsg };
+            }
+            return c;
+          });
+        });
+      }
+    } catch (err: any) {
+      console.error('Erro ao enviar imagem:', err);
+      setErrorMsg(`Erro ao enviar imagem: ${err.message || 'Erro desconhecido'}`);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -548,44 +715,47 @@ export default function ChatPersonal({
                           </span>
                         )}
                         
-                        <div className="flex items-center gap-1.5 max-w-full group-hover:translate-x-0 transition-transform">
+                        <div className="flex items-center gap-1.5 max-w-full">
                           {/* Menu Trigger for Own Message (Not Excluded) */}
                           {isOwn && !isMessageExcluded && !isEditing && !isConfirmingDelete && (
                             <div className="relative shrink-0">
                               <button
                                 type="button"
                                 onClick={() => setOpenMenuId(openMenuId === msg.id ? null : msg.id)}
-                                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-raise text-ink-3 hover:text-ink transition-all cursor-pointer"
+                                className="p-1.5 rounded-full hover:bg-raise text-ink-3 hover:text-ink transition-all cursor-pointer block"
                               >
                                 <MoreVertical className="w-4 h-4" />
                               </button>
                               
                               {openMenuId === msg.id && (
-                                <div className="absolute right-0 bottom-full mb-1 z-50 bg-surface border border-line rounded-xl shadow-2xl p-1 flex flex-col min-w-[100px] divide-y divide-line-soft animate-fade-in">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setEditingMsgId(msg.id);
-                                      setEditingText(msg.conteudo);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="px-3 py-1.5 text-xs text-ink hover:bg-raise rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
-                                  >
-                                    <Pencil className="w-3 h-3 text-accent" />
-                                    Editar
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setConfirmingDeleteId(msg.id);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="px-3 py-1.5 text-xs text-danger hover:bg-danger-soft rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                    Excluir
-                                  </button>
-                                </div>
+                                <>
+                                  <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setOpenMenuId(null)} />
+                                  <div className="absolute right-0 bottom-full mb-1 z-50 bg-surface border border-line rounded-xl shadow-2xl p-1 flex flex-col min-w-[100px] divide-y divide-line-soft animate-fade-in">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingMsgId(msg.id);
+                                        setEditingText(msg.conteudo);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="px-3 py-1.5 text-xs text-ink hover:bg-raise rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
+                                    >
+                                      <Pencil className="w-3 h-3 text-accent" />
+                                      Editar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setConfirmingDeleteId(msg.id);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="px-3 py-1.5 text-xs text-danger hover:bg-danger-soft rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer text-left w-full"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                      Excluir
+                                    </button>
+                                  </div>
+                                </>
                               )}
                             </div>
                           )}
@@ -648,7 +818,28 @@ export default function ChatPersonal({
                                 </div>
                               </div>
                             ) : (
-                              <p className="whitespace-pre-wrap">{msg.conteudo}</p>
+                              <div className="space-y-1.5">
+                                {msg.tipo === 'imagem' && msg.arquivo_url && (
+                                  <div 
+                                    onClick={() => setLightboxUrl(signedUrls[msg.arquivo_url!] || msg.arquivo_url)}
+                                    className="cursor-pointer overflow-hidden rounded-lg bg-black/10 hover:opacity-90 transition-opacity relative max-w-[240px]"
+                                  >
+                                    {signedUrls[msg.arquivo_url] ? (
+                                      <img 
+                                        src={signedUrls[msg.arquivo_url]} 
+                                        alt="Anexo" 
+                                        className="w-full max-h-[180px] object-cover" 
+                                        referrerPolicy="no-referrer"
+                                      />
+                                    ) : (
+                                      <div className="w-[200px] h-[120px] flex items-center justify-center">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-accent" />
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {msg.conteudo && <p className="whitespace-pre-wrap">{msg.conteudo}</p>}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -671,23 +862,112 @@ export default function ChatPersonal({
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Preview of Image Before Sending */}
+            {selectedPreview && (
+              <div className="px-6 py-3 bg-bg-sub border-t border-line flex items-center gap-3 animate-fade-in relative shrink-0">
+                <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-line bg-raise shrink-0">
+                  <img src={selectedPreview} alt="Preview" className="w-full h-full object-cover" />
+                  {uploadingImage && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-accent" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-ink truncate">{selectedFile?.name}</p>
+                  <p className="text-[10px] text-ink-3">Legenda opcional abaixo</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={uploadingImage}
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setSelectedPreview(null);
+                  }}
+                  className="p-1.5 rounded-full bg-raise hover:bg-danger/15 text-ink-3 hover:text-danger transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             {/* Form */}
-            <form onSubmit={handleSend} className="p-4 bg-bg-sub border-t border-line flex gap-2 shrink-0">
+            <form onSubmit={handleSend} className="p-4 bg-bg-sub border-t border-line flex items-center gap-2 shrink-0">
+              <input 
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => handleFileChange(e, false)}
+                accept="image/*"
+                className="hidden"
+              />
+              <input 
+                type="file"
+                ref={cameraInputRef}
+                onChange={(e) => handleFileChange(e, true)}
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+              />
+              
+              <button
+                type="button"
+                disabled={uploadingImage}
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2.5 rounded-xl bg-raise text-ink-3 hover:text-accent hover:bg-raise-strong transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                title="Anexar imagem"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+              
+              <button
+                type="button"
+                disabled={uploadingImage}
+                onClick={() => cameraInputRef.current?.click()}
+                className="p-2.5 rounded-xl bg-raise text-ink-3 hover:text-accent hover:bg-raise-strong transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                title="Tirar foto"
+              >
+                <Camera className="w-5 h-5" />
+              </button>
+
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder={`Mensagem para ${getFirstName(getActiveStudentProfileName())}...`}
+                disabled={uploadingImage}
+                placeholder={uploadingImage ? 'Fazendo upload da imagem...' : `Mensagem para ${getFirstName(getActiveStudentProfileName())}...`}
                 className="z-input flex-1"
               />
               <button
                 type="submit"
-                disabled={!inputText.trim()}
-                className="z-btn z-btn--primary z-btn--icon w-11 h-11"
+                disabled={(!inputText.trim() && !selectedFile) || uploadingImage}
+                className="z-btn z-btn--primary z-btn--icon w-11 h-11 shrink-0"
               >
                 <Send className="w-4 h-4" />
               </button>
             </form>
+
+            {/* Lightbox Modal */}
+            {lightboxUrl && (
+              <div 
+                className="fixed inset-0 z-[999] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in cursor-zoom-out"
+                onClick={() => setLightboxUrl(null)}
+              >
+                <button
+                  type="button"
+                  onClick={() => setLightboxUrl(null)}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <img 
+                  src={lightboxUrl} 
+                  alt="Imagem ampliada" 
+                  className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" 
+                  referrerPolicy="no-referrer"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            )}
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-ink-3 h-full">

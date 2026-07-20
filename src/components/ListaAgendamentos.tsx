@@ -167,7 +167,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
             >
               <div className="flex items-center gap-6">
                 <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-semibold shrink-0 ${
-                  agenda.status === 'confirmado' ? 'bg-accent text-void' : 'bg-surface-raise text-ink-3 border border-line'
+                  agenda.status === 'confirmado' ? 'bg-accent text-white' : 'bg-surface-raise text-ink-3 border border-line'
                 }`}>
                   <span className="text-[10px] opacity-70 num">
                     {isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-BR', { month: 'short' })}

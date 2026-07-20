@@ -459,7 +459,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
           {!isReadOnly && (
             <button
               onClick={handleAddRefeicao}
-              className="flex items-center gap-2 px-4 py-2 bg-flame hover:bg-flame-hover text-void rounded-xl text-xs font-semibold hover:scale-105 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-flame hover:bg-flame-hover text-white rounded-xl text-xs font-semibold hover:scale-105 transition-all"
             >
               <Plus className="w-3.5 h-3.5" /> Adicionar refeição
             </button>
@@ -604,7 +604,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full py-4 bg-flame hover:bg-flame-hover text-void rounded-2xl font-display font-semibold flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50"
+            className="w-full py-4 bg-flame hover:bg-flame-hover text-white rounded-2xl font-display font-semibold flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
             Salvar Plano Alimentar
@@ -757,7 +757,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             onClick={() => { tocar('tap'); setQuantidadeG(g); }}
                             className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
                               quantidadeG === g 
-                                ? 'bg-flame text-void border-flame' 
+                                ? 'bg-flame text-white border-flame' 
                                 : 'bg-white text-ink-3 border border-black/[0.08] hover:border-black/[0.15]'
                             }`}
                           >
@@ -798,7 +798,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                 <button
                   disabled={!alimentoSelecionado}
                   onClick={handleConfirmAddAlimento}
-                  className="px-5 py-2.5 bg-flame hover:bg-flame-hover disabled:opacity-40 disabled:hover:bg-flame text-void text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
+                  className="px-5 py-2.5 bg-flame hover:bg-flame-hover disabled:opacity-40 disabled:hover:bg-flame text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
                 >
                   <Plus className="w-4 h-4" /> Confirmar e Adicionar
                 </button>

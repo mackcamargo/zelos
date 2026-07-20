@@ -338,7 +338,7 @@ export interface Mensagem {
   personal_id: string;
   aluno_id: string;
   autor_id: string;
-  tipo: 'texto' | 'arquivo';
+  tipo: 'texto' | 'arquivo' | 'imagem';
   conteudo: string;
   arquivo_url?: string | null;
   lida: boolean;

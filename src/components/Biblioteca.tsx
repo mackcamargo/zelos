@@ -171,7 +171,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                       }}
                       className={`px-5 py-2 rounded-full text-xs font-semibold tracking-wide whitespace-nowrap transition-all ${
                         isSelected
-                          ? 'brand-gradient-bg text-void shadow-[0_4px_15px_rgba(245,51,79,0.3)]'
+                          ? 'brand-gradient-bg text-white shadow-[0_4px_15px_rgba(245,51,79,0.3)]'
                           : 'bg-surface border border-white/5 text-ink-2 hover:text-ink hover:border-white/10'
                       }`}
                     >

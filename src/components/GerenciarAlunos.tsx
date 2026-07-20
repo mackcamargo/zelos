@@ -1106,7 +1106,7 @@ Bora juntos! 💪`;
               </div>
 
               {/* BLOCK 6: FOTOS DE EVOLUÇÃO */}
-              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+              <div className="z-card p-6 md:col-span-2 space-y-6">
                 <div className="flex items-center gap-3 pb-4 border-b border-line">
                   <Camera className="w-5 h-5 text-flame" />
                   <h3 className="font-display font-bold text-lg text-ink">Evolução Visual</h3>
@@ -1115,7 +1115,7 @@ Bora juntos! 💪`;
               </div>
 
               {/* BLOCK 7: NUTRIÇÃO */}
-              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+              <div className="z-card p-6 md:col-span-2 space-y-6">
                 <div className="flex items-center gap-3 pb-4 border-b border-line">
                   <Utensils className="w-5 h-5 text-flame" />
                   <h3 className="font-display font-bold text-lg text-ink">Plano Alimentar</h3>
@@ -1124,7 +1124,7 @@ Bora juntos! 💪`;
               </div>
 
               {/* BLOCK 7.5: ORIENTAÇÃO DE SUPLEMENTOS */}
-              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+              <div className="z-card z-card--destaque p-6 md:col-span-2 space-y-6">
                 <div className="flex items-center gap-3 pb-4 border-b border-line">
                   <ClipboardList className="w-5 h-5 text-flame" />
                   <h3 className="font-display font-bold text-lg text-ink">Orientação de Suplementos</h3>
@@ -1138,7 +1138,7 @@ Bora juntos! 💪`;
               </div>
 
               {/* BLOCK 8: HIDRATAÇÃO (Personal View) */}
-              <div className="bg-surface border border-line rounded-3xl p-6 md:col-span-2 space-y-6">
+              <div className="z-card p-6 md:col-span-2 space-y-6">
                 <div className="flex items-center gap-3 pb-4 border-b border-line">
                   <Droplets className="w-5 h-5 text-violet" />
                   <h3 className="font-display font-bold text-lg text-ink">Hidratação do Aluno</h3>
@@ -1161,7 +1161,7 @@ Bora juntos! 💪`;
                 personalId={personalId}
               />
             ) : (
-              <div className="z-card space-y-4">
+              <div className="z-card z-card--destaque space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line/40">
                   <div className="flex items-center gap-2">
                     <Heart className="w-5 h-5 text-rose-500" />
@@ -1404,7 +1404,7 @@ Bora juntos! 💪`;
             )}
 
             {/* PERFIL ORTOPÉDICO / CUIDADOS ESPECIAIS */}
-            <div className="bg-surface border border-line rounded-3xl p-6 space-y-6">
+            <div className="z-card p-6 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line/40">
                 <div className="flex items-center gap-2">
                   <Activity className="w-5 h-5 text-accent" />
@@ -2082,10 +2082,10 @@ Bora juntos! 💪`;
                         type="button"
                         disabled={generatingCode || !conviteNome.trim()}
                         onClick={handleGenerateCode}
-                        className="w-full py-3.5 px-4 rounded-xl brand-gradient-bg font-display font-semibold text-void hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.2)] disabled:opacity-50 disabled:pointer-events-none"
+                        className="w-full py-3.5 px-4 rounded-xl brand-gradient-bg font-display font-semibold text-white hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,51,79,0.2)] disabled:opacity-50 disabled:pointer-events-none"
                       >
                         {generatingCode ? (
-                          <span className="w-5 h-5 border-2 border-void border-t-transparent rounded-full animate-spin" />
+                          <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         ) : (
                           <>
                             <span>Confirmar e Gerar Convite</span>
@@ -2331,7 +2331,7 @@ Bora juntos! 💪`;
                       id="btn-submit-direct-create"
                       type="submit"
                       disabled={cadastrandoDireto}
-                      className="px-4 py-2.5 rounded-xl bg-flame hover:bg-flame/95 text-void font-display font-bold text-xs shadow-lg disabled:opacity-50 cursor-pointer"
+                      className="px-4 py-2.5 rounded-xl bg-flame hover:bg-flame/95 text-white font-display font-bold text-xs shadow-lg disabled:opacity-50 cursor-pointer"
                     >
                       {cadastrandoDireto ? 'Criando...' : 'Adicionar Aluno'}
                     </button>
