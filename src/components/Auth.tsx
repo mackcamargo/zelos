@@ -165,6 +165,23 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const canSubmitReset = view !== 'reset' || (isPasswordValid && newPassword === confirmPassword);
 
   React.useEffect(() => {
+    let subTitle = 'Entrar';
+    if (view === 'forgot') {
+      subTitle = 'Recuperar Senha';
+    } else if (view === 'reset') {
+      subTitle = 'Nova Senha';
+    } else if (view === 'otp') {
+      subTitle = 'Código de Acesso';
+    } else if (view === 'auth') {
+      subTitle = isLogin ? 'Entrar' : 'Cadastrar-se';
+    }
+    document.title = `Zelos Personal · ${subTitle}`;
+    return () => {
+      document.title = 'Zelos Personal';
+    };
+  }, [view, isLogin]);
+
+  React.useEffect(() => {
     const recoveryError = localStorage.getItem('zenite_recovery_error');
     if (recoveryError) {
       setView('forgot');

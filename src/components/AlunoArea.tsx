@@ -116,6 +116,22 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const [hasAnamnese, setHasAnamnese] = useState(false);
   const [showAnamneseForm, setShowAnamneseForm] = useState(false);
 
+  useEffect(() => {
+    const tabLabels: Record<TabType, string> = {
+      treino: 'Treinos',
+      progresso: 'Meu Progresso',
+      perfil: 'Meu Perfil',
+      nutricao: 'Alimentação',
+      chat: 'Mensagens',
+      agenda: 'Agenda',
+    };
+    const label = tabLabels[activeTab] || 'Área do Aluno';
+    document.title = `Zelos Personal · ${label}`;
+    return () => {
+      document.title = 'Zelos Personal';
+    };
+  }, [activeTab]);
+
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 

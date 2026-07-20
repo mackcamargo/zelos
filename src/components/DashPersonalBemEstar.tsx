@@ -148,21 +148,6 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
     return new Date(item.data_hora).toDateString() !== todayStr;
   });
 
-  // Color mapper for Attention Reasons
-  const getReasonBadgeStyle = (reason: string) => {
-    const r = reason.toLowerCase();
-    if (r.includes('7+') || r.includes('atencão') || r.includes('atenção')) {
-      return "bg-red-500/10 border border-red-500/20 text-red-400";
-    }
-    if (r.includes('atrasado') || r.includes('pendente')) {
-      return "bg-amber-500/10 border border-amber-500/20 text-amber-400";
-    }
-    if (r.includes('ortopédico') || r.includes('ortopedico') || r.includes('cuidado')) {
-      return "bg-blue-500/10 border border-blue-500/20 text-blue-400";
-    }
-    return "bg-purple-500/10 border border-purple-500/20 text-purple-400";
-  };
-
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Action Header bar inside tab */}
@@ -302,7 +287,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
             ) : (
               <div className="divide-y divide-line/40 -my-2 md:-my-3">
                 {atencao.map((aluno: any) => (
-                  <div key={aluno.aluno_id} className="py-2.5 md:py-4 flex flex-row items-center justify-between gap-2 md:gap-4 transition-colors group">
+                  <div key={aluno.aluno_id} className="py-1.5 md:py-2.5 flex flex-row items-center justify-between gap-2 md:gap-4 transition-colors group">
                     <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
                       {/* Aluno Avatar */}
                       <div className="w-8 h-8 md:w-10 md:h-10 rounded-full brand-gradient-bg p-[1px] shrink-0">
@@ -321,19 +306,23 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                       </div>
 
                       {/* Aluno Nome & Motivos */}
-                      <div className="min-w-0 space-y-0.5 md:space-y-1.5 flex-1">
+                      <div className="min-w-0 space-y-0.5 flex-1">
                         <h4 className="font-semibold text-xs md:text-sm text-ink truncate">
                           {aluno.nome}
                         </h4>
-                        <div className="flex flex-wrap gap-1">
-                          {aluno.motivos?.map((motivo: string, idx: number) => (
-                            <span 
-                              key={idx} 
-                              className={`text-[8px] md:text-[9px] font-mono px-1.5 py-0.5 rounded-md font-bold tracking-wider uppercase ${getReasonBadgeStyle(motivo)}`}
-                            >
-                              {motivo}
-                            </span>
-                          ))}
+                        <div className="flex flex-wrap items-center gap-1 text-[11px] md:text-xs italic leading-tight">
+                          {aluno.motivos?.map((motivo: string, idx: number) => {
+                            const isUrgent = motivo.toLowerCase().includes('7+') || motivo.toLowerCase().includes('atencão') || motivo.toLowerCase().includes('atenção');
+                            const textColor = isUrgent ? 'text-[#E07A6E]' : 'text-[#9A9A9A]';
+                            return (
+                              <React.Fragment key={idx}>
+                                {idx > 0 && <span className="text-[#9A9A9A] not-italic px-0.5">·</span>}
+                                <span className={`${textColor} lowercase`}>
+                                  {motivo}
+                                </span>
+                              </React.Fragment>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>

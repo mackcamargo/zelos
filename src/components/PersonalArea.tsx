@@ -98,6 +98,27 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   const { assinatura, loading, isReadOnly, daysRemaining } = useSubscription();
   const { theme, setTheme } = useTheme();
 
+  useEffect(() => {
+    const tabLabels: Record<TabType, string> = {
+      dashboard: 'Dashboard',
+      alunos: 'Alunos',
+      exercicios: 'Exercícios',
+      agenda: 'Agenda',
+      checkins: 'Check-ins',
+      templates: 'Modelos de Treino',
+      perfil: 'Meu Perfil',
+      gerenciar: 'Configurações',
+      chat: 'Mensagens',
+      planos: 'Planos',
+      cortesias: 'Cortesias',
+    };
+    const label = tabLabels[activeTab] || 'Área do Personal';
+    document.title = `Zelos Personal · ${label}`;
+    return () => {
+      document.title = 'Zelos Personal';
+    };
+  }, [activeTab]);
+
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -262,40 +283,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
       label: "Assinatura inativa",
       className: "bg-red-500/10 border border-red-500/20 text-red-400"
     };
-  };
-
-  const getPlanBadge = () => {
-    if (!assinatura) return null;
-
-    if (assinatura.status === 'trial') {
-      const text = daysRemaining === 1 ? 'Último dia de trial' : `Trial — {daysRemaining} dias restantes`;
-      return (
-        <div className="mx-4 mb-4 px-3 py-1.5 bg-amber text-void rounded-lg text-center shadow-lg shadow-amber/20">
-          <span className="text-[9px] font-semibold num">{text}</span>
-        </div>
-      );
-    }
-
-    if (assinatura.status === 'ativa' || assinatura.plano === 'cortesia') {
-      const planoNome = getPlanoLabel(assinatura.plano);
-      return (
-        <div className="mx-4 mb-4 px-3 py-1.5 text-white bg-[#F26A1B] rounded-lg text-center shadow-lg shadow-flame/20">
-          <span className="text-[9px] font-semibold">
-            {planoNome}
-          </span>
-        </div>
-      );
-    }
-
-    if (isReadOnly) {
-      return (
-        <div className="mx-4 mb-4 px-3 py-1.5 bg-red-500 text-white rounded-lg text-center shadow-lg shadow-red-500/20">
-          <span className="text-[9px] font-semibold">Modo leitura</span>
-        </div>
-      );
-    }
-
-    return null;
   };
 
   useEffect(() => {
@@ -490,12 +477,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
             </>
           )}
         </div>
-
-        {!isCollapsed && (
-          <div className="px-4 py-2 border-b border-line/40 bg-bg/30">
-            {getPlanBadge()}
-          </div>
-        )}
 
         {/* Navigation links */}
         <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
