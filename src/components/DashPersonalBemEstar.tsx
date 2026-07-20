@@ -237,27 +237,6 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Action Header bar inside tab */}
-      <div className="flex justify-between items-center bg-surface/30 border border-line/20 rounded-xl p-2 px-3 shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span className="text-[10px] md:text-xs font-medium text-ink-3">
-            Painel em tempo real
-          </span>
-        </div>
-        <button 
-          onClick={() => loadDashboardData(true)}
-          className="p-1.5 rounded-lg bg-raise hover:bg-raise/80 hover:text-accent text-ink-2 transition-all cursor-pointer flex items-center gap-1 text-[10px] md:text-xs font-bold border border-line/40"
-          title="Recarregar dados"
-        >
-          <RefreshCw className="w-3 h-3 md:w-3.5 md:h-3.5" />
-          <span>Atualizar</span>
-        </button>
-      </div>
-
       {/* 1) TOP KPIS ROW */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
         {/* KPI 1: Alunos Ativos */}
