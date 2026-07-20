@@ -7,7 +7,8 @@ import {
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
   Trophy, Info, X,
-  Volume2, VolumeX, Bell
+  Volume2, VolumeX, Bell,
+  Trash2, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -35,7 +36,61 @@ interface AlunoAreaProps {
   profile: Profile;
   onLogout: () => void;
   isDemoMode: boolean;
+  onProfileUpdate?: () => void;
 }
+
+const resizeImage = (file: File): Promise<File> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 512;
+        const MAX_HEIGHT = 512;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+              type: "image/jpeg",
+              lastModified: Date.now()
+            });
+            resolve(resizedFile);
+          } else {
+            resolve(file);
+          }
+        }, "image/jpeg", 0.8);
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+};
 
 type TabType = 'treino' | 'progresso' | 'perfil' | 'nutricao' | 'chat' | 'agenda';
 
@@ -54,12 +109,81 @@ const getStartOfWeek = (d: Date = new Date()) => {
   return new Date(date.setDate(diff)).toISOString().split('T')[0];
 };
 
-function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: AlunoAreaProps) {
+function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate }: AlunoAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('treino');
   const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
   const [hasAnamnese, setHasAnamnese] = useState(false);
   const [showAnamneseForm, setShowAnamneseForm] = useState(false);
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Por favor, selecione apenas arquivos de imagem.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('A imagem é muito grande. Escolha uma imagem de até 5MB.');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const compressedFile = await resizeImage(file);
+      const { publicUrl, error: uploadErr } = await dbService.uploadAvatar(userId, compressedFile);
+      if (uploadErr) {
+        throw uploadErr;
+      }
+
+      const { error: dbErr } = await dbService.updateProfileAvatar(userId, publicUrl);
+      if (dbErr) {
+        throw dbErr;
+      }
+
+      showToast('Foto de perfil atualizada com sucesso!');
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+    } catch (err) {
+      console.error('Erro ao fazer upload da foto de perfil:', err);
+      showToast('Não foi possível enviar a foto, tente novamente.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!window.confirm('Deseja realmente remover sua foto de perfil?')) return;
+    
+    setUploadingAvatar(true);
+    try {
+      const { error: dbErr } = await dbService.updateProfileAvatar(userId, null);
+      if (dbErr) {
+        throw dbErr;
+      }
+
+      showToast('Foto de perfil removida com sucesso!');
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+    } catch (err) {
+      console.error('Erro ao remover foto de perfil:', err);
+      showToast('Não foi possível remover a foto, tente novamente.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const checkAnamnese = async () => {
     try {
@@ -1204,7 +1328,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {workouts.map((workout) => {
                       const dateFormatted = (() => {
                         const [ano, mes, dia] = workout.data_treino.split("-").map(Number);
@@ -1219,49 +1343,53 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
                         <div
                           key={workout.id}
                           onClick={() => handleSelectWorkout(workout.id)}
-                          className={`bg-surface border rounded-2xl p-4 sm:p-5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col justify-between h-40 relative overflow-hidden clicavel ${
+                          className={`bg-surface border border-line/40 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col gap-1.5 relative overflow-hidden shadow-sm clicavel ${
                             isWorkoutConcluido 
                               ? 'card-treino-concluido' 
                               : 'animate-pulse-orange'
                           }`}
                         >
-                          <div className="absolute top-0 right-0 w-24 h-24 bg-flame/5 blur-2xl pointer-events-none rounded-full" />
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                {isWorkoutConcluido ? (
-                                  <span className="text-[10px] font-mono bg-ok/10 text-ok px-2 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 border border-ok/20">
-                                    <Check className="w-3 h-3 stroke-[3]" /> CONCLUÍDO
-                                  </span>
-                                ) : inProgress ? (
-                                  <span className="text-[10px] font-mono bg-flame/15 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/30">
-                                    EM ANDAMENTO
-                                  </span>
-                                ) : isNew ? (
-                                  <span className="text-[10px] font-mono bg-flame/15 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/30">
-                                    NOVO
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] font-mono bg-flame/15 text-flame px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-flame/30">
-                                    A FAZER
-                                  </span>
-                                )}
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-flame/5 blur-xl pointer-events-none rounded-full" />
+                          
+                          {/* Linha 1: selo de status pequeno + à direita o "Ver Detalhes ›" */}
+                          <div className="flex items-center justify-between relative z-10">
+                            <div>
+                              {isWorkoutConcluido ? (
+                                <span className="text-[9px] font-mono bg-ok/10 text-ok px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1 border border-ok/15">
+                                  <Check className="w-2.5 h-2.5 stroke-[3.5]" /> CONCLUÍDO
+                                </span>
+                              ) : inProgress ? (
+                                <span className="text-[9px] font-mono bg-flame/10 text-flame px-1.5 py-0.5 rounded font-bold uppercase tracking-wider border border-flame/20">
+                                  EM ANDAMENTO
+                                </span>
+                              ) : isNew ? (
+                                <span className="text-[9px] font-mono bg-flame/10 text-flame px-1.5 py-0.5 rounded font-bold uppercase tracking-wider border border-flame/20">
+                                  NOVO
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-mono bg-flame/10 text-flame px-1.5 py-0.5 rounded font-bold uppercase tracking-wider border border-flame/20">
+                                  A FAZER
+                                </span>
+                              )}
                             </div>
-                            <h3 className="font-display font-bold text-lg text-ink group-hover:text-white transition-colors mt-2 truncate">
-                              {workout.titulo}
-                            </h3>
-                          </div>
-
-                          <div className="flex items-center justify-between pt-4 border-t border-line">
-                            <span className="text-xs text-ink-3 font-mono flex items-center gap-1.5">
-                              <Calendar className="w-3.5 h-3.5 text-violet" />
-                              {dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}
-                            </span>
-                            <span className={`text-xs font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform ${
+                            
+                            <span className={`text-[11px] font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform ${
                               isWorkoutConcluido ? 'text-ok' : 'text-flame'
                             }`}>
-                              <span>{isWorkoutConcluido ? 'Ver Detalhes' : 'Iniciar'}</span>
-                              <ChevronRight className="w-4 h-4" />
+                              <span>Ver Detalhes</span>
+                              <ChevronRight className="w-3 h-3 stroke-[2.5]" />
                             </span>
+                          </div>
+
+                          {/* Linha 2: título do treino */}
+                          <h3 className="font-display font-bold text-sm sm:text-base text-ink group-hover:text-[#F26A1B] transition-colors leading-snug mt-0.5 truncate relative z-10">
+                            {workout.titulo}
+                          </h3>
+
+                          {/* Linha 3: data/hora em fonte pequena e discreta */}
+                          <div className="text-[10px] text-ink-3 font-mono flex items-center gap-1 mt-0.5 relative z-10">
+                            <Calendar className="w-3.5 h-3.5 text-ink-3/70" />
+                            <span>{dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}</span>
                           </div>
                         </div>
                       );
@@ -2603,20 +2731,57 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
               <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 blur-[80px] pointer-events-none rounded-full -mr-20 -mt-20" />
 
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-line">
-                <div className="w-24 h-24 rounded-3xl border border-line bg-surface flex items-center justify-center text-5xl shadow-sm shrink-0">
-                  {isFemale ? '👩' : '👨'}
+                <div className="relative group/avatar shrink-0">
+                  <div className="w-24 h-24 rounded-3xl border border-line bg-surface flex items-center justify-center overflow-hidden shadow-sm relative">
+                    {uploadingAvatar && (
+                      <div className="absolute inset-0 bg-surface/80 flex items-center justify-center z-10 rounded-3xl">
+                        <Loader2 className="w-8 h-8 text-flame animate-spin" />
+                      </div>
+                    )}
+                    {profile.avatar_url ? (
+                      <img 
+                        src={profile.avatar_url} 
+                        alt={profile.nome} 
+                        className="w-full h-full object-cover" 
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="text-5xl">{isFemale ? '👩' : '👨'}</span>
+                    )}
+                  </div>
+                  
+                  {/* Floating Change Photo Camera Button */}
+                  <label className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-flame hover:bg-flame-dark flex items-center justify-center cursor-pointer shadow-md transition-all hover:scale-110 z-20">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleAvatarChange} 
+                      disabled={uploadingAvatar}
+                    />
+                    <Camera className="w-4 h-4 text-white" />
+                  </label>
                 </div>
 
                 <div className="text-center sm:text-left flex-1 min-w-0">
                   <h3 className="font-display font-bold text-2xl text-ink tracking-tight">{profile.nome}</h3>
                   <p className="text-base text-ink-3 mt-1 truncate">{userEmail}</p>
-                  <div className="pt-4 flex flex-wrap justify-center sm:justify-start gap-2.5">
+                  <div className="pt-4 flex flex-wrap justify-center sm:justify-start items-center gap-2.5">
                     <span className="text-[10px] font-mono bg-accent/10 border border-accent/20 text-accent px-3 py-1 rounded-lg uppercase tracking-wider font-bold">
                       Avatar {isFemale ? 'Feminino' : 'Masculino'}
                     </span>
                     <span className="text-[10px] font-mono bg-ink/5 border border-line text-ink-3 px-3 py-1 rounded-lg uppercase tracking-wider font-bold">
                       Perfil Aluno
                     </span>
+                    {profile.avatar_url && (
+                      <button
+                        onClick={handleRemoveAvatar}
+                        disabled={uploadingAvatar}
+                        className="text-[10px] font-mono bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-3 py-1 rounded-lg uppercase tracking-wider font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" /> Remover foto
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -3153,6 +3318,13 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: 
           </button>
         </div>
       </nav>
+
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 bg-surface border border-line p-3 rounded-2xl shadow-xl flex items-center gap-2.5 z-[100] animate-in fade-in slide-in-from-bottom-5">
+          <div className="w-2 h-2 rounded-full bg-[#F26A1B]" />
+          <span className="text-xs font-medium text-ink">{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -1793,6 +1793,90 @@ export const dbService = {
     return { data: result, error: null };
   },
 
+  async getDashboardPersonal(personalId: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.rpc('dashboard_personal');
+      if (!error) {
+        return { data, error: null };
+      }
+      console.warn('Erro ao chamar RPC dashboard_personal, usando fallback mock:', error);
+    }
+
+    // Mock data fallback using mock alunos
+    const mockAlunos = loadMockAlunos().filter(a => a.personal_id === personalId);
+    const totalAlunos = mockAlunos.length || 2;
+    const mockData = {
+      kpis: {
+        alunos_ativos: totalAlunos,
+        treinos_concluidos_semana: 14,
+        treinos_total_semana: 20,
+        checkins_pendentes: 3,
+        sessoes_hoje: 4
+      },
+      atencao: [
+        {
+          aluno_id: mockAlunos[0]?.id || 'student-1',
+          nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
+          avatar_url: mockAlunos[0]?.profile?.avatar_url || null,
+          motivos: ["Sem treino concluído há 7+ dias", "Cuidado ortopédico ativo"]
+        },
+        {
+          aluno_id: mockAlunos[1]?.id || 'student-2',
+          nome: mockAlunos[1]?.profile?.nome || 'Fernanda Lima',
+          avatar_url: mockAlunos[1]?.profile?.avatar_url || null,
+          motivos: ["Check-in de atenção", "Check-in atrasado"]
+        }
+      ],
+      agenda: [
+        {
+          id: 'session-1',
+          data_hora: new Date(new Date().setHours(8, 0, 0, 0)).toISOString(),
+          tipo: 'Presencial',
+          status: 'confirmado',
+          aluno_nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
+          aluno_avatar: mockAlunos[0]?.profile?.avatar_url || null
+        },
+        {
+          id: 'session-2',
+          data_hora: new Date(new Date().setHours(10, 30, 0, 0)).toISOString(),
+          tipo: 'Presencial',
+          status: 'confirmado',
+          aluno_nome: mockAlunos[1]?.profile?.nome || 'Fernanda Lima',
+          aluno_avatar: mockAlunos[1]?.profile?.avatar_url || null
+        },
+        {
+          id: 'session-3',
+          data_hora: new Date(new Date().setHours(14, 0, 0, 0)).toISOString(),
+          tipo: 'Consultoria Online',
+          status: 'confirmado',
+          aluno_nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
+          aluno_avatar: mockAlunos[0]?.profile?.avatar_url || null
+        },
+        {
+          id: 'session-4',
+          data_hora: new Date(new Date().setHours(17, 0, 0, 0)).toISOString(),
+          tipo: 'Presencial',
+          status: 'confirmado',
+          aluno_nome: mockAlunos[1]?.profile?.nome || 'Fernanda Lima',
+          aluno_avatar: mockAlunos[1]?.profile?.avatar_url || null
+        },
+        {
+          id: 'session-5',
+          data_hora: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          tipo: 'Presencial',
+          status: 'pendente',
+          aluno_nome: mockAlunos[0]?.profile?.nome || 'Marcos Silva',
+          aluno_avatar: mockAlunos[0]?.profile?.avatar_url || null
+        }
+      ],
+      termometro: {
+        taxa_adesao_semana: 85,
+        peso_variacao_media: -1.2
+      }
+    };
+    return { data: mockData, error: null };
+  },
+
   async getConteudosEducativos(personalIdOuCategoria?: string): Promise<{ data: any[]; error: any }> {
     if (isSupabaseConfigured && supabase) {
       let query = supabase.from('conteudos').select('*').eq('publicado', true);
@@ -2596,6 +2680,33 @@ export const dbService = {
     return { data: joined, error: null };
   },
 
+  async updateAlunoCondicao(id: string | number, alunoCondicao: Partial<AlunoCondicao>): Promise<{ data: AlunoCondicao | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('aluno_condicoes')
+        .update(alunoCondicao)
+        .eq('id', id)
+        .select()
+        .single();
+      return { data: data as AlunoCondicao, error };
+    }
+    const list = load('zenite_aluno_condicoes', []);
+    const idx = list.findIndex((x: any) => String(x.id) === String(id));
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...alunoCondicao };
+      save('zenite_aluno_condicoes', list);
+      
+      const allCondicoes = load('zenite_condicoes_ortopedicas', defaultCondicoesOrtopedicas);
+      const cond = allCondicoes.find((c: any) => String(c.id) === String(list[idx].condicao_id));
+      const joined = {
+        ...list[idx],
+        condicoes_ortopedicas: cond || null
+      };
+      return { data: joined, error: null };
+    }
+    return { data: null, error: new Error('Condição não encontrada') };
+  },
+
   async inativarAlunoCondicao(id: string | number): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { error } = await supabase
@@ -2649,6 +2760,51 @@ export const dbService = {
     // Mock mode
     const fakeUrl = URL.createObjectURL(file);
     return { url: fakeUrl, error: null };
+  },
+
+  async uploadAvatar(userId: string, file: File): Promise<{ publicUrl: string | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const fileName = `avatar_${Date.now()}.jpg`;
+      const path = `${userId}/${fileName}`;
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, cacheControl: '3600' });
+      if (error) return { publicUrl: null, error };
+      
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = urlData?.publicUrl || null;
+      return { publicUrl, error: null };
+    }
+    // Mock mode
+    const fakeUrl = URL.createObjectURL(file);
+    return { publicUrl: fakeUrl, error: null };
+  },
+
+  async updateProfileAvatar(userId: string, avatarUrl: string | null): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', userId);
+      return { error };
+    }
+    // Mock mode: update local mock users and mock student profiles
+    const users = loadMockUsers();
+    const userIdx = users.findIndex(u => u.id === userId);
+    if (userIdx >= 0) {
+      users[userIdx].avatar_url = avatarUrl;
+      save('zenite_mock_users', users);
+    }
+
+    const Alunos = loadMockAlunos();
+    const alunoIdx = Alunos.findIndex(a => a.id === userId || a.profile?.id === userId);
+    if (alunoIdx >= 0) {
+      if (Alunos[alunoIdx].profile) {
+        Alunos[alunoIdx].profile.avatar_url = avatarUrl;
+      }
+      save('zenite_mock_alunos', Alunos);
+    }
+    return { error: null };
   }
 };
 

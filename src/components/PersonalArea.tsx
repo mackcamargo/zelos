@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2 } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarCortesias from './GerenciarCortesias';
@@ -24,11 +24,65 @@ interface PersonalAreaProps {
   profile: Profile;
   onLogout: () => void;
   isDemoMode: boolean;
+  onProfileUpdate?: () => void;
 }
+
+const resizeImage = (file: File): Promise<File> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 512;
+        const MAX_HEIGHT = 512;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+              type: "image/jpeg",
+              lastModified: Date.now()
+            });
+            resolve(resizedFile);
+          } else {
+            resolve(file);
+          }
+        }, "image/jpeg", 0.8);
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+};
 
 type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos' | 'cortesias';
 
-function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode }: PersonalAreaProps) {
+function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate }: PersonalAreaProps) {
   const isAdmin = userId === 'fdcb50c9-9057-4922-b2f8-c6093d6941f4';
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -38,8 +92,80 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
   const [checkinsPendingCount, setCheckinsPendingCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
 
+  const [selectedAlunoIdForFicha, setSelectedAlunoIdForFicha] = useState<string | null>(null);
+  const [selectedAlunoIdForChat, setSelectedAlunoIdForChat] = useState<string | null>(null);
+
   const { assinatura, loading, isReadOnly, daysRemaining } = useSubscription();
   const { theme, setTheme } = useTheme();
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Por favor, selecione apenas arquivos de imagem.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('A imagem é muito grande. Escolha uma imagem de até 5MB.');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const compressedFile = await resizeImage(file);
+      const { publicUrl, error: uploadErr } = await dbService.uploadAvatar(userId, compressedFile);
+      if (uploadErr) {
+        throw uploadErr;
+      }
+
+      const { error: dbErr } = await dbService.updateProfileAvatar(userId, publicUrl);
+      if (dbErr) {
+        throw dbErr;
+      }
+
+      showToast('Foto de perfil atualizada com sucesso!');
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+    } catch (err) {
+      console.error('Erro ao fazer upload da foto de perfil:', err);
+      showToast('Não foi possível enviar a foto, tente novamente.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!window.confirm('Deseja realmente remover sua foto de perfil?')) return;
+    
+    setUploadingAvatar(true);
+    try {
+      const { error: dbErr } = await dbService.updateProfileAvatar(userId, null);
+      if (dbErr) {
+        throw dbErr;
+      }
+
+      showToast('Foto de perfil removida com sucesso!');
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+    } catch (err) {
+      console.error('Erro ao remover foto de perfil:', err);
+      showToast('Não foi possível remover a foto, tente novamente.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   useEffect(() => {
     const handleTabChangeScroll = (e: any) => {
@@ -393,8 +519,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-bold text-ink text-xs">
-                  {profile.nome.charAt(0).toUpperCase()}
+                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-bold text-ink text-xs overflow-hidden">
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt={profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    profile.nome.charAt(0).toUpperCase()
+                  )}
                 </div>
               </div>
               {!isCollapsed && (
@@ -525,8 +655,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
               className="flex items-center gap-3 min-w-0 text-left cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-ink text-xs">
-                  {profile.nome.charAt(0).toUpperCase()}
+                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-ink text-xs overflow-hidden">
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt={profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    profile.nome.charAt(0).toUpperCase()
+                  )}
                 </div>
               </div>
               <div className="min-w-0">
@@ -630,8 +764,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
                 <span className="text-[12px] text-ink-2">Personal</span>
               </div>
               <div className="w-9 h-9 rounded-full brand-gradient-bg p-[1px]">
-                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-ink text-sm">
-                  {profile.nome.charAt(0).toUpperCase()}
+                <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-ink text-sm overflow-hidden">
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt={profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    profile.nome.charAt(0).toUpperCase()
+                  )}
                 </div>
               </div>
             </div>
@@ -649,10 +787,16 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
             <DashPersonalBemEstar 
               personalId={userId} 
               onSelectAluno={(id) => {
-                // Here we could redirect to specific student view
-                // For now just switch to 'alunos' tab as a placeholder or stay here
+                setSelectedAlunoIdForFicha(id);
                 setActiveTab('alunos');
-              }} 
+              }}
+              onSelectAlunoAndChat={(id) => {
+                setSelectedAlunoIdForChat(id);
+                setActiveTab('chat');
+              }}
+              onNavigateToTab={(tab) => {
+                setActiveTab(tab);
+              }}
             />
           </div>
         )}
@@ -660,7 +804,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         {/* TAB 1: ALUNOS */}
         {activeTab === 'alunos' && (
           <div id="tab-content-alunos" className="space-y-6">
-            <GerenciarAlunos personalId={userId} isReadOnly={isReadOnly} />
+            <GerenciarAlunos 
+              personalId={userId} 
+              isReadOnly={isReadOnly} 
+              initialSelectedAlunoId={selectedAlunoIdForFicha}
+              onClearInitialSelected={() => setSelectedAlunoIdForFicha(null)}
+            />
           </div>
         )}
 
@@ -696,7 +845,11 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         {/* TAB: CHAT / MENSAGENS */}
         {activeTab === 'chat' && (
           <div id="tab-content-chat" className="flex-1 flex flex-col min-h-0">
-            <ChatPersonal personalId={userId} />
+            <ChatPersonal 
+              personalId={userId} 
+              initialSelectedAlunoId={selectedAlunoIdForChat}
+              onClearInitialSelected={() => setSelectedAlunoIdForChat(null)}
+            />
           </div>
         )}
 
@@ -713,22 +866,59 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
               <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
 
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-line">
-                <div className="w-20 h-20 rounded-full brand-gradient-bg p-[1px] shrink-0">
-                  <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-[28px] text-ink">
-                    {profile.nome.charAt(0).toUpperCase()}
+                <div className="relative group/avatar shrink-0">
+                  <div className="w-20 h-20 rounded-full brand-gradient-bg p-[1px] relative flex items-center justify-center overflow-hidden">
+                    {uploadingAvatar && (
+                      <div className="absolute inset-0 bg-surface/80 flex items-center justify-center z-10 rounded-full">
+                        <Loader2 className="w-6 h-6 text-flame animate-spin" />
+                      </div>
+                    )}
+                    <div className="w-full h-full rounded-full bg-raise flex items-center justify-center overflow-hidden font-display font-semibold text-[28px] text-ink">
+                      {profile.avatar_url ? (
+                        <img 
+                          src={profile.avatar_url} 
+                          alt={profile.nome} 
+                          className="w-full h-full rounded-full object-cover" 
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        profile.nome.charAt(0).toUpperCase()
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Floating Change Photo Camera Button */}
+                  <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-flame hover:bg-flame-dark flex items-center justify-center cursor-pointer shadow-md transition-all hover:scale-110 z-20">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={handleAvatarChange} 
+                      disabled={uploadingAvatar}
+                    />
+                    <Camera className="w-3.5 h-3.5 text-white" />
+                  </label>
                 </div>
 
-                <div className="text-center sm:text-left space-y-1">
+                <div className="text-center sm:text-left flex-1 min-w-0">
                   <h3 className="font-display font-semibold text-xl text-ink">{profile.nome}</h3>
                   <p className="text-sm text-ink-2">{userEmail}</p>
-                  <div className="pt-2 flex flex-wrap justify-center sm:justify-start gap-2">
+                  <div className="pt-2 flex flex-wrap justify-center sm:justify-start items-center gap-2">
                     <span className="text-[12px] bg-accent/10 border border-accent/20 text-accent px-2.5 py-0.5 rounded-full">
                       Plano Black
                     </span>
                     <span className="text-[12px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full">
                       Assinatura ativa
                     </span>
+                    {profile.avatar_url && (
+                      <button
+                        onClick={handleRemoveAvatar}
+                        disabled={uploadingAvatar}
+                        className="text-[11px] font-mono bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" /> Remover foto
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -894,6 +1084,13 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode 
         )}
       </main>
       </div>
+
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 bg-surface border border-line p-3 rounded-2xl shadow-xl flex items-center gap-2.5 z-[100] animate-in fade-in slide-in-from-bottom-5">
+          <div className="w-2 h-2 rounded-full bg-accent" />
+          <span className="text-xs font-medium text-ink">{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }

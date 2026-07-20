@@ -7,7 +7,7 @@ import {
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
   Activity, Award, CheckCircle, ExternalLink, ShieldCheck,
   Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle,
-  Send, Link2, ClipboardList
+  Send, Link2, ClipboardList, Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
@@ -24,11 +24,18 @@ import { useSubscription } from '../contexts/SubscriptionContext';
 interface GerenciarAlunosProps {
   personalId: string;
   isReadOnly?: boolean;
+  initialSelectedAlunoId?: string | null;
+  onClearInitialSelected?: () => void;
 }
 
 type TabForma = 'codigo' | 'cadastro';
 
-export default function GerenciarAlunos({ personalId, isReadOnly = false }: GerenciarAlunosProps) {
+export default function GerenciarAlunos({ 
+  personalId, 
+  isReadOnly = false,
+  initialSelectedAlunoId = null,
+  onClearInitialSelected
+}: GerenciarAlunosProps) {
   const { assinatura, studentCount, handleSubscriptionError } = useSubscription();
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +86,7 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
   const [showActiveCondicoesModal, setShowActiveCondicoesModal] = useState(false);
   
   // Form states
+  const [editingCondicao, setEditingCondicao] = useState<AlunoCondicao | null>(null);
   const [newCondicaoId, setNewCondicaoId] = useState<string | number>('');
   const [newLado, setNewLado] = useState<'esquerdo' | 'direito' | 'bilateral' | null>(null);
   const [newGrau, setNewGrau] = useState('');
@@ -182,6 +190,18 @@ export default function GerenciarAlunos({ personalId, isReadOnly = false }: Gere
     loadAlunosList();
     loadConvitesList();
   }, [personalId]);
+
+  useEffect(() => {
+    if (initialSelectedAlunoId && alunos.length > 0) {
+      const found = alunos.find(a => a.id === initialSelectedAlunoId);
+      if (found) {
+        setSelectedAluno(found);
+        if (onClearInitialSelected) {
+          onClearInitialSelected();
+        }
+      }
+    }
+  }, [initialSelectedAlunoId, alunos, onClearInitialSelected]);
 
   const [studentMetrics, setStudentMetrics] = useState<any[]>([]);
   const [studentSeries, setStudentSeries] = useState<any[]>([]);
@@ -1138,6 +1158,7 @@ Bora juntos! 💪`;
                   setIsPersonalEditingAnamnese(false);
                   loadStudentAnamnese();
                 }}
+                personalId={personalId}
               />
             ) : (
               <div className="z-card space-y-4">
@@ -1147,13 +1168,25 @@ Bora juntos! 💪`;
                     <div>
                       <h3 className="font-display font-bold text-base text-ink">Anamnese do Aluno</h3>
                       {studentAnamnese && (() => {
-                        const d = studentAnamnese?.respondido_em ? new Date(studentAnamnese.respondido_em) : null;
-                        const texto = d && !isNaN(d.getTime())
-                          ? d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                          : 'Data não informada';
+                        const dRespondida = studentAnamnese?.respondido_em ? new Date(studentAnamnese.respondido_em) : null;
+                        const dAtualizada = (studentAnamnese as any)?.atualizado_em || studentAnamnese?.updated_at ? new Date((studentAnamnese as any)?.atualizado_em || studentAnamnese?.updated_at) : null;
+                        
+                        const respondidaValida = dRespondida && !isNaN(dRespondida.getTime());
+                        const atualizadaValida = dAtualizada && !isNaN(dAtualizada.getTime());
+                        
+                        const textoRespondida = respondidaValida 
+                          ? dRespondida!.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) 
+                          : null;
+                          
+                        const textoAtualizada = atualizadaValida 
+                          ? dAtualizada!.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) 
+                          : null;
+                        
                         return (
                           <p className="text-[11px] text-ink-3">
-                            Respondida em: {texto}
+                            {textoRespondida && `Respondida em: ${textoRespondida}`}
+                            {textoAtualizada && ` (Atualizada em: ${textoAtualizada})`}
+                            {!textoRespondida && !textoAtualizada && 'Data não informada'}
                           </p>
                         );
                       })()}
@@ -1385,6 +1418,7 @@ Bora juntos! 💪`;
                 <button
                   type="button"
                   onClick={() => {
+                    setEditingCondicao(null);
                     setNewCondicaoId('');
                     setNewLado(null);
                     setNewGrau('');
@@ -1422,25 +1456,44 @@ Bora juntos! 💪`;
                               <p className="text-[11px] text-ink-3 mt-0.5">Região: {cond?.regiao || 'Geral'}</p>
                             </div>
                             
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (confirm('Deseja inativar esta condição ortopédica para o aluno?')) {
-                                  try {
-                                    await dbService.inativarAlunoCondicao(ac.id);
-                                    showToast('Condição ortopédica removida.');
-                                    loadStudentCondicoes();
-                                  } catch (err) {
-                                    console.error(err);
-                                    showToast('Erro ao remover condição.');
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingCondicao(ac);
+                                  setNewCondicaoId(ac.condicao_id);
+                                  setNewLado(ac.lado);
+                                  setNewGrau(ac.grau || '');
+                                  setNewObservacao(ac.observacao || '');
+                                  setNewFile(null);
+                                  setShowAddCondicaoModal(true);
+                                }}
+                                className="text-ink-3 hover:text-[#F26A1B] transition-colors p-1.5 rounded-lg hover:bg-[#F26A1B]/10 cursor-pointer"
+                                title="Editar condição"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (confirm('Deseja inativar esta condição ortopédica para o aluno?')) {
+                                    try {
+                                      await dbService.inativarAlunoCondicao(ac.id);
+                                      showToast('Condição ortopédica removida.');
+                                      loadStudentCondicoes();
+                                    } catch (err) {
+                                      console.error(err);
+                                      showToast('Erro ao remover condição.');
+                                    }
                                   }
-                                }
-                              }}
-                              className="text-ink-3 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-rose-500/10 shrink-0 cursor-pointer"
-                              title="Remover condição"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                                }}
+                                className="text-ink-3 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-rose-500/10 cursor-pointer"
+                                title="Remover condição"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
 
                           <div className="flex flex-wrap gap-1.5">
@@ -1526,7 +1579,9 @@ Bora juntos! 💪`;
                     <div className="p-6 pb-4 border-b border-line flex items-center justify-between bg-raise/10">
                       <div className="flex items-center gap-2">
                         <Activity className="w-5 h-5 text-accent" />
-                        <h3 className="font-display font-bold text-lg text-ink">Adicionar Condição Ortopédica</h3>
+                        <h3 className="font-display font-bold text-lg text-ink">
+                          {editingCondicao ? 'Editar Condição Ortopédica' : 'Adicionar Condição Ortopédica'}
+                        </h3>
                       </div>
                       <button
                         type="button"
@@ -1550,14 +1605,15 @@ Bora juntos! 💪`;
                         }
                         
                         const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
-                        if (selectedCond?.requer_laudo && !newFile) {
+                        const hasAlreadyLaudo = editingCondicao?.laudo_url;
+                        if (selectedCond?.requer_laudo && !newFile && !hasAlreadyLaudo) {
                           showToast('Esta condição requer o upload de um laudo técnico.');
                           return;
                         }
 
                         setSalvandoCondicao(true);
                         try {
-                          let laudoUrl: string | null = null;
+                          let laudoUrl: string | null = editingCondicao?.laudo_url || null;
                           if (newFile) {
                             const { url, error: uploadErr } = await dbService.uploadLaudo(selectedAluno!.id, newFile);
                             if (uploadErr) {
@@ -1569,7 +1625,7 @@ Bora juntos! 💪`;
                             laudoUrl = url;
                           }
 
-                          await dbService.addAlunoCondicao({
+                          const payload = {
                             aluno_id: selectedAluno!.id,
                             condicao_id: Number(newCondicaoId),
                             lado: newLado,
@@ -1578,14 +1634,21 @@ Bora juntos! 💪`;
                             laudo_url: laudoUrl,
                             observacao: newObservacao.trim() || null,
                             ativo: true
-                          });
+                          };
 
-                          showToast('Condição ortopédica adicionada com sucesso!');
+                          if (editingCondicao) {
+                            await dbService.updateAlunoCondicao(editingCondicao.id, payload);
+                            showToast('Condição ortopédica atualizada com sucesso!');
+                          } else {
+                            await dbService.addAlunoCondicao(payload);
+                            showToast('Condição ortopédica adicionada com sucesso!');
+                          }
+
                           setShowAddCondicaoModal(false);
                           loadStudentCondicoes();
                         } catch (err) {
                           console.error(err);
-                          showToast('Erro ao adicionar condição.');
+                          showToast('Erro ao salvar condição.');
                         } finally {
                           setSalvandoCondicao(false);
                         }
@@ -1693,6 +1756,12 @@ Bora juntos! 💪`;
                               <span>Laudo Técnico {isRequerido ? '(Obrigatório *)' : '(Opcional)'}</span>
                             </label>
                             
+                            {editingCondicao?.laudo_url && (
+                              <p className="text-[11px] text-[#F26A1B] font-semibold">
+                                * Já existe um laudo cadastrado para esta condição. Faça o upload de um novo arquivo apenas se desejar substituí-lo.
+                              </p>
+                            )}
+
                             <div className="border border-dashed border-ink/20 rounded-xl p-4 bg-surface text-center hover:bg-raise/20 transition-all cursor-pointer relative">
                               <input
                                 type="file"
@@ -1741,7 +1810,7 @@ Bora juntos! 💪`;
                               <span>Salvando...</span>
                             </>
                           ) : (
-                            <span>Adicionar Condição</span>
+                            <span>{editingCondicao ? 'Salvar alterações' : 'Adicionar Condição'}</span>
                           )}
                         </button>
                       </div>

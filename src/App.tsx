@@ -190,6 +190,15 @@ export default function App() {
     }
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      const { data: userProfile } = await dbService.getProfile(user.id);
+      if (userProfile) {
+        setProfile(userProfile);
+      }
+    }
+  };
+
   // 1. BRAND LOADING STATE
   if (loading) {
     return (
@@ -293,6 +302,7 @@ export default function App() {
           profile={profile}
           onLogout={handleLogout}
           isDemoMode={!isSupabaseConfigured}
+          onProfileUpdate={refreshProfile}
         />
       ) : (
         <AlunoArea
@@ -301,6 +311,7 @@ export default function App() {
           profile={profile}
           onLogout={handleLogout}
           isDemoMode={!isSupabaseConfigured}
+          onProfileUpdate={refreshProfile}
         />
       )}
     </div>

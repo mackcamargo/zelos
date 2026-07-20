@@ -62,39 +62,38 @@ body {
 /* Workout Card States: Orange pulsing for uncompleted, Green for completed */
 @keyframes pulse-orange {
   0%, 100% {
-    background-color: rgba(242, 106, 27, 0.06);
-    border-color: rgba(242, 106, 27, 0.4);
-    box-shadow: 0 0 8px rgba(242, 106, 27, 0.05);
+    background-color: rgba(242, 106, 27, 0.03);
+    border-color: rgba(242, 106, 27, 0.25);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   }
   50% {
-    background-color: rgba(242, 106, 27, 0.18);
-    border-color: #f26a1b;
-    box-shadow: 0 0 22px rgba(242, 106, 27, 0.28);
+    background-color: rgba(242, 106, 27, 0.07);
+    border-color: rgba(242, 106, 27, 0.45);
+    box-shadow: 0 2px 6px rgba(242, 106, 27, 0.08);
   }
 }
 
 .animate-pulse-orange {
-  animation: pulse-orange 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse-orange 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse-novo {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.55; transform: scale(1.06); }
+  50% { opacity: 0.7; transform: scale(1.02); }
 }
 .animate-novo {
-  animation: pulse-novo 1.2s ease-in-out infinite;
-  box-shadow: 0 0 0 0 rgba(242, 106, 27, 0.5);
+  animation: pulse-novo 1.5s ease-in-out infinite;
 }
 
 .card-treino-concluido {
-  background-color: var(--z-ok-soft) !important;
-  border-color: var(--z-ok) !important;
-  box-shadow: 0 0 15px rgba(63, 191, 127, 0.05);
+  background-color: rgba(63, 191, 127, 0.03) !important;
+  border-color: rgba(63, 191, 127, 0.25) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
 }
 
 .card-treino-concluido:hover {
-  background-color: rgba(63, 191, 127, 0.18) !important;
-  border-color: var(--z-ok) !important;
+  background-color: rgba(63, 191, 127, 0.08) !important;
+  border-color: rgba(63, 191, 127, 0.4) !important;
 }
 
 @keyframes pulseFaixa {

@@ -6,6 +6,8 @@ import { tocar } from '../lib/som';
 
 interface ChatPersonalProps {
   personalId: string;
+  initialSelectedAlunoId?: string | null;
+  onClearInitialSelected?: () => void;
 }
 
 interface Conversation {
@@ -14,7 +16,11 @@ interface Conversation {
   unreadCount: number;
 }
 
-export default function ChatPersonal({ personalId }: ChatPersonalProps) {
+export default function ChatPersonal({ 
+  personalId,
+  initialSelectedAlunoId = null,
+  onClearInitialSelected
+}: ChatPersonalProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedAlunoId, setSelectedAlunoId] = useState<string | null>(null);
   const [activeMessages, setActiveMessages] = useState<Mensagem[]>([]);
@@ -149,6 +155,19 @@ export default function ChatPersonal({ personalId }: ChatPersonalProps) {
   useEffect(() => {
     loadConversations();
   }, [personalId]);
+
+  useEffect(() => {
+    if (initialSelectedAlunoId && conversations.length > 0) {
+      const found = conversations.find(c => c.aluno.id === initialSelectedAlunoId);
+      if (found) {
+        setSelectedAlunoId(initialSelectedAlunoId);
+        loadActiveChat(initialSelectedAlunoId);
+        if (onClearInitialSelected) {
+          onClearInitialSelected();
+        }
+      }
+    }
+  }, [initialSelectedAlunoId, conversations, onClearInitialSelected]);
 
   // Handle Realtime updates for Personal Area
   useEffect(() => {

@@ -61,6 +61,7 @@ export interface ExercicioAjuste {
 
 export interface Anamnese {
   aluno_id: string;
+  personal_id?: string;
   objetivo_principal: string;
   experiencia: 'nunca_treinou' | 'iniciante' | 'intermediario' | 'avancado';
   tempo_sem_treinar: string;

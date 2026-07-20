@@ -11,6 +11,7 @@ interface AnamneseFormProps {
   onClose: () => void;
   onSave?: () => void;
   isPersonalEditing?: boolean; // If true, personal is editing on behalf of student
+  personalId?: string;
 }
 
 const COMMON_CHRONIC_DISEASES = [
@@ -24,7 +25,7 @@ const COMMON_CHRONIC_DISEASES = [
   { id: 'outra', label: 'Outra' }
 ];
 
-export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = false }: AnamneseFormProps) {
+export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = false, personalId }: AnamneseFormProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,6 +33,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
 
   const [formData, setFormData] = useState<Omit<Anamnese, 'criado_em' | 'updated_at'>>({
     aluno_id: alunoId,
+    personal_id: personalId || undefined,
     objetivo_principal: '',
     experiencia: 'nunca_treinou',
     tempo_sem_treinar: '',
@@ -65,6 +67,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
         if (data) {
           setFormData({
             aluno_id: data.aluno_id,
+            personal_id: data.personal_id || personalId || undefined,
             objetivo_principal: data.objetivo_principal || '',
             experiencia: data.experiencia || 'nunca_treinou',
             tempo_sem_treinar: data.tempo_sem_treinar || '',
@@ -87,7 +90,8 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
             consumo_alcool: data.consumo_alcool || 'nao',
             horas_sono: Number(data.horas_sono) || 8,
             nivel_atividade_diaria: data.nivel_atividade_diaria || 'sedentario',
-            observacoes: data.observacoes || ''
+            observacoes: data.observacoes || '',
+            respondido_em: data.respondido_em || undefined
           });
           setIsEditing(true);
         }
@@ -95,7 +99,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
       }
     }
     loadAnamnese();
-  }, [alunoId]);
+  }, [alunoId, personalId]);
 
   const handleCheckboxChange = (field: keyof typeof formData, value: boolean) => {
     setFormData(prev => ({
@@ -131,12 +135,17 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
     setSaving(true);
     try {
       // Create valid object matching database expectations
-      const payload: Anamnese = {
+      const payload: any = {
         ...formData,
         frequencia_semanal_desejada: Number(formData.frequencia_semanal_desejada) || 0,
         horas_sono: Number(formData.horas_sono) || 0,
-        respondido_em: new Date().toISOString()
+        respondido_em: formData.respondido_em || new Date().toISOString()
       };
+
+      if (isEditing) {
+        payload.updated_at = new Date().toISOString();
+        payload.atualizado_em = new Date().toISOString();
+      }
 
       const { data, error } = await dbService.salvarAnamnese(payload);
       if (error) {
