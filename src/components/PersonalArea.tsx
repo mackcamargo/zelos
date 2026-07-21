@@ -1003,30 +1003,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
                 )}
               </div>
 
-              {/* Admin Cortesias Button */}
-              {isAdmin && (
-                <div className="p-5 bg-accent/5 hover:bg-accent/10 border border-accent/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
-                  <div className="flex gap-3 text-xs text-ink-2 leading-relaxed">
-                    <span className="text-xl">🎟️</span>
-                    <div>
-                      <p className="text-ink font-semibold flex items-center gap-2">
-                        <span>Códigos de cortesia</span>
-                        <span className="text-[9px] bg-accent/20 text-accent px-2 py-0.5 rounded-full border border-accent/30 font-semibold">Admin</span>
-                      </p>
-                      <p className="mt-0.5 text-[11px]">Gerencie códigos de cortesia e controle de acessos de alunos.</p>
-                    </div>
-                  </div>
-                  <button
-                    id="btn-goto-cortesias"
-                    type="button"
-                    onClick={() => handleTabChange('cortesias')}
-                    data-sem-som
-                    className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all hover:bg-accent/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
-                  >
-                    🎟️ Códigos de Cortesia
-                  </button>
-                </div>
-              )}
 
               {/* Sound Settings */}
               <div className="p-5 bg-surface border border-line rounded-2xl space-y-4">

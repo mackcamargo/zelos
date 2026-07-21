@@ -150,25 +150,25 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
               key={plano.id}
               className={`z-card relative flex flex-col justify-between transition-all duration-300 ${
                 details.isPopular 
-                  ? 'md:scale-[1.03] border-2 border-[#F26A1B] shadow-[0_12px_40px_rgba(242,106,27,0.15)] bg-[#141318] z-10' 
-                  : 'border border-white/[0.08] bg-[#141318]/60 shadow-lg'
+                  ? 'md:scale-[1.03] border-2 border-accent shadow-[0_12px_40px_rgba(242,106,27,0.1)] bg-surface z-10' 
+                  : 'border border-line bg-surface shadow-md'
               } rounded-[20px] p-6`}
             >
               {details.isPopular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#F26A1B] text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-lg z-10">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-lg z-10">
                   MAIS POPULAR
                 </div>
               )}
 
               {isCurrent && !details.isPopular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#F26A1B]/20 border border-[#F26A1B]/40 text-[#F26A1B] text-[10px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md z-10">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-accent/20 border border-accent/40 text-accent text-[10px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md z-10">
                   Plano Atual
                 </div>
               )}
 
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <div className="p-3 bg-white/[0.02] rounded-2xl border border-white/[0.06]">
+                  <div className="p-3 bg-accent/5 rounded-2xl border border-line">
                     {details.icon}
                   </div>
                   <div className="text-right">
@@ -245,7 +245,7 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 onClick={() => setPlanoParaConfirmar(null)}
-                className="fixed inset-0 bg-black/60 backdrop-blur-[2px] cursor-pointer"
+                className="fixed inset-0 bg-black/50 backdrop-blur-[2px] cursor-pointer"
               />
 
               {/* Modal Box */}
@@ -256,10 +256,10 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                 exit="exit"
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-lg bg-[#141318] rounded-[20px] overflow-hidden border border-white/[0.08] shadow-2xl z-10 flex flex-col max-h-[90vh]"
+                className="relative w-full max-w-lg bg-surface rounded-[20px] overflow-hidden border border-line shadow-[0_10px_30px_rgba(0,0,0,0.18)] z-10 flex flex-col max-h-[90vh]"
               >
                 {/* Header */}
-                <div className="p-6 pb-4 border-b border-white/[0.06] flex items-center justify-between">
+                <div className="p-6 pb-4 border-b border-line flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {details.icon}
                     <h3 className="font-display font-bold text-lg text-ink">Confirmar Assinatura</h3>
@@ -276,7 +276,7 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                 {/* Content */}
                 <div className="p-6 space-y-6 overflow-y-auto">
                   <div className="text-center space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#F26A1B] bg-[#F26A1B]/10 px-3 py-1 rounded-full">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-accent bg-[#F26A1B14] px-3 py-1 rounded-full">
                       {planoParaConfirmar.nome}
                     </span>
                     
@@ -294,19 +294,19 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                   </div>
 
                   {/* Destaque Capacidade */}
-                  <div className="p-4 bg-[#F26A1B]/5 border border-[#F26A1B]/15 rounded-xl text-center">
-                    <p className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-1">Capacidade de Alunos</p>
-                    <p className="text-base font-bold text-[#F26A1B]">{details.capacity}</p>
+                  <div className="p-4 bg-[#FFF4ED] border border-[#F26A1B14] rounded-xl text-center">
+                    <p className="text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">Capacidade de Alunos</p>
+                    <p className="text-base font-bold text-accent">{details.capacity}</p>
                   </div>
 
                   {/* Vantagens List */}
                   <div className="space-y-3">
-                    <p className="text-[11px] uppercase font-bold text-ink-3 tracking-wider">Benefícios Inclusos:</p>
+                    <p className="text-[11px] uppercase font-bold text-ink-2 tracking-wider">Benefícios Inclusos:</p>
                     <ul className="grid grid-cols-1 gap-2">
                       {vantagensComuns.map((vantagem, index) => (
                         <li key={index} className="flex items-start gap-2.5 text-xs text-ink-2 font-medium">
-                          <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-[#F26A1B]/10 border border-[#F26A1B]/20 flex items-center justify-center mt-0.5">
-                            <Check className="w-3 h-3 text-[#F26A1B]" strokeWidth={2.5} />
+                          <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-[#F26A1B14] border border-[#F26A1B14] flex items-center justify-center mt-0.5">
+                            <Check className="w-3 h-3 text-accent" strokeWidth={2.5} />
                           </div>
                           <span className="leading-tight">{vantagem}</span>
                         </li>
@@ -316,11 +316,11 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 bg-white/[0.02] border-t border-white/[0.06] flex flex-col sm:flex-row gap-3">
+                <div className="p-4 bg-bg border-t border-line flex flex-col sm:flex-row gap-3">
                   <button
                     type="button"
                     onClick={() => setPlanoParaConfirmar(null)}
-                    className="flex-1 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-ink-3 transition-colors text-xs font-bold cursor-pointer"
+                    className="flex-1 h-12 rounded-xl bg-raise hover:bg-line-soft text-ink-2 transition-colors text-xs font-bold cursor-pointer border border-line"
                   >
                     Voltar
                   </button>
@@ -331,7 +331,7 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                       setPlanoParaConfirmar(null);
                       handleAssinar(slug);
                     }}
-                    className="flex-1 h-12 rounded-xl bg-[#F26A1B] hover:bg-[#D45914] text-white transition-colors text-xs font-bold cursor-pointer shadow-lg animate-pulse"
+                    className="flex-1 h-12 rounded-xl bg-accent hover:opacity-90 text-white transition-colors text-xs font-bold cursor-pointer shadow-lg"
                   >
                     Ir para o pagamento
                   </button>
@@ -343,8 +343,8 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
       </AnimatePresence>
 
       {planoParaTrocar && (
-        <div className="fixed inset-0 bg-void/80 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
-          <div className="bg-surface border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[120] flex items-center justify-center p-4">
+          <div className="bg-surface border border-line rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-2xl bg-warn/10 border border-warn/20 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5 text-warn" strokeWidth={1.75} />
@@ -369,13 +369,13 @@ export default function PlanosArea({ userEmail }: { userEmail: string }) {
                   setPlanoParaTrocar(null);
                   if (alvo) abrirCheckout(alvo);
                 }}
-                className="w-full py-4 bg-flame text-white rounded-2xl font-semibold hover:bg-orange-600 transition-all shadow-lg shadow-flame/20"
+                className="w-full py-4 bg-accent text-white rounded-2xl font-semibold hover:opacity-90 transition-all shadow-lg"
               >
                 Entendi, continuar mesmo assim
               </button>
               <button
                 onClick={() => setPlanoParaTrocar(null)}
-                className="w-full py-4 bg-white/5 text-ink-3 rounded-2xl font-semibold hover:bg-white/10 transition-all"
+                className="w-full py-4 bg-bg text-ink-2 border border-line rounded-2xl font-semibold hover:bg-raise transition-all"
               >
                 Cancelar
               </button>
