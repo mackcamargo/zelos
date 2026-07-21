@@ -5,7 +5,7 @@ import {
   Plus, Trash2, TrendingUp, 
   Loader2, X, Sparkles, Check,
   Zap, Droplet, Utensils, Moon, Footprints, Activity, PhoneOff, Sun,
-  CheckCircle2, AlertCircle
+  CheckCircle2, AlertCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -47,12 +47,19 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
   const [habitos, setHabitos] = useState<Habito[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [expandedHabitoIds, setExpandedHabitoIds] = useState<number[]>([]);
   
   // New habit form state
   const [newNome, setNewNome] = useState('');
   const [newIcone, setNewIcone] = useState('⚡');
   const [newMeta, setNewMeta] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const toggleExpand = (id: number) => {
+    setExpandedHabitoIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   useEffect(() => {
     loadHabitos();
@@ -371,11 +378,12 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
         )}
       </AnimatePresence>
 
-      {/* Habit Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+      {/* Habit List Accordion */}
+      <div className="space-y-2.5">
         {habitos.map((h) => {
           const registros = h.registros || [];
           const completedDates = new Set(registros.filter(r => r.concluido).map(r => r.data));
+          const isExpanded = expandedHabitoIds.includes(h.id);
 
           let count7 = 0;
           last7Days.forEach(({ dateStr }) => {
@@ -386,19 +394,22 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
           return (
             <div 
               key={h.id} 
-              className="bg-surface border border-line rounded-[18px] p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_4px_12px_rgba(20,20,20,0.06)] hover:shadow-[0_4px_20px_rgba(20,20,20,0.08)] transition-all group"
+              className="bg-surface border border-line rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(20,20,20,0.04)] hover:border-line-strong transition-all"
             >
-              {/* Card Top: Icon, Title, Meta & Actions */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-11 h-11 rounded-2xl bg-[#F26A1B]/10 border border-[#F26A1B]/20 flex items-center justify-center shrink-0">
+              {/* Row Header - Clickable to expand/collapse */}
+              <div 
+                onClick={() => toggleExpand(h.id)}
+                className="p-3.5 sm:p-4 flex items-center justify-between gap-3 cursor-pointer select-none bg-surface hover:bg-bg/60 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F26A1B]/10 border border-[#F26A1B]/20 flex items-center justify-center shrink-0">
                     {renderHabitoIcon(h.icone || '⚡', 'text-[#F26A1B]')}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-display font-bold text-sm sm:text-base text-ink truncate leading-snug">{h.nome}</h4>
+                    <h4 className="font-display font-bold text-sm text-ink truncate leading-snug">{h.nome}</h4>
                     {h.meta_diaria && (
-                      <p className="text-xs text-ink-2 font-mono font-medium mt-0.5 truncate">
-                        Meta: <span className="text-ink-3">{h.meta_diaria}</span>
+                      <p className="text-[11px] text-ink-3 font-mono truncate mt-0.5">
+                        Meta: {h.meta_diaria}
                       </p>
                     )}
                   </div>
@@ -418,49 +429,68 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
                   {!isReadOnly && (
                     <button
                       type="button"
-                      onClick={() => handleDesativar(h.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDesativar(h.id);
+                      }}
                       title="Remover hábito"
-                      className="p-1.5 text-ink-3 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer opacity-70 group-hover:opacity-100"
+                      className="p-1.5 text-ink-3 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
+
+                  <div className="p-1 text-ink-3 rounded-lg">
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-ink-2" /> : <ChevronDown className="w-4 h-4 text-ink-3" />}
+                  </div>
                 </div>
               </div>
 
-              {/* Card Bottom: 7-Day Tracker Grid */}
-              <div className="pt-2 border-t border-line-soft">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-3 block mb-2">
-                  Adesão nos últimos 7 dias:
-                </span>
-                
-                <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-                  {last7Days.map(({ dateStr, dayLetter, formattedDate }) => {
-                    const isDone = completedDates.has(dateStr);
-                    return (
-                      <div key={dateStr} className="flex flex-col items-center gap-1">
-                        <span className="text-[10px] font-mono font-bold text-ink-3">{dayLetter}</span>
-                        <div 
-                          title={`${formattedDate}: ${isDone ? 'Concluído' : 'Pendente'}`}
-                          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center border transition-all text-xs font-bold ${
-                            isDone 
-                              ? 'bg-emerald-500 border-emerald-600 text-white shadow-sm shadow-emerald-500/20' 
-                              : 'bg-bg border-line text-ink-3/30'
-                          }`}
-                        >
-                          {isDone ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : ''}
-                        </div>
+              {/* Expanded 7-Day Adherence Details */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden border-t border-line-soft bg-bg/40"
+                  >
+                    <div className="p-3.5 sm:p-4 space-y-2.5">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-3 block">
+                        Adesão nos últimos 7 dias:
+                      </span>
+                      
+                      <div className="grid grid-cols-7 gap-1.5 sm:gap-2 max-w-sm">
+                        {last7Days.map(({ dateStr, dayLetter, formattedDate }) => {
+                          const isDone = completedDates.has(dateStr);
+                          return (
+                            <div key={dateStr} className="flex flex-col items-center gap-1">
+                              <span className="text-[10px] font-mono font-bold text-ink-3">{dayLetter}</span>
+                              <div 
+                                title={`${formattedDate}: ${isDone ? 'Concluído' : 'Pendente'}`}
+                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center border transition-all text-xs font-bold ${
+                                  isDone 
+                                    ? 'bg-emerald-500 border-emerald-600 text-white shadow-xs' 
+                                    : 'bg-bg border-line text-ink-3/30'
+                                }`}
+                              >
+                                {isDone ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : ''}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         })}
 
         {habitos.length === 0 && !showAddForm && (
-          <div className="col-span-full py-12 bg-surface rounded-[18px] border border-dashed border-line flex flex-col items-center justify-center text-center p-6 shadow-xs">
+          <div className="py-12 bg-surface rounded-[18px] border border-dashed border-line flex flex-col items-center justify-center text-center p-6 shadow-xs">
             <div className="w-12 h-12 rounded-2xl bg-bg border border-line flex items-center justify-center mb-3">
               <Sparkles className="w-6 h-6 text-[#F26A1B] opacity-50" />
             </div>
