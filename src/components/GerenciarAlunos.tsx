@@ -628,74 +628,74 @@ Bora juntos! 💪`;
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3.5">
                 {filteredAlunos.map((aluno) => {
                   const name = aluno.profile?.nome || 'Aluno Sem Nome';
-                  const isFemale = aluno.profile?.avatar_tipo === 'feminino';
                   const isAtivo = aluno.ativo !== false;
                   const hasCheckin = checkinsDaSemanaMap[aluno.id];
                   const streak = streaksMap[aluno.id] || 0;
                   
                   return (
-                    <div
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       id={`student-card-${aluno.id}`}
                       key={aluno.id}
                       onClick={() => {
                         setSelectedAluno(aluno);
                         setEditObjetivo(aluno.objetivo || '');
                       }}
-                      className="z-card z-card--tap flex flex-col justify-between relative overflow-hidden"
+                      className="bg-surface border border-line rounded-2xl p-3.5 hover:border-line-strong hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                     >
-                      <div className="flex items-start gap-4">
-                        {/* Avatar styling using ZELOS design avatar */}
-                        <div className="z-avatar z-avatar--lg bg-raise text-ink flex items-center justify-center font-display font-bold text-accent overflow-hidden shrink-0">
-                          {aluno.profile?.avatar_url ? (
-                            <img src={aluno.profile.avatar_url} alt={name} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
-                          ) : (
-                            name.charAt(0).toUpperCase()
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1 space-y-2">
-                          {/* Badges Line in natural flow to prevent any overlap */}
-                          {(streak > 0 || (!hasCheckin && isAtivo)) && (
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              {streak > 0 && (
-                                <div className="flex items-center gap-1 px-2.5 py-0.5 bg-accent/10 text-accent rounded-full border border-accent/20 shrink-0">
-                                  <Flame className="w-3 h-3 animate-pulse" />
-                                  <span className="text-[12px] font-semibold z-num">{streak}</span>
-                                </div>
-                              )}
-
-                              {!hasCheckin && isAtivo && (
-                                <div className="flex items-center gap-1 bg-danger/10 text-danger text-[11px] font-medium px-2 py-0.5 rounded-full border border-danger/20 animate-pulse shrink-0">
-                                  <AlertCircle className="w-3 h-3" />
-                                  <span>Check-in pendente</span>
-                                </div>
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Avatar 40px */}
+                            <div className="w-10 h-10 rounded-full bg-bg border border-line flex items-center justify-center font-display font-bold text-accent text-sm overflow-hidden shrink-0">
+                              {aluno.profile?.avatar_url ? (
+                                <img src={aluno.profile.avatar_url} alt={name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              ) : (
+                                name.charAt(0).toUpperCase()
                               )}
                             </div>
-                          )}
-
-                          <div>
-                            <h3 className="font-display font-semibold text-sm text-ink group-hover:text-accent transition-colors truncate">
-                              {name}
-                            </h3>
-                            <div className="flex items-center gap-1.5 text-[12px] text-ink-3 mt-1.5">
-                              <Target className="w-3.5 h-3.5 text-accent shrink-0" strokeWidth={1.75} />
-                              <span className="truncate">{aluno.objetivo || 'Foco geral / condicionamento'}</span>
+                            <div className="min-w-0">
+                              <h3 className="font-display font-bold text-[14px] text-ink leading-tight group-hover:text-accent transition-colors truncate">
+                                {name}
+                              </h3>
+                              <div className="flex items-center gap-1.5 text-[11px] text-ink-3 mt-1">
+                                <Target className="w-3 h-3 text-accent/70" strokeWidth={2} />
+                                <span className="truncate">{aluno.objetivo || 'Foco geral'}</span>
+                              </div>
                             </div>
                           </div>
+
+                          {/* Pending Badge - Smaller and Discreet */}
+                          {!hasCheckin && isAtivo && (
+                            <div className="flex items-center gap-1 text-[9px] font-bold text-danger border border-danger/20 px-1.5 py-0.5 rounded-md bg-danger/5 shrink-0 uppercase tracking-tight">
+                              <div className="w-1 h-1 rounded-full bg-danger animate-pulse" />
+                              <span>Pendente</span>
+                            </div>
+                          )}
+                          {streak > 0 && hasCheckin && (
+                            <div className="flex items-center gap-1 text-[9px] font-bold text-accent border border-accent/20 px-1.5 py-0.5 rounded-md bg-accent/5 shrink-0">
+                              <Flame className="w-3 h-3" />
+                              <span className="num">{streak}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Status Row */}
-                      <div className="mt-5 pt-3.5 border-t border-line/40 flex justify-between items-center text-[12px]">
+                      {/* Status Row - Compact Footer */}
+                      <div className="mt-4 pt-3 border-t border-line/40 flex justify-between items-center text-[11px]">
                         <div className="flex items-center gap-1.5">
-                          <span className={`w-2 h-2 rounded-full ${isAtivo ? 'bg-ok animate-pulse' : 'bg-ink-3'}`} />
-                          <span className="text-ink-2">Ativo</span>
+                          <div className={`w-1.5 h-1.5 rounded-full ${isAtivo ? 'bg-ok' : 'bg-ink-3'}`} />
+                          <span className="text-ink-2 font-medium">{isAtivo ? 'Ativo' : 'Inativo'}</span>
                         </div>
-                        <span className="text-ink-3 font-medium group-hover:text-accent transition-colors">Ver perfil →</span>
+                        <span className="text-ink-3 font-bold group-hover:text-accent transition-colors flex items-center gap-1">
+                          Ver perfil <ArrowLeft className="w-3 h-3 rotate-180" />
+                        </span>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
