@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Habito, HabitoRegistro } from '../types';
 import { 
   Plus, Trash2, TrendingUp, 
-  Loader2, X, Sparkles,
-  Zap, Droplet, Utensils, Moon, Footprints, Activity, PhoneOff, Sun
+  Loader2, X, Sparkles, Check,
+  Zap, Droplet, Utensils, Moon, Footprints, Activity, PhoneOff, Sun,
+  CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -27,8 +28,8 @@ const ICON_LABELS: Record<string, string> = {
   '☀️': 'Vitamina D / Sol'
 };
 
-const renderHabitoIcon = (icone: string, colorClass: string = "text-ink") => {
-  const iconProps = { className: `w-5 h-5 ${colorClass} stroke-[1.5]` };
+const renderHabitoIcon = (icone: string, colorClass: string = "text-[#F26A1B]") => {
+  const iconProps = { className: `w-5 h-5 ${colorClass} stroke-[1.75]` };
   switch (icone) {
     case '⚡': return <Zap {...iconProps} />;
     case '💧': return <Droplet {...iconProps} />;
@@ -69,7 +70,6 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
           .order("criado_em", { ascending: true });
         
         if (data) {
-          // fetch registrations to build the detailed list
           const ids = data.map((h: any) => h.id);
           let regs: any[] = [];
           if (ids.length > 0) {
@@ -170,155 +170,194 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
     }
   };
 
-  const AdherenceMiniChart = ({ registros }: { registros: HabitoRegistro[] }) => {
-    const last7Days = Array.from({ length: 7 }).map((_, i) => {
+  // Last 7 days helper
+  const last7Days = useMemo(() => {
+    return Array.from({ length: 7 }).map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
-      return {
-        dateStr: d.toISOString().split('T')[0],
-        dayLetter: d.toLocaleDateString('pt-BR', { weekday: 'narrow' }).toUpperCase()
-      };
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const dayLetter = d.toLocaleDateString('pt-BR', { weekday: 'narrow' }).toUpperCase();
+      return { dateStr, dayLetter, formattedDate: `${day}/${month}` };
+    });
+  }, []);
+
+  // Summary KPIs
+  const overallStats = useMemo(() => {
+    if (!habitos || habitos.length === 0) {
+      return { total: 0, avgAdherence: 0, doneToday: 0 };
+    }
+    const todayStr = new Date().toISOString().split('T')[0];
+    let totalCompleted7Days = 0;
+    let doneTodayCount = 0;
+
+    habitos.forEach((h) => {
+      const regs = h.registros || [];
+      const completedSet = new Set(regs.filter(r => r.concluido).map(r => r.data));
+      
+      if (completedSet.has(todayStr)) {
+        doneTodayCount++;
+      }
+
+      last7Days.forEach(({ dateStr }) => {
+        if (completedSet.has(dateStr)) {
+          totalCompleted7Days++;
+        }
+      });
     });
 
-    return (
-      <div className="flex flex-col gap-1.5 mt-2.5">
-        <span className="text-[10px] text-ink-3 uppercase font-bold tracking-wider block">Adesão nos últimos 7 dias:</span>
-        <div className="flex gap-1.5">
-          {last7Days.map(({ dateStr, dayLetter }) => {
-            const isDone = registros.some(r => r.data === dateStr && r.concluido);
-            const dateParts = dateStr.split('-');
-            const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}` : dateStr;
-            return (
-              <div key={dateStr} className="flex flex-col items-center gap-1">
-                <span className="text-[9px] text-ink-3 font-mono font-semibold">{dayLetter}</span>
-                <div 
-                  title={`${formattedDate} - ${isDone ? 'Concluído' : 'Pendente'}`}
-                  className={`w-5 h-5 rounded flex items-center justify-center border transition-all text-[9px] font-bold ${
-                    isDone 
-                      ? 'bg-green-500 border-green-600 text-white shadow-sm shadow-green-500/20' 
-                      : 'bg-raise border-line text-ink-3'
-                  }`}
-                >
-                  {isDone ? '✓' : ''}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
+    const maxPossible7Days = habitos.length * 7;
+    const avgAdherence = maxPossible7Days > 0 ? Math.round((totalCompleted7Days / maxPossible7Days) * 100) : 0;
+
+    return {
+      total: habitos.length,
+      avgAdherence,
+      doneToday: doneTodayCount
+    };
+  }, [habitos, last7Days]);
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 text-[#F26A1B] animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line-soft">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#F26A1B]/10 rounded-lg">
+          <div className="w-10 h-10 rounded-xl bg-[#F26A1B]/10 border border-[#F26A1B]/20 flex items-center justify-center shrink-0">
             <TrendingUp className="w-5 h-5 text-[#F26A1B]" />
           </div>
           <div>
-            <h3 className="font-semibold text-lg text-ink">Hábitos do aluno</h3>
-            <p className="text-[12px] text-ink-3">Defina e acompanhe a disciplina diária</p>
+            <h3 className="font-display font-bold text-lg text-ink">Hábitos do aluno</h3>
+            <p className="text-xs text-ink-3">Defina e acompanhe a disciplina diária</p>
           </div>
         </div>
+
         {!isReadOnly && (
           <button
+            type="button"
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#F26A1B] text-ink rounded-lg font-semibold text-xs transition-all cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#F26A1B] text-white hover:bg-[#E0590A] active:scale-95 rounded-xl font-display font-bold text-xs transition-all shadow-sm cursor-pointer shrink-0 self-start sm:self-auto"
           >
-            <Plus className="w-4 h-4 text-ink" />
-            Novo hábito
+            <Plus className="w-4 h-4" />
+            <span>Novo hábito</span>
           </button>
         )}
       </div>
 
-      {/* Modal / Form to add habit */}
+      {/* Summary KPI Bar */}
+      {habitos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+          <div className="bg-surface border border-line rounded-[14px] p-3 flex flex-col items-center justify-center text-center shadow-[0_1px_2px_rgba(20,20,20,0.04)]">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-3">Hábitos</span>
+            <span className="font-mono font-black text-lg sm:text-xl text-ink mt-0.5">{overallStats.total}</span>
+          </div>
+
+          <div className="bg-surface border border-line rounded-[14px] p-3 flex flex-col items-center justify-center text-center shadow-[0_1px_2px_rgba(20,20,20,0.04)]">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-3">Adesão 7d</span>
+            <span className={`font-mono font-black text-lg sm:text-xl mt-0.5 ${
+              overallStats.avgAdherence >= 70 ? 'text-emerald-600' : overallStats.avgAdherence >= 40 ? 'text-amber-500' : 'text-ink'
+            }`}>
+              {overallStats.avgAdherence}%
+            </span>
+          </div>
+
+          <div className="bg-surface border border-line rounded-[14px] p-3 flex flex-col items-center justify-center text-center shadow-[0_1px_2px_rgba(20,20,20,0.04)]">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-3">Hoje</span>
+            <span className="font-mono font-black text-lg sm:text-xl text-ink mt-0.5">
+              {overallStats.doneToday}/{overallStats.total}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Modal to add habit */}
       <AnimatePresence>
         {showAddForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg/85 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-surface border border-line rounded-xl p-6 w-full max-w-md space-y-6 relative shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-surface border border-line rounded-[24px] p-6 w-full max-w-md space-y-6 relative shadow-2xl"
             >
               <button 
+                type="button"
                 onClick={() => setShowAddForm(false)} 
-                className="absolute top-4 right-4 p-1.5 text-ink-3 hover:text-ink hover:bg-raise rounded-full transition-colors cursor-pointer"
+                className="absolute top-5 right-5 p-2 text-ink-3 hover:text-ink hover:bg-bg rounded-full transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <div>
-                <h4 className="font-semibold text-lg text-ink">Atribuir novo hábito</h4>
-                <p className="text-[12px] text-ink-3">Insira os detalhes do hábito que o aluno deve cumprir diariamente.</p>
+                <h4 className="font-display font-bold text-lg text-ink">Atribuir novo hábito</h4>
+                <p className="text-xs text-ink-3 mt-1">Insira os detalhes do hábito para acompanhamento diário.</p>
               </div>
 
               <div className="space-y-4">
                 {/* Nome */}
-                <div className="space-y-2">
-                  <label className="text-[12px] text-ink-3 block font-medium">Nome do hábito</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-ink-2 font-medium block">Nome do hábito</label>
                   <input
                     value={newNome}
                     onChange={(e) => setNewNome(e.target.value)}
-                    placeholder="Ex: Beber água"
-                    className="z-input !h-11"
+                    placeholder="Ex: Beber 2L de água"
+                    className="w-full px-3.5 py-2.5 bg-bg border border-line rounded-xl text-xs text-ink placeholder:text-ink-3/50 focus:outline-none focus:border-[#F26A1B] transition-colors"
                   />
                 </div>
 
                 {/* Emoji / Icon selector */}
                 <div className="space-y-2">
-                  <label className="text-[12px] text-ink-3 block font-medium">Selecione o ícone</label>
-                  <div className="grid grid-cols-8 gap-2">
+                  <label className="text-xs text-ink-2 font-medium block">Selecione o ícone</label>
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                     {EMOJIS.map((emoji) => (
                       <button
                         key={emoji}
                         type="button"
                         onClick={() => setNewIcone(emoji)}
                         title={ICON_LABELS[emoji]}
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all cursor-pointer border ${
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${
                           newIcone === emoji
-                            ? 'bg-accent/15 border-accent text-accent'
-                            : 'bg-raise border-line hover:border-line-strong text-ink-2'
+                            ? 'bg-[#F26A1B]/15 border-[#F26A1B] text-[#F26A1B] shadow-sm'
+                            : 'bg-bg border-line hover:border-line-strong text-ink-2'
                         }`}
                       >
-                        {renderHabitoIcon(emoji, newIcone === emoji ? 'text-accent' : 'text-ink-2')}
+                        {renderHabitoIcon(emoji, newIcone === emoji ? 'text-[#F26A1B]' : 'text-ink-2')}
                       </button>
                     ))}
                   </div>
                   
-                  {/* Icon Legend display */}
-                  <p className="text-[11px] text-accent font-semibold mt-2.5 flex items-center gap-1.5 bg-accent/5 p-2 rounded-lg border border-accent/10">
-                    <span>Ícone selecionado:</span>
+                  <p className="text-[11px] text-[#F26A1B] font-mono font-medium mt-2 flex items-center gap-1.5 bg-[#F26A1B]/10 px-3 py-1.5 rounded-lg border border-[#F26A1B]/20">
+                    <span>Ícone:</span>
                     <span className="font-bold">
-                      {newIcone} {ICON_LABELS[newIcone]}
+                      {ICON_LABELS[newIcone]}
                     </span>
                   </p>
                 </div>
 
                 {/* Meta diária */}
-                <div className="space-y-2">
-                  <label className="text-[12px] text-ink-3 block font-medium">Meta diária (opcional)</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-ink-2 font-medium block">Meta diária (opcional)</label>
                   <input
                     value={newMeta}
                     onChange={(e) => setNewMeta(e.target.value)}
-                    placeholder="Ex: 2L"
-                    className="z-input !h-11"
+                    placeholder="Ex: Hidratação diária ou 2L"
+                    className="w-full px-3.5 py-2.5 bg-bg border border-line rounded-xl text-xs text-ink placeholder:text-ink-3/50 focus:outline-none focus:border-[#F26A1B] transition-colors"
                   />
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleSave}
                   disabled={saving || !newNome.trim()}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-accent text-white rounded-lg font-semibold text-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 bg-[#F26A1B] text-white rounded-xl font-display font-bold text-xs hover:bg-[#E0590A] active:scale-95 transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
                 >
                   {saving ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -332,45 +371,103 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Habit Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
         {habitos.map((h) => {
           const registros = h.registros || [];
-          
+          const completedDates = new Set(registros.filter(r => r.concluido).map(r => r.data));
+
+          let count7 = 0;
+          last7Days.forEach(({ dateStr }) => {
+            if (completedDates.has(dateStr)) count7++;
+          });
+          const adherencePct = Math.round((count7 / 7) * 100);
+
           return (
-            <div key={h.id} className="bg-surface border border-line rounded-xl p-4 flex items-center justify-between group hover:border-line-strong transition-all">
-              <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-raise border border-line flex items-center justify-center shrink-0">
-                  {renderHabitoIcon(h.icone || '⚡', 'text-accent')}
-                </div>
-                <div className="min-w-0">
-                  <h4 className="font-semibold text-sm text-ink truncate">{h.nome}</h4>
-                  {h.meta_diaria && (
-                    <p className="text-[12px] text-ink-3 mt-0.5 num">Meta: {h.meta_diaria}</p>
-                  )}
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <AdherenceMiniChart registros={registros} />
+            <div 
+              key={h.id} 
+              className="bg-surface border border-line rounded-[18px] p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_4px_12px_rgba(20,20,20,0.06)] hover:shadow-[0_4px_20px_rgba(20,20,20,0.08)] transition-all group"
+            >
+              {/* Card Top: Icon, Title, Meta & Actions */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-11 h-11 rounded-2xl bg-[#F26A1B]/10 border border-[#F26A1B]/20 flex items-center justify-center shrink-0">
+                    {renderHabitoIcon(h.icone || '⚡', 'text-[#F26A1B]')}
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-display font-bold text-sm sm:text-base text-ink truncate leading-snug">{h.nome}</h4>
+                    {h.meta_diaria && (
+                      <p className="text-xs text-ink-2 font-mono font-medium mt-0.5 truncate">
+                        Meta: <span className="text-ink-3">{h.meta_diaria}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border ${
+                    adherencePct >= 70
+                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                      : adherencePct >= 40
+                      ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                      : 'bg-bg text-ink-3 border-line'
+                  }`}>
+                    {count7}/7 ({adherencePct}%)
+                  </span>
+
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => handleDesativar(h.id)}
+                      title="Remover hábito"
+                      className="p-1.5 text-ink-3 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer opacity-70 group-hover:opacity-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
-              
-              <div className="flex items-center gap-3">
-                {!isReadOnly && (
-                  <button
-                    onClick={() => handleDesativar(h.id)}
-                    className="p-2 text-ink-3 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+
+              {/* Card Bottom: 7-Day Tracker Grid */}
+              <div className="pt-2 border-t border-line-soft">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-3 block mb-2">
+                  Adesão nos últimos 7 dias:
+                </span>
+                
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                  {last7Days.map(({ dateStr, dayLetter, formattedDate }) => {
+                    const isDone = completedDates.has(dateStr);
+                    return (
+                      <div key={dateStr} className="flex flex-col items-center gap-1">
+                        <span className="text-[10px] font-mono font-bold text-ink-3">{dayLetter}</span>
+                        <div 
+                          title={`${formattedDate}: ${isDone ? 'Concluído' : 'Pendente'}`}
+                          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center border transition-all text-xs font-bold ${
+                            isDone 
+                              ? 'bg-emerald-500 border-emerald-600 text-white shadow-sm shadow-emerald-500/20' 
+                              : 'bg-bg border-line text-ink-3/30'
+                          }`}
+                        >
+                          {isDone ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : ''}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           );
         })}
 
         {habitos.length === 0 && !showAddForm && (
-          <div className="col-span-full py-12 bg-raise/50 rounded-xl border border-dashed border-line flex flex-col items-center justify-center">
-            <Sparkles className="w-10 h-10 text-ink-3 opacity-20 mb-3" />
-            <p className="text-xs text-ink-3">Nenhum hábito atribuído a este aluno.</p>
+          <div className="col-span-full py-12 bg-surface rounded-[18px] border border-dashed border-line flex flex-col items-center justify-center text-center p-6 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-bg border border-line flex items-center justify-center mb-3">
+              <Sparkles className="w-6 h-6 text-[#F26A1B] opacity-50" />
+            </div>
+            <span className="font-display font-medium text-sm text-ink mb-1">Nenhum hábito cadastrado</span>
+            <p className="text-xs text-ink-3 max-w-sm leading-relaxed">
+              Clique em "Novo hábito" acima para definir as metas diárias deste aluno.
+            </p>
           </div>
         )}
       </div>

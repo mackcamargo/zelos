@@ -3,7 +3,7 @@ import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { Habito } from '../types';
 import { 
   CheckCircle2, Circle, Flame, 
-  Trophy, Loader2, Sparkles,
+  Trophy, Loader2, Sparkles, Check,
   Zap, Droplet, Utensils, Moon, Footprints, Activity, PhoneOff, Sun
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -14,7 +14,7 @@ interface HabitosPainelProps {
 }
 
 const renderHabitoIcon = (icone: string, colorClass: string = "text-ink-2") => {
-  const iconProps = { className: `w-5 h-5 ${colorClass} stroke-[1.5]` };
+  const iconProps = { className: `w-5 h-5 ${colorClass} stroke-[1.75]` };
   switch (icone) {
     case '⚡': return <Zap {...iconProps} />;
     case '💧': return <Droplet {...iconProps} />;
@@ -47,7 +47,6 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
           const { data } = await dbService.getHabitos(alunoId);
           setHabitos(data || []);
         } else {
-          // Demo fallback
           loadDemoHabitos();
         }
       } else {
@@ -79,13 +78,11 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
     let streak = 0;
     const current = new Date(baseData);
     
-    // Check current day
     const currentStr = current.toISOString().slice(0, 10);
     if (dates.has(currentStr)) {
       streak++;
     }
     
-    // Check previous days
     while (true) {
       current.setDate(current.getDate() - 1);
       const prevStr = current.toISOString().slice(0, 10);
@@ -130,7 +127,6 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
         );
         if (error) throw error;
       } else {
-        // Fallback for demo mode
         const registrosMock = JSON.parse(localStorage.getItem('zenite_habitos_registros') || '[]');
         const idx = registrosMock.findIndex((r: any) => r.habito_id === h.id && r.data === hoje && r.aluno_id === alunoId);
         if (idx >= 0) {
@@ -152,7 +148,6 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
       }
     } catch (err) {
       console.error("Erro ao salvar registro de hábito:", err);
-      // Revert on error
       loadHabitos();
     }
   };
@@ -167,50 +162,52 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12 bg-surface border border-line rounded-xl p-6">
-        <Loader2 className="w-6 h-6 text-accent animate-spin" />
+      <div className="flex justify-center py-12 bg-surface border border-line rounded-[18px] p-6 shadow-xs">
+        <Loader2 className="w-6 h-6 text-[#F26A1B] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-surface border border-line rounded-xl p-4 sm:p-6 space-y-6 overflow-hidden relative group">
+    <div className="w-full bg-surface border border-line rounded-[18px] p-4 sm:p-6 space-y-5 overflow-hidden relative shadow-[0_1px_2px_rgba(20,20,20,0.04),0_4px_12px_rgba(20,20,20,0.06)]">
       {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
       <div className="flex items-center justify-between relative z-10">
         <div>
-          <h3 className="font-semibold text-lg text-ink">Hábitos de hoje</h3>
-          <p className="text-[12px] text-ink-3 mt-0.5">
+          <h3 className="font-display font-bold text-lg text-ink">Hábitos de hoje</h3>
+          <p className="text-xs text-ink-3 mt-0.5">
             Mantenha sua disciplina diária
           </p>
         </div>
       </div>
 
       {totalHabitos === 0 ? (
-        <div className="py-6 flex flex-col items-center justify-center text-center">
-          <Sparkles className="w-8 h-8 text-ink-3 opacity-20 mb-2" />
-          <p className="text-sm text-ink-3">Seu personal ainda não definiu hábitos.</p>
+        <div className="py-8 flex flex-col items-center justify-center text-center">
+          <div className="w-12 h-12 rounded-2xl bg-bg border border-line flex items-center justify-center mb-3">
+            <Sparkles className="w-6 h-6 text-[#F26A1B] opacity-50" />
+          </div>
+          <p className="text-xs text-ink-3">Seu personal ainda não definiu hábitos.</p>
         </div>
       ) : (
         <>
           {/* Progress Bar */}
           <div className="space-y-2 relative z-10">
-            <div className="flex justify-between text-[12px] text-ink-3 num">
+            <div className="flex justify-between text-xs text-ink-3 font-mono">
               <span>Progresso diário</span>
-              <span>{concluidoHoje} de {totalHabitos} concluídos hoje</span>
+              <span className="font-bold text-ink">{concluidoHoje} de {totalHabitos} concluídos</span>
             </div>
-            <div className="h-2 bg-bg rounded-full overflow-hidden border border-line">
+            <div className="h-2.5 bg-bg rounded-full overflow-hidden border border-line-soft">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
-                className="h-full bg-accent"
+                className="h-full bg-[#F26A1B] transition-all duration-300"
               />
             </div>
           </div>
 
           {/* Habits List */}
-          <div className="grid grid-cols-1 gap-2 relative z-10">
+          <div className="grid grid-cols-1 gap-2.5 relative z-10">
             {habitos.map((h) => {
               const registros = h.habitos_registros || h.registros || [];
               const isDone = registros.some(r => r.data === hoje && r.concluido);
@@ -221,36 +218,40 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
                   key={h.id}
                   type="button"
                   onClick={() => handleToggleHabito(h, !!isDone)}
-                  className={`flex items-center gap-4 p-4 rounded-lg border transition-all duration-300 text-left cursor-pointer ${
+                  className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 text-left cursor-pointer group ${
                     isDone 
-                      ? 'bg-green-500/5 border-green-500/10' 
-                      : 'bg-raise border-line hover:border-line-strong'
+                      ? 'bg-emerald-500/5 border-emerald-500/20' 
+                      : 'bg-bg border-line hover:border-line-strong'
                   }`}
                 >
-                  <div className="shrink-0 bg-surface w-9 h-9 rounded-lg border border-line flex items-center justify-center">
-                    {renderHabitoIcon(h.icone || '⚡', isDone ? 'text-green-500' : 'text-accent')}
+                  <div className={`shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center transition-colors ${
+                    isDone ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-surface border-line'
+                  }`}>
+                    {renderHabitoIcon(h.icone || '⚡', isDone ? 'text-emerald-600' : 'text-[#F26A1B]')}
                   </div>
+
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center">
-                      <p className={`text-sm font-semibold truncate ${isDone ? 'line-through text-ink-3' : 'text-ink'}`}>
+                    <div className="flex items-center gap-2">
+                      <p className={`text-xs sm:text-sm font-display font-bold truncate ${isDone ? 'line-through text-ink-3' : 'text-ink'}`}>
                         {h.nome}
                       </p>
                       {streak >= 2 && (
-                        <span className="text-[10px] font-semibold text-accent ml-2 bg-accent/10 px-1.5 py-0.5 rounded flex items-center shrink-0 num gap-0.5">
-                          <Flame className="w-3 h-3 text-accent" /> {streak} dias
+                        <span className="text-[10px] font-mono font-bold text-[#F26A1B] bg-[#F26A1B]/10 border border-[#F26A1B]/20 px-2 py-0.5 rounded-full flex items-center shrink-0 gap-1">
+                          <Flame className="w-3 h-3 text-[#F26A1B]" /> {streak} dias
                         </span>
                       )}
                     </div>
                     {h.meta_diaria && (
-                      <p className="text-[12px] text-ink-3 truncate mt-0.5 num">{h.meta_diaria}</p>
+                      <p className="text-[11px] font-mono text-ink-3 truncate mt-0.5">Meta: {h.meta_diaria}</p>
                     )}
                   </div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 ${
+
+                  <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all shrink-0 ${
                     isDone 
-                      ? 'bg-green-500 text-white shadow-sm shadow-green-500/20' 
-                      : 'bg-bg border border-line text-ink-3'
+                      ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/20' 
+                      : 'bg-surface border border-line text-ink-3/40 group-hover:border-line-strong'
                   }`}>
-                    {isDone ? <CheckCircle2 className="w-5 h-5 text-white" /> : <Circle className="w-5 h-5" />}
+                    {isDone ? <Check className="w-4 h-4 stroke-[3]" /> : <Circle className="w-4 h-4" />}
                   </div>
                 </button>
               );
@@ -259,15 +260,15 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
 
           {concluidoHoje === totalHabitos && totalHabitos > 0 && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-green-500/5 border border-green-500/10 p-4 rounded-lg flex items-center gap-3"
+              className="bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-2xl flex items-center gap-3"
             >
-              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                <Trophy className="w-4 h-4 text-void" />
+              <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shrink-0 text-white shadow-sm">
+                <Trophy className="w-4 h-4" />
               </div>
-              <p className="text-xs text-green-500 font-semibold">
-                Sensacional! Você completou todos os hábitos de hoje.
+              <p className="text-xs text-emerald-700 font-medium">
+                Sensacional! Você completou todos os hábitos do dia.
               </p>
             </motion.div>
           )}
