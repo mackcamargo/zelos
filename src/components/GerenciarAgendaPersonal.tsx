@@ -124,7 +124,7 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
           {/* FILTER TABS */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="z-display">Gestão da <span className="text-accent">agenda</span></h3>
-            <div className="flex flex-wrap gap-1.5 p-1 bg-surface border border-white/5 rounded-xl">
+            <div className="flex flex-wrap gap-1.5 p-1 bg-surface border border-line rounded-xl">
               {(['todos', 'confirmado', 'solicitado', 'cancelado'] as const).map(f => (
                 <button
                   key={f}
@@ -148,7 +148,7 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
 
         {/* SIDEBAR WIDGETS */}
         <div className="space-y-6">
-          <div className="bg-[#17171A] border border-white/5 rounded-2xl p-5 space-y-4 shadow-sm">
+          <div className="bg-surface border border-line rounded-2xl p-5 space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold text-ink-3 uppercase tracking-widest">Próximas <span className="text-accent">sessões</span></h4>
               <CalendarIcon className="w-3.5 h-3.5 text-accent opacity-50" />
@@ -156,7 +156,7 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
             
             <div className="space-y-2">
               {proximasSessoes.slice(0, 4).map(s => (
-                <div key={s.id} className="flex items-center gap-3 p-2 bg-white/5 border border-white/5 rounded-xl hover:border-white/10 transition-all group">
+                <div key={s.id} className="flex items-center gap-3 p-2 bg-bg border border-line/40 rounded-xl hover:border-line transition-all group">
                   <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0 group-hover:bg-accent group-hover:text-white transition-colors">
                     <Clock className="w-4 h-4" />
                   </div>
@@ -178,7 +178,7 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
             {!isReadOnly && (
               <button 
                 onClick={() => setModalAberto(true)} 
-                className="w-full py-2.5 rounded-xl bg-accent/10 text-accent text-[11px] font-bold uppercase tracking-wider hover:bg-accent hover:text-white transition-all flex items-center justify-center gap-2 mt-2 border border-accent/20"
+                className="w-full py-2.5 rounded-xl bg-accent text-white text-[11px] font-bold uppercase tracking-wider hover:bg-accent/90 transition-all shadow-sm flex items-center justify-center gap-2 mt-2 border border-accent/20"
               >
                 <Plus className="w-3.5 h-3.5" /> Criar p/ aluno
               </button>

@@ -190,7 +190,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                       transition={{ delay: index * 0.03 }}
                       key={agenda.id}
                       onClick={() => setSelectedAgendamento(agenda)}
-                      className={`bg-[#17171A] border border-white/5 hover:border-white/10 transition-all rounded-xl p-2.5 px-3 flex items-center justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md group ${
+                      className={`bg-surface border border-line hover:border-line-strong transition-all rounded-xl p-2.5 px-3 flex items-center justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md group ${
                         isCanceled ? 'opacity-50 grayscale-[0.5]' : ''
                       }`}
                     >
@@ -199,7 +199,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                         <div className={`w-11 h-11 rounded-lg flex flex-col items-center justify-center shrink-0 border transition-colors ${
                           agenda.status === 'confirmado' 
                             ? 'bg-accent/10 border-accent/20 text-accent' 
-                            : 'bg-white/5 border-white/5 text-ink-2'
+                            : 'bg-bg border-line text-ink-2'
                         }`}>
                           <span className="text-[14px] font-bold num leading-tight">
                             {horaFmt.split(':')[0]}
@@ -228,7 +228,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                                <span className="capitalize">{agenda.tipo}</span>
                              </span>
                              
-                             <div className="w-1 h-1 rounded-full bg-white/10" />
+                             <div className="w-1 h-1 rounded-full bg-line" />
 
                              <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider ${config.color} border border-current/10`}>
                                {config.label}
@@ -262,14 +262,14 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                              {!isCanceled ? (
                                <button 
                                  onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
-                                 className="w-8 h-8 rounded-lg bg-white/5 text-ink-3 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
+                                 className="w-8 h-8 rounded-lg bg-bg text-ink-3 hover:text-red-500 hover:bg-red-500/10 transition-all border border-line hover:border-red-500/20"
                                >
                                  <X className="w-3.5 h-3.5" />
                                </button>
                              ) : (
                                 <button 
                                   onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
-                                  className="w-8 h-8 rounded-lg bg-white/5 text-ink-3 hover:text-green-500 hover:bg-green-500/10 transition-all border border-transparent hover:border-green-500/20"
+                                  className="w-8 h-8 rounded-lg bg-bg text-ink-3 hover:text-green-500 hover:bg-green-500/10 transition-all border border-line hover:border-green-500/20"
                                 >
                                   <RefreshCw className="w-3.5 h-3.5" />
                                 </button>
@@ -280,6 +280,7 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
                       </div>
                     </motion.div>
                   );
+
                 })}
               </AnimatePresence>
             </div>
