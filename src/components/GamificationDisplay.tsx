@@ -20,6 +20,7 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
   const [prs, setPrs] = useState<RecordePessoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedPrIds, setExpandedPrIds] = useState<number[]>([]);
+  const [expandedConquistaId, setExpandedConquistaId] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -46,6 +47,10 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
     setExpandedPrIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
+  };
+
+  const toggleExpandConquista = (id: number) => {
+    setExpandedConquistaId(prev => prev === id ? null : id);
   };
 
   if (loading) {
@@ -163,49 +168,97 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
           </span>
         </div>
 
-        {/* Lista de Conquistas em Formato de Lista Única */}
+        {/* Lista de Conquistas em Formato de Accordion Compacto */}
         <div className="space-y-2.5">
           {conquistas.map((conquista) => {
             const isUnlocked = alunoConquistas.some(ac => ac.conquista_id === conquista.id);
+            const isExpanded = expandedConquistaId === conquista.id;
             
             return (
               <div 
                 key={conquista.id}
-                className={`bg-surface border rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all shadow-[0_1px_2px_rgba(20,20,20,0.04)] ${
+                className={`bg-surface border rounded-2xl overflow-hidden transition-all shadow-[0_1px_2px_rgba(20,20,20,0.04)] ${
                   isUnlocked 
                     ? 'border-line hover:border-line-strong' 
-                    : 'border-line/60 bg-bg/40 opacity-70'
+                    : 'border-line/40 bg-bg/40'
                 }`}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xl shrink-0 ${
-                    isUnlocked ? 'bg-[#F26A1B]/10 border border-[#F26A1B]/20 shadow-xs' : 'bg-surface border border-line'
-                  }`}>
-                    {conquista.icone}
+                {/* Linha Cabeçalho - Clicável */}
+                <div 
+                  onClick={() => toggleExpandConquista(conquista.id)}
+                  className={`p-3 sm:p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none transition-colors ${
+                    isUnlocked ? 'hover:bg-bg/60' : 'opacity-60 grayscale hover:bg-bg/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-lg shrink-0 ${
+                      isUnlocked ? 'bg-[#F26A1B]/10 border border-[#F26A1B]/20 shadow-xs' : 'bg-surface border border-line'
+                    }`}>
+                      {conquista.icone}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className={`font-display font-bold text-sm truncate ${isUnlocked ? 'text-ink' : 'text-ink-3'}`}>
+                        {conquista.nome}
+                      </h4>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <h4 className={`font-display font-bold text-sm truncate ${isUnlocked ? 'text-ink' : 'text-ink-3'}`}>
-                      {conquista.nome}
-                    </h4>
-                    <p className="text-[11px] text-ink-3 truncate mt-0.5">
-                      {conquista.descricao}
-                    </p>
+
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    {isUnlocked ? (
+                      <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-mono font-bold text-[10px] rounded-lg flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3" />
+                        <span className="hidden xs:inline">Concluída</span>
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 bg-bg text-ink-3 border border-line font-mono font-medium text-[10px] rounded-lg flex items-center gap-1.5">
+                        <Lock className="w-3 h-3" />
+                        <span className="hidden xs:inline">Bloqueada</span>
+                      </span>
+                    )}
+                    
+                    <div className={`p-1 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-4 h-4 text-ink-3" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="shrink-0">
-                  {isUnlocked ? (
-                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-mono font-bold text-xs rounded-xl flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Concluída</span>
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 bg-bg text-ink-3 border border-line font-mono font-medium text-xs rounded-xl flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Bloqueada</span>
-                    </span>
+                {/* Detalhes Expansíveis */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden border-t border-line-soft bg-bg/30"
+                    >
+                      <div className="p-3.5 sm:p-4 space-y-3">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#F26A1B]/70 block">
+                            Descrição
+                          </span>
+                          <p className="text-xs text-ink-2 leading-relaxed">
+                            {conquista.descricao}
+                          </p>
+                        </div>
+
+                        {isUnlocked && (
+                          <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-600 bg-emerald-500/5 px-2.5 py-1.5 rounded-lg border border-emerald-500/10 w-fit">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>Conquistado em: {new Date().toLocaleDateString('pt-BR')}</span>
+                          </div>
+                        )}
+                        
+                        {!isUnlocked && (
+                          <div className="flex items-center gap-2 text-[10px] font-mono text-ink-3 bg-bg/50 px-2.5 py-1.5 rounded-lg border border-line w-fit">
+                            <Target className="w-3.5 h-3.5" />
+                            <span>Continue treinando para desbloquear esta medalha!</span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
               </div>
             );
           })}
