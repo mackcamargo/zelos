@@ -181,7 +181,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
         <div>
           <h2 className="font-display font-semibold text-[28px] text-ink flex items-center gap-2">
             <span>Modelos de treino</span>
-            <span className="text-[12px] font-medium bg-white/5 text-ink-2 px-2.5 py-1 rounded-full border border-white/5 num">
+            <span className="text-[12px] font-medium bg-bg text-ink-2 px-2.5 py-1 rounded-full border border-line num">
               {templates.length}
             </span>
           </h2>
@@ -224,8 +224,8 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
           <span className="w-8 h-8 border-2 border-violet border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filteredTemplates.length === 0 ? (
-        <div className="bg-surface rounded-3xl p-12 text-center border border-white/5 flex flex-col justify-center items-center">
-          <div className="w-16 h-16 rounded-2xl bg-void flex items-center justify-center mb-4 border border-white/5">
+        <div className="bg-surface rounded-2xl p-12 text-center border border-line flex flex-col justify-center items-center shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-bg flex items-center justify-center mb-4 border border-line">
             <FolderHeart className="w-8 h-8 text-violet/50" />
           </div>
           <span className="font-display font-medium text-lg text-ink mb-1">

@@ -774,48 +774,59 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                         </div>
 
                         {/* Right side parameters and controls */}
-                        <div className="flex flex-row sm:flex-row items-center gap-4 justify-between sm:justify-end shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-line">
+                        <div className="flex flex-row items-start gap-4 justify-between sm:justify-end shrink-0 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-line">
                           {/* Editable Plan Parameters (Series, Reps, Load) */}
-                          <div className="grid grid-cols-3 gap-2 shrink-0">
+                          <div className="grid grid-cols-3 gap-2 shrink-0 items-start">
                             <div className="w-16 sm:w-20">
-                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Séries</label>
+                              <div className="h-4 flex items-center justify-center mb-1">
+                                <span className="text-[10px] text-ink-3 font-bold uppercase tracking-wider whitespace-nowrap">Séries</span>
+                              </div>
                               <input
                                 type="text"
                                 inputMode="numeric"
                                 pattern="[0-9]*"
                                 value={item.series}
                                 onChange={(e) => updateExerciseField(index, 'series', e.target.value.replace(/[^0-9]/g, ''))}
-                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
+                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num w-full"
                               />
                             </div>
                             <div className="w-16 sm:w-20">
-                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Reps</label>
+                              <div className="h-4 flex items-center justify-center mb-1">
+                                <span className="text-[10px] text-ink-3 font-bold uppercase tracking-wider whitespace-nowrap">Reps</span>
+                              </div>
                               <input
                                 type="text"
                                 value={item.repeticoes}
                                 placeholder="ex: 10"
                                 onChange={(e) => updateExerciseField(index, 'repeticoes', e.target.value)}
-                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
+                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num w-full"
                               />
                             </div>
                             <div className="w-16 sm:w-20">
-                              <label className="text-[10px] text-ink-3 block mb-1 text-center font-bold uppercase tracking-wider">Carga (kg)</label>
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="-"
-                                value={item.carga_kg ?? ''}
-                                onChange={(e) => {
-                                  const val = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
-                                  updateExerciseField(index, 'carga_kg', val);
-                                }}
-                                className="z-input !h-9 !px-1 text-center text-xs font-semibold z-num"
-                              />
+                              <div className="h-4 flex items-center justify-center mb-1">
+                                <span className="text-[10px] text-ink-3 font-bold uppercase tracking-wider whitespace-nowrap">Carga</span>
+                              </div>
+                              <div className="relative w-full flex items-center">
+                                <input
+                                  type="text"
+                                  inputMode="decimal"
+                                  placeholder="-"
+                                  value={item.carga_kg ?? ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                                    updateExerciseField(index, 'carga_kg', val);
+                                  }}
+                                  className="z-input !h-9 !pl-3 !pr-5 text-center text-xs font-semibold z-num w-full"
+                                />
+                                <span className="absolute right-1.5 text-[9px] text-ink-3 font-semibold pointer-events-none select-none">
+                                  kg
+                                </span>
+                              </div>
                             </div>
                           </div>
 
                           {/* Order & Remove Controls */}
-                          <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="flex items-center sm:items-start gap-1.5 shrink-0 mt-5 min-h-[36px]">
                             <div className="flex sm:flex-col gap-1">
                               <button
                                 type="button"

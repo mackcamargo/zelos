@@ -1063,7 +1063,12 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                       />
                       <YAxis hide />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                        contentStyle={{ 
+                          backgroundColor: 'var(--z-surface)', 
+                          border: '1px solid var(--z-line)', 
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 12px rgba(20,20,20,0.08)'
+                        }}
                         itemStyle={{ color: '#F5334F', fontSize: '10px', fontFamily: 'JetBrains Mono' }}
                         labelStyle={{ display: 'none' }}
                       />

@@ -83,16 +83,16 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center p-4 bg-void/80 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex flex-col items-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
       <div className="flex-1 w-full flex items-center justify-center min-h-[max-content] py-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="w-full max-w-md bg-surface border border-white/10 rounded-[32px] overflow-hidden shadow-2xl"
+          className="w-full max-w-md bg-surface border border-line rounded-[32px] overflow-hidden shadow-2xl"
         >
-        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="p-6 border-b border-line flex items-center justify-between">
           <h3 className="font-display font-bold text-lg text-ink">Registrar Evolução</h3>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full text-ink-3 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-bg rounded-full text-ink-3 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -126,12 +126,12 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
                         setAngulo(a);
                         fileInputRef.current?.click();
                       }}
-                      className="w-full p-4 bg-surface-2 border border-white/5 rounded-2xl flex items-center justify-between hover:border-flame/30 hover:bg-surface-3 transition-all group"
+                      className="w-full p-4 bg-bg border border-line rounded-2xl flex items-center justify-between hover:border-flame/30 hover:bg-raise transition-all group"
                     >
                       <span className="font-display font-bold text-sm text-ink uppercase tracking-widest group-hover:text-flame">
                         {a}
                       </span>
-                      <div className="w-8 h-8 rounded-full bg-void flex items-center justify-center text-ink-3">
+                      <div className="w-8 h-8 rounded-full bg-bg flex items-center justify-center text-ink-3 border border-line">
                         <Camera className="w-4 h-4" />
                       </div>
                     </button>
@@ -154,7 +154,7 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="aspect-[3/4] max-h-[50vh] mx-auto bg-void rounded-3xl overflow-hidden border border-white/10 relative group">
+                <div className="aspect-[3/4] max-h-[50vh] mx-auto bg-bg rounded-3xl overflow-hidden border border-line relative group">
                   {preview ? (
                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
@@ -175,14 +175,14 @@ export default function FotoProgressoUpload({ alunoId, personalId, onSuccess, on
                       setPreview(null);
                       setFile(null);
                     }}
-                    className="flex-1 py-4 bg-surface-2 border border-white/5 rounded-2xl font-display font-bold text-ink text-xs hover:bg-surface-3 transition-all"
+                    className="flex-1 py-4 bg-bg border border-line rounded-2xl font-display font-bold text-ink text-xs hover:bg-raise transition-all"
                   >
                     TROCAR ÂNGULO
                   </button>
                   <button
                     onClick={handleUpload}
                     disabled={uploading}
-                    className="flex-[2] py-4 brand-gradient-bg rounded-2xl font-display font-bold text-void text-xs flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                    className="flex-[2] py-4 brand-gradient-bg rounded-2xl font-display font-bold text-surface text-xs flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
                   >
                     {uploading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

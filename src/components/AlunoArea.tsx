@@ -2181,7 +2181,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                               <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                               <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 1', 'dataMax + 1']} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                contentStyle={{ 
+                                  backgroundColor: 'var(--z-surface)', 
+                                  border: '1px solid var(--z-line)', 
+                                  borderRadius: '12px',
+                                  boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                                }}
                                 labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
                                 itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value} kg`, 'Peso']}
@@ -2255,7 +2260,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                               <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                               <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                contentStyle={{ 
+                                  backgroundColor: 'var(--z-surface)', 
+                                  border: '1px solid var(--z-line)', 
+                                  borderRadius: '12px',
+                                  boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                                }}
                                 labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
                                 itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value} kg`, 'Carga']}
@@ -2307,7 +2317,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                               <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                               <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                contentStyle={{ 
+                                  backgroundColor: 'var(--z-surface)', 
+                                  border: '1px solid var(--z-line)', 
+                                  borderRadius: '12px',
+                                  boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                                }}
                                 labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
                                 itemStyle={{ color: '#10B981', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value}%`, 'Concluído']}
@@ -2357,7 +2372,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                               <XAxis dataKey="date" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                               <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                               <Tooltip 
-                                contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                contentStyle={{ 
+                                  backgroundColor: 'var(--z-surface)', 
+                                  border: '1px solid var(--z-line)', 
+                                  borderRadius: '12px',
+                                  boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                                }}
                                 labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
                                 itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                 formatter={(value: any) => [`${value} kg`, 'Esforço Mecânico']}
@@ -2591,7 +2611,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                         <XAxis dataKey="label" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                                         <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
                                         <Tooltip 
-                                          contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                          contentStyle={{ 
+                                            backgroundColor: 'var(--z-surface)', 
+                                            border: '1px solid var(--z-line)', 
+                                            borderRadius: '12px',
+                                            boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                                          }}
                                           labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
                                           itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                           formatter={(value: any) => [`${value} kg`, 'Carga']}
@@ -2630,7 +2655,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                         <XAxis dataKey="semana" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                                         <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                                         <Tooltip 
-                                          contentStyle={{ backgroundColor: 'var(--z-surface-raise)', border: '1px solid var(--z-line-strong)', borderRadius: '12px' }}
+                                          contentStyle={{ 
+                                            backgroundColor: 'var(--z-surface)', 
+                                            border: '1px solid var(--z-line)', 
+                                            borderRadius: '12px',
+                                            boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                                          }}
                                           labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace' }}
                                           itemStyle={{ color: 'var(--z-accent)', fontSize: '12px', fontWeight: 'bold' }}
                                         />

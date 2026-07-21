@@ -167,8 +167,14 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
                         <XAxis dataKey="semana" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                         <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
                         <Tooltip 
-                          contentStyle={{ backgroundColor: 'var(--z-bg)', borderColor: 'var(--z-line)', borderRadius: '12px' }}
+                          contentStyle={{ 
+                            backgroundColor: 'var(--z-surface)', 
+                            border: '1px solid var(--z-line)', 
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                          }}
                           labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontWeight: 'bold' }}
+                          itemStyle={{ fontSize: '11px', fontWeight: '500' }}
                         />
                         <Line 
                           type="monotone" 
@@ -202,10 +208,21 @@ export default function HistoricoCheckinModal({ alunoId, alunoNome, onClose }: H
                         <XAxis dataKey="semana" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
                         <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} />
                         <Tooltip 
-                          contentStyle={{ backgroundColor: 'var(--z-bg)', borderColor: 'var(--z-line)', borderRadius: '12px' }}
+                          contentStyle={{ 
+                            backgroundColor: 'var(--z-surface)', 
+                            border: '1px solid var(--z-line)', 
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                          }}
                           labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontWeight: 'bold' }}
+                          itemStyle={{ fontSize: '11px', fontWeight: '500' }}
                         />
-                        <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }} />
+                        <Legend 
+                          verticalAlign="top" 
+                          height={36} 
+                          iconType="circle" 
+                          wrapperStyle={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }} 
+                        />
                         <Line type="monotone" dataKey="Energia" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                         <Line type="monotone" dataKey="Sono" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                         <Line type="monotone" dataKey="Estresse" stroke="#EF4444" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />

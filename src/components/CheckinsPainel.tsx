@@ -53,9 +53,9 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
 
   if (checkins.length === 0) {
     return (
-      <div className="bg-surface-2 rounded-3xl p-12 text-center border border-white/5 flex flex-col justify-center items-center">
-        <div className="w-16 h-16 rounded-2xl bg-surface-3 flex items-center justify-center mb-5 border border-white/5">
-          <Calendar className="w-8 h-8 text-ink-3 opacity-30" />
+      <div className="bg-surface rounded-[18px] p-12 text-center border border-line flex flex-col justify-center items-center shadow-[0_1px_2px_rgba(20,20,20,0.04)]">
+        <div className="w-16 h-16 rounded-2xl bg-bg border border-line flex items-center justify-center mb-5">
+          <Calendar className="w-8 h-8 text-ink-3 opacity-50" />
         </div>
         <span className="font-display font-medium text-lg text-ink mb-1">Nenhum check-in ainda</span>
         <p className="text-sm text-ink-2 max-w-md leading-relaxed">
@@ -68,23 +68,29 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
   return (
     <div className="space-y-8">
       {/* Charts Section */}
-      <div className="bg-surface-2 border border-white/5 rounded-3xl p-6">
+      <div className="bg-surface border border-line rounded-[18px] p-6 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_4px_12px_rgba(20,20,20,0.06)]">
         <div className="flex items-center gap-3 mb-6">
-          <TrendingUp className="w-5 h-5 text-flame" />
+          <TrendingUp className="w-5 h-5 text-accent" />
           <h3 className="font-display font-bold text-lg text-ink">Evolução do Bem-Estar</h3>
         </div>
         
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" />
-              <XAxis dataKey="semana" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 5]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--z-line-soft)" />
+              <XAxis dataKey="semana" stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--z-text-3)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 5]} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#08090C', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}
-                labelStyle={{ color: '#fff', fontSize: '11px', fontFamily: 'monospace' }}
+                contentStyle={{ 
+                  backgroundColor: 'var(--z-surface)', 
+                  border: '1px solid var(--z-line)', 
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(20,20,20,0.08)' 
+                }}
+                labelStyle={{ color: 'var(--z-text)', fontSize: '11px', fontFamily: 'monospace', fontWeight: 'bold' }}
+                itemStyle={{ fontSize: '11px', fontWeight: '500' }}
               />
-              <Legend verticalAlign="top" height={36} iconType="circle" />
+              <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: '500' }} />
               <Line type="monotone" dataKey="Energia" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
               <Line type="monotone" dataKey="Sono" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
               <Line type="monotone" dataKey="Estresse" stroke="#F43F5E" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
@@ -96,8 +102,8 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
       {/* History Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {checkins.map((c) => (
-          <div key={c.id} className="bg-surface-2 border border-white/5 rounded-3xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
+          <div key={c.id} className="bg-surface border border-line rounded-[18px] p-5 space-y-4 shadow-[0_1px_2px_rgba(20,20,20,0.04),0_4px_12px_rgba(20,20,20,0.06)] hover:shadow-[0_4px_20px_rgba(20,20,20,0.08)] transition-shadow">
+            <div className="flex items-center justify-between pb-3 border-b border-line-soft">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-ink-3" />
                 <span className="text-xs font-mono font-bold text-ink-2">
@@ -113,25 +119,25 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-surface-3 p-3 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
+              <div className="bg-bg p-3 rounded-xl flex flex-col items-center gap-1 border border-line-soft">
                 <Zap className="w-4 h-4 text-amber-500" />
                 <span className="text-lg font-mono font-black text-ink">{c.energia}/5</span>
                 <span className="text-[8px] font-mono uppercase text-ink-3">Energia</span>
               </div>
-              <div className="bg-surface-3 p-3 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
-                <Moon className="w-4 h-4 text-violet" />
+              <div className="bg-bg p-3 rounded-xl flex flex-col items-center gap-1 border border-line-soft">
+                <Moon className="w-4 h-4 text-violet-500" />
                 <span className="text-lg font-mono font-black text-ink">{c.qualidade_sono}/5</span>
                 <span className="text-[8px] font-mono uppercase text-ink-3">Sono</span>
               </div>
-              <div className="bg-surface-3 p-3 rounded-2xl flex flex-col items-center gap-1 border border-white/5">
-                <Flame className="w-4 h-4 text-flame" />
+              <div className="bg-bg p-3 rounded-xl flex flex-col items-center gap-1 border border-line-soft">
+                <Flame className="w-4 h-4 text-accent" />
                 <span className="text-lg font-mono font-black text-ink">{c.nivel_estresse}/5</span>
                 <span className="text-[8px] font-mono uppercase text-ink-3">Estresse</span>
               </div>
             </div>
 
             {(c.peso_kg || c.dores) && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 {c.peso_kg && (
                   <div className="flex items-center gap-2 text-ink-2">
                     <Scale className="w-3.5 h-3.5" />
@@ -139,7 +145,7 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
                   </div>
                 )}
                 {c.dores && (
-                  <div className="flex items-center gap-2 text-rose-400">
+                  <div className="flex items-center gap-2 text-rose-500">
                     <AlertCircle className="w-3.5 h-3.5" />
                     <span className="text-xs truncate">{c.dores}</span>
                   </div>
@@ -148,7 +154,7 @@ export default function CheckinsPainel({ alunoId }: CheckinsPainelProps) {
             )}
 
             {c.observacoes && (
-              <div className="bg-void/30 p-3 rounded-xl border border-white/5">
+              <div className="bg-bg p-3 rounded-xl border border-line-soft">
                 <div className="flex items-center gap-2 mb-1">
                   <MessageSquare className="w-3 h-3 text-ink-3" />
                   <span className="text-[10px] font-mono text-ink-3 uppercase">Observações:</span>
