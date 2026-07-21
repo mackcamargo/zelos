@@ -833,6 +833,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
               onNavigateToTab={(tab) => {
                 setActiveTab(tab);
               }}
+              onUnauthorized={onLogout}
             />
           </div>
         )}

@@ -1795,38 +1795,31 @@ export const dbService = {
 
   async getDashboardPersonal(personalId: string): Promise<{ data: any; error: any }> {
     if (isSupabaseConfigured && supabase) {
-      // Tenta primeiro sem argumentos, caso a função use o auth.uid() do usuário autenticado
-      let result = await supabase.rpc('dashboard_personal');
-      
-      if (result.error) {
-        console.warn('Erro ao chamar RPC dashboard_personal sem parâmetros. Tentando com p_personal...', result.error);
-        const retry1 = await supabase.rpc('dashboard_personal', { p_personal: personalId });
-        if (!retry1.error) {
-          result = retry1;
-        } else {
-          console.warn('Erro ao chamar RPC com p_personal. Tentando com personal_id...', retry1.error);
-          const retry2 = await supabase.rpc('dashboard_personal', { personal_id: personalId });
-          if (!retry2.error) {
-            result = retry2;
-          } else {
-            console.warn('Erro ao chamar RPC com personal_id. Tentando com p_personal_id...', retry2.error);
-            const retry3 = await supabase.rpc('dashboard_personal', { p_personal_id: personalId });
-            if (!retry3.error) {
-              result = retry3;
-            }
-          }
+      try {
+        // Garante que a sessão está ativa e tenta dar um refresh se necessário
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          console.warn('Sessão inválida ou expirada ao carregar dashboard:', sessionError);
+          return { data: null, error: { message: 'Sessão expirada. Por favor, faça login novamente.', code: 'UNAUTHORIZED' } };
         }
-      }
 
-      if (!result.error) {
-        return { data: result.data, error: null };
+        // Chamar o RPC sem NENHUM parâmetro (a função identifica o personal via auth.uid())
+        const { data, error } = await supabase.rpc('dashboard_personal');
+
+        if (error) {
+          console.error('Erro ao chamar RPC dashboard_personal:', error);
+          return { data: null, error };
+        }
+
+        return { data, error: null };
+      } catch (err) {
+        console.error('Exceção ao buscar dados do dashboard:', err);
+        return { data: null, error: err };
       }
-      
-      console.error('Falha ao executar o RPC dashboard_personal com qualquer assinatura:', result.error);
-      return { data: null, error: result.error };
     }
 
-    // Se o Supabase não estiver configurado, retorna apenas a estrutura vazia necessária, sem nenhum dado mock de exemplo
+    // Se o Supabase não estiver configurado, retorna apenas a estrutura vazia necessária
     const emptyData = {
       kpis: {
         alunos_ativos: 0,

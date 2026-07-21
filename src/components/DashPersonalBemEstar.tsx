@@ -12,13 +12,15 @@ interface DashPersonalBemEstarProps {
   onSelectAluno: (alunoId: string) => void;
   onSelectAlunoAndChat: (alunoId: string) => void;
   onNavigateToTab?: (tab: any) => void;
+  onUnauthorized?: () => void;
 }
 
 export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({ 
   personalId, 
   onSelectAluno,
   onSelectAlunoAndChat,
-  onNavigateToTab
+  onNavigateToTab,
+  onUnauthorized
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -206,11 +208,17 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
     setError(null);
     try {
       const { data, error: dbErr } = await dbService.getDashboardPersonal(personalId);
-      if (dbErr) throw dbErr;
+      if (dbErr) {
+        if (dbErr.code === 'UNAUTHORIZED' && onUnauthorized) {
+          onUnauthorized();
+          return;
+        }
+        throw dbErr;
+      }
       setDashboardData(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao buscar dados do dashboard:', err);
-      setError('Não foi possível carregar os dados do painel. Verifique sua conexão e tente novamente.');
+      setError(err.message || 'Não foi possível carregar os dados do painel. Verifique sua conexão e tente novamente.');
     } finally {
       if (showLoading) setLoading(false);
     }
