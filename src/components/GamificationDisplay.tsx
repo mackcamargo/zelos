@@ -150,7 +150,7 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
       </section>
 
       {/* SEÇÃO: CONQUISTAS */}
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex items-center justify-between pb-1">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-[#F26A1B]/10 rounded-xl border border-[#F26A1B]/20">
@@ -163,48 +163,58 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        {/* Lista de Conquistas em Formato de Lista Única */}
+        <div className="space-y-2.5">
           {conquistas.map((conquista) => {
             const isUnlocked = alunoConquistas.some(ac => ac.conquista_id === conquista.id);
             
             return (
               <div 
                 key={conquista.id}
-                className={`relative flex flex-col items-center text-center p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 group ${
+                className={`bg-surface border rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all shadow-[0_1px_2px_rgba(20,20,20,0.04)] ${
                   isUnlocked 
-                    ? 'bg-surface border-line hover:border-[#F26A1B]/30 hover:scale-[1.02] shadow-[0_1px_2px_rgba(20,20,20,0.04)]' 
-                    : 'bg-bg/50 border-line/50 opacity-50 grayscale'
+                    ? 'border-line hover:border-line-strong' 
+                    : 'border-line/60 bg-bg/40 opacity-70'
                 }`}
               >
-                {!isUnlocked && (
-                  <div className="absolute top-2.5 right-2.5">
-                    <Lock className="w-3 h-3 text-ink-3" />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xl shrink-0 ${
+                    isUnlocked ? 'bg-[#F26A1B]/10 border border-[#F26A1B]/20 shadow-xs' : 'bg-surface border border-line'
+                  }`}>
+                    {conquista.icone}
                   </div>
-                )}
-                
-                <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-2xl mb-2.5 transition-all ${
-                  isUnlocked ? 'bg-[#F26A1B]/10 border border-[#F26A1B]/20 shadow-xs' : 'bg-surface border border-line'
-                }`}>
-                  {conquista.icone}
+                  <div className="min-w-0">
+                    <h4 className={`font-display font-bold text-sm truncate ${isUnlocked ? 'text-ink' : 'text-ink-3'}`}>
+                      {conquista.nome}
+                    </h4>
+                    <p className="text-[11px] text-ink-3 truncate mt-0.5">
+                      {conquista.descricao}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-1 w-full">
-                  <h4 className={`text-xs font-bold leading-tight truncate ${isUnlocked ? 'text-ink' : 'text-ink-3'}`}>
-                    {conquista.nome}
-                  </h4>
-                  <p className="text-[10px] text-ink-3 leading-snug line-clamp-2">
-                    {conquista.descricao}
-                  </p>
+                <div className="shrink-0">
+                  {isUnlocked ? (
+                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-mono font-bold text-xs rounded-xl flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Concluída</span>
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 bg-bg text-ink-3 border border-line font-mono font-medium text-xs rounded-xl flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Bloqueada</span>
+                    </span>
+                  )}
                 </div>
-
-                {isUnlocked && (
-                  <div className="absolute -bottom-1 -right-1 p-1 bg-white rounded-full text-[#F26A1B] shadow-md scale-0 group-hover:scale-100 transition-transform">
-                    <Sparkles className="w-3 h-3" />
-                  </div>
-                )}
               </div>
             );
           })}
+
+          {conquistas.length === 0 && (
+            <div className="py-8 text-center bg-surface rounded-2xl border border-dashed border-line p-6">
+              <p className="text-xs text-ink-3 italic">Nenhuma conquista cadastrada.</p>
+            </div>
+          )}
         </div>
       </section>
     </div>
