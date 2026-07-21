@@ -33,7 +33,9 @@ export default function GerenciarCortesias() {
 
   // Modal / Confirm States
   const [confirmToggleData, setConfirmToggleData] = useState<{ code: CourtesyCode; nextState: boolean } | null>(null);
+  const [confirmDeleteData, setConfirmDeleteData] = useState<CourtesyCode | null>(null);
   const [toggling, setToggling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -249,6 +251,46 @@ export default function GerenciarCortesias() {
     }
   };
 
+  const handleExcluir = (code: CourtesyCode) => {
+    tocar('tap');
+    setConfirmDeleteData(code);
+  };
+
+  const executeExcluir = async (codeStr: string) => {
+    setDeleting(true);
+    setErrorMessage(null);
+    try {
+      if (isSupabaseConfigured && supabase) {
+        const { data, error } = await supabase.rpc('admin_excluir_codigo', {
+          p_codigo: codeStr
+        });
+
+        if (error) throw error;
+
+        if (data && data.ok === true) {
+          showToast(`Código ${codeStr} excluído com sucesso!`);
+          await loadCodes();
+        } else if (data && data.em_uso) {
+          setErrorMessage(data.erro || `Este código já foi usado (${data.usos} vezes) e não pode ser excluído. Use 'Desativar' para revogar o acesso.`);
+        } else {
+          setErrorMessage(data?.erro || 'Erro ao excluir código.');
+        }
+      } else {
+        // Mock delete
+        const updated = codes.filter(c => c.codigo !== codeStr);
+        setCodes(updated);
+        localStorage.setItem('zelos_mock_cortesias', JSON.stringify(updated));
+        showToast(`Código ${codeStr} excluído! (Modo Local)`);
+      }
+    } catch (err: any) {
+      console.error('Error deleting code:', err);
+      setErrorMessage(err.message || 'Erro ao excluir o código.');
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteData(null);
+    }
+  };
+
   const copyLinkToClipboard = (code: string) => {
     const link = `https://www.zelospersonal.com.br/cadastro?cortesia=${code.toUpperCase()}`;
     navigator.clipboard.writeText(link);
@@ -353,6 +395,57 @@ Qualquer dúvida, me chama. Aproveita! 💪`;
                   onClick={() => {
                     tocar('tap');
                     setConfirmToggleData(null);
+                  }}
+                  className="w-full py-3 px-4 bg-raise hover:bg-raise/80 border border-line text-ink rounded-xl text-xs font-semibold cursor-pointer text-center"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {confirmDeleteData && (
+          <div className="z-overlay !z-[100] fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-surface border border-line rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-6 shadow-2xl relative"
+            >
+              <div className="flex gap-4 items-start">
+                <div className="p-3 bg-red-500/10 rounded-2xl border border-red-500/20 text-red-500 shrink-0">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-display font-bold text-lg text-ink">
+                    Excluir código?
+                  </h3>
+                  <p className="text-xs text-ink-2 leading-relaxed">
+                    Você está prestes a excluir o código <span className="font-bold text-accent">{confirmDeleteData.codigo}</span>. Esta ação é irreversível e o código deixará de existir.
+                  </p>
+                  <p className="text-[10px] text-red-500 font-medium">
+                    Nota: Se o código já foi usado, ele não poderá ser excluído, apenas desativado.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={() => executeExcluir(confirmDeleteData.codigo)}
+                  className="w-full py-3 px-4 bg-red-600 text-white rounded-xl text-xs font-bold transition-all hover:bg-red-700 cursor-pointer text-center flex items-center justify-center gap-2"
+                >
+                  {deleting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  {deleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+                </button>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={() => {
+                    tocar('tap');
+                    setConfirmDeleteData(null);
                   }}
                   className="w-full py-3 px-4 bg-raise hover:bg-raise/80 border border-line text-ink rounded-xl text-xs font-semibold cursor-pointer text-center"
                 >
@@ -653,6 +746,15 @@ Qualquer dúvida, me chama. Aproveita! 💪`;
                                   </>
                                 )}
                               </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleExcluir(c)}
+                                className="p-2 bg-red-500/5 text-red-500/60 hover:text-red-500 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-lg transition-all cursor-pointer"
+                                title="Excluir código permanentemente"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -679,18 +781,28 @@ Qualquer dúvida, me chama. Aproveita! 💪`;
                           </span>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleToggleState(c)}
-                          className={`flex items-center gap-1 py-1 px-2.5 rounded-lg text-[9px] font-bold border transition-all cursor-pointer ${
-                            c.ativo 
-                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                              : 'bg-raise border-line text-ink-3'
-                          }`}
-                        >
-                          {c.ativo ? <Lock className="w-2.5 h-2.5" /> : <Unlock className="w-2.5 h-2.5" />}
-                          <span>{c.ativo ? 'Ativo' : 'Inativo'}</span>
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleState(c)}
+                            className={`flex items-center gap-1 py-1 px-2.5 rounded-lg text-[9px] font-bold border transition-all cursor-pointer ${
+                              c.ativo 
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                                : 'bg-raise border-line text-ink-3'
+                            }`}
+                          >
+                            {c.ativo ? <Lock className="w-2.5 h-2.5" /> : <Unlock className="w-2.5 h-2.5" />}
+                            <span>{c.ativo ? 'Ativo' : 'Inativo'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleExcluir(c)}
+                            className="p-1.5 bg-red-500/5 text-red-500 border border-red-500/10 rounded-lg transition-all cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="space-y-1">

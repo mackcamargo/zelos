@@ -248,24 +248,39 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
           {filteredTemplates.map((template) => (
-            <div
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               key={template.id}
               onClick={() => {
                 setSelectedTemplateId(template.id);
                 setIsEditing(true);
               }}
-              className="bg-surface border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all cursor-pointer group flex flex-col justify-between hover:shadow-[0_4px_25px_rgba(0,0,0,0.3)] relative overflow-hidden h-full clicavel"
+              className="bg-white border border-[#E4DFD6] rounded-[20px] p-5 hover:shadow-[0_4px_20px_rgba(20,20,20,0.08)] hover:-translate-y-1 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden h-full shadow-[0_2px_10px_rgba(20,20,20,0.04)]"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-violet/5 blur-2xl pointer-events-none rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              {/* Background Glow */}
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#F26A1B]/5 blur-3xl pointer-events-none rounded-full" />
               
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-violet/10 border border-violet/20 flex items-center justify-center text-violet shrink-0 group-hover:scale-105 transition-transform">
-                    <FolderHeart className="w-5 h-5" />
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center text-[#F26A1B] shrink-0 group-hover:scale-105 transition-transform">
+                      <FolderHeart className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-display font-bold text-[15px] text-[#1B1B1B] group-hover:text-[#F26A1B] transition-colors truncate">
+                        {template.titulo}
+                      </h3>
+                      <div className="flex items-center gap-1.5 text-[10px] text-[#6B6B6B] mt-0.5 font-mono">
+                        <Clock className="w-3 h-3" />
+                        <span>{new Date(template.criado_em).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
                     <button
                       id={`btn-apply-template-${template.id}`}
                       type="button"
@@ -276,53 +291,60 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                         setIsApplyModalOpen(true);
                         loadStudents();
                       }}
-                      className="p-2 text-ink-3 hover:text-[#F26A1B] hover:bg-[#F26A1B]/10 rounded-lg transition-all"
-                      title="Aplicar a Aluno"
+                      className="p-1.5 text-[#6B6B6B] hover:text-[#F26A1B] hover:bg-[#F26A1B]/10 rounded-lg transition-all"
+                      title="Aplicar"
                     >
-                      <UserPlus className="w-4 h-4" />
+                      <UserPlus className="w-3.5 h-3.5" />
                     </button>
                     <button
                       type="button"
-                      onClick={(e) => handleDelete(template.id, e)}
-                      className="p-2 text-ink-3 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-all"
-                      title="Excluir"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTemplateId(template.id);
+                        setIsEditing(true);
+                      }}
+                      className="p-1.5 text-[#6B6B6B] hover:text-[#F26A1B] hover:bg-[#F26A1B]/10 rounded-lg transition-all"
+                      title="Editar"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Edit2 className="w-3.5 h-3.5" />
                     </button>
-                    <div className="p-2 text-ink-3 group-hover:text-violet transition-colors">
-                      <Edit2 className="w-4 h-4" />
-                    </div>
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(template.id, e)}
+                        className="p-1.5 text-[#6B6B6B] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="font-semibold text-base text-ink group-hover:text-white transition-colors truncate">
-                    {template.titulo}
-                  </h3>
-                  {template.descricao && (
-                    <p className="text-[12px] text-ink-2 mt-1 line-clamp-2 leading-relaxed">
-                      {template.descricao}
-                    </p>
-                  )}
-                </div>
+                {template.descricao && (
+                  <p className="text-[11px] text-[#6B6B6B] line-clamp-2 leading-relaxed">
+                    {template.descricao}
+                  </p>
+                )}
 
-                <div className="pt-2 flex flex-wrap gap-2">
-                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-raise px-2 py-0.5 rounded-md border border-line num">
-                    <Dumbbell className="w-3 h-3" />
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-1 text-[10px] text-[#6B6B6B] bg-[#F5F2EC] px-2 py-0.5 rounded-md border border-[#E4DFD6]/50 font-bold uppercase tracking-wider num">
+                    <Dumbbell className="w-3 h-3 text-[#F26A1B]/70" />
                     <span>{template.exercicios?.length || 0} exercícios</span>
                   </div>
-                  <div className="flex items-center gap-1 text-[12px] text-ink-3 bg-raise px-2 py-0.5 rounded-md border border-line num">
-                    <Clock className="w-3 h-3" />
-                    <span>{new Date(template.criado_em).toLocaleDateString('pt-BR')}</span>
-                  </div>
                 </div>
               </div>
 
-              <div className="mt-5 pt-3.5 border-t border-line flex justify-between items-center text-[12px]">
-                <span className="text-violet-400 font-semibold">Base reutilizável</span>
-                <span className="text-ink-3 group-hover:text-ink transition-colors">Abrir editor →</span>
+              <div className="mt-5 pt-3.5 border-t border-[#E4DFD6]/50 flex justify-between items-center text-[11px]">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#F26A1B14] text-[#F26A1B] rounded-full text-[9px] font-bold uppercase tracking-wider">
+                  <CheckCircle className="w-2.5 h-2.5" />
+                  <span>Base Reutilizável</span>
+                </div>
+                <span className="text-[#F26A1B] font-bold flex items-center gap-1">
+                  Abrir editor <ArrowLeft className="w-3 h-3 rotate-180" />
+                </span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
