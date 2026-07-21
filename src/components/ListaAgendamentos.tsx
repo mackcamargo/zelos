@@ -139,121 +139,153 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
 
   if (agendamentos.length === 0) {
     return (
-      <div className="py-20 text-center space-y-4 border-2 border-dashed border-white/5 rounded-[40px]" id="lista-agendamentos-empty">
-        <CalendarIcon className="w-8 h-8 text-ink-3 mx-auto" />
+      <div className="py-20 text-center space-y-4 border border-dashed border-white/10 rounded-3xl" id="lista-agendamentos-empty">
+        <CalendarIcon className="w-8 h-8 text-ink-3 mx-auto opacity-30" />
         <p className="text-[12px] text-ink-3">Nenhuma sessão encontrada.</p>
       </div>
     );
   }
 
+  // Group agendamentos by day
+  const groupedAgendamentos = agendamentos.reduce((groups: Record<string, Agendamento[]>, agenda) => {
+    const date = new Date(agenda.data_hora).toISOString().split('T')[0];
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(agenda);
+    return groups;
+  }, {});
+
+  const sortedDates = Object.keys(groupedAgendamentos).sort();
+
   return (
-    <div className="space-y-4" id="lista-agendamentos-container">
-      <AnimatePresence mode="popLayout">
-        {agendamentos.map((agenda, index) => {
-          const config = STATUS_CONFIG[agenda.status] || { label: agenda.status, color: 'text-ink-3 bg-white/5 border-white/10' };
-          const d = new Date(agenda.data_hora);
-          const dataFmt = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", weekday: "short" });
-          const horaFmt = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    <div className="space-y-6" id="lista-agendamentos-container">
+      {sortedDates.map((dateStr) => {
+        const date = new Date(dateStr + 'T12:00:00'); // Use mid-day to avoid TZ issues
+        const weekday = date.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', '');
+        const dayMonth = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        const group = groupedAgendamentos[dateStr].sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
 
-          return (
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ delay: index * 0.05 }}
-              key={agenda.id}
-              onClick={() => setSelectedAgendamento(agenda)}
-              className="z-card z-card--tap flex flex-col md:flex-row md:items-center justify-between gap-6"
-            >
-              <div className="flex items-center gap-6">
-                <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-semibold shrink-0 ${
-                  agenda.status === 'confirmado' ? 'bg-accent text-white' : 'bg-surface-raise text-ink-3 border border-line'
-                }`}>
-                  <span className="text-[10px] opacity-70 num">
-                    {isNaN(d.getTime()) ? '-' : d.toLocaleDateString('pt-BR', { month: 'short' })}
-                  </span>
-                  <span className="text-xl leading-none num">
-                    {isNaN(d.getTime()) ? '-' : d.getDate()}
-                  </span>
-                </div>
-                
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <h4 className="font-semibold text-ink num">{isNaN(d.getTime()) ? 'Horário' : horaFmt}</h4>
-                    <span className="text-[12px] text-ink-3 num">({isNaN(d.getTime()) ? 'Data' : dataFmt})</span>
-                    {agenda.aluno_nome && !isUUID(agenda.aluno_nome) && (
-                      <span className="text-[12px] text-flame">• {agenda.aluno_nome}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 text-[12px] text-ink-3">
-                     <span className="flex items-center gap-1">
-                       {agenda.tipo === 'presencial' ? (
-                         <>
-                           <MapPin className="w-3 h-3 text-accent" />
-                           <span>Presencial</span>
-                         </>
-                       ) : agenda.tipo === 'online' ? (
-                         <>
-                           <Video className="w-3 h-3 text-accent" />
-                           <span>Online</span>
-                         </>
-                       ) : (
-                         <>
-                           <FileText className="w-3 h-3 text-accent" />
-                           <span>Avaliação física</span>
-                         </>
-                       )}
-                     </span>
-                     <span className={`px-2 py-0.5 rounded-full border ${config.color} text-[10px] font-semibold num`}>
-                       {config.label}
-                     </span>
-                  </div>
-                </div>
-              </div>
+        return (
+          <div key={dateStr} className="space-y-2.5">
+            <h5 className="text-[10px] font-bold text-ink-3 uppercase tracking-widest pl-2 flex items-center gap-2">
+              <span className="text-accent">{weekday}</span>
+              <span className="opacity-50">{dayMonth}</span>
+              <div className="h-px bg-white/5 flex-1" />
+            </h5>
 
-              <div className="flex items-center gap-3">
-                {processingId === agenda.id ? (
-                  <Loader2 className="w-5 h-5 text-flame animate-spin" />
-                ) : agenda.status === 'solicitado' ? (
-                  <>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-500 rounded-xl text-xs font-semibold border border-green-500/20 hover:bg-green-500/20 transition-all"
+            <div className="space-y-2">
+              <AnimatePresence mode="popLayout">
+                {group.map((agenda, index) => {
+                  const isCanceled = agenda.status === 'cancelado';
+                  const config = STATUS_CONFIG[agenda.status] || { label: agenda.status, color: 'text-ink-3 bg-white/5 border-white/10' };
+                  const d = new Date(agenda.data_hora);
+                  const horaFmt = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: index * 0.03 }}
+                      key={agenda.id}
+                      onClick={() => setSelectedAgendamento(agenda)}
+                      className={`bg-[#17171A] border border-white/5 hover:border-white/10 transition-all rounded-xl p-2.5 px-3 flex items-center justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md group ${
+                        isCanceled ? 'opacity-50 grayscale-[0.5]' : ''
+                      }`}
                     >
-                      <Check className="w-4 h-4" /> Confirmar
-                    </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-xs font-semibold border border-red-500/20 hover:bg-red-500/20 transition-all"
-                    >
-                      <X className="w-4 h-4" /> Recusar
-                    </button>
-                  </>
-                ) : (
-                   <div className="flex gap-2">
-                     {agenda.status !== 'cancelado' && (
-                       <button 
-                         onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
-                         className="p-2 bg-white/5 text-ink-3 hover:text-red-500 rounded-xl transition-colors"
-                       >
-                         <X className="w-4 h-4" />
-                       </button>
-                     )}
-                     {agenda.status === 'cancelado' && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
-                          className="p-2 bg-white/5 text-ink-3 hover:text-green-500 rounded-xl transition-colors"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </button>
-                     )}
-                   </div>
-                )}
-              </div>
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Compact Time Badge */}
+                        <div className={`w-11 h-11 rounded-lg flex flex-col items-center justify-center shrink-0 border transition-colors ${
+                          agenda.status === 'confirmado' 
+                            ? 'bg-accent/10 border-accent/20 text-accent' 
+                            : 'bg-white/5 border-white/5 text-ink-2'
+                        }`}>
+                          <span className="text-[14px] font-bold num leading-tight">
+                            {horaFmt.split(':')[0]}
+                          </span>
+                          <span className="text-[9px] font-medium opacity-70 num leading-none">
+                            {horaFmt.split(':')[1]}
+                          </span>
+                        </div>
+                        
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-display font-bold text-[13px] text-ink leading-tight truncate">
+                              {agenda.aluno_nome && !isUUID(agenda.aluno_nome) ? agenda.aluno_nome : 'Sessão Individual'}
+                            </h4>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-1">
+                             <span className="flex items-center gap-1 text-[10px] text-ink-3">
+                               {agenda.tipo === 'presencial' ? (
+                                 <MapPin className="w-2.5 h-2.5 text-accent/70" />
+                               ) : agenda.tipo === 'online' ? (
+                                 <Video className="w-2.5 h-2.5 text-accent/70" />
+                               ) : (
+                                 <FileText className="w-2.5 h-2.5 text-accent/70" />
+                               )}
+                               <span className="capitalize">{agenda.tipo}</span>
+                             </span>
+                             
+                             <div className="w-1 h-1 rounded-full bg-white/10" />
+
+                             <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider ${config.color} border border-current/10`}>
+                               {config.label}
+                             </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {processingId === agenda.id ? (
+                          <Loader2 className="w-4 h-4 text-accent animate-spin" />
+                        ) : agenda.status === 'solicitado' ? (
+                          <div className="flex gap-1">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
+                              className="w-8 h-8 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20 hover:bg-green-500/20 transition-all"
+                              title="Confirmar"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
+                              className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 hover:bg-red-500/20 transition-all"
+                              title="Recusar"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             {!isCanceled ? (
+                               <button 
+                                 onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'cancelado'); }}
+                                 className="w-8 h-8 rounded-lg bg-white/5 text-ink-3 hover:text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20"
+                               >
+                                 <X className="w-3.5 h-3.5" />
+                               </button>
+                             ) : (
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); handleUpdateStatus(agenda, 'confirmado'); }}
+                                  className="w-8 h-8 rounded-lg bg-white/5 text-ink-3 hover:text-green-500 hover:bg-green-500/10 transition-all border border-transparent hover:border-green-500/20"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+                             )}
+                           </div>
+                        )}
+                        <ChevronRight className="w-4 h-4 text-ink-3 opacity-30 group-hover:opacity-100 group-hover:text-accent transition-all" />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </div>
+        );
+      })}
 
       <DetalheSessaoModal
         agendamento={selectedAgendamento}
@@ -265,6 +297,13 @@ export default function ListaAgendamentos({ agendamentos, carregando, erro }: Li
     </div>
   );
 }
+
+function ChevronRight(props: any) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>
+  );
+}
+
 
 function RefreshCw(props: any) {
   return (

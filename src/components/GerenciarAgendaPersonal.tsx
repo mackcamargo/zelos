@@ -120,19 +120,23 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
 
       {/* TODAY'S SUMMARY */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6">
           {/* FILTER TABS */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="z-display">Gestão da <span className="text-accent">agenda</span></h3>
-            <div className="z-chips">
+            <div className="flex flex-wrap gap-1.5 p-1 bg-surface border border-white/5 rounded-xl">
               {(['todos', 'confirmado', 'solicitado', 'cancelado'] as const).map(f => (
                 <button
                   key={f}
                   onClick={() => setSelectedFilter(f)}
                   aria-selected={selectedFilter === f}
-                  className="z-chip"
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    selectedFilter === f 
+                    ? 'bg-accent text-white shadow-sm' 
+                    : 'text-ink-3 hover:text-ink hover:bg-white/5'
+                  }`}
                 >
-                  {f === 'todos' ? 'Ver tudo' : f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f === 'todos' ? 'Ver tudo' : f}
                 </button>
               ))}
             </div>
@@ -143,42 +147,43 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
         </div>
 
         {/* SIDEBAR WIDGETS */}
-        <div className="space-y-8">
-          <div className="z-card space-y-5">
-            <h4 className="z-eyebrow">Próximas <span className="text-accent">sessões</span></h4>
+        <div className="space-y-6">
+          <div className="bg-[#17171A] border border-white/5 rounded-2xl p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-bold text-ink-3 uppercase tracking-widest">Próximas <span className="text-accent">sessões</span></h4>
+              <CalendarIcon className="w-3.5 h-3.5 text-accent opacity-50" />
+            </div>
             
-            <div className="space-y-3">
-              {proximasSessoes.slice(0, 3).map(s => (
-                <div key={s.id} className="flex items-start gap-4 p-4 bg-bg-sub border border-line rounded-xl hover:border-line-strong transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
-                    <Clock className="w-5 h-5" />
+            <div className="space-y-2">
+              {proximasSessoes.slice(0, 4).map(s => (
+                <div key={s.id} className="flex items-center gap-3 p-2 bg-white/5 border border-white/5 rounded-xl hover:border-white/10 transition-all group">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0 group-hover:bg-accent group-hover:text-white transition-colors">
+                    <Clock className="w-4 h-4" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     {s.aluno_nome && !isUUID(s.aluno_nome) && (
-                      <h5 className="font-semibold text-ink leading-tight">{s.aluno_nome}</h5>
+                      <h5 className="font-semibold text-ink text-[11px] leading-tight truncate">{s.aluno_nome}</h5>
                     )}
-                    <p className="text-[12px] text-ink-3 mt-1.5 z-num font-medium">
+                    <p className="text-[9px] text-ink-3 mt-0.5 z-num font-medium">
                       {new Date(s.data_hora).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} • {new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
               ))}
               {proximasSessoes.length === 0 && (
-                <p className="text-[12px] text-ink-3 text-center py-4">Sem sessões agendadas</p>
+                <p className="text-[10px] text-ink-3 text-center py-4 italic opacity-50 font-mono">Sem sessões agendadas</p>
               )}
             </div>
             
             {!isReadOnly && (
               <button 
                 onClick={() => setModalAberto(true)} 
-                className="z-btn z-btn--ghost w-full flex items-center justify-center gap-2 mt-4"
+                className="w-full py-2.5 rounded-xl bg-accent/10 text-accent text-[11px] font-bold uppercase tracking-wider hover:bg-accent hover:text-white transition-all flex items-center justify-center gap-2 mt-2 border border-accent/20"
               >
-                <Plus className="w-4 h-4" /> Criar p/ aluno
+                <Plus className="w-3.5 h-3.5" /> Criar p/ aluno
               </button>
             )}
           </div>
-
-
         </div>
       </div>
 
