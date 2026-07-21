@@ -2556,18 +2556,23 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                 <span>Recordes Pessoais (PRs)</span>
                               </h3>
                               {prsList.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="space-y-2.5">
                                   {prsList.map((pr) => (
-                                    <div key={pr.exercise} className="bg-raise border border-line rounded-2xl p-4 flex items-center gap-3.5 hover:border-accent/30 transition-all shadow-sm">
-                                      <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                                        <Trophy className="w-4.5 h-4.5 text-accent" />
+                                    <div key={pr.exercise} className="bg-surface border border-line rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:border-line-strong transition-all shadow-[0_1px_2px_rgba(20,20,20,0.04)]">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                                          <Trophy className="w-4 h-4 text-amber-500" />
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="text-sm font-bold text-ink truncate leading-snug">{pr.exercise}</p>
+                                          <p className="text-[11px] text-ink-3 font-mono mt-0.5">
+                                            Data: {formatPRDate(pr.dateStr)}
+                                          </p>
+                                        </div>
                                       </div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-ink truncate">{pr.exercise}</p>
-                                        <p className="text-xs text-ink-3 font-mono mt-0.5">
-                                          Recorde: <span className="text-accent font-bold">{(Number(pr.maxCarga) || 0).toFixed(1)} kg</span> · {formatPRDate(pr.dateStr)}
-                                        </p>
-                                      </div>
+                                      <span className="px-3 py-1 bg-amber-500/10 text-amber-600 border border-amber-500/20 font-mono font-bold text-xs sm:text-sm rounded-xl shrink-0">
+                                        {(Number(pr.maxCarga) || 0).toFixed(1)} kg
+                                      </span>
                                     </div>
                                   ))}
                                 </div>
