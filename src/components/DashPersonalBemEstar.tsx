@@ -603,7 +603,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
               {/* Taxa de adesão do termômetro */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] md:text-xs text-ink-2">Adesão global</span>
+                  <span className="text-[11px] md:text-xs text-ink-2">Engajamento da base</span>
                   <span className="text-[11px] md:text-xs font-bold text-ink num">{termometro.taxa_adesao_semana}%</span>
                 </div>
                 <div className="w-full h-1 md:h-1.5 bg-line rounded-full overflow-hidden flex">
