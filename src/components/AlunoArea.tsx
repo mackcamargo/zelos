@@ -25,6 +25,7 @@ import NutricaoPainel from './NutricaoPainel';
 import AgendamentoPainel from './AgendamentoPainel';
 import ChatAluno from './ChatAluno';
 import LogoZelos from './LogoZelos';
+import ProgramaGuiadoAluno from './ProgramaGuiadoAluno';
 import { MessageSquare } from 'lucide-react';
 import { Checkin } from '../types';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
@@ -1312,107 +1313,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
               </div>
             )}
 
-            {/* WORKOUT LIST (If no active workout is selected) */}
+            {/* WORKOUT PROGRAM VIEW */}
             {!selectedWorkout ? (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  {lastSelectedWorkoutId && (
-                    <button
-                      type="button"
-                      onClick={() => handleSelectWorkout(lastSelectedWorkoutId)}
-                      className="p-2.5 bg-surface border border-line rounded-xl text-ink-2 hover:text-ink hover:border-line-strong transition-all flex items-center justify-center shrink-0 active:scale-95"
-                      title="Voltar para o treino ativo"
-                    >
-                      <ArrowLeft className="w-5 h-5 text-flame" />
-                    </button>
-                  )}
-                  <div className="flex flex-col md:flex-row md:items-baseline gap-x-3 gap-y-1">
-                    <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight leading-none">Meu Treino de Hoje</h1>
-                    <p className="text-sm text-ink-2 leading-none">Seus treinos, cargas e exercícios personalizados publicados pelo seu Personal</p>
-                  </div>
-                </div>
-
-                {loading ? (
-                  <div className="flex justify-center py-20">
-                    <span className="w-8 h-8 border-2 border-flame border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : workouts.length === 0 ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-center">
-                    <Dumbbell className="w-8 h-8 text-ink-3 stroke-[1.2] mb-3" />
-                    <p className="text-sm text-ink-2 max-w-md">
-                      Seu personal trainer ainda não publicou uma planilha de treinos para você. Assim que ele criar e liberar sua rotina, ela aparecerá aqui completa.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {workouts.map((workout) => {
-                      const dateFormatted = (() => {
-                        const [ano, mes, dia] = workout.data_treino.split("-").map(Number);
-                        return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
-                      })();
-                      const isWorkoutConcluido = workout.status === 'concluido';
-                      const hasProgress = workoutsWithProgress.has(workout.id);
-                      const isNew = workout.status === 'publicado' && !hasProgress;
-                      const inProgress = workout.status === 'publicado' && hasProgress;
-
-                      return (
-                        <div
-                          key={workout.id}
-                          onClick={() => handleSelectWorkout(workout.id)}
-                          className={`bg-surface border border-line/40 rounded-xl p-3 sm:p-3.5 cursor-pointer hover:bg-surface-2 transition-all group flex flex-col gap-1.5 relative overflow-hidden shadow-sm clicavel ${
-                            isWorkoutConcluido 
-                              ? 'card-treino-concluido' 
-                              : 'animate-pulse-orange'
-                          }`}
-                        >
-                          <div className="absolute top-0 right-0 w-16 h-16 bg-flame/5 blur-xl pointer-events-none rounded-full" />
-                          
-                          {/* Linha 1: selo de status pequeno + à direita o "Ver Detalhes ›" */}
-                          <div className="flex items-center justify-between relative z-10">
-                            <div>
-                              {isWorkoutConcluido ? (
-                                <span className="text-[9px] font-mono bg-ok/10 text-ok px-1.5 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1 border border-ok/15">
-                                  <Check className="w-2.5 h-2.5 stroke-[3.5]" /> CONCLUÍDO
-                                </span>
-                              ) : inProgress ? (
-                                <span className="text-[9px] font-mono bg-flame/10 text-flame px-1.5 py-0.5 rounded font-bold uppercase tracking-wider border border-flame/20">
-                                  EM ANDAMENTO
-                                </span>
-                              ) : isNew ? (
-                                <span className="text-[9px] font-mono bg-flame/10 text-flame px-1.5 py-0.5 rounded font-bold uppercase tracking-wider border border-flame/20">
-                                  NOVO
-                                </span>
-                              ) : (
-                                <span className="text-[9px] font-mono bg-flame/10 text-flame px-1.5 py-0.5 rounded font-bold uppercase tracking-wider border border-flame/20">
-                                  A FAZER
-                                </span>
-                              )}
-                            </div>
-                            
-                            <span className={`text-[11px] font-bold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform ${
-                              isWorkoutConcluido ? 'text-ok' : 'text-flame'
-                            }`}>
-                              <span>Ver Detalhes</span>
-                              <ChevronRight className="w-3 h-3 stroke-[2.5]" />
-                            </span>
-                          </div>
-
-                          {/* Linha 2: título do treino */}
-                          <h3 className="font-display font-bold text-sm sm:text-base text-ink group-hover:text-[#F26A1B] transition-colors leading-snug mt-0.5 truncate relative z-10">
-                            {workout.titulo}
-                          </h3>
-
-                          {/* Linha 3: data/hora em fonte pequena e discreta */}
-                          <div className="text-[10px] text-ink-3 font-mono flex items-center gap-1 mt-0.5 relative z-10">
-                            <Calendar className="w-3.5 h-3.5 text-ink-3/70" />
-                            <span>{dateFormatted}{workout.hora_treino ? ` às ${workout.hora_treino.substring(0, 5)}` : ''}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+              <ProgramaGuiadoAluno 
+                alunoId={userId} 
+                onIniciarTreinoGuiado={(treino) => handleSelectWorkout(treino.id)} 
+              />
             ) : (() => {
               const totalWorkoutSeries = selectedWorkout?.exercicios?.reduce((acc: number, item: any) => acc + (Number(item.series) || 0), 0) || 0;
               const completedWorkoutSeries = selectedWorkout?.exercicios?.reduce((acc: number, item: any) => {

@@ -90,18 +90,45 @@ export interface Anamnese {
   updated_at?: string;
 }
 
+export interface ProgramaTreino {
+  id: string;
+  aluno_id: string;
+  personal_id?: string | null;
+  titulo: string;
+  subtitulo?: string | null;
+  ativo: boolean;
+  criado_em?: string;
+  fases?: FaseTreino[];
+}
+
+export interface FaseTreino {
+  id: string;
+  programa_id: string;
+  nome: string;
+  ordem: number;
+  duracao_semanas: number;
+  descricao?: string | null;
+  treinos?: Treino[];
+}
+
 export type TreinoStatus = 'rascunho' | 'publicado' | 'concluido';
 
 export interface Treino {
   id: string;
   aluno_id: string;
-  personal_id: string;
+  personal_id?: string | null;
   titulo: string;
   nome?: string; // fallback if needed
-  data_treino: string;
+  data_treino?: string;
   hora_treino?: string | null;
   status: TreinoStatus;
-  criado_em: string;
+  fase_id?: string | null;
+  semana?: number | null;
+  dia_semana?: number | null; // 1=Dom..7=Sáb
+  dificuldade?: string | null;
+  duracao_min?: number | null;
+  calorias_kcal?: number | null;
+  criado_em?: string;
   exercicios?: TreinoExercicioDetailed[];
 }
 
@@ -113,10 +140,26 @@ export interface TreinoExercicio {
   series: number;
   repeticoes: string;
   carga_kg?: number | null;
+  descanso_seg?: number | null;
+  tem_aquecimento?: boolean | null;
+  nota?: string | null;
+  status_execucao?: string | null;
+  substituido_de?: string | null;
+}
+
+export interface TreinoExercicioSerie {
+  id?: string;
+  treino_exercicio_id: string;
+  numero_serie: number;
+  repeticoes: string;
+  carga_kg?: number | null;
+  concluida: boolean;
+  concluida_em?: string | null;
 }
 
 export interface TreinoExercicioDetailed extends TreinoExercicio {
   exercicio?: Exercicio;
+  series_execucao?: TreinoExercicioSerie[];
 }
 
 export interface TemplateTreino {

@@ -795,6 +795,84 @@ export const dbService = {
     return { data: { ...workout, exercicios: detailed }, error: null };
   },
 
+  async getProgramaGuiadoParaAluno(alunoId: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        let { data: programa, error: progErr } = await supabase
+          .from('programas_treino')
+          .select('*')
+          .eq('aluno_id', alunoId)
+          .eq('ativo', true)
+          .maybeSingle();
+
+        if (progErr || !programa) {
+          const { data: progs } = await supabase
+            .from('programas_treino')
+            .select('*')
+            .eq('aluno_id', alunoId)
+            .order('id', { ascending: false });
+          if (progs && progs.length > 0) {
+            programa = progs[0];
+          }
+        }
+
+        if (programa) {
+          const { data: fases } = await supabase
+            .from('fases_treino')
+            .select('*')
+            .eq('programa_id', programa.id)
+            .order('ordem', { ascending: true });
+
+          const { data: treinos } = await supabase
+            .from('treinos')
+            .select('*, treino_exercicios(*, exercicio:exercicios(*))')
+            .eq('aluno_id', alunoId)
+            .order('semana', { ascending: true })
+            .order('dia_semana', { ascending: true });
+
+          return {
+            data: {
+              programa,
+              fases: fases || [],
+              treinos: treinos || []
+            },
+            error: null
+          };
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar programa no Supabase:', err);
+      }
+    }
+
+    // Fallback: fetch treinos directly
+    const { data: rawTreinos } = await this.getTreinosParaAluno(alunoId);
+    
+    // Attach detailed exercicios for each raw workout if missing
+    const treinosComExercicios = await Promise.all((rawTreinos || []).map(async (t) => {
+      if (t.exercicios && t.exercicios.length > 0) return t;
+      const comp = await this.getTreinoCompleto(t.id);
+      return comp.data || t;
+    }));
+
+    return {
+      data: {
+        programa: {
+          id: 'prog-demo',
+          aluno_id: alunoId,
+          titulo: 'Treino Personalizado',
+          subtitulo: 'Hipertrofia - Balanceado',
+          ativo: true
+        },
+        fases: [
+          { id: 'fase-1', programa_id: 'prog-demo', nome: '1: Resistência', ordem: 1, duracao_semanas: 4, descricao: 'Adaptativa e resistência muscular' },
+          { id: 'fase-2', programa_id: 'prog-demo', nome: '2: Força', ordem: 2, duracao_semanas: 4, descricao: 'Ganho de força e hipertrofia' }
+        ],
+        treinos: treinosComExercicios || []
+      },
+      error: null
+    };
+  },
+
   async saveTreino(treino: any, exercicios: any[]): Promise<{ data: any; error: any }> {
     if (isSupabaseConfigured && supabase) {
       let treinoId = treino.id;
@@ -1070,6 +1148,86 @@ export const dbService = {
     const treinos = load('zenite_mock_treinos', []);
     const index = treinos.findIndex((t: any) => t.id === treinoId);
     if (index >= 0) { treinos[index].status = status; save('zenite_mock_treinos', treinos); }
+    return { error: null };
+  },
+
+  async getSeriesDoExercicio(treinoExercicioId: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('treino_exercicio_series')
+          .select('*')
+          .eq('treino_exercicio_id', treinoExercicioId)
+          .order('numero_serie', { ascending: true });
+        if (!error && data) return { data, error: null };
+      } catch (e) {
+        console.warn('Erro ao buscar series no supabase:', e);
+      }
+    }
+    const key = `series_${treinoExercicioId}`;
+    const seriesLocal = load(key, []);
+    return { data: seriesLocal, error: null };
+  },
+
+  async saveSerieExecucao(serie: any): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        if (serie.id && !serie.id.startsWith('temp-') && !serie.id.startsWith('local-')) {
+          const { data, error } = await supabase
+            .from('treino_exercicio_series')
+            .update({
+              concluida: serie.concluida,
+              concluida_em: serie.concluida ? new Date().toISOString() : null,
+              repeticoes: serie.repeticoes,
+              carga_kg: serie.carga_kg
+            })
+            .eq('id', serie.id)
+            .select()
+            .single();
+          if (!error && data) return { data, error: null };
+        } else {
+          const { data, error } = await supabase
+            .from('treino_exercicio_series')
+            .insert({
+              treino_exercicio_id: serie.treino_exercicio_id,
+              numero_serie: serie.numero_serie,
+              repeticoes: serie.repeticoes,
+              carga_kg: serie.carga_kg,
+              concluida: serie.concluida,
+              concluida_em: serie.concluida ? new Date().toISOString() : null
+            })
+            .select()
+            .single();
+          if (!error && data) return { data, error: null };
+        }
+      } catch (e) {
+        console.warn('Erro ao salvar serie no supabase:', e);
+      }
+    }
+    const key = `series_${serie.treino_exercicio_id}`;
+    let seriesLocal = load(key, []);
+    const idx = seriesLocal.findIndex((s: any) => s.numero_serie === serie.numero_serie);
+    if (idx >= 0) {
+      seriesLocal[idx] = { ...seriesLocal[idx], ...serie, concluida_em: serie.concluida ? new Date().toISOString() : null };
+    } else {
+      seriesLocal.push({ ...serie, id: serie.id || `local-${Date.now()}` });
+    }
+    save(key, seriesLocal);
+    return { data: serie, error: null };
+  },
+
+  async updateTreinoExercicioDetalhe(id: string, payload: { status_execucao?: string; nota?: string; substituido_de?: string; exercicio_id?: string }): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase
+          .from('treino_exercicios')
+          .update(payload)
+          .eq('id', id);
+        if (!error) return { error: null };
+      } catch (e) {
+        console.warn('Erro ao atualizar treino_exercicio:', e);
+      }
+    }
     return { error: null };
   },
 
