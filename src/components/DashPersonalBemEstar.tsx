@@ -626,36 +626,6 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
                   </span>
                 </p>
               </div>
-
-              {/* Variação de Peso Média */}
-              <div className="border-t border-line/40 pt-3 md:pt-4 flex items-center justify-between gap-3">
-                <span className="text-[11px] md:text-xs text-ink-2">Variação média de peso</span>
-                {termometro.peso_variacao_media !== null && termometro.peso_variacao_media !== undefined ? (
-                  <div className="flex items-center gap-1 md:gap-1.5 text-[11px] md:text-xs font-semibold">
-                    {termometro.peso_variacao_media < 0 ? (
-                      <>
-                        <div className="p-1 rounded-lg bg-emerald-500/10 text-emerald-400">
-                          <TrendingDown className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                        </div>
-                        <span className="text-emerald-400 num">
-                          {termometro.peso_variacao_media} kg em média
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <div className="p-1 rounded-lg bg-[#F26A1B]/10 text-[#F26A1B]">
-                          <TrendingUp className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                        </div>
-                        <span className="text-[#F26A1B] num">
-                          +{termometro.peso_variacao_media} kg em média
-                        </span>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-[11px] md:text-xs text-ink-3 italic">Sem dados</span>
-                )}
-              </div>
             </div>
           </div>
 
