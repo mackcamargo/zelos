@@ -1622,7 +1622,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                               </div>
 
                               <div className="min-w-0 flex-1">
-                                <span className="font-muscle-tag italic text-[11px] text-ink-3 block tracking-wide font-normal">
+                                <span className="font-muscle-tag text-[11px] text-ink-3 block tracking-wide font-normal">
                                   {ex?.musculo_primario?.[0] || 'Geral'}
                                 </span>
                                 <h4 className="font-display font-bold text-base text-ink mt-1 leading-tight">

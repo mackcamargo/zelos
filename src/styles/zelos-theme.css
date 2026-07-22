@@ -5,11 +5,10 @@
    Importe no topo do index.css (antes do @tailwind).
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,400..800;1,75..125,400..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&family=Playfair+Display:ital,wght@1,400..600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,75..125,400..800;1,75..125,400..800&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&family=Playfair+Display:wght@400;500&display=swap');
 
 .font-muscle-tag {
   font-family: 'Playfair Display', Georgia, Cambria, 'Times New Roman', serif;
-  font-style: italic;
 }
 
 /* --------------------------------------------------------------------------

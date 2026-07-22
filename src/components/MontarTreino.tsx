@@ -767,7 +767,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                             <h4 className="font-bold text-sm sm:text-base text-ink truncate">
                               {index + 1}. {name}
                             </h4>
-                            <span className="font-muscle-tag italic text-[11px] text-ink-3 tracking-wide block mt-0.5 font-normal">
+                            <span className="font-muscle-tag text-[11px] text-ink-3 tracking-wide block mt-0.5 font-normal">
                               {primario}
                             </span>
                           </div>
@@ -975,7 +975,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                             <h4 className="font-semibold text-xs text-ink group-hover:text-accent transition-colors truncate">
                               {ex.nome}
                             </h4>
-                            <span className="font-muscle-tag italic text-[11px] text-ink-3 block mt-0.5">
+                            <span className="font-muscle-tag text-[11px] text-ink-3 block mt-0.5">
                               {ex.musculo_primario?.[0]}
                             </span>
                           </div>
