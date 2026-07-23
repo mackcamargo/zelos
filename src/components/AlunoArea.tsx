@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { dbService, isSupabaseConfigured, supabase, getHojeString } from '../lib/supabase';
 import { Profile, Exercicio, Treino } from '../types';
 import { 
@@ -285,7 +285,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const { streak, checkPR, checkAchievements } = useGamification();
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [novoTreino, setNovoTreino] = useState<any | null>(null);
   const [headerProfile, setHeaderProfile] = useState<{ nome: string; avatar_url: string | null; avatar_tipo?: string | null; papel?: string | null } | null>(null);
   const [loadingHeaderProfile, setLoadingHeaderProfile] = useState(true);
   const [loadingWorkoutDetails, setLoadingWorkoutDetails] = useState(false);
@@ -684,48 +683,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
     fetchHeaderProfile();
   }, [userId, profile]);
 
-  const fetchNovoTreino = async () => {
-    if (!userId) return;
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('treinos')
-          .select('id, titulo, data_treino, hora_treino, criado_em')
-          .eq('aluno_id', userId)
-          .eq('status', 'publicado')
-          .order('criado_em', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (!error) {
-          setNovoTreino(data);
-        } else {
-          console.error("Erro ao carregar novo treino:", error);
-        }
-      } catch (err) {
-        console.error("Erro inesperado ao buscar novo treino:", err);
-      }
-    } else {
-      // Demo/Fallback Mode using localStorage (zenite_mock_treinos)
-      const mockTreinos = JSON.parse(localStorage.getItem('zenite_mock_treinos') || '[]');
-      const alunoTreinos = mockTreinos.filter((t: any) => t.aluno_id === userId && t.status === 'publicado');
-      if (alunoTreinos.length > 0) {
-        const sorted = [...alunoTreinos].sort((a: any, b: any) => {
-          const cA = a.criado_em || '';
-          const cB = b.criado_em || '';
-          return cB.localeCompare(cA);
-        });
-        setNovoTreino(sorted[0]);
-      } else {
-        setNovoTreino(null);
-      }
-    }
-  };
-
   useEffect(() => {
     if (!userId) return;
     
-    fetchNovoTreino();
+    loadStudentWorkouts();
 
     let canal: any = null;
     if (isSupabaseConfigured && supabase) {
@@ -734,7 +695,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
         .on('postgres_changes',
           { event: '*', schema: 'public', table: 'treinos', filter: `aluno_id=eq.${userId}` },
           () => {
-            fetchNovoTreino();
             loadStudentWorkouts();
           }
         )
@@ -747,6 +707,20 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
       }
     };
   }, [userId]);
+
+  const pendingWorkouts = useMemo(() => {
+    return workouts
+      .filter((w: any) => w.status === 'publicado')
+      .sort((a: any, b: any) => {
+        const dateA = a.data_treino || '';
+        const dateB = b.data_treino || '';
+        const dateComp = dateA.localeCompare(dateB);
+        if (dateComp !== 0) return dateComp;
+        const horaA = a.hora_treino || '';
+        const horaB = b.hora_treino || '';
+        return horaA.localeCompare(horaB);
+      });
+  }, [workouts]);
 
   const getWorkoutCompletionTime = (workoutId: string, treinosSeriesRealizadas: any[]) => {
     // 1. Check local storage first (immediate feedback)
@@ -1118,11 +1092,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
 
     // Refresh overall list of workouts to stay in sync
     try {
-      const { data: listData } = await dbService.getTreinosParaAluno(userId);
-      if (listData) {
-        setWorkouts(listData);
-      }
-      fetchNovoTreino();
+      loadStudentWorkouts();
     } catch (e) {
       console.error(e);
     }
@@ -1178,7 +1148,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
               setModoGuiadoAtivo(null);
               setSelectedWorkout(null);
               loadStudentWorkouts();
-              fetchNovoTreino();
             }}
           />
         )}
@@ -1252,10 +1221,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
           <div id="tab-content-treino" className="space-y-6">
             
             {/* BANNER DE TREINO NOVO (FAIXA COMPACTA) */}
-            {novoTreino && (
+            {pendingWorkouts.length > 0 && (
               <div 
                 id="banner-novo-treino"
-                onClick={() => handleAbrirModoGuiado(novoTreino)}
+                onClick={() => handleAbrirModoGuiado(pendingWorkouts[0])}
                 className="banner-novo-treino w-full border-[1.5px] rounded-xl py-3 px-4 flex flex-row justify-between items-center gap-3 cursor-pointer hover:opacity-95 transition-all select-none shadow-md group overflow-hidden"
                 style={{
                   borderColor: '#F26A1B',
@@ -1268,7 +1237,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="text-[11px] font-sans font-black text-[#F26A1B] uppercase tracking-wider">
-                        Novo treino disponível
+                        {pendingWorkouts.length > 1 
+                          ? `${pendingWorkouts.length} treinos disponíveis` 
+                          : 'Novo treino disponível'}
                       </h4>
                       <span className="bg-[#F26A1B] text-white text-[8px] font-mono font-black uppercase px-1.5 py-0.5 rounded shadow-sm selo-novo flex items-center gap-0.5 shrink-0">
                         <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
@@ -1276,14 +1247,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                       </span>
                     </div>
                     <p className="text-xs font-sans font-bold text-ink truncate mt-0.5">
-                      {(() => {
-                        if (novoTreino.data_treino) {
-                          const [ano, mes, dia] = novoTreino.data_treino.split("-").map(Number);
-                          const dataFormatada = new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
-                          return `${dataFormatada} - ${novoTreino.titulo}`;
-                        }
-                        return novoTreino.titulo;
-                      })()}
+                      {pendingWorkouts[0].titulo}
                     </p>
                   </div>
                 </div>
@@ -1293,7 +1257,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleAbrirModoGuiado(novoTreino);
+                    handleAbrirModoGuiado(pendingWorkouts[0]);
                   }}
                   className="px-3.5 py-1.5 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-[11px] font-display font-bold uppercase rounded-lg shadow-sm transition-all flex items-center gap-1 shrink-0 active:scale-95"
                 >
