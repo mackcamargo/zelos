@@ -756,70 +756,58 @@ Bora juntos! 💪`;
                return null;
             })()}
 
-            {/* Profile Overview Card */}
-             {alunoCondicoes.length > 0 && (
-               <button type="button" onClick={() => setShowActiveCondicoesModal(true)} className="w-full text-left bg-[#F26A1B]/10 hover:bg-[#F26A1B]/15 border border-[#F26A1B]/20 rounded-2xl p-5 space-y-2 text-xs cursor-pointer transition-all duration-200 active:scale-[0.99] block mb-4">
-                 <div className="flex items-center justify-between gap-4 flex-wrap text-accent w-full">
-                   <div className="flex items-center gap-2">
-                     <AlertTriangle className="w-5 h-5 shrink-0 text-[#F26A1B]" />
-                     <span className="font-display font-bold text-sm uppercase tracking-wider text-[#F26A1B]">⚠️ Cuidados ortopédicos ativos</span>
-                   </div>
-                   <span className="text-[11px] font-bold text-[#F26A1B]">
-                     Toque para ver os detalhes ›
-                   </span>
-                 </div>
-                 <div className="text-ink-2 leading-relaxed">
-                   Este aluno possui <strong className="text-ink">{alunoCondicoes.length} {alunoCondicoes.length === 1 ? 'condição ortopédica ativa' : 'condições ortopédicas ativas'}</strong>. Verifique as recomendações especiais e regras de segurança descritas no perfil ortopédico abaixo ao prescrever treinos.
-                 </div>
-               </button>
-             )}
-
-            <div className="z-card relative overflow-hidden">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-line/40">
-                <div className="flex items-center gap-4">
-                  <div className="z-avatar z-avatar--lg bg-raise text-ink flex items-center justify-center font-display font-bold text-accent overflow-hidden shrink-0">
-                    {selectedAluno.profile?.avatar_url ? (
-                      <img src={selectedAluno.profile.avatar_url} alt={selectedAluno.profile?.nome} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
-                    ) : (
-                      selectedAluno.profile?.nome?.charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  <div>
-                    <h2 className="font-display font-semibold text-xl text-ink leading-tight">
-                      {selectedAluno.profile?.nome || 'Aluno'}
-                    </h2>
-                  </div>
+            {/* Profile Overview Card - Discreet & Compact */}
+            <div className="bg-surface border border-line/60 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-raise text-ink flex items-center justify-center font-display font-bold text-xs shrink-0 overflow-hidden border border-line/50">
+                  {selectedAluno.profile?.avatar_url ? (
+                    <img src={selectedAluno.profile.avatar_url} alt={selectedAluno.profile?.nome} className="w-full h-full object-cover rounded-full" referrerPolicy="no-referrer" />
+                  ) : (
+                    selectedAluno.profile?.nome?.charAt(0).toUpperCase()
+                  )}
                 </div>
-
-                {/* Status Switcher: Active/Inactive */}
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <div className="flex items-center gap-3 bg-raise px-4 py-2 rounded-xl border border-line">
-                    <span className="text-[12px] text-ink-3">Status:</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <h2 className="font-display font-semibold text-sm text-ink truncate">
+                    {selectedAluno.profile?.nome || 'Aluno'}
+                  </h2>
+                  {alunoCondicoes.length > 0 && (
                     <button
-                      id="btn-toggle-student-status"
                       type="button"
-                      disabled={savingStatus}
-                      onClick={handleToggleStatus}
-                      className={`px-3 py-1 rounded-lg text-[12px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
-                        selectedAluno.ativo !== false 
-                          ? 'bg-ok/10 text-ok border border-ok/20' 
-                          : 'bg-white/5 text-ink-3 border border-line'
-                      }`}
+                      onClick={() => setShowActiveCondicoesModal(true)}
+                      className="px-2 py-0.5 rounded-full bg-[#F26A1B]/10 border border-[#F26A1B]/30 text-[#F26A1B] text-[10px] font-bold flex items-center gap-1 hover:bg-[#F26A1B]/20 transition-all cursor-pointer shrink-0"
+                      title="Ver cuidados ortopédicos"
                     >
-                      {savingStatus ? (
-                        <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <span className={`w-1.5 h-1.5 rounded-full ${selectedAluno.ativo !== false ? 'bg-ok animate-pulse' : 'bg-ink-3'}`} />
-                          <span>{selectedAluno.ativo !== false ? 'Ativo' : 'Inativo'}</span>
-                        </>
-                      )}
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>{alunoCondicoes.length} {alunoCondicoes.length === 1 ? 'cuidado' : 'cuidados'}</span>
                     </button>
-                  </div>
+                  )}
                 </div>
               </div>
 
-
+              {/* Status Switcher: Active/Inactive */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] text-ink-3 hidden sm:inline">Status:</span>
+                <button
+                  id="btn-toggle-student-status"
+                  type="button"
+                  disabled={savingStatus}
+                  onClick={handleToggleStatus}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    selectedAluno.ativo !== false 
+                      ? 'bg-ok/10 text-ok border border-ok/20' 
+                      : 'bg-white/5 text-ink-3 border border-line'
+                  }`}
+                >
+                  {savingStatus ? (
+                    <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span className={`w-1.5 h-1.5 rounded-full ${selectedAluno.ativo !== false ? 'bg-ok animate-pulse' : 'bg-ink-3'}`} />
+                      <span>{selectedAluno.ativo !== false ? 'Ativo' : 'Inativo'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Three Blocks: Treinos, Progresso, Desvincular */}
