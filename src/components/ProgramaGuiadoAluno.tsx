@@ -286,22 +286,7 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
   }
 
   // Modo Treino Guiado Ativo State
-  const [modoGuiadoAtivo, setModoGuiadoAtivo] = useState<Treino | null>(null);
-
-  if (modoGuiadoAtivo) {
-    return (
-      <ModoTreinoGuiado
-        treino={modoGuiadoAtivo}
-        alunoId={alunoId}
-        onClose={() => setModoGuiadoAtivo(null)}
-        onTreinoConcluido={() => {
-          setModoGuiadoAtivo(null);
-          setTreinoDetalheId(null);
-          carregarPrograma();
-        }}
-      />
-    );
-  }
+  // Removido: agora é controlado pelo AlunoArea.tsx para evitar unmount indesejado.
 
   if (loading) {
     return (
@@ -385,7 +370,6 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
         <button
           type="button"
           onClick={() => {
-            setModoGuiadoAtivo(treinoDetalhe);
             if (onIniciarTreinoGuiado) {
               onIniciarTreinoGuiado(treinoDetalhe);
             }
@@ -902,7 +886,6 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
                                       type="button"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setModoGuiadoAtivo(treino);
                                         if (onIniciarTreinoGuiado) onIniciarTreinoGuiado(treino);
                                       }}
                                       className="w-10 h-10 rounded-full bg-[#F26A1B] hover:bg-[#ff8a3d] text-white flex items-center justify-center shadow-md shadow-[#F26A1B]/30 hover:scale-105 active:scale-95 transition-transform"

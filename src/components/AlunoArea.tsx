@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dbService, isSupabaseConfigured, supabase, getHojeString } from '../lib/supabase';
-import { Profile, Exercicio } from '../types';
+import { Profile, Exercicio, Treino } from '../types';
 import { 
   Dumbbell, TrendingUp, User, LogOut, Calendar, Target, 
   ShieldCheck, Heart, ArrowLeft, CheckCircle, Play, Sparkles, 
@@ -26,6 +26,7 @@ import AgendamentoPainel from './AgendamentoPainel';
 import ChatAluno from './ChatAluno';
 import LogoZelos from './LogoZelos';
 import ProgramaGuiadoAluno from './ProgramaGuiadoAluno';
+import ModoTreinoGuiado from './ModoTreinoGuiado';
 import { MessageSquare } from 'lucide-react';
 import { Checkin } from '../types';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
@@ -314,6 +315,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const [checkinDaSemana, setCheckinDaSemana] = useState<Checkin | null>(null);
   const [showFotoUpload, setShowFotoUpload] = useState(false);
   const [fotoRefreshTrigger, setFotoRefreshTrigger] = useState(0);
+  const [modoGuiadoAtivo, setModoGuiadoAtivo] = useState<Treino | null>(null);
 
   const fetchCheckinDaSemana = async () => {
     const semana = getStartOfWeek();
@@ -1194,7 +1196,25 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   }
 
   return (
-    <div
+    <>
+      {/* MODO TREINO GUIADO (OVERLAY) */}
+      <AnimatePresence>
+        {modoGuiadoAtivo && (
+          <ModoTreinoGuiado
+            treino={modoGuiadoAtivo}
+            alunoId={userId}
+            onClose={() => setModoGuiadoAtivo(null)}
+            onTreinoConcluido={() => {
+              setModoGuiadoAtivo(null);
+              setSelectedWorkout(null);
+              loadStudentWorkouts();
+              fetchNovoTreino();
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <div
       id="aluno-area-root"
       className="bg-bg text-ink font-sans flex flex-col h-screen overflow-hidden"
     >
@@ -1304,6 +1324,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSelectWorkout(novoTreino.id);
+                    setModoGuiadoAtivo(novoTreino);
                   }}
                   className="px-3.5 py-1.5 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-[11px] font-display font-bold uppercase rounded-lg shadow-sm transition-all flex items-center gap-1 shrink-0 active:scale-95"
                 >
@@ -1317,7 +1338,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
             {!selectedWorkout ? (
               <ProgramaGuiadoAluno 
                 alunoId={userId} 
-                onIniciarTreinoGuiado={(treino) => handleSelectWorkout(treino.id)} 
+                onIniciarTreinoGuiado={(treino) => {
+                  handleSelectWorkout(treino.id);
+                  setModoGuiadoAtivo(treino);
+                }} 
               />
             ) : (() => {
               const totalWorkoutSeries = selectedWorkout?.exercicios?.reduce((acc: number, item: any) => acc + (Number(item.series) || 0), 0) || 0;
@@ -1418,7 +1442,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                         ) : !expandido ? (
                           <button
                             type="button"
-                            onClick={() => setExpandido(true)}
+                            onClick={() => {
+                              setExpandido(true);
+                              setModoGuiadoAtivo(selectedWorkout);
+                            }}
                             className="w-full sm:w-auto py-2.5 px-5 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs shadow-lg hover:opacity-95 transition-all"
                           >
                             Iniciar
@@ -3316,5 +3343,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
         </div>
       )}
     </div>
+    </>
   );
 }
