@@ -1196,30 +1196,20 @@ export const dbService = {
   async getSeriesRealizadas(alunoId: string): Promise<{ data: any[] | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
-        .from('series_realizadas')
-        .select('*, treino_exercicios(treino_id)')
-        .eq('aluno_id', alunoId);
+        .from('treino_exercicio_series')
+        .select('*, treino_exercicio:treino_exercicios!inner(treino:treinos!inner(aluno_id))')
+        .eq('treino_exercicio.treino.aluno_id', alunoId);
       if (error) return { data: [], error };
       return { data: data || [], error: null };
     }
-    const series = load('zenite_series_realizadas', []);
+    const series = load('zenite_treino_exercicio_series', []);
     return { data: series.filter((s: any) => s.aluno_id === alunoId), error: null };
   },
 
   async salvarSerieRealizada(serie: any): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
-      // upsert manual: procura série existente (mesmo treino_exercicio + numero_serie + aluno)
-      const { data: existente } = await supabase
-        .from('series_realizadas')
-        .select('id')
-        .eq('treino_exercicio_id', serie.treino_exercicio_id)
-        .eq('numero_serie', serie.numero_serie)
-        .eq('aluno_id', serie.aluno_id)
-        .maybeSingle();
-
       const payload = {
         treino_exercicio_id: serie.treino_exercicio_id,
-        aluno_id: serie.aluno_id,
         numero_serie: serie.numero_serie,
         carga_kg: (serie.carga_kg === '' || serie.carga_kg === undefined) ? null : serie.carga_kg,
         repeticoes: (serie.repeticoes === '' || serie.repeticoes === undefined) ? null : serie.repeticoes,
@@ -1227,20 +1217,18 @@ export const dbService = {
         concluida_em: serie.concluida ? (serie.concluida_em || new Date().toISOString()) : null
       };
 
-      if (existente?.id) {
-        const { error } = await supabase.from('series_realizadas').update(payload).eq('id', existente.id);
-        return { error };
-      } else {
-        const { error } = await supabase.from('series_realizadas').insert(payload);
-        return { error };
-      }
+      const { error } = await supabase
+        .from('treino_exercicio_series')
+        .upsert(payload, { onConflict: 'treino_exercicio_id,numero_serie' });
+      
+      return { error };
     }
-    const series = load('zenite_series_realizadas', []);
+    const series = load('zenite_treino_exercicio_series', []);
     const key = `${serie.treino_exercicio_id}_${serie.numero_serie}`;
-    const index = series.findIndex((s: any) => `${s.treino_exercicio_id}_${s.numero_serie}` === key && s.aluno_id === serie.aluno_id);
+    const index = series.findIndex((s: any) => `${s.treino_exercicio_id}_${s.numero_serie}` === key);
     if (index >= 0) series[index] = { ...series[index], ...serie };
     else series.push({ id: Math.random().toString(36).substring(2, 9), ...serie });
-    save('zenite_series_realizadas', series);
+    save('zenite_treino_exercicio_series', series);
     return { error: null };
   },
 
@@ -1593,9 +1581,9 @@ export const dbService = {
   async getSeriesRealizadasDetalhadas(alunoId: string): Promise<{ data: any[] | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
-        .from('series_realizadas')
-        .select('*, treino_exercicio:treino_exercicios(id, treino_id, exercicio_id, treino:treinos(data_treino), exercicio:exercicios(nome))')
-        .eq('aluno_id', alunoId)
+        .from('treino_exercicio_series')
+        .select('*, treino_exercicio:treino_exercicios!inner(id, treino_id, exercicio_id, treino:treinos!inner(data_treino, aluno_id), exercicio:exercicios(nome))')
+        .eq('treino_exercicio.treino.aluno_id', alunoId)
         .eq('concluida', true);
       if (error) return { data: [], error };
       const flat = (data || []).map((s: any) => ({
@@ -1607,7 +1595,7 @@ export const dbService = {
       }));
       return { data: flat, error: null };
     }
-    const series = load('zenite_series_realizadas', []);
+    const series = load('zenite_treino_exercicio_series', []);
     return { data: series.filter((s: any) => s.aluno_id === alunoId), error: null };
   },
 

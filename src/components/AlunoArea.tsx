@@ -423,7 +423,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
             { id: 'sr-a4-3', treino_exercicio_id: 'te-aga-4', aluno_id: userId, numero_serie: 3, carga_kg: 102.5, repeticoes: 6, concluida: true, concluida_em: now.toISOString() }
           ];
 
-          localStorage.setItem('zenite_series_realizadas', JSON.stringify(seedSeries));
+          localStorage.setItem('zenite_treino_exercicio_series', JSON.stringify(seedSeries));
 
           // Set up mock workouts to bind correctly
           const mockTreinos = [
@@ -469,9 +469,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
       if (isSupabaseConfigured && supabase) {
         try {
           const { data: dbEvolucao, error: dbError } = await supabase
-            .from("series_realizadas")
-            .select("carga_kg, repeticoes, concluida_em, treino_exercicios!inner(exercicio_id, exercicios!inner(nome), treinos!inner(data_treino))")
-            .eq("aluno_id", userId)
+            .from("treino_exercicio_series")
+            .select("carga_kg, repeticoes, concluida_em, treino_exercicios!inner(exercicio_id, exercicios!inner(nome), treinos!inner(data_treino, aluno_id))")
+            .eq("treino_exercicios.treinos.aluno_id", userId)
             .eq("concluida", true)
             .not("carga_kg", "is", null)
             .order("concluida_em", { ascending: true });
@@ -1487,9 +1487,24 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                               </div>
 
                               <div className="min-w-0 flex-1">
-                                <span className="font-muscle-tag text-[11px] text-ink-3 block tracking-wide font-normal">
-                                  {ex?.musculo_primario?.[0] || 'Geral'}
-                                </span>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-muscle-tag text-[11px] text-ink-3 block tracking-wide font-normal">
+                                    {ex?.musculo_primario?.[0] || 'Geral'}
+                                  </span>
+                                  {item.series > 0 && (
+                                    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                                      isCompleted ? 'bg-emerald-500/10 text-emerald-600' : 'bg-raise text-ink-3'
+                                    }`}>
+                                      {(() => {
+                                        let count = 0;
+                                        for (let s = 1; s <= item.series; s++) {
+                                          if (completedSeries[`${item.id}_${s}`]) count++;
+                                        }
+                                        return `${count}/${item.series}`;
+                                      })()}
+                                    </span>
+                                  )}
+                                </div>
                                 <h4 className="font-display font-bold text-base text-ink mt-1 leading-tight">
                                   {ex?.nome || 'Exercício'}
                                 </h4>

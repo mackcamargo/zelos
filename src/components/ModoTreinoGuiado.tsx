@@ -59,6 +59,7 @@ export default function ModoTreinoGuiado({
     confirmLabel?: string;
     cancelLabel?: string;
     onConfirm?: () => void;
+    onCancel?: () => void;
   }>({
     show: false,
     titulo: '',
@@ -271,18 +272,23 @@ export default function ModoTreinoGuiado({
       setRestTimerActive(true);
 
       // Mudar foco para a próxima série
-      if (numeroSerie < seriesNovas.length) {
+      if (numeroSerie < (currentEx.series || seriesNovas.length)) {
         setCurrentSetNum(numeroSerie + 1);
       } else {
-        // Se concluiu todas as séries deste exercício, marcar status_execucao
-        dbService.updateTreinoExercicioDetalhe(currentEx.id || '', {
-          status_execucao: 'concluido'
-        });
+        // Se concluiu todas as séries prescritas deste exercício, marcar status_execucao
+        const concluidasCount = seriesNovas.filter(s => s.concluida).length;
+        const totalPrescritas = currentEx.series || seriesNovas.length;
 
-        // Atualizar no estado local
-        setExercicios(prev => prev.map((ex, idx) => 
-          idx === currentExIdx ? { ...ex, status_execucao: 'concluido' } : ex
-        ));
+        if (concluidasCount >= totalPrescritas) {
+          dbService.updateTreinoExercicioDetalhe(currentEx.id || '', {
+            status_execucao: 'concluido'
+          });
+
+          // Atualizar no estado local
+          setExercicios(prev => prev.map((ex, idx) => 
+            idx === currentExIdx ? { ...ex, status_execucao: 'concluido' } : ex
+          ));
+        }
       }
     }
   }
@@ -385,9 +391,10 @@ export default function ModoTreinoGuiado({
         tipo: 'alerta',
         titulo: 'Séries Pendentes',
         mensagem: `Atenção: ainda ${seriesFaltantes === 1 ? 'falta 1 série' : `faltam ${seriesFaltantes} séries`} para completar o planejado. Deseja encerrar mesmo assim?`,
-        confirmLabel: 'Encerrar mesmo assim',
-        cancelLabel: 'Continuar treinando',
-        onConfirm: () => proceedFinalize(totalPrescritas)
+        confirmLabel: 'Continuar treinando',
+        cancelLabel: 'Encerrar mesmo assim',
+        onConfirm: () => setModalAviso(prev => ({ ...prev, show: false })),
+        onCancel: () => proceedFinalize(totalPrescritas)
       });
       return;
     }
@@ -679,7 +686,7 @@ export default function ModoTreinoGuiado({
                   Séries do Exercício
                 </h3>
                 <span className="text-xs font-mono text-ink-3">
-                  {seriesCurrentEx.filter(s => s.concluida).length} de {seriesCurrentEx.length} concluídas
+                  {seriesCurrentEx.filter(s => s.concluida).length} de {currentEx?.series || seriesCurrentEx.length} concluídas
                 </span>
               </div>
 
@@ -1254,7 +1261,13 @@ export default function ModoTreinoGuiado({
                 {modalAviso.cancelLabel && (
                   <button
                     type="button"
-                    onClick={() => setModalAviso(prev => ({ ...prev, show: false }))}
+                    onClick={() => {
+                      if (modalAviso.onCancel) {
+                        modalAviso.onCancel();
+                      } else {
+                        setModalAviso(prev => ({ ...prev, show: false }));
+                      }
+                    }}
                     className="w-full py-3 text-ink-3 hover:text-ink text-xs font-bold uppercase tracking-widest transition-all"
                   >
                     {modalAviso.cancelLabel}
