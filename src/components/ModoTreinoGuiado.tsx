@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
-import { Treino, TreinoExercicioDetailed, TreinoExercicioSerie, Exercicio } from '../types';
+import { Treino, TreinoExercicioDetailed, TreinoExercicioSerie, Exercicio, Profile } from '../types';
 import { tocar } from '../lib/som';
 
 interface ModoTreinoGuiadoProps {
@@ -51,6 +51,10 @@ export default function ModoTreinoGuiado({
   const [modalSubstituir, setModalSubstituir] = useState(false);
   const [modalNota, setModalNota] = useState(false);
   const [modalConcluido, setModalConcluido] = useState(false);
+  const [alunoProfile, setAlunoProfile] = useState<Profile | null>(null);
+  const [videoError, setVideoError] = useState(false);
+
+  const isFemale = alunoProfile?.avatar_tipo === 'feminino';
 
   // Auxiliares de Modais
   const [notaTexto, setNotaTexto] = useState('');
@@ -59,6 +63,11 @@ export default function ModoTreinoGuiado({
 
   // Exercício Atual
   const currentEx = exercicios[currentExIdx] || null;
+
+  // Reset video error when exercise changes
+  useEffect(() => {
+    setVideoError(false);
+  }, [currentExIdx]);
 
   // Carregar/Inicializar Séries e Exercícios da Biblioteca
   useEffect(() => {
@@ -77,6 +86,18 @@ export default function ModoTreinoGuiado({
     inicializarTreino();
     carregarBiblioteca();
   }, [treino.id]);
+
+  useEffect(() => {
+    async function carregarAluno() {
+      if (alunoId) {
+        const { data } = await dbService.getAluno(alunoId);
+        if (data?.profile) {
+          setAlunoProfile(data.profile);
+        }
+      }
+    }
+    carregarAluno();
+  }, [alunoId]);
 
   useEffect(() => {
     if (exercicios && exercicios.length > 0) {
@@ -388,21 +409,39 @@ export default function ModoTreinoGuiado({
             <div className="bg-surface border border-line/60 rounded-2xl overflow-hidden shadow-lg relative group">
               {/* Mídia Banner */}
               <div className={`relative bg-surface-2 transition-all duration-300 ${mediaExpanded ? 'h-80' : 'h-52'} flex items-center justify-center overflow-hidden`}>
-                {currentEx.exercicio?.video_url_masc || currentEx.exercicio?.video_url_fem ? (
-                  <img
-                    src={currentEx.exercicio.video_url_masc || currentEx.exercicio.video_url_fem}
-                    alt={currentEx.exercicio.nome}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-ink-3 gap-2 p-6 text-center">
-                    <Dumbbell className="w-12 h-12 text-[#F26A1B]/60" />
-                    <span className="text-xs font-mono">Vídeo de instrução do exercício</span>
-                  </div>
-                )}
+                {(() => {
+                  const videoPath = isFemale 
+                    ? (currentEx.exercicio?.video_url_fem || currentEx.exercicio?.video_url_masc)
+                    : (currentEx.exercicio?.video_url_masc || currentEx.exercicio?.video_url_fem);
+                  const videoUrl = dbService.getExerciseVideoUrl(videoPath);
+
+                  if (videoUrl && !videoError) {
+                    return (
+                      <video
+                        key={videoUrl}
+                        src={videoUrl}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                        onError={() => setVideoError(true)}
+                      />
+                    );
+                  }
+
+                  return (
+                    <div className="flex flex-col items-center justify-center text-ink-3 gap-2 p-6 text-center">
+                      <div className="w-16 h-16 rounded-full bg-[#F26A1B]/10 flex items-center justify-center mb-1">
+                        <Dumbbell className="w-8 h-8 text-[#F26A1B]/60" />
+                      </div>
+                      <span className="text-sm font-display font-bold text-ink-2">Vídeo em breve</span>
+                      <span className="text-[10px] opacity-60 max-w-[200px]">
+                        Estamos preparando as instruções em vídeo para este exercício.
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 <div className="absolute top-3 right-3 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                   <Sparkles className="w-3 h-3 text-flame animate-pulse" />

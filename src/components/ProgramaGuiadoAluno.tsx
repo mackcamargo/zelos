@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
-import { Treino, TreinoExercicioDetailed, Exercicio } from '../types';
+import { Treino, TreinoExercicioDetailed, Exercicio, Profile } from '../types';
 import ModoTreinoGuiado from './ModoTreinoGuiado';
 
 interface ProgramaGuiadoAlunoProps {
@@ -46,6 +46,7 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
   const [fases, setFases] = useState<Fase[]>([]);
   const [faseSelecionadaId, setFaseSelecionadaId] = useState<string | null>(null);
   const [treinos, setTreinos] = useState<Treino[]>([]);
+  const [alunoProfile, setAlunoProfile] = useState<Profile | null>(null);
   
   // Navigation State
   const [treinoDetalheId, setTreinoDetalheId] = useState<string | null>(null);
@@ -66,7 +67,15 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
   useEffect(() => {
     carregarPrograma();
     carregarBibliotecaExercicios();
+    carregarAluno();
   }, [alunoId]);
+
+  async function carregarAluno() {
+    const { data } = await dbService.getAluno(alunoId);
+    if (data?.profile) {
+      setAlunoProfile(data.profile);
+    }
+  }
 
   async function carregarPrograma() {
     setLoading(true);
@@ -428,7 +437,11 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
             ) : (
               treinoDetalhe.exercicios.map((item, idx) => {
                 const exObj = item.exercicio;
-                const thumbUrl = exObj?.video_url_masc || exObj?.video_url_fem;
+                const isFemale = alunoProfile?.avatar_tipo === 'feminino';
+                const videoPath = isFemale 
+                  ? (exObj?.video_url_fem || exObj?.video_url_masc)
+                  : (exObj?.video_url_masc || exObj?.video_url_fem);
+                const thumbUrl = dbService.getExerciseVideoUrl(videoPath);
                 const musculo = exObj?.musculo_primario?.[0] || 'Geral';
 
                 return (
@@ -439,17 +452,29 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
                     {/* Miniatura */}
                     <div className="w-12 h-12 rounded-lg bg-surface-2 border border-line flex items-center justify-center shrink-0 overflow-hidden relative">
                       {thumbUrl ? (
-                        <img 
+                        <video 
                           src={thumbUrl} 
-                          alt={exObj?.nome || 'Exercício'} 
                           className="w-full h-full object-cover"
+                          muted
+                          playsInline
+                          onLoadedData={(e) => {
+                            (e.target as HTMLVideoElement).style.opacity = '1';
+                          }}
+                          style={{ opacity: 0 }}
                           onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
+                            (e.target as HTMLVideoElement).style.display = 'none';
+                            const parent = (e.target as HTMLElement).parentElement;
+                            if (parent) {
+                              const placeholder = parent.querySelector('.video-placeholder');
+                              if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                            }
                           }}
                         />
-                      ) : (
-                        <Dumbbell className="w-5 h-5 text-[#F26A1B]/70" />
-                      )}
+                      ) : null}
+                      <div className={`video-placeholder flex-col items-center justify-center text-[8px] text-ink-3/60 font-bold uppercase ${thumbUrl ? 'hidden absolute inset-0' : 'flex w-full h-full'}`}>
+                        <Dumbbell className="w-5 h-5 text-[#F26A1B]/70 mb-0.5" />
+                        <span className="leading-none scale-75">Breve</span>
+                      </div>
                     </div>
 
                     {/* Nome & Infos */}

@@ -726,14 +726,28 @@ export const dbService = {
       return path;
     }
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.storage
+      // Como tornamos o bucket público, podemos usar getPublicUrl para melhor performance e cache
+      const { data } = supabase.storage
         .from('exercicios')
-        .createSignedUrl(path, 60 * 60); // válido por 1 hora
-      if (error) {
-        console.error('Erro ao gerar signed URL:', error);
-        return null;
-      }
-      return data?.signedUrl ?? null;
+        .getPublicUrl(path);
+      return data?.publicUrl ?? null;
+    }
+    // Modo demo: tenta recuperar blob local
+    if ((window as any).__zenite_mock_videos && (window as any).__zenite_mock_videos[path]) {
+      return (window as any).__zenite_mock_videos[path];
+    }
+    return path;
+  },
+
+  getExerciseVideoUrl(path: string | null): string | null {
+    if (!path) return null;
+    // Se já for uma URL completa ou data URI (mock), retorna direto
+    if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) {
+      return path;
+    }
+    if (isSupabaseConfigured && supabase) {
+      const { data } = supabase.storage.from('exercicios').getPublicUrl(path);
+      return data.publicUrl;
     }
     // Modo demo: tenta recuperar blob local
     if ((window as any).__zenite_mock_videos && (window as any).__zenite_mock_videos[path]) {
