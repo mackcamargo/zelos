@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Droplets, Plus, Settings, Trash2, Loader2, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
-import { dbService } from '../lib/supabase';
+import { dbService, getHojeString } from '../lib/supabase';
 import { tocar } from '../lib/som';
 
 interface HidratacaoCardProps {
@@ -44,7 +44,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
     }
   });
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getHojeString();
 
   useEffect(() => {
     if (alunoId) {
@@ -94,7 +94,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
     if (!alunoId) return;
     try {
       setLoading(true);
-      const hoje = new Date().toISOString().split('T')[0];
+      const hoje = getHojeString();
 
       // 1. Get current meta
       const metaRes = await dbService.getMetaHidratacao(alunoId);
@@ -118,7 +118,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dataStr = d.toISOString().split('T')[0];
+        const dataStr = getHojeString(d);
         const match = histRows.find((r: any) => r.data === dataStr);
         array7Dias.push({
           data: dataStr,
@@ -198,7 +198,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       triggerVibrate();
 
       setSaving(true);
-      const hoje = new Date().toISOString().split('T')[0];
+      const hoje = getHojeString();
       const novoConsumo = consumido + ml;
 
       // Save using dbService API
@@ -250,7 +250,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
 
     try {
       setSaving(true);
-      const hoje = new Date().toISOString().split('T')[0];
+      const hoje = getHojeString();
 
       await dbService.saveRegistroHidratacao({
         aluno_id: alunoId,

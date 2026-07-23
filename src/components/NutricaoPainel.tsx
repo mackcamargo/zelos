@@ -6,9 +6,9 @@ import {
   AlertTriangle, Search, Info, Sparkles, BookOpen, Settings, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
+import { dbService, supabase, isSupabaseConfigured, getHojeString } from '../lib/supabase';
 import { PlanoAlimentar, RegistroNutricao } from '../types';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import HidratacaoCard from './HidratacaoCard';
 import { tocar } from '../lib/som';
 
@@ -225,7 +225,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
       .toLowerCase();
   };
   
-  const today = new Date().toISOString().split('T')[0];
+  const today = getHojeString();
 
   useEffect(() => {
     loadData();
@@ -600,7 +600,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
     if (!tomados || tomados.length === 0) return 0;
 
-    const dataOntem = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const dataOntem = getHojeString(new Date(Date.now() - 86400000));
     const temHoje = tomados.includes(today);
     const temOntem = tomados.includes(dataOntem);
 
@@ -617,7 +617,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
         streak++;
         const d = new Date(dataAtual + 'T12:00:00');
         d.setDate(d.getDate() - 1);
-        dataAtual = d.toISOString().split('T')[0];
+        dataAtual = getHojeString(d);
       } else {
         break;
       }
@@ -632,7 +632,7 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
-      const dataStr = d.toISOString().split('T')[0];
+      const dataStr = getHojeString(d);
       dias.push({
         data: dataStr,
         nomeExibicao: nomesDias[d.getDay()],
@@ -1079,7 +1079,14 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
                         fillOpacity={1} 
                         fill="url(#colorCal)" 
                         strokeWidth={3}
-                      />
+                      >
+                        <LabelList 
+                          dataKey="calorias" 
+                          position="top" 
+                          offset={10}
+                          style={{ fontSize: '10px', fill: 'var(--z-text-3)', fontWeight: 'bold' }}
+                        />
+                      </Area>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -1156,16 +1163,6 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
             ) : (
               <div className="space-y-6 relative z-10 animate-fadeIn">
                 
-                {/* ENQUADRAMENTO LEGAL / AVISO FIXO OBRIGATÓRIO EM CADA PLANO */}
-                <div className="bg-amber-500/10 border border-amber-500/15 rounded-2xl p-4 flex gap-3 text-xs text-amber-500 leading-relaxed">
-                  <div className="shrink-0 w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-                    <AlertTriangle className="w-4 h-4" />
-                  </div>
-                  <p className="font-sans text-left">
-                    <strong className="block text-amber-400 font-bold mb-0.5">Enquadramento Legal:</strong>
-                    Orientação de acompanhamento. Não substitui a prescrição de um nutricionista. A dose adequada deve ser definida por um profissional habilitado.
-                  </p>
-                </div>
 
                 {/* Itens da Orientação */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

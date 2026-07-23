@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { dbService, isSupabaseConfigured, supabase, getHojeString } from '../lib/supabase';
 import { Habito } from '../types';
 import { 
   CheckCircle2, Circle, Flame, 
@@ -31,7 +31,7 @@ const renderHabitoIcon = (icone: string, colorClass: string = "text-ink-2") => {
 export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPainelProps) {
   const [habitos, setHabitos] = useState<Habito[]>([]);
   const [loading, setLoading] = useState(true);
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = getHojeString();
 
   useEffect(() => {
     loadHabitos();
@@ -78,14 +78,14 @@ export default function HabitosPainel({ alunoId, onHabitComplete }: HabitosPaine
     let streak = 0;
     const current = new Date(baseData);
     
-    const currentStr = current.toISOString().slice(0, 10);
+    const currentStr = getHojeString(current);
     if (dates.has(currentStr)) {
       streak++;
     }
     
     while (true) {
       current.setDate(current.getDate() - 1);
-      const prevStr = current.toISOString().slice(0, 10);
+      const prevStr = getHojeString(current);
       if (dates.has(prevStr)) {
         streak++;
       } else {

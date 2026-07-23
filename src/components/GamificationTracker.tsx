@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { dbService, isSupabaseConfigured, supabase, getHojeString } from '../lib/supabase';
 import { Conquista, AlunoConquista, RecordePessoal } from '../types';
 import CelebrationModal from './CelebrationModal';
 import { AnimatePresence } from 'motion/react';
@@ -63,12 +63,12 @@ export default function GamificationProvider({ alunoId, children }: { alunoId: s
         return activeHabitIds.every(id => completedIds.includes(id));
       };
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getHojeString();
       let currentStreak = 0;
       let checkDate = new Date();
       
       // Start checking from today
-      const todayStr = checkDate.toISOString().slice(0, 10);
+      const todayStr = getHojeString(checkDate);
       const isTodayComplete = isDayComplete(todayStr);
       
       if (isTodayComplete) {
@@ -76,7 +76,7 @@ export default function GamificationProvider({ alunoId, children }: { alunoId: s
         // Go back from yesterday
         checkDate.setDate(checkDate.getDate() - 1);
         while (true) {
-          const dStr = checkDate.toISOString().slice(0, 10);
+          const dStr = getHojeString(checkDate);
           if (isDayComplete(dStr)) {
             currentStreak++;
             checkDate.setDate(checkDate.getDate() - 1);
@@ -87,12 +87,12 @@ export default function GamificationProvider({ alunoId, children }: { alunoId: s
       } else {
         // Today not complete, check if yesterday was
         checkDate.setDate(checkDate.getDate() - 1);
-        const yesterdayStr = checkDate.toISOString().slice(0, 10);
+        const yesterdayStr = getHojeString(checkDate);
         if (isDayComplete(yesterdayStr)) {
           currentStreak++;
           checkDate.setDate(checkDate.getDate() - 1);
           while (true) {
-            const dStr = checkDate.toISOString().slice(0, 10);
+            const dStr = getHojeString(checkDate);
             if (isDayComplete(dStr)) {
               currentStreak++;
               checkDate.setDate(checkDate.getDate() - 1);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dbService, isSupabaseConfigured, supabase } from '../lib/supabase';
+import { dbService, isSupabaseConfigured, supabase, getHojeString } from '../lib/supabase';
 import { Profile, Exercicio } from '../types';
 import { 
   Dumbbell, TrendingUp, User, LogOut, Calendar, Target, 
@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ResponsiveContainer, LineChart, Line, BarChart, Bar, 
-  AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
+  AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, LabelList
 } from 'recharts';
 import CheckinForm from './CheckinForm';
 import HabitosPainel from './HabitosPainel';
@@ -2244,7 +2244,15 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                 fill="#10B981" 
                                 radius={[4, 4, 0, 0]} 
                                 maxBarSize={30}
-                              />
+                              >
+                                <LabelList 
+                                  dataKey="Aderência" 
+                                  position="top" 
+                                  offset={10}
+                                  formatter={(val: number) => `${val}%`}
+                                  style={{ fontSize: '10px', fill: 'var(--z-text-3)', fontFamily: 'monospace', fontWeight: 'bold' }} 
+                                />
+                              </Bar>
                             </BarChart>
                           </ResponsiveContainer>
                         ) : (
@@ -2375,10 +2383,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                           dateKey = s.data_treino;
                         } else if (s.concluida_em) {
                           dateObj = new Date(s.concluida_em);
-                          dateKey = dateObj.toISOString().split('T')[0];
+                          dateKey = getHojeString(dateObj);
                         } else {
                           dateObj = new Date();
-                          dateKey = dateObj.toISOString().split('T')[0];
+                          dateKey = getHojeString(dateObj);
                         }
                         const carga = Number(s.carga_kg) || 0;
                         if (!maxByDate[dateKey] || carga > maxByDate[dateKey].maxCarga) {
@@ -2412,7 +2420,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                         dateObj = new Date();
                       }
                       const monday = getMondayOfDate(dateObj);
-                      const mondayKey = monday.toISOString().split('T')[0];
+                      const mondayKey = getHojeString(monday);
                       const carga = Number(s.carga_kg) || 0;
                       const reps = Number(s.repeticoes) || 0;
                       const vol = carga * reps;
@@ -2586,7 +2594,14 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                           fill="var(--z-accent)" 
                                           radius={[4, 4, 0, 0]} 
                                           maxBarSize={30}
-                                        />
+                                        >
+                                          <LabelList 
+                                            dataKey="Volume total (kg levantados)" 
+                                            position="top" 
+                                            offset={10}
+                                            style={{ fontSize: '10px', fill: 'var(--z-text-3)', fontFamily: 'monospace', fontWeight: 'bold' }} 
+                                          />
+                                        </Bar>
                                       </BarChart>
                                     </ResponsiveContainer>
                                   ) : (

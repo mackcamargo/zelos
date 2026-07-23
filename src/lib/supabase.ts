@@ -36,6 +36,10 @@ console.log('DEBUG URL:', supabaseUrl);
 console.log('DEBUG KEY existe?:', !!supabaseAnonKey);
 console.log('DEBUG modo demo?:', !isSupabaseConfigured);
 
+export const getHojeString = (date = new Date()) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
 export const supabase = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -1755,7 +1759,7 @@ export const dbService = {
   },
 
   async getHidratacaoHoje(alunoId: string, data?: string): Promise<{ data: any; error: any }> {
-    const targetDate = data || new Date().toISOString().slice(0, 10);
+    const targetDate = data || getHojeString();
     if (isSupabaseConfigured && supabase) {
       const { data: row, error } = await supabase
         .from('hidratacao')
@@ -1815,7 +1819,7 @@ export const dbService = {
   },
 
   async saveRegistroHidratacao(registro: any): Promise<{ data: any; error: any }> {
-    const targetDate = registro.data || new Date().toISOString().slice(0, 10);
+    const targetDate = registro.data || getHojeString();
     // O novo total é passado no parâmetro ml do registro
     const novoTotal = Number(registro.ml) || 0;
 
