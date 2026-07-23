@@ -963,6 +963,21 @@ export const dbService = {
   },
 
   async deleteTreino(treinoId: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        // Primeiro deletamos os exercícios (embora o CASCADE deva tratar, garantimos aqui)
+        await supabase.from('treino_exercicios').delete().eq('treino_id', treinoId);
+        
+        // Agora deletamos o treino
+        const { error } = await supabase.from('treinos').delete().eq('id', treinoId);
+        return { error };
+      } catch (e) {
+        console.error('Erro ao deletar treino no supabase:', e);
+        return { error: e };
+      }
+    }
+
+    // ---- MODO DEMO ----
     const treinos = load('zenite_mock_treinos', []);
     save('zenite_mock_treinos', treinos.filter((t: any) => t.id !== treinoId));
     const workoutExercises = load('zenite_mock_treino_exercicios', []);

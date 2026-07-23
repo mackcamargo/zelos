@@ -56,6 +56,15 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   // Confirmation modals
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    show: boolean;
+    index: number | null;
+    isLast: boolean;
+  }>({
+    show: false,
+    index: null,
+    isLast: false
+  });
 
   // Student Anamnese for warning notices
   const [studentAnamnese, setStudentAnamnese] = useState<any | null>(null);
@@ -312,9 +321,51 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
   // Remove exercise from list
   const handleRemoveExercise = (index: number) => {
+    setConfirmDelete({
+      show: true,
+      index,
+      isLast: selectedExercises.length === 1
+    });
+  };
+
+  const confirmRemoveExercise = async () => {
+    if (confirmDelete.index === null) return;
+    
+    const index = confirmDelete.index;
+    const isDeletingWorkout = confirmDelete.isLast;
+
+    if (isDeletingWorkout && treinoId) {
+      setSaving(true);
+      try {
+        const { error } = await dbService.deleteTreino(treinoId);
+        if (error) {
+          showToast('Erro ao excluir ficha de treino.');
+          console.error(error);
+        } else {
+          showToast('Ficha de treino excluída.');
+          onBack();
+        }
+      } catch (e) {
+        showToast('Erro inesperado ao excluir.');
+      } finally {
+        setSaving(false);
+        setConfirmDelete({ show: false, index: null, isLast: false });
+      }
+      return;
+    }
+
+    // Just removing the exercise from local state
     const list = [...selectedExercises];
     list.splice(index, 1);
     setSelectedExercises(list);
+    setConfirmDelete({ show: false, index: null, isLast: false });
+    
+    if (isDeletingWorkout && !treinoId) {
+      // If it's a new workout and we remove the only exercise, we might as well go back
+      // or just leave it empty. The user requirement says "apagar a ficha inteira".
+      // If it's a new one, it's not even in the DB yet, so we just go back.
+      onBack();
+    }
   };
 
   // Reordering exercises
@@ -1241,6 +1292,75 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   className="h-10 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors text-xs font-bold cursor-pointer"
                 >
                   Adicionar mesmo assim
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* CONFIRMAR EXCLUSÃO DE EXERCÍCIO / FICHA */}
+      <AnimatePresence>
+        {confirmDelete.show && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmDelete({ show: false, index: null, isLast: false })}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-sm bg-surface border border-line rounded-3xl p-6 shadow-2xl space-y-5"
+            >
+              <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center">
+                  <Trash2 className="w-6 h-6 text-rose-500" />
+                </div>
+                <h3 className="font-display font-bold text-lg text-ink">
+                  {confirmDelete.isLast ? 'Excluir ficha inteira?' : 'Remover exercício?'}
+                </h3>
+                <p className="text-xs text-ink-2 leading-relaxed">
+                  {confirmDelete.isLast 
+                    ? 'Este é o último exercício. Ao removê-lo, a ficha de treino inteira será excluída do sistema.'
+                    : 'Tem certeza que deseja remover este exercício da ficha de treino?'}
+                </p>
+
+                {status === 'concluido' && (
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex gap-2 items-start text-left">
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-amber-600 leading-tight">
+                      <strong>Aviso de Histórico:</strong> Este treino já foi concluído. Removê-lo apagará os registros de carga e esforço do aluno vinculados a este item.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete({ show: false, index: null, isLast: false })}
+                  className="flex-1 h-11 rounded-xl border border-line hover:bg-raise transition-colors text-xs font-bold text-ink-2 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRemoveExercise}
+                  disabled={saving}
+                  className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {saving ? (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Confirmar</span>
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
