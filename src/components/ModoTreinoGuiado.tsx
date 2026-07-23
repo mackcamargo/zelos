@@ -346,11 +346,11 @@ export default function ModoTreinoGuiado({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0C0D0E] text-ink overflow-y-auto flex flex-col font-sans select-none">
+    <div className="fixed inset-0 z-50 bg-bg text-ink overflow-y-auto flex flex-col font-sans select-none">
       {/* =================================================================== */}
       {/* 1. BARRA SUPERIOR FIXA */}
       {/* =================================================================== */}
-      <header className="sticky top-0 z-40 bg-[#121417]/95 backdrop-blur-md border-b border-line/60 px-4 py-3 flex items-center justify-between gap-3 shadow-md">
+      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-line/60 px-4 py-3 flex items-center justify-between gap-3 shadow-md">
         {/* Botão Fechar (X) */}
         <button
           type="button"
@@ -718,7 +718,7 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       {/* 6. BARRA INFERIOR FIXA (DESCANSO E NAVEGAÇÃO) */}
       {/* =================================================================== */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-[#121417]/95 backdrop-blur-lg border-t border-line/60 p-3 sm:p-4 space-y-2.5 shadow-2xl">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-line/60 p-3 sm:p-4 space-y-2.5 shadow-2xl">
         <div className="max-w-2xl mx-auto space-y-2.5">
           {/* Cronômetro de Descanso (Se Ativo) */}
           {restTimerActive && (
