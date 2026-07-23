@@ -175,6 +175,9 @@ export default function ModoTreinoGuiado({
       // Se o número de séries no banco for menor que o prescrito, gerar as faltantes
       if (currentSeries.length < prescribedCount && isSupabaseConfigured && supabase && !exId.startsWith('temp-')) {
         const diff = prescribedCount - currentSeries.length;
+        
+        console.warn(`[AUTO-GERACAO] treino ${treino.id} / te ${exId} (${item.exercicio?.nome || 'Exercício'}): existiam ${currentSeries.length} linhas, esperadas ${prescribedCount}. Gerando ${diff}. Verificar geracao no lado do professor.`);
+
         const toInsert = [];
         
         for (let i = 1; i <= diff; i++) {
@@ -182,7 +185,7 @@ export default function ModoTreinoGuiado({
             treino_exercicio_id: exId,
             numero_serie: currentSeries.length + i,
             repeticoes: item.repeticoes || '12',
-            carga_kg: item.carga_kg ?? 20,
+            carga_kg: null,
             concluida: false
           });
         }
@@ -728,6 +731,7 @@ export default function ModoTreinoGuiado({
                               <input
                                 type="number"
                                 value={serie.carga_kg ?? ''}
+                                placeholder={currentEx.carga_kg ? String(currentEx.carga_kg) : '0'}
                                 onChange={(e) => handleEditarSerieValue(serie.numero_serie, 'carga_kg', e.target.value === '' ? null : Number(e.target.value))}
                                 onClick={(e) => e.stopPropagation()}
                                 className="w-12 text-center bg-transparent text-xs font-bold font-mono text-ink focus:outline-none"
@@ -825,23 +829,28 @@ export default function ModoTreinoGuiado({
 
                       {/* Selos de Status */}
                       <div className="shrink-0">
-                        {isCurrent ? (
-                          <span className="bg-[#F26A1B] text-white text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded shadow-sm">
-                            EM EXECUÇÃO
-                          </span>
-                        ) : isConcluido ? (
-                          <span className="bg-ok/10 text-ok border border-ok/20 text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded flex items-center gap-1">
-                            <Check className="w-2.5 h-2.5 stroke-[3]" /> CONCLUÍDO
-                          </span>
-                        ) : isNext ? (
-                          <span className="bg-surface-2 border border-line text-ink-2 text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded">
-                            PRÓXIMO
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-ink-3 font-mono">
-                            Pendente
-                          </span>
-                        )}
+                        {(() => {
+                          const status = item.status_execucao;
+                          if (status === 'concluido') {
+                            return (
+                              <span className="bg-ok/10 text-ok border border-ok/20 text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded flex items-center gap-1">
+                                <Check className="w-2.5 h-2.5 stroke-[3]" /> CONCLUÍDO
+                              </span>
+                            );
+                          }
+                          if (status === 'em_andamento') {
+                            return (
+                              <span className="bg-[#F26A1B]/10 text-[#F26A1B] border border-[#F26A1B]/20 text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded">
+                                EM ANDAMENTO
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="bg-surface-2 border border-line text-ink-3 text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded">
+                              PENDENTE
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
                   );
