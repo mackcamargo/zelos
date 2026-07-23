@@ -10,7 +10,9 @@ type TipoSom =
   | "receber"      // mensagem recebida
   | "erro"         // falha
   | "abrir"        // abrir modal/card
-  | "fechar";      // fechar modal/card
+  | "fechar"       // fechar modal/card
+  | "timerTick"    // contagem regressiva
+  | "timerEnd";    // fim do descanso
 
 let ctx: AudioContext | null = null;
 let habilitado = true;
@@ -80,6 +82,8 @@ export function tocar(tipo: TipoSom) {
       case "erro":       nota(N.G4, 0, 0.10, 0.12, "triangle"); nota(320, 0.10, 0.14, 0.12, "triangle"); break;
       case "abrir":      glide(500, 800, 0.06, 0.08); break;
       case "fechar":     glide(800, 500, 0.06, 0.08); break;
+      case "timerTick":  nota(N.E6, 0, 0.04, 0.08); break;
+      case "timerEnd":   nota(N.G5, 0, 0.10, 0.15); nota(N.C6, 0.10, 0.10, 0.15); nota(N.E6, 0.20, 0.30, 0.18); break;
     }
   } catch { /* som nunca pode quebrar a UI */ }
 }

@@ -2785,6 +2785,19 @@ export const dbService = {
     return { data: count, error: null };
   },
 
+  async getUltimaCarga(alunoId: string, exercicioIds: string[]): Promise<{ data: any[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('v_ultima_carga')
+        .select('*')
+        .eq('aluno_id', alunoId)
+        .in('exercicio_id', exercicioIds);
+      return { data, error };
+    }
+    // MOCK MODE: Return empty for now as requested by "Não precisa de nenhuma migration adicional"
+    return { data: [], error: null };
+  },
+
   async getAnamnese(alunoId: string): Promise<{ data: Anamnese | null; error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase

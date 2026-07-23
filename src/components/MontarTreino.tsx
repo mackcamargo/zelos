@@ -68,6 +68,9 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   // Student Anamnese for warning notices
   const [studentAnamnese, setStudentAnamnese] = useState<any | null>(null);
 
+  // Histórico de cargas
+  const [lastLoads, setLastLoads] = useState<Record<string, any>>({});
+
   // Orthopedic conditions and rules for safety check
   const [alunoCondicoes, setAlunoCondicoes] = useState<any[]>([]);
   const [condicaoRegras, setCondicaoRegras] = useState<any[]>([]);
@@ -82,6 +85,23 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
     regra: null,
     onConfirm: () => {}
   });
+
+  const fetchLastLoads = async (ids: string[]) => {
+    if (!aluno?.id || ids.length === 0) return;
+    try {
+      const { data } = await dbService.getUltimaCarga(aluno.id, ids);
+      if (data) {
+        const newLoads = { ...lastLoads };
+        data.forEach(item => {
+          newLoads[item.exercicio_id] = item;
+        });
+        setLastLoads(newLoads);
+        return data;
+      }
+    } catch (e) {
+      console.error('Erro ao buscar histórico de cargas:', e);
+    }
+  };
 
   useEffect(() => {
     if (aluno?.id) {
@@ -156,6 +176,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               exercicio: item.exercicio
             }));
             setSelectedExercises(mapped);
+            fetchLastLoads(mapped.map((m: any) => m.exercicio_id));
           }
         } finally {
           setLoading(false);
@@ -176,6 +197,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               exercicio: item.exercicio
             })) || [];
             setSelectedExercises(mapped);
+            fetchLastLoads(mapped.map((m: any) => m.exercicio_id));
           }
         } finally {
           setLoading(false);
@@ -236,9 +258,19 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   };
 
   // Add exercise to list
-  const handleAddExercise = (exercicio: Exercicio) => {
+  const handleAddExercise = async (exercicio: Exercicio) => {
     const conflict = checkOrthopedicConflict(exercicio);
     
+    // Buscar carga histórica para sugerir
+    let suggestedCarga = null;
+    if (aluno?.id) {
+      const { data } = await dbService.getUltimaCarga(aluno.id, [exercicio.id]);
+      if (data && data.length > 0) {
+        suggestedCarga = data[0].carga_kg;
+        setLastLoads(prev => ({ ...prev, [exercicio.id]: data[0] }));
+      }
+    }
+
     if (conflict) {
       setOrthopedicSafetyModal({
         show: true,
@@ -249,7 +281,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
             exercicio_id: exercicio.id,
             series: 3,
             repeticoes: '10',
-            carga_kg: null,
+            carga_kg: suggestedCarga,
             exercicio: exercicio
           };
           setSelectedExercises([...selectedExercises, newEx]);
@@ -264,7 +296,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
       exercicio_id: exercicio.id,
       series: 3,
       repeticoes: '10',
-      carga_kg: null,
+      carga_kg: suggestedCarga,
       exercicio: exercicio
     };
     setSelectedExercises([...selectedExercises, newEx]);
@@ -500,6 +532,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
         carga_kg: te.carga_kg,
         exercicio: te.exercicio
       })));
+      fetchLastLoads(exs.map((te: any) => te.exercicio_id));
       setTitulo(full.titulo || template.titulo);
       showToast(`Modelo "${full.titulo || template.titulo}" aplicado.`);
       setShowTemplatesModal(false);
@@ -831,7 +864,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                                   placeholder="-"
                                   value={item.carga_kg ?? ''}
                                   onChange={(e) => {
-                                    const val = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                                    const val = e.target.value === '' ? null : e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
                                     updateExerciseField(index, 'carga_kg', val);
                                   }}
                                   className="z-input !h-9 !pl-3 !pr-5 text-center text-xs font-semibold z-num w-full"
@@ -840,6 +873,13 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                                   kg
                                 </span>
                               </div>
+                              {lastLoads[item.exercicio_id] && (
+                                <div className="mt-1 text-[9px] text-ink-3 text-center leading-tight">
+                                  última: <span className="font-bold">{lastLoads[item.exercicio_id].carga_kg}kg</span>
+                                  <br />
+                                  em {new Date(lastLoads[item.exercicio_id].usada_em).toLocaleDateString('pt-BR')}
+                                </div>
+                              )}
                             </div>
                           </div>
 

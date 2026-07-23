@@ -43,6 +43,7 @@ export default function ModoTreinoGuiado({
   // Cronômetro de Descanso
   const [restSecondsLeft, setRestSecondsLeft] = useState(0);
   const [restTimerActive, setRestTimerActive] = useState(false);
+  const lastBeepedSecondRef = useRef<number | null>(null);
   const [isMuted, setIsMuted] = useState(false);
 
   // Modais
@@ -68,6 +69,7 @@ export default function ModoTreinoGuiado({
   });
   const [alunoProfile, setAlunoProfile] = useState<Profile | null>(null);
   const [videoError, setVideoError] = useState(false);
+  const [lastLoads, setLastLoads] = useState<Record<string, any>>({});
 
   const isFemale = alunoProfile?.avatar_tipo === 'feminino';
 
@@ -96,6 +98,19 @@ export default function ModoTreinoGuiado({
         }
       } else {
         setExercicios(currentExs);
+      }
+
+      // Buscar histórico de cargas para os exercícios do treino
+      if (currentExs.length > 0 && alunoId) {
+        const ids = currentExs.map(ex => ex.exercicio_id);
+        const { data } = await dbService.getUltimaCarga(alunoId, ids);
+        if (data) {
+          const newLoads: Record<string, any> = {};
+          data.forEach(item => {
+            newLoads[item.exercicio_id] = item;
+          });
+          setLastLoads(newLoads);
+        }
       }
     }
     inicializarTreino();
@@ -134,18 +149,30 @@ export default function ModoTreinoGuiado({
     if (restTimerActive && restSecondsLeft > 0) {
       interval = setInterval(() => {
         setRestSecondsLeft(prev => {
-          if (prev <= 1) {
+          const next = prev - 1;
+          
+          // Beeps nos últimos 5 segundos (5, 4, 3, 2, 1)
+          if (next <= 5 && next > 0 && !isMuted) {
+            if (lastBeepedSecondRef.current !== next) {
+              tocar('timerTick');
+              lastBeepedSecondRef.current = next;
+            }
+          }
+
+          if (next <= 0) {
             setRestTimerActive(false);
             if (!isMuted) {
-              tocar('sucesso');
+              tocar('timerEnd');
             }
+            lastBeepedSecondRef.current = null;
             return 0;
           }
-          return prev - 1;
+          return next;
         });
       }, 1000);
     } else if (restSecondsLeft === 0) {
       setRestTimerActive(false);
+      lastBeepedSecondRef.current = null;
     }
     return () => clearInterval(interval);
   }, [restTimerActive, restSecondsLeft, isMuted]);
@@ -726,17 +753,22 @@ export default function ModoTreinoGuiado({
                             </div>
 
                             {/* Carga (kg) */}
-                            <div className="flex items-center gap-1 bg-surface-2 border border-line/80 rounded-lg px-2 py-1">
-                              <span className="text-[10px] font-mono text-ink-3">Carga:</span>
-                              <input
-                                type="number"
-                                value={serie.carga_kg ?? ''}
-                                placeholder={currentEx.carga_kg ? String(currentEx.carga_kg) : '0'}
-                                onChange={(e) => handleEditarSerieValue(serie.numero_serie, 'carga_kg', e.target.value === '' ? null : Number(e.target.value))}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-12 text-center bg-transparent text-xs font-bold font-mono text-ink focus:outline-none"
-                              />
-                              <span className="text-[10px] font-mono text-ink-3">kg</span>
+                            <div className="flex flex-col items-center">
+                              <div className="flex items-center gap-1 bg-surface-2 border border-line/80 rounded-lg px-2 py-1">
+                                <span className="text-[10px] font-mono text-ink-3">Carga:</span>
+                                <input
+                                  type="number"
+                                  value={serie.carga_kg ?? ''}
+                                  placeholder={currentEx.carga_kg ? String(currentEx.carga_kg) : (lastLoads[currentEx.exercicio_id]?.carga_kg ? String(lastLoads[currentEx.exercicio_id].carga_kg) : '')}
+                                  onChange={(e) => handleEditarSerieValue(serie.numero_serie, 'carga_kg', e.target.value === '' ? null : Number(e.target.value))}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-12 text-center bg-transparent text-xs font-bold font-mono text-ink focus:outline-none"
+                                />
+                                <span className="text-[10px] font-mono text-ink-3">kg</span>
+                              </div>
+                              {serie.carga_kg === null && lastLoads[currentEx.exercicio_id] && (
+                                <span className="text-[8px] text-ink-3 mt-0.5">sugestão: {lastLoads[currentEx.exercicio_id].carga_kg}kg</span>
+                              )}
                             </div>
                           </div>
                         </div>
