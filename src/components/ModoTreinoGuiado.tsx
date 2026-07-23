@@ -3,7 +3,7 @@ import {
   X, BarChart2, Play, Pause, Plus, Check, ChevronRight, ChevronLeft, 
   RefreshCw, Edit3, Flame, Timer, Dumbbell, Maximize2, Minimize2, 
   Volume2, VolumeX, AlertTriangle, Trophy, Sparkles, CheckCircle2, 
-  Clock, ArrowRight, FileText
+  Clock, ArrowRight, FileText, AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -51,6 +51,20 @@ export default function ModoTreinoGuiado({
   const [modalSubstituir, setModalSubstituir] = useState(false);
   const [modalNota, setModalNota] = useState(false);
   const [modalConcluido, setModalConcluido] = useState(false);
+  const [modalAviso, setModalAviso] = useState<{
+    show: boolean;
+    titulo: string;
+    mensagem: string;
+    tipo: 'alerta' | 'erro';
+    confirmLabel?: string;
+    cancelLabel?: string;
+    onConfirm?: () => void;
+  }>({
+    show: false,
+    titulo: '',
+    mensagem: '',
+    tipo: 'alerta'
+  });
   const [alunoProfile, setAlunoProfile] = useState<Profile | null>(null);
   const [videoError, setVideoError] = useState(false);
 
@@ -135,6 +149,17 @@ export default function ModoTreinoGuiado({
     return () => clearInterval(interval);
   }, [restTimerActive, restSecondsLeft, isMuted]);
 
+  // Modal de Aviso Escape Listener
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && modalAviso.show) {
+        setModalAviso(prev => ({ ...prev, show: false }));
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [modalAviso.show]);
+
   // Carregar Séries de todos os exercícios do treino
   async function carregarSeriesETodos() {
     const newMap: Record<string, TreinoExercicioSerie[]> = {};
@@ -142,16 +167,43 @@ export default function ModoTreinoGuiado({
     for (const item of exercicios) {
       const exId = item.id || `temp-${item.exercicio_id}`;
       const res = await dbService.getSeriesDoExercicio(exId);
+      
+      let currentSeries = res.data || [];
+      const prescribedCount = item.series || 3;
 
-      if (res.data && res.data.length > 0) {
-        newMap[exId] = res.data;
-      } else {
-        // Se não existir na tabela ainda, gerar número de séries inicial com base em item.series
+      // Se o número de séries no banco for menor que o prescrito, gerar as faltantes
+      if (currentSeries.length < prescribedCount && isSupabaseConfigured && supabase && !exId.startsWith('temp-')) {
+        const diff = prescribedCount - currentSeries.length;
+        const toInsert = [];
+        
+        for (let i = 1; i <= diff; i++) {
+          toInsert.push({
+            treino_exercicio_id: exId,
+            numero_serie: currentSeries.length + i,
+            repeticoes: item.repeticoes || '12',
+            carga_kg: item.carga_kg ?? 20,
+            concluida: false
+          });
+        }
+
+        const { data: savedSeries, error } = await supabase
+          .from('treino_exercicio_series')
+          .insert(toInsert)
+          .select();
+        
+        if (savedSeries) {
+          currentSeries = [...currentSeries, ...savedSeries].sort((a, b) => a.numero_serie - b.numero_serie);
+        } else if (error) {
+          console.error('Erro ao gerar séries faltantes:', error);
+          // Fallback para temp se falhar
+          const tempSeries = toInsert.map((s, idx) => ({ ...s, id: `temp-${exId}-${currentSeries.length + idx + 1}` }));
+          currentSeries = [...currentSeries, ...tempSeries].sort((a, b) => a.numero_serie - b.numero_serie);
+        }
+      } else if (currentSeries.length === 0) {
+        // Fallback para caso offline ou demo onde nada foi carregado
         const numSeries = item.series || 3;
-        const seriesIniciais: any[] = [];
-
         for (let s = 1; s <= numSeries; s++) {
-          seriesIniciais.push({
+          currentSeries.push({
             id: `temp-${exId}-${s}`,
             treino_exercicio_id: exId,
             numero_serie: s,
@@ -160,28 +212,9 @@ export default function ModoTreinoGuiado({
             concluida: false
           });
         }
-        
-        // Persistir imediatamente no banco para garantir sincronia com o gatilho
-        if (isSupabaseConfigured && supabase && !exId.startsWith('temp-')) {
-          // Remover IDs temporários antes de inserir no Supabase para deixar o banco gerar IDs reais (se configurado) ou usar os nossos
-          // Aqui preferimos deixar o Supabase gerar se for UUID, ou usamos os nossos se forem compatíveis.
-          // Como o banco usa IDs reais, vamos enviar sem ID para que ele gere.
-          const toInsert = seriesIniciais.map(({ id, ...rest }) => rest);
-          
-          const { data: savedSeries } = await supabase
-            .from('treino_exercicio_series')
-            .insert(toInsert)
-            .select();
-          
-          if (savedSeries && savedSeries.length > 0) {
-            newMap[exId] = savedSeries;
-          } else {
-            newMap[exId] = seriesIniciais;
-          }
-        } else {
-          newMap[exId] = seriesIniciais;
-        }
       }
+      
+      newMap[exId] = currentSeries;
     }
 
     setSeriesMap(newMap);
@@ -343,23 +376,41 @@ export default function ModoTreinoGuiado({
 
   // Finalizar Treino Completo
   async function handleFinalizarTreino() {
-    const totalSeries = Object.values(seriesMap).flat().length;
-    const seriesFaltantes = totalSeries - totalSeriesConcluidas;
+    const totalPrescritas = exercicios.reduce((acc, curr) => acc + (curr.series || 0), 0);
+    const seriesFaltantes = totalPrescritas - totalSeriesConcluidas;
 
     if (seriesFaltantes > 0) {
-      const confirm = window.confirm(
-        `Atenção: Ainda faltam ${seriesFaltantes} séries para completar o planejado. Deseja encerrar mesmo assim?`
-      );
-      if (!confirm) return;
+      setModalAviso({
+        show: true,
+        tipo: 'alerta',
+        titulo: 'Séries Pendentes',
+        mensagem: `Atenção: ainda ${seriesFaltantes === 1 ? 'falta 1 série' : `faltam ${seriesFaltantes} séries`} para completar o planejado. Deseja encerrar mesmo assim?`,
+        confirmLabel: 'Encerrar mesmo assim',
+        cancelLabel: 'Continuar treinando',
+        onConfirm: () => proceedFinalize(totalPrescritas)
+      });
+      return;
     }
 
+    proceedFinalize(totalPrescritas);
+  }
+
+  async function proceedFinalize(totalPrescritas: number) {
     setIsFinalizing(true);
+    setModalAviso(prev => ({ ...prev, show: false }));
+    
     try {
       // Tentar atualizar status no banco
       const { error } = await dbService.updateTreinoStatus(treino.id, 'concluido');
       
       if (error) {
-        alert("Erro ao finalizar treino: " + error.message);
+        setModalAviso({
+          show: true,
+          tipo: 'erro',
+          titulo: 'Erro ao Finalizar',
+          mensagem: "Erro ao finalizar treino: " + error.message,
+          confirmLabel: 'Ok'
+        });
         return;
       }
 
@@ -373,7 +424,13 @@ export default function ModoTreinoGuiado({
         
         if (updatedTreino?.status !== 'concluido') {
           // O gatilho provavelmente bloqueou porque nem todas as séries foram concluídas
-          alert(`O treino não pôde ser marcado como concluído no sistema. Verifique se você marcou todas as ${totalSeries} séries como feitas.`);
+          setModalAviso({
+            show: true,
+            tipo: 'alerta',
+            titulo: 'Treino Incompleto',
+            mensagem: `O treino não pôde ser marcado como concluído no sistema. Verifique se você marcou todas as ${totalPrescritas} séries como feitas.`,
+            confirmLabel: 'Ok'
+          });
           setIsFinalizing(false);
           return;
         }
@@ -383,7 +440,13 @@ export default function ModoTreinoGuiado({
       setModalConcluido(true);
     } catch (err) {
       console.error(err);
-      alert("Erro ao processar finalização do treino.");
+      setModalAviso({
+        show: true,
+        tipo: 'erro',
+        titulo: 'Erro no Sistema',
+        mensagem: "Erro ao processar finalização do treino.",
+        confirmLabel: 'Ok'
+      });
     } finally {
       setIsFinalizing(false);
     }
@@ -1138,6 +1201,66 @@ export default function ModoTreinoGuiado({
               >
                 Voltar ao Início
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* =================================================================== */}
+      {/* MODAL 6 — AVISO / ALERTA CUSTOMIZADO */}
+      {/* =================================================================== */}
+      <AnimatePresence>
+        {modalAviso.show && (
+          <div 
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setModalAviso(prev => ({ ...prev, show: false }))}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-surface border border-line rounded-2xl w-full max-w-sm p-6 space-y-6 shadow-2xl text-center relative"
+            >
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto ${
+                modalAviso.tipo === 'erro' ? 'bg-red-500/10 text-red-500' : 'bg-[#F26A1B]/10 text-[#F26A1B]'
+              }`}>
+                {modalAviso.tipo === 'erro' ? <X className="w-8 h-8" /> : <AlertCircle className="w-8 h-8" />}
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-display font-extrabold text-lg text-ink">
+                  {modalAviso.titulo}
+                </h3>
+                <p className="text-sm text-ink-3 leading-relaxed">
+                  {modalAviso.mensagem}
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (modalAviso.onConfirm) {
+                      modalAviso.onConfirm();
+                    } else {
+                      setModalAviso(prev => ({ ...prev, show: false }));
+                    }
+                  }}
+                  className="w-full py-3.5 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white font-display font-bold rounded-xl text-sm shadow-lg shadow-[#F26A1B]/20 uppercase tracking-wider transition-all active:scale-[0.98]"
+                >
+                  {modalAviso.confirmLabel || 'OK'}
+                </button>
+                {modalAviso.cancelLabel && (
+                  <button
+                    type="button"
+                    onClick={() => setModalAviso(prev => ({ ...prev, show: false }))}
+                    className="w-full py-3 text-ink-3 hover:text-ink text-xs font-bold uppercase tracking-widest transition-all"
+                  >
+                    {modalAviso.cancelLabel}
+                  </button>
+                )}
+              </div>
             </motion.div>
           </div>
         )}
