@@ -496,9 +496,33 @@ export const dbService = {
   },
 
   async getAlunoObjetivo(alunoId: string): Promise<{ objetivo: string | null }> {
-    const alunos = loadMockAlunos();
-    const found = alunos.find(a => a.id === alunoId);
+    const students = loadMockAlunos();
+    const found = students.find(a => a.id === alunoId);
     return { objetivo: found?.objetivo || 'Foco em saúde' };
+  },
+
+  async getAluno(alunoId: string): Promise<{ data: Aluno | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('alunos')
+        .select('id, personal_id, objetivo, ativo, profile:profiles!alunos_id_fkey(id, papel, nome, avatar_url, avatar_tipo, criado_em)')
+        .eq('id', alunoId)
+        .maybeSingle();
+      if (error) return { data: null, error };
+      if (!data) return { data: null, error: { message: 'Aluno não encontrado' } };
+      
+      const mapped = {
+        id: data.id,
+        personal_id: data.personal_id,
+        objetivo: data.objetivo,
+        ativo: data.ativo,
+        profile: Array.isArray(data.profile) ? data.profile[0] : data.profile
+      };
+      return { data: mapped as Aluno, error: null };
+    }
+    const students = loadMockAlunos();
+    const found = students.find(a => a.id === alunoId);
+    return { data: found || null, error: found ? null : { message: 'Aluno não encontrado' } };
   },
 
   async getPersonalId(alunoId: string): Promise<string | null> {

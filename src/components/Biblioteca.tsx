@@ -369,19 +369,31 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                     playsInline
                     autoPlay
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLVideoElement).style.display = 'none';
+                      const parent = (e.target as HTMLElement).parentElement;
+                      if (parent) {
+                        const placeholder = parent.querySelector('.video-placeholder');
+                        if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                      }
+                    }}
                   />
                   <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                     <Sparkles className="w-3.5 h-3.5 text-flame animate-pulse" />
                     <span>Movimento Ilustrativo</span>
                   </div>
                 </>
-              ) : (
-                <div className="text-center p-8 space-y-2">
-                  <Play className="w-12 h-12 text-ink-3 stroke-1 mx-auto" />
-                  <p className="text-[14px] text-ink-2">Prévia em breve</p>
+              ) : null}
+              
+              <div className={`video-placeholder flex-col items-center justify-center text-center p-8 space-y-4 ${videoUrls[selectedExercicio.id] ? 'hidden absolute inset-0' : 'flex w-full h-full'}`}>
+                <div className="w-16 h-16 rounded-full bg-[#F26A1B]/10 flex items-center justify-center mx-auto mb-2">
+                  <Play className="w-8 h-8 text-[#F26A1B]/60" />
                 </div>
-              )}
-
+                <div className="space-y-1">
+                  <p className="text-[14px] font-display font-bold text-ink">Vídeo em breve</p>
+                  <p className="text-xs text-ink-3 max-w-[200px] mx-auto">As instruções em vídeo para este exercício estão sendo preparadas.</p>
+                </div>
+              </div>
             </div>
 
             {/* Muscle target card */}

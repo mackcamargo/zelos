@@ -1519,8 +1519,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                       const ex = item.exercicio;
                       const numSeries = Number(item.series) || 0;
                       const isCompleted = isExerciseCompleted(item.id, numSeries);
-                      const videoPath = isFemale && ex?.video_url_fem ? ex.video_url_fem : ex?.video_url_masc;
-                      const videoSrc = videoPath ? videoUrls[videoPath] : null;
+                      const videoPath = isFemale 
+                        ? (ex?.video_url_fem || ex?.video_url_masc) 
+                        : (ex?.video_url_masc || ex?.video_url_fem);
+                      const videoSrc = dbService.getExerciseVideoUrl(videoPath);
                       const isExpanded = expandedExerciseId === item.id;
 
                       return (
@@ -1617,16 +1619,32 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                           muted
                                           playsInline
                                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                          onError={(e) => {
+                                            (e.target as HTMLVideoElement).style.display = 'none';
+                                            const parent = (e.target as HTMLElement).parentElement;
+                                            if (parent) {
+                                              const placeholder = parent.querySelector('.video-placeholder');
+                                              if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                                            }
+                                          }}
                                         />
                                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
                                           <span>Movimento Ilustrativo</span>
                                         </div>
+                                        <div className="video-placeholder hidden absolute inset-0 flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
+                                          <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center">
+                                            <Dumbbell className="w-6 h-6 text-[#F26A1B]/60" />
+                                          </div>
+                                          <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
+                                        </div>
                                       </div>
                                     ) : (
-                                      <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center text-ink-3">
-                                        <Dumbbell className="w-8 h-8 text-ink-3 stroke-1 text-accent animate-pulse" />
-                                        <p className="text-[10px] mt-1">Sem vídeo demonstrativo</p>
+                                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
+                                        <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center">
+                                          <Dumbbell className="w-6 h-6 text-[#F26A1B]/60" />
+                                        </div>
+                                        <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
                                       </div>
                                     )}
 
@@ -2965,28 +2983,46 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                     const videoPath = isFemale 
                       ? (selectedExercise.video_url_fem || selectedExercise.video_url_masc) 
                       : (selectedExercise.video_url_masc || selectedExercise.video_url_fem);
-                    const signedUrl = videoPath ? videoUrls[videoPath] : null;
+                    const videoUrl = dbService.getExerciseVideoUrl(videoPath);
 
-                    return signedUrl ? (
+                    return videoUrl ? (
                       <div className="relative w-full h-full">
                         <video
-                          src={signedUrl}
+                          src={videoUrl}
                           autoPlay
                           muted
                           loop
                           playsInline
                           className="w-full h-full object-cover bg-void"
                           style={{ objectFit: 'cover' }}
+                          onError={(e) => {
+                            (e.target as HTMLVideoElement).style.display = 'none';
+                            const parent = (e.target as HTMLElement).parentElement;
+                            if (parent) {
+                              const placeholder = parent.querySelector('.video-placeholder');
+                              if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                            }
+                          }}
                         />
                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
                           <span>Movimento Ilustrativo</span>
                         </div>
+                        <div className="video-placeholder hidden absolute inset-0 flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
+                          <div className="w-16 h-16 rounded-full bg-raise flex items-center justify-center">
+                            <Dumbbell className="w-8 h-8 text-[#F26A1B]/60" />
+                          </div>
+                          <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
+                          <span className="text-[10px] text-ink-3 max-w-[180px]">As instruções para este exercício estão sendo preparadas.</span>
+                        </div>
                       </div>
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-ink-3 space-y-2">
-                        <Dumbbell className="w-12 h-12 animate-bounce stroke-1 text-flame" />
-                        <p className="text-xs font-mono">Prévia em breve</p>
+                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
+                        <div className="w-16 h-16 rounded-full bg-raise flex items-center justify-center">
+                          <Dumbbell className="w-8 h-8 text-[#F26A1B]/60" />
+                        </div>
+                        <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
+                        <span className="text-[10px] text-ink-3 max-w-[180px]">As instruções para este exercício estão sendo preparadas.</span>
                       </div>
                     );
                   })()}

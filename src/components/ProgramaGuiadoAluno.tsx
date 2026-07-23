@@ -453,10 +453,13 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
                     <div className="w-12 h-12 rounded-lg bg-surface-2 border border-line flex items-center justify-center shrink-0 overflow-hidden relative">
                       {thumbUrl ? (
                         <video 
+                          key={thumbUrl}
                           src={thumbUrl} 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-opacity duration-300"
                           muted
                           playsInline
+                          autoPlay
+                          loop
                           onLoadedData={(e) => {
                             (e.target as HTMLVideoElement).style.opacity = '1';
                           }}
