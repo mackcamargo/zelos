@@ -102,12 +102,12 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
     const tabLabels: Record<TabType, string> = {
       dashboard: 'Dashboard',
       alunos: 'Alunos',
-      exercicios: 'Exercícios',
+      exercicios: 'Biblioteca de Exercícios',
       agenda: 'Agenda',
       checkins: 'Check-ins',
       templates: 'Modelos de Treino',
       perfil: 'Meu Perfil',
-      gerenciar: 'Configurações',
+      gerenciar: 'Exercícios',
       chat: 'Mensagens',
       planos: 'Planos',
       cortesias: 'Cortesias',
@@ -220,7 +220,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
     { id: 'alunos', label: 'Alunos', icon: Users },
-    { id: 'exercicios', label: 'Treinos', icon: Activity },
+    { id: 'gerenciar', label: 'Exercícios', icon: Activity },
     { id: 'agenda', label: 'Agenda', icon: Calendar },
     { id: 'checkins', label: 'Check-ins', icon: MessageSquare },
     { id: 'templates', label: 'Modelos', icon: FolderHeart },
@@ -770,13 +770,13 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
                 <h1 className="font-display font-semibold text-[28px] text-ink tracking-tight whitespace-nowrap leading-none">
                   {activeTab === 'dashboard' && `Olá, ${profile.nome.split(' ')[0]}`}
                   {activeTab === 'alunos' && 'Seus alunos'}
-                  {activeTab === 'exercicios' && 'Exercícios'}
+                  {activeTab === 'exercicios' && 'Biblioteca de Exercícios'}
                   {activeTab === 'agenda' && 'Sua agenda'}
                   {activeTab === 'checkins' && 'Check-ins'}
                   {activeTab === 'templates' && 'Modelos de treino'}
                   {activeTab === 'chat' && 'Mensagens'}
                   {activeTab === 'perfil' && 'Seu perfil'}
-                  {activeTab === 'gerenciar' && 'Gestão'}
+                  {activeTab === 'gerenciar' && 'Gerenciar Exercícios'}
                   {activeTab === 'cortesias' && 'Códigos de Cortesia'}
                 </h1>
                 <p className="text-sm text-ink-2 leading-none">
@@ -788,7 +788,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
                   {activeTab === 'templates' && 'Fichas pré-estruturadas para agilizar a prescrição'}
                   {activeTab === 'chat' && 'Converse com seus alunos e tire dúvidas em tempo real'}
                   {activeTab === 'perfil' && 'Gerencie seus dados cadastrais e assinatura'}
-                  {activeTab === 'gerenciar' && 'Painel administrativo para adicionar e editar movimentos'}
+                  {activeTab === 'gerenciar' && 'Adicione movimentos, dicas de execução e faça upload dos vídeos'}
                   {activeTab === 'cortesias' && 'Gerencie e distribua códigos de acesso gratuito para alunos'}
                 </p>
               </div>
@@ -978,31 +978,26 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
 
 
 
-              {/* Admin Button */}
+              {/* Biblioteca Button */}
               <div className="p-5 bg-accent/5 hover:bg-accent/10 border border-accent/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
                 <div className="flex gap-3 text-xs text-ink-2 leading-relaxed">
-                  <span className="text-xl">⚙️</span>
+                  <span className="text-xl">📚</span>
                   <div>
                     <p className="text-ink font-semibold flex items-center gap-2">
-                      <span>Gestão de exercícios</span>
-                      <span className="text-[9px] bg-accent/20 text-accent px-2 py-0.5 rounded-full border border-accent/30 font-semibold">Admin</span>
+                      <span>Biblioteca de Exercícios</span>
                     </p>
-                    <p className="mt-0.5 text-[11px]">Adicione movimentos, dicas de execução e faça upload dos vídeos.</p>
+                    <p className="mt-0.5 text-[11px]">Explore a biblioteca de movimentos e treinos de referência.</p>
                   </div>
                 </div>
-                {profile.is_admin && (
-                  <button
-                    id="btn-goto-admin"
-                    type="button"
-                    onClick={() => handleTabChange('gerenciar')}
-                    data-sem-som
-                    className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all hover:bg-accent/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
-                  >
-                    ⚙️ Gerenciar Exercícios
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('exercicios')}
+                  data-sem-som
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all hover:bg-accent/95 active:scale-[0.98] shrink-0 cursor-pointer text-center"
+                >
+                  Abrir Biblioteca
+                </button>
               </div>
-
 
               {/* Sound Settings */}
               <div className="p-5 bg-surface border border-line rounded-2xl space-y-4">
@@ -1077,8 +1072,8 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
           </div>
         )}
 
-        {/* TAB 4: GERENCIAR EXERCÍCIOS ADMIN */}
-        {activeTab === 'gerenciar' && profile.is_admin && (
+        {/* TAB 4: GERENCIAR EXERCÍCIOS */}
+        {activeTab === 'gerenciar' && (
           <div id="tab-content-gerenciar" className="space-y-6">
             <GerenciarExercicios personalId={userId} isReadOnly={isReadOnly} />
           </div>
