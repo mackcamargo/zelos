@@ -148,7 +148,7 @@ export default function ModoTreinoGuiado({
       } else {
         // Se não existir na tabela ainda, gerar número de séries inicial com base em item.series
         const numSeries = item.series || 3;
-        const seriesIniciais: TreinoExercicioSerie[] = [];
+        const seriesIniciais: any[] = [];
 
         for (let s = 1; s <= numSeries; s++) {
           seriesIniciais.push({
@@ -160,7 +160,27 @@ export default function ModoTreinoGuiado({
             concluida: false
           });
         }
-        newMap[exId] = seriesIniciais;
+        
+        // Persistir imediatamente no banco para garantir sincronia com o gatilho
+        if (isSupabaseConfigured && supabase && !exId.startsWith('temp-')) {
+          // Remover IDs temporários antes de inserir no Supabase para deixar o banco gerar IDs reais (se configurado) ou usar os nossos
+          // Aqui preferimos deixar o Supabase gerar se for UUID, ou usamos os nossos se forem compatíveis.
+          // Como o banco usa IDs reais, vamos enviar sem ID para que ele gere.
+          const toInsert = seriesIniciais.map(({ id, ...rest }) => rest);
+          
+          const { data: savedSeries } = await supabase
+            .from('treino_exercicio_series')
+            .insert(toInsert)
+            .select();
+          
+          if (savedSeries && savedSeries.length > 0) {
+            newMap[exId] = savedSeries;
+          } else {
+            newMap[exId] = seriesIniciais;
+          }
+        } else {
+          newMap[exId] = seriesIniciais;
+        }
       }
     }
 
@@ -319,12 +339,54 @@ export default function ModoTreinoGuiado({
     tocar('tap');
   }
 
+  const [isFinalizing, setIsFinalizing] = useState(false);
+
   // Finalizar Treino Completo
   async function handleFinalizarTreino() {
-    // Atualizar status no banco
-    await dbService.updateTreinoStatus(treino.id, 'concluido');
-    tocar('celebracao');
-    setModalConcluido(true);
+    const totalSeries = Object.values(seriesMap).flat().length;
+    const seriesFaltantes = totalSeries - totalSeriesConcluidas;
+
+    if (seriesFaltantes > 0) {
+      const confirm = window.confirm(
+        `Atenção: Ainda faltam ${seriesFaltantes} séries para completar o planejado. Deseja encerrar mesmo assim?`
+      );
+      if (!confirm) return;
+    }
+
+    setIsFinalizing(true);
+    try {
+      // Tentar atualizar status no banco
+      const { error } = await dbService.updateTreinoStatus(treino.id, 'concluido');
+      
+      if (error) {
+        alert("Erro ao finalizar treino: " + error.message);
+        return;
+      }
+
+      // Validar se o status REALMENTE mudou (devido ao gatilho do banco)
+      if (isSupabaseConfigured && supabase) {
+        const { data: updatedTreino } = await supabase
+          .from('treinos')
+          .select('status')
+          .eq('id', treino.id)
+          .single();
+        
+        if (updatedTreino?.status !== 'concluido') {
+          // O gatilho provavelmente bloqueou porque nem todas as séries foram concluídas
+          alert(`O treino não pôde ser marcado como concluído no sistema. Verifique se você marcou todas as ${totalSeries} séries como feitas.`);
+          setIsFinalizing(false);
+          return;
+        }
+      }
+
+      tocar('celebracao');
+      setModalConcluido(true);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao processar finalização do treino.");
+    } finally {
+      setIsFinalizing(false);
+    }
   }
 
   // Métricas para Modal de Estatísticas / Tela de Conclusão
@@ -819,10 +881,15 @@ export default function ModoTreinoGuiado({
               <button
                 type="button"
                 onClick={handleFinalizarTreino}
-                className="flex-1 bg-gradient-to-r from-[#F26A1B] to-[#ff8a3d] hover:brightness-110 text-white font-display font-extrabold py-3 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#F26A1B]/30 transition-all cursor-pointer active:scale-[0.98] uppercase tracking-wider text-sm"
+                disabled={isFinalizing}
+                className="flex-1 bg-gradient-to-r from-[#F26A1B] to-[#ff8a3d] hover:brightness-110 disabled:opacity-70 text-white font-display font-extrabold py-3 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#F26A1B]/30 transition-all cursor-pointer active:scale-[0.98] uppercase tracking-wider text-sm"
               >
-                <Trophy className="w-4 h-4" />
-                <span>Finalizar Treino 🎉</span>
+                {isFinalizing ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Trophy className="w-4 h-4" />
+                )}
+                <span>{isFinalizing ? 'Finalizando...' : 'Finalizar Treino 🎉'}</span>
               </button>
             ) : (
               <button

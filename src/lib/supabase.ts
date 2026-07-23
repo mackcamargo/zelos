@@ -976,10 +976,57 @@ export const dbService = {
           carga_kg: (ex.carga_kg === '' || ex.carga_kg === undefined || ex.carga_kg === null) ? null : ex.carga_kg
         }));
         
-        const { error: exErr } = await supabase.from('treino_exercicios').insert(rows);
+        const { data: insertedExercises, error: exErr } = await supabase
+          .from('treino_exercicios')
+          .insert(rows)
+          .select();
+
         if (exErr) {
           console.error('Erro ao inserir exercícios do treino:', exErr);
           return { data: null, error: exErr };
+        }
+
+        // --- SINCRONIA DE SÉRIES ---
+        // Para cada exercício inserido, garantimos que existam X linhas na tabela treino_exercicio_series
+        if (insertedExercises) {
+          for (const exRow of insertedExercises) {
+            const targetCount = exRow.series;
+            
+            // 1. Verificar séries existentes
+            const { data: existingSeries } = await supabase
+              .from('treino_exercicio_series')
+              .select('id, numero_serie, concluida')
+              .eq('treino_exercicio_id', exRow.id)
+              .order('numero_serie', { ascending: true });
+            
+            const currentCount = existingSeries?.length || 0;
+
+            if (currentCount < targetCount) {
+              // Criar as que faltam
+              const toInsert = [];
+              for (let i = currentCount + 1; i <= targetCount; i++) {
+                toInsert.push({
+                  treino_exercicio_id: exRow.id,
+                  numero_serie: i,
+                  repeticoes: exRow.repeticoes,
+                  carga_kg: exRow.carga_kg,
+                  concluida: false
+                });
+              }
+              if (toInsert.length > 0) {
+                await supabase.from('treino_exercicio_series').insert(toInsert);
+              }
+            } else if (currentCount > targetCount) {
+              // Remover as sobrando (apenas as não concluídas, de trás para frente)
+              const toDelete = existingSeries!
+                .filter(s => s.numero_serie > targetCount && !s.concluida)
+                .map(s => s.id);
+              
+              if (toDelete.length > 0) {
+                await supabase.from('treino_exercicio_series').delete().in('id', toDelete);
+              }
+            }
+          }
         }
       }
 
