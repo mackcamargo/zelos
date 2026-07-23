@@ -3260,7 +3260,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
         </AnimatePresence>
 
       {/* Bottom Navigation Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface/90 backdrop-blur-md border-t border-line py-1 px-4 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.15)]">
+      {!modoGuiadoAtivo && (
+        <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface/90 backdrop-blur-md border-t border-line py-1 px-4 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.15)]">
         <div className="max-w-md md:max-w-lg h-full mx-auto grid grid-cols-5 gap-1 items-center">
           {/* Tab 1 - Treino */}
           <button
@@ -3351,6 +3352,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
           </button>
         </div>
       </nav>
+      )}
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 bg-surface border border-line p-3 rounded-2xl shadow-xl flex items-center gap-2.5 z-[100] animate-in fade-in slide-in-from-bottom-5">

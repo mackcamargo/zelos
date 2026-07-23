@@ -339,7 +339,7 @@ export default function ModoTreinoGuiado({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-bg text-ink overflow-y-auto flex flex-col font-sans select-none">
+    <div className="fixed inset-0 z-[60] bg-bg text-ink overflow-y-auto flex flex-col font-sans select-none">
       {/* =================================================================== */}
       {/* 1. BARRA SUPERIOR FIXA */}
       {/* =================================================================== */}
@@ -793,7 +793,7 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       <AnimatePresence>
         {modalConfirmarSaida && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -835,7 +835,7 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       <AnimatePresence>
         {modalEstatisticas && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -887,7 +887,7 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       <AnimatePresence>
         {modalSubstituir && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -940,7 +940,7 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       <AnimatePresence>
         {modalNota && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -974,14 +974,12 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       <AnimatePresence>
         {modalConcluido && (
-          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="bg-surface border border-[#F26A1B]/50 rounded-3xl w-full max-w-md p-6 space-y-5 text-center shadow-2xl relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/20 blur-3xl rounded-full pointer-events-none" />
-
               <div className="w-16 h-16 rounded-2xl bg-[#F26A1B] text-white flex items-center justify-center mx-auto shadow-lg shadow-[#F26A1B]/40 animate-bounce">
                 <Trophy className="w-8 h-8" />
               </div>
