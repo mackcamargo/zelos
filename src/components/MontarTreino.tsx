@@ -20,7 +20,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   const isTemplateMode = !aluno || !!templateId;
 
   // Workout header states
-  const [titulo, setTitulo] = useState(isTemplateMode ? 'Novo Modelo' : '');
+  const [titulo, setTitulo] = useState(isTemplateMode ? 'Monte Treinos Prontos' : '');
   const [tituloEditadoManualmente, setTituloEditadoManualmente] = useState(!!treinoId);
   const [descricao, setDescricao] = useState('');
   
@@ -1055,7 +1055,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
             >
               <div className="flex justify-between items-start pb-2 border-b border-line">
                 <div>
-                  <h3 className="z-h2">Modelos de treino</h3>
+                  <h3 className="z-h2">Monte Treinos Prontos</h3>
                   <p className="text-[12px] text-ink-2 mt-0.5">Reutilize estruturas prontas de treinos em diferentes alunos.</p>
                 </div>
                 <button

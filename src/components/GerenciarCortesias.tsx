@@ -292,7 +292,7 @@ export default function GerenciarCortesias() {
   };
 
   const copyLinkToClipboard = (code: string) => {
-    const link = `https://www.zelospersonal.com.br/cadastro?cortesia=${code.toUpperCase()}`;
+    const link = `https://app.zelospersonal.com.br/cadastro?cortesia=${code.toUpperCase()}`;
     navigator.clipboard.writeText(link);
     tocar('tap');
     showToast('Link com código copiado! 🔗');
@@ -305,7 +305,7 @@ export default function GerenciarCortesias() {
   };
 
   const getWhatsAppUrl = (code: string) => {
-    const link = `https://www.zelospersonal.com.br/cadastro?cortesia=${code.toUpperCase()}`;
+    const link = `https://app.zelospersonal.com.br/cadastro?cortesia=${code.toUpperCase()}`;
     const text = `Você foi convidado(a) para testar o ZELOS Personal com acesso de CORTESIA! 🎉
 
 No app você vai ter:

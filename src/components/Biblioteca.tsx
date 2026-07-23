@@ -132,7 +132,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                   Biblioteca
                 </span>
                 <h1 className="font-semibold text-[28px] text-ink mt-2">Exercícios</h1>
-                <p className="text-[14px] text-ink-2 mt-1">Busque movimentos e visualize a execução perfeita para os treinos.</p>
+                <p className="text-[14px] text-ink-2 mt-1">Busque movimentos e visualize a execução demonstrativa para os treinos.</p>
               </div>
 
               {/* Search Bar */}
@@ -291,7 +291,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                         )}
                         <div className="absolute top-3 right-3 bg-void/80 backdrop-blur-md border border-white/5 rounded-lg px-2 py-1 flex items-center gap-1">
                           <Flame className="w-3.5 h-3.5 text-flame" />
-                          <span className="text-[10px] text-ink-2 font-medium">Preview</span>
+                          <span className="text-[10px] text-ink-2 font-medium uppercase tracking-tighter">Movimento Ilustrativo</span>
                         </div>
                       </div>
 
@@ -315,7 +315,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
 
                         <div className="pt-2 flex justify-end">
                           <span className="text-[10px] text-ink-3 group-hover:text-ink transition-colors flex items-center gap-1">
-                            Ver execução perfeita →
+                            Ver vídeo demonstrativo →
                           </span>
                         </div>
                       </div>
@@ -360,25 +360,28 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
             {/* Video Container (9:16 vertical format, max-width 380px, centered) */}
             <div className="aspect-[9/16] w-full max-w-[380px] mx-auto rounded-3xl bg-surface border border-white/5 overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-center">
               {videoUrls[selectedExercicio.id] ? (
-                <video
-                  ref={handleVideoRef}
-                  src={videoUrls[selectedExercicio.id]}
-                  loop
-                  muted
-                  playsInline
-                  autoPlay
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  <video
+                    ref={handleVideoRef}
+                    src={videoUrls[selectedExercicio.id]}
+                    loop
+                    muted
+                    playsInline
+                    autoPlay
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
+                    <Sparkles className="w-3.5 h-3.5 text-flame animate-pulse" />
+                    <span>Movimento Ilustrativo</span>
+                  </div>
+                </>
               ) : (
                 <div className="text-center p-8 space-y-2">
                   <Play className="w-12 h-12 text-ink-3 stroke-1 mx-auto" />
                   <p className="text-[14px] text-ink-2">Prévia em breve</p>
                 </div>
               )}
-              <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-xs text-ink">
-                <Sparkles className="w-4 h-4 text-flame animate-pulse" />
-                <span>Movimento perfeito</span>
-              </div>
+
             </div>
 
             {/* Muscle target card */}

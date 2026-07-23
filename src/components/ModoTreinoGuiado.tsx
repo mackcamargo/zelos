@@ -411,6 +411,11 @@ export default function ModoTreinoGuiado({
                   </div>
                 )}
 
+                <div className="absolute top-3 right-3 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
+                  <Sparkles className="w-3 h-3 text-flame animate-pulse" />
+                  <span>Movimento Ilustrativo</span>
+                </div>
+
                 {/* Tag de Músculo Primário */}
                 <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-[#F26A1B] text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-lg border border-[#F26A1B]/30">
                   {currentEx.exercicio?.musculo_primario?.[0] || 'Geral'}

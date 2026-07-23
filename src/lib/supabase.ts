@@ -988,7 +988,7 @@ export const dbService = {
           .from('templates_treino')
           .insert({
             personal_id: template.personal_id,
-            titulo: template.titulo || 'Novo Modelo',
+            titulo: template.titulo || 'Monte Treinos Prontos',
             descricao: template.descricao || null
           })
           .select()
@@ -998,7 +998,7 @@ export const dbService = {
       } else {
         const { error: updErr } = await supabase
           .from('templates_treino')
-          .update({ titulo: template.titulo || 'Novo Modelo', descricao: template.descricao || null })
+          .update({ titulo: template.titulo || 'Monte Treinos Prontos', descricao: template.descricao || null })
           .eq('id', templateId);
         if (updErr) return { data: null, error: updErr };
       }

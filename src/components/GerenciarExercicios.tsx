@@ -231,7 +231,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setUploadProgressFem(null);
   };
 
-  // Handle "+ Novo exercício" click
+  // Handle "+ Monte Seu Exercício" click
   const handleNew = () => {
     const newId = 'ex-' + Math.random().toString(36).substring(2, 9);
     setSelectedExercicio({
@@ -323,7 +323,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           const { data: inserted, error: insErr } = await supabase
             .from('exercicios')
             .insert({
-              nome: nome.trim() || 'Novo Exercício',
+              nome: nome.trim() || 'Monte Seu Exercício',
               categoria_id: Number(categoriaId),
               personal_id: personalId,
               musculo_primario: musculoPrimario || [],
@@ -346,7 +346,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           await supabase
             .from('exercicios')
             .update({
-              nome: nome.trim() || 'Novo Exercício',
+              nome: nome.trim() || 'Monte Seu Exercício',
               categoria_id: Number(categoriaId),
               personal_id: personalId,
               musculo_primario: musculoPrimario || [],
@@ -676,7 +676,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     <span className="text-[11px] uppercase tracking-wider font-semibold font-mono bg-accent/15 text-accent px-2.5 py-0.5 rounded border border-accent/20">
                       Acervo
                     </span>
-                    <h2 className="z-display text-ink">Gestão de <span className="text-accent">Exercícios</span></h2>
+                    <h2 className="z-display text-ink"><span className="text-accent">Monte Seu Exercício</span></h2>
                   </div>
                   <p className="z-eyebrow mt-1">Biblioteca de Movimentos e Execuções</p>
                 </div>
@@ -690,7 +690,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   className="z-btn z-btn--primary"
                 >
                   <Plus className="w-4.5 h-4.5" strokeWidth={1.75} />
-                  <span>Novo exercício</span>
+                  <span>Monte Seu Exercício</span>
                 </button>
               )}
             </div>
@@ -1004,7 +1004,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
               </button>
 
               <span className="text-[12px] text-ink-3 font-medium">
-                {selectedExercicio.id && !String(selectedExercicio.id).startsWith('ex-') ? 'Editando exercício' : 'Novo exercício'}
+                {selectedExercicio.id && !String(selectedExercicio.id).startsWith('ex-') ? 'Editando exercício' : 'Monte Seu Exercício'}
               </span>
             </div>
 
@@ -1425,14 +1425,20 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   {/* Video preview / upload box */}
                   <div className="aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">
                     {videoPreviewMasc ? (
-                      <video
-                        src={videoPreviewMasc}
-                        loop
-                        muted
-                        playsInline
-                        autoPlay
-                        className="w-full h-full object-cover brightness-95"
-                      />
+                      <div className="relative w-full h-full">
+                        <video
+                          src={videoPreviewMasc}
+                          loop
+                          muted
+                          playsInline
+                          autoPlay
+                          className="w-full h-full object-cover brightness-95"
+                        />
+                        <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
+                          <Sparkles className="w-3 h-3 text-flame animate-pulse" />
+                          <span>Movimento Ilustrativo</span>
+                        </div>
+                      </div>
                     ) : (
                       <div className="text-center p-6 space-y-2 text-ink-3">
                         <UploadCloud className="w-10 h-10 mx-auto stroke-1 text-ink-3 animate-pulse" />
@@ -1516,14 +1522,20 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   {/* Video preview / upload box */}
                   <div className="aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">
                     {videoPreviewFem ? (
-                      <video
-                        src={videoPreviewFem}
-                        loop
-                        muted
-                        playsInline
-                        autoPlay
-                        className="w-full h-full object-cover brightness-95"
-                      />
+                      <div className="relative w-full h-full">
+                        <video
+                          src={videoPreviewFem}
+                          loop
+                          muted
+                          playsInline
+                          autoPlay
+                          className="w-full h-full object-cover brightness-95"
+                        />
+                        <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
+                          <Sparkles className="w-3 h-3 text-flame animate-pulse" />
+                          <span>Movimento Ilustrativo</span>
+                        </div>
+                      </div>
                     ) : (
                       <div className="text-center p-6 space-y-2 text-ink-3">
                         <UploadCloud className="w-10 h-10 mx-auto stroke-1 text-ink-3 animate-pulse" />

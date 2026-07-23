@@ -327,7 +327,7 @@ export default function GerenciarAlunos({
   };
 
   const getInvitationMessage = (nome: string, code: string) => {
-    const link = `https://www.zelospersonal.com.br/cadastro?convite=${code}`;
+    const link = `https://app.zelospersonal.com.br/cadastro?convite=${code}`;
     const saudacao = nome ? `${nome.trim()}` : '';
     const part1 = saudacao ? `${saudacao}, seu treino no ZELOS Personal te espera! 🔥` : 'Seu treino no ZELOS Personal te espera! 🔥';
     return `${part1}
@@ -345,7 +345,7 @@ Bora juntos! 💪`;
   };
 
   const handleCopyLink = (code: string) => {
-    const link = `https://www.zelospersonal.com.br/cadastro?convite=${code}`;
+    const link = `https://app.zelospersonal.com.br/cadastro?convite=${code}`;
     navigator.clipboard.writeText(link);
     setCopiedLink(true);
     showToast('Link de cadastro copiado!');
@@ -2116,7 +2116,7 @@ Bora juntos! 💪`;
                       <div className="space-y-2">
                         <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block">Link de Convite:</span>
                         <div className="bg-surface-2 p-3 rounded-xl border border-white/5 text-xs text-ink-2 font-mono truncate select-all">
-                          {`https://www.zelospersonal.com.br/cadastro?convite=${generatedCode}`}
+                          {`https://app.zelospersonal.com.br/cadastro?convite=${generatedCode}`}
                         </div>
                       </div>
 

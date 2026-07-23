@@ -180,7 +180,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-display font-semibold text-[28px] text-ink flex items-center gap-2">
-            <span>Modelos de treino</span>
+            <span>Monte Treinos Prontos</span>
             <span className="text-[12px] font-medium bg-bg text-ink-2 px-2.5 py-1 rounded-full border border-line num">
               {templates.length}
             </span>
@@ -201,7 +201,7 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
             className="py-3 px-5 rounded-xl brand-gradient-bg hover:opacity-95 active:scale-[0.98] font-display font-bold text-void text-xs flex items-center justify-center gap-2 transition-all shadow-[0_4px_15px_rgba(245,51,79,0.25)] shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Novo Modelo</span>
+            <span>Monte Treinos Prontos</span>
           </button>
         )}
       </div>

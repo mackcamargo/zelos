@@ -3,6 +3,7 @@
 
 @theme {
   --color-bg: var(--z-bg);
+  --color-void: var(--z-bg);
   --color-surface: var(--z-surface);
   --color-raise: var(--z-surface-raise);
   --color-line: var(--z-line);
@@ -15,6 +16,7 @@
   --color-flame-hover: var(--z-accent-hi);
   --color-ok: var(--z-ok);
   --color-warn: var(--z-warn);
+  --color-amber: var(--z-warn);
   --color-danger: var(--z-danger);
 
   --font-display: 'Archivo', system-ui, sans-serif;
