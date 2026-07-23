@@ -231,31 +231,6 @@ export default function ModoTreinoGuiado({
     setSeriesMap(prev => ({ ...prev, [exId]: seriesNovas }));
   }
 
-  // Adicionar Nova Série ao Exercício Atual
-  async function handleAdicionarSerie() {
-    if (!currentEx) return;
-    const exId = currentEx.id || `temp-${currentEx.exercicio_id}`;
-    const seriesAtual = seriesMap[exId] || [];
-
-    const proxNumero = seriesAtual.length + 1;
-    const ultimaSerie = seriesAtual[seriesAtual.length - 1];
-
-    const novaSerie: TreinoExercicioSerie = {
-      id: `temp-${exId}-${proxNumero}`,
-      treino_exercicio_id: exId,
-      numero_serie: proxNumero,
-      repeticoes: ultimaSerie?.repeticoes || '12',
-      carga_kg: ultimaSerie?.carga_kg ?? 20,
-      concluida: false
-    };
-
-    const seriesNovas = [...seriesAtual, novaSerie];
-    setSeriesMap(prev => ({ ...prev, [exId]: seriesNovas }));
-
-    await dbService.saveSerieExecucao(novaSerie);
-    tocar('tap');
-  }
-
   // Substituir Exercício Atual por outro da Biblioteca
   async function handleSubstituirExercicio(novoExercicio: Exercicio) {
     if (!currentEx) return;
@@ -640,16 +615,6 @@ export default function ModoTreinoGuiado({
                   );
                 })}
               </div>
-
-              {/* Botão + Adicionar Série */}
-              <button
-                type="button"
-                onClick={handleAdicionarSerie}
-                className="w-full border-2 border-dashed border-line hover:border-[#F26A1B]/50 hover:bg-[#F26A1B]/5 rounded-xl py-3 text-xs font-display font-bold text-ink-2 hover:text-[#F26A1B] flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 mt-2"
-              >
-                <Plus className="w-4 h-4 text-[#F26A1B]" />
-                <span>Adicionar Série</span>
-              </button>
             </div>
 
             {/* 7. LISTA DE EXERCÍCIOS COMPLETA DO TREINO (RO LÁVEL NO FIM) */}
