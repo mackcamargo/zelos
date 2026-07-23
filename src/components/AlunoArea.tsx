@@ -268,7 +268,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
     return () => {
       window.removeEventListener('zenite_mensagem_enviada', fetchUnreadCount);
       window.removeEventListener('zenite_mensagem_lida', fetchUnreadCount);
-      if (canal) {
+      if (canal && supabase) {
         supabase.removeChannel(canal);
       }
     };
