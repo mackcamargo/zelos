@@ -62,9 +62,27 @@ export default function ModoTreinoGuiado({
 
   // Carregar/Inicializar Séries e Exercícios da Biblioteca
   useEffect(() => {
-    carregarSeriesETodos();
+    async function inicializarTreino() {
+      let currentExs = treino.exercicios || [];
+      if ((!currentExs || currentExs.length === 0) && treino.id) {
+        const res = await dbService.getTreinoCompleto(treino.id);
+        if (res.data && res.data.exercicios && res.data.exercicios.length > 0) {
+          currentExs = res.data.exercicios;
+          setExercicios(currentExs);
+        }
+      } else {
+        setExercicios(currentExs);
+      }
+    }
+    inicializarTreino();
     carregarBiblioteca();
   }, [treino.id]);
+
+  useEffect(() => {
+    if (exercicios && exercicios.length > 0) {
+      carregarSeriesETodos();
+    }
+  }, [exercicios]);
 
   // Cronômetro de Tempo Total do Treino
   useEffect(() => {

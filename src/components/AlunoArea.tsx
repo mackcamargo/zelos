@@ -942,6 +942,26 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
     }
   };
 
+  const handleAbrirModoGuiado = async (treinoInput: any) => {
+    if (!treinoInput) return;
+    
+    let treinoCompleto = treinoInput;
+    if (typeof treinoInput === 'string' || !treinoInput.exercicios || treinoInput.exercicios.length === 0) {
+      const workoutId = typeof treinoInput === 'string' ? treinoInput : treinoInput.id;
+      setLoadingWorkoutDetails(true);
+      const { data, error } = await dbService.getTreinoCompleto(workoutId);
+      setLoadingWorkoutDetails(false);
+      if (data && !error) {
+        treinoCompleto = data;
+      }
+    }
+    
+    if (treinoCompleto && treinoCompleto.id) {
+      setSelectedWorkout(treinoCompleto);
+      setModoGuiadoAtivo(treinoCompleto);
+    }
+  };
+
   const handleCargaChange = async (sKey: string, val: number, item: any, sNum: number, isDone: boolean) => {
     setCustomCargas(prev => ({ ...prev, [sKey]: val }));
     if (isDone) {
@@ -1285,7 +1305,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
             {novoTreino && (
               <div 
                 id="banner-novo-treino"
-                onClick={() => handleSelectWorkout(novoTreino.id)}
+                onClick={() => handleAbrirModoGuiado(novoTreino)}
                 className="banner-novo-treino w-full border-[1.5px] rounded-xl py-3 px-4 flex flex-row justify-between items-center gap-3 cursor-pointer hover:opacity-95 transition-all select-none shadow-md group overflow-hidden"
                 style={{
                   borderColor: '#F26A1B',
@@ -1323,8 +1343,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSelectWorkout(novoTreino.id);
-                    setModoGuiadoAtivo(novoTreino);
+                    handleAbrirModoGuiado(novoTreino);
                   }}
                   className="px-3.5 py-1.5 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white text-[11px] font-display font-bold uppercase rounded-lg shadow-sm transition-all flex items-center gap-1 shrink-0 active:scale-95"
                 >
@@ -1338,10 +1357,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
             {!selectedWorkout ? (
               <ProgramaGuiadoAluno 
                 alunoId={userId} 
-                onIniciarTreinoGuiado={(treino) => {
-                  handleSelectWorkout(treino.id);
-                  setModoGuiadoAtivo(treino);
-                }} 
+                onIniciarTreinoGuiado={(treino) => handleAbrirModoGuiado(treino)} 
               />
             ) : (() => {
               const totalWorkoutSeries = selectedWorkout?.exercicios?.reduce((acc: number, item: any) => acc + (Number(item.series) || 0), 0) || 0;
@@ -1444,7 +1460,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                             type="button"
                             onClick={() => {
                               setExpandido(true);
-                              setModoGuiadoAtivo(selectedWorkout);
+                              handleAbrirModoGuiado(selectedWorkout);
                             }}
                             className="w-full sm:w-auto py-2.5 px-5 rounded-xl brand-gradient-bg font-display font-bold text-void text-xs shadow-lg hover:opacity-95 transition-all"
                           >
