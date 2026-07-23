@@ -1573,10 +1573,10 @@ Bora juntos! 💪`;
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 15 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.18)] z-10 flex flex-col max-h-[90vh]"
+                    className="relative w-full max-w-lg bg-surface rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh]"
                   >
                     {/* Header */}
-                    <div className="p-6 pb-4 border-b border-line flex items-center justify-between bg-raise/10">
+                    <div className="p-6 pb-4 border-b border-line flex items-center justify-between bg-surface-2/30">
                       <div className="flex items-center gap-2">
                         <Activity className="w-5 h-5 text-accent" />
                         <h3 className="font-display font-bold text-lg text-ink">
@@ -1840,10 +1840,10 @@ Bora juntos! 💪`;
                     exit={{ opacity: 0, scale: 0.95, y: 15 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     onClick={(e) => e.stopPropagation()}
-                    className="relative w-full max-w-2xl bg-white rounded-[20px] overflow-hidden border border-black/[0.08] shadow-[0_10px_30px_rgba(0,0,0,0.18)] z-10 flex flex-col max-h-[85vh]"
+                    className="relative w-full max-w-2xl bg-surface rounded-[20px] overflow-hidden border border-line shadow-2xl z-10 flex flex-col max-h-[85vh]"
                   >
                     {/* Header */}
-                    <div className="p-6 pb-4 border-b border-line flex items-center justify-between">
+                    <div className="p-6 pb-4 border-b border-line flex items-center justify-between bg-surface-2/30">
                       <div className="flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-[#F26A1B]" />
                         <h3 className="font-display font-bold text-lg text-ink">Cuidados ortopédicos</h3>

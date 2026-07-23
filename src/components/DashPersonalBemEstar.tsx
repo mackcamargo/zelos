@@ -592,42 +592,7 @@ export const DashPersonalBemEstar: React.FC<DashPersonalBemEstarProps> = ({
             </div>
           </div>
 
-          {/* 4) TERMÔMETRO DA BASE */}
-          <div className="space-y-3 md:space-y-4">
-            <div className="flex items-center gap-1.5 px-1">
-              <Sparkles className="w-4 md:w-4.5 md:h-4.5 text-[#F26A1B]" />
-              <h2 className="font-display font-bold text-sm md:text-lg text-ink">Termômetro da base</h2>
-            </div>
 
-            <div className="bg-surface border border-line rounded-2xl md:rounded-3xl p-3.5 md:p-5 space-y-3 md:space-y-4 relative overflow-hidden">
-              {/* Taxa de adesão do termômetro */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] md:text-xs text-ink-2">Engajamento da base</span>
-                  <span className="text-[11px] md:text-xs font-bold text-ink num">{termometro.taxa_adesao_semana}%</span>
-                </div>
-                <div className="w-full h-1 md:h-1.5 bg-line rounded-full overflow-hidden flex">
-                  <div 
-                    className={`h-full rounded-full ${
-                      termometro.taxa_adesao_semana >= 80 ? 'bg-emerald-500' :
-                      termometro.taxa_adesao_semana >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                    }`} 
-                    style={{ width: `${termometro.taxa_adesao_semana}%` }}
-                  />
-                </div>
-                <p className="text-[9px] md:text-[10px] text-ink-3 flex items-center gap-1">
-                  <span className={`w-1.5 h-1.5 rounded-full ${
-                    termometro.taxa_adesao_semana >= 80 ? 'bg-emerald-500' :
-                    termometro.taxa_adesao_semana >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                  }`} />
-                  <span>
-                    {termometro.taxa_adesao_semana >= 80 ? 'Engajamento excelente' :
-                     termometro.taxa_adesao_semana >= 50 ? 'Engajamento médio' : 'Engajamento crítico'}
-                  </span>
-                </p>
-              </div>
-            </div>
-          </div>
 
         </div>
 

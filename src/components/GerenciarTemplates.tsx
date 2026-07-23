@@ -258,22 +258,22 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
                 setSelectedTemplateId(template.id);
                 setIsEditing(true);
               }}
-              className="bg-white border border-[#E4DFD6] rounded-[20px] p-5 hover:shadow-[0_4px_20px_rgba(20,20,20,0.08)] hover:-translate-y-1 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden h-full shadow-[0_2px_10px_rgba(20,20,20,0.04)]"
+              className="bg-surface border border-line rounded-[20px] p-5 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group flex flex-col justify-between relative overflow-hidden h-full shadow-md"
             >
               {/* Background Glow */}
-              <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#F26A1B]/5 blur-3xl pointer-events-none rounded-full" />
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-accent/5 blur-3xl pointer-events-none rounded-full" />
               
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-[#F26A1B]/10 flex items-center justify-center text-[#F26A1B] shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0 group-hover:scale-105 transition-transform">
                       <FolderHeart className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-display font-bold text-[15px] text-[#1B1B1B] group-hover:text-[#F26A1B] transition-colors truncate">
+                      <h3 className="font-display font-bold text-[15px] text-ink group-hover:text-accent transition-colors truncate">
                         {template.titulo}
                       </h3>
-                      <div className="flex items-center gap-1.5 text-[10px] text-[#6B6B6B] mt-0.5 font-mono">
+                      <div className="flex items-center gap-1.5 text-[10px] text-ink-3 mt-0.5 font-mono">
                         <Clock className="w-3 h-3" />
                         <span>{new Date(template.criado_em).toLocaleDateString('pt-BR')}</span>
                       </div>

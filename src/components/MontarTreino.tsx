@@ -1160,7 +1160,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.18)] z-10 flex flex-col"
+              className="relative w-full max-w-md bg-surface rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col"
             >
               {/* Header */}
               <div className="p-6 pb-4 border-b border-line flex items-center gap-3 bg-rose-500/5">

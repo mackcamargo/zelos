@@ -631,10 +631,10 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
               animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
               exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="relative bg-white border border-black/[0.08] rounded-[20px] w-full max-w-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.18)] flex flex-col max-h-[85vh] z-10"
+              className="relative bg-surface border border-line rounded-[20px] w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] z-10"
             >
               {/* Header do Modal */}
-              <div className="p-5 border-b border-black/[0.06] flex items-center justify-between bg-white">
+              <div className="p-5 border-b border-line flex items-center justify-between bg-surface">
                 <div>
                   <h3 className="font-display font-bold text-lg text-ink flex items-center gap-2">
                     <Search className="w-5 h-5 text-flame" />
@@ -646,7 +646,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                 </div>
                 <button 
                   onClick={() => { tocar('fechar'); setActiveMealForSearch(null); }}
-                  className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors text-ink-3 hover:text-ink"
+                  className="p-1.5 hover:bg-raise rounded-lg transition-colors text-ink-3 hover:text-ink"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -691,7 +691,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                           className={`w-full p-3 rounded-2xl text-left border transition-all flex items-center justify-between gap-3 ${
                             isSelected 
                               ? 'bg-flame/10 border-flame text-ink' 
-                              : 'bg-neutral-50/60 border-black/[0.04] hover:border-black/[0.08] hover:bg-neutral-100/60 text-ink-2'
+                              : 'bg-surface-2 border-line hover:border-line-strong hover:bg-raise text-ink-2'
                           }`}
                         >
                           <div className="min-w-0">
@@ -726,7 +726,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                   <motion.div 
                     initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-4 bg-neutral-50 rounded-2xl border border-black/[0.06] space-y-4"
+                    className="p-4 bg-surface-2 rounded-2xl border border-line space-y-4"
                   >
                     <div className="flex items-center justify-between">
                       <div className="text-[12px] font-semibold text-ink-2">Ajuste de Quantidade</div>
@@ -735,7 +735,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
 
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border border-black/[0.08]">
+                        <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-2xl border border-line">
                           <Scale className="w-4 h-4 text-ink-3" />
                           <input 
                             type="number"
@@ -758,7 +758,7 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
                             className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
                               quantidadeG === g 
                                 ? 'bg-flame text-white border-flame' 
-                                : 'bg-white text-ink-3 border border-black/[0.08] hover:border-black/[0.15]'
+                                : 'bg-surface text-ink-3 border border-line hover:border-line-strong'
                             }`}
                           >
                             {g}g
@@ -788,10 +788,10 @@ export default function GerenciarNutricao({ alunoId, personalId, isReadOnly = fa
               </div>
 
               {/* Rodapé do Modal */}
-              <div className="p-5 border-t border-black/[0.06] bg-white flex items-center justify-end gap-3">
+              <div className="p-5 border-t border-line bg-surface flex items-center justify-end gap-3">
                 <button
                   onClick={() => { tocar('fechar'); setActiveMealForSearch(null); }}
-                  className="px-4 py-2 text-ink-3 hover:text-ink text-xs font-semibold rounded-xl hover:bg-neutral-100 transition-colors"
+                  className="px-4 py-2 text-ink-3 hover:text-ink text-xs font-semibold rounded-xl hover:bg-raise transition-colors"
                 >
                   Cancelar
                 </button>

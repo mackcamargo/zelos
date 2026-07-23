@@ -516,7 +516,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                             <button
                               type="button"
                               onClick={() => handleSaveEdit(msg.id)}
-                              className="px-2.5 py-1 text-[12px] font-semibold text-[#F26A1B] bg-white hover:bg-white/90 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                              className="px-2.5 py-1 text-[12px] font-semibold text-[#F26A1B] bg-surface-2 hover:bg-raise border border-line rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
                             >
                               <Check className="w-3 h-3" />
                               Salvar
