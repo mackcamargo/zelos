@@ -19,8 +19,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
   
   const [loadingCategorias, setLoadingCategorias] = useState(true);
   const [loadingExercicios, setLoadingExercicios] = useState(false);
-  const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
-
+  
   // Extended Filter States
   const [publicoAlvoFilter, setPublicoAlvoFilter] = useState('');
   const [semContraindicacaoFilter, setSemContraindicacaoFilter] = useState('');
@@ -62,26 +61,6 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
         const { data, error } = await dbService.getExercicios(selectedCategoria!.id, personalId, filters);
         if (data) {
           setExercicios(data);
-          
-          // Request signed URLs for all exercises in parallel
-          const isFemale = avatarTipo === 'feminino';
-          const urlPromises = data.map(async (ex) => {
-            const urlPath = isFemale
-              ? (ex.video_url_fem || ex.video_url_masc)
-              : (ex.video_url_masc || ex.video_url_fem);
-            if (urlPath) {
-              const resolved = await dbService.getSignedUrl(urlPath);
-              return { id: ex.id, url: resolved };
-            }
-            return { id: ex.id, url: null };
-          });
-
-          const resolvedUrls = await Promise.all(urlPromises);
-          const urlMap: Record<string, string> = {};
-          resolvedUrls.forEach(({ id, url }) => {
-            if (url) urlMap[id] = url;
-          });
-          setVideoUrls(urlMap);
         } else {
           setExercicios([]);
         }
@@ -260,7 +239,12 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
                 {filteredExercicios.map((ex, index) => {
-                  const videoUrl = videoUrls[ex.id];
+                  const isFemale = avatarTipo === 'feminino';
+                  const videoPath = isFemale 
+                    ? (ex.video_url_fem || ex.video_url_masc)
+                    : (ex.video_url_masc || ex.video_url_fem);
+                  const videoUrl = dbService.getExerciseVideoUrl(videoPath);
+                  
                   return (
                     <motion.div
                       key={ex.id}
@@ -359,33 +343,47 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
 
             {/* Video Container (9:16 vertical format, max-width 380px, centered) */}
             <div className="aspect-[9/16] w-full max-w-[380px] mx-auto rounded-3xl bg-surface border border-white/5 overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-center">
-              {videoUrls[selectedExercicio.id] ? (
-                <>
-                  <video
-                    ref={handleVideoRef}
-                    src={videoUrls[selectedExercicio.id]}
-                    loop
-                    muted
-                    playsInline
-                    autoPlay
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLVideoElement).style.display = 'none';
-                      const parent = (e.target as HTMLElement).parentElement;
-                      if (parent) {
-                        const placeholder = parent.querySelector('.video-placeholder');
-                        if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
-                      }
-                    }}
-                  />
-                  <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
-                    <Sparkles className="w-3.5 h-3.5 text-flame animate-pulse" />
-                    <span>Movimento Ilustrativo</span>
-                  </div>
-                </>
-              ) : null}
+              {(() => {
+                const isFemale = avatarTipo === 'feminino';
+                const videoPath = isFemale 
+                  ? (selectedExercicio.video_url_fem || selectedExercicio.video_url_masc)
+                  : (selectedExercicio.video_url_masc || selectedExercicio.video_url_fem);
+                const videoUrl = dbService.getExerciseVideoUrl(videoPath);
+                
+                return videoUrl ? (
+                  <>
+                    <video
+                      ref={handleVideoRef}
+                      src={videoUrl}
+                      loop
+                      muted
+                      playsInline
+                      autoPlay
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLVideoElement).style.display = 'none';
+                        const parent = (e.target as HTMLElement).parentElement;
+                        if (parent) {
+                          const placeholder = parent.querySelector('.video-placeholder');
+                          if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
+                        }
+                      }}
+                    />
+                    <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
+                      <Sparkles className="w-3.5 h-3.5 text-flame animate-pulse" />
+                      <span>Movimento Ilustrativo</span>
+                    </div>
+                  </>
+                ) : null;
+              })()}
               
-              <div className={`video-placeholder flex-col items-center justify-center text-center p-8 space-y-4 ${videoUrls[selectedExercicio.id] ? 'hidden absolute inset-0' : 'flex w-full h-full'}`}>
+              <div className={`video-placeholder flex-col items-center justify-center text-center p-8 space-y-4 ${(() => {
+                const isFemale = avatarTipo === 'feminino';
+                const videoPath = isFemale 
+                  ? (selectedExercicio.video_url_fem || selectedExercicio.video_url_masc)
+                  : (selectedExercicio.video_url_masc || selectedExercicio.video_url_fem);
+                return dbService.getExerciseVideoUrl(videoPath);
+              })() ? 'hidden absolute inset-0' : 'flex w-full h-full'}`}>
                 <div className="w-16 h-16 rounded-full bg-[#F26A1B]/10 flex items-center justify-center mx-auto mb-2">
                   <Play className="w-8 h-8 text-[#F26A1B]/60" />
                 </div>

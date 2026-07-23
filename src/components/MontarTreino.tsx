@@ -37,8 +37,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
   // Selected exercises for this workout
   const [selectedExercises, setSelectedExercises] = useState<any[]>([]);
-  const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
-
+  
   // Library / Add exercise states
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [allExercicios, setAllExercicios] = useState<Exercicio[]>([]);
@@ -132,53 +131,6 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
     fetchLibraryData();
     fetchTemplates();
   }, [personalId]);
-
-  // Fetch signed URLs for library and selected exercises videos
-  useEffect(() => {
-    const fetchSignedUrls = async () => {
-      const pathsToFetch: string[] = [];
-
-      allExercicios.forEach((ex) => {
-        const path = ex.video_url_masc || ex.video_url_fem;
-        if (path && !pathsToFetch.includes(path) && !videoUrls[path]) {
-          pathsToFetch.push(path);
-        }
-      });
-
-      selectedExercises.forEach((item) => {
-        if (item.exercicio) {
-          const path = item.exercicio.video_url_masc || item.exercicio.video_url_fem;
-          if (path && !pathsToFetch.includes(path) && !videoUrls[path]) {
-            pathsToFetch.push(path);
-          }
-        }
-      });
-
-      if (pathsToFetch.length === 0) return;
-
-      try {
-        const promises = pathsToFetch.map(async (path) => {
-          const signedUrl = await dbService.getSignedUrl(path);
-          return { path, url: signedUrl };
-        });
-
-        const results = await Promise.all(promises);
-        setVideoUrls((prev) => {
-          const newMap = { ...prev };
-          results.forEach(({ path, url }) => {
-            if (url) {
-              newMap[path] = url;
-            }
-          });
-          return newMap;
-        });
-      } catch (err) {
-        console.error('Erro ao buscar signed URLs em MontarTreino:', err);
-      }
-    };
-
-    fetchSignedUrls();
-  }, [allExercicios, selectedExercises]);
 
   // Load existing workout or template if editing
   useEffect(() => {
@@ -802,7 +754,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     const name = ex?.nome || 'Exercício Sem Nome';
                     const primario = ex?.musculo_primario?.[0] || 'Geral';
                     const videoPath = ex ? (ex.video_url_masc || ex.video_url_fem) : null;
-                    const resolvedVideoUrl = videoPath ? videoUrls[videoPath] : null;
+                    const resolvedVideoUrl = dbService.getExerciseVideoUrl(videoPath);
 
                     return (
                       <div
@@ -813,9 +765,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           
                           {/* Mini Looping Video or Icon */}
-                          <div className="w-12 h-12 rounded-lg bg-surface border border-line flex items-center justify-center shrink-0 overflow-hidden">
+                          <div className="w-12 h-12 rounded-lg bg-surface border border-line flex items-center justify-center shrink-0 overflow-hidden relative">
                             {resolvedVideoUrl ? (
                               <video
+                                key={resolvedVideoUrl}
                                 src={resolvedVideoUrl}
                                 autoPlay
                                 loop
@@ -1010,7 +963,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     const isMascVideo = ex.video_url_masc;
                     const isFemVideo = ex.video_url_fem;
                     const videoPath = isMascVideo || isFemVideo;
-                    const resolvedVideoUrl = videoPath ? videoUrls[videoPath] : null;
+                    const resolvedVideoUrl = dbService.getExerciseVideoUrl(videoPath);
                     
                     return (
                       <div
@@ -1021,9 +974,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {/* Small Media thumbnail preview */}
-                          <div className="w-10 h-10 rounded-lg bg-surface border border-line flex items-center justify-center overflow-hidden shrink-0">
+                          <div className="w-10 h-10 rounded-lg bg-surface border border-line flex items-center justify-center overflow-hidden shrink-0 relative">
                             {resolvedVideoUrl ? (
                               <video
+                                key={resolvedVideoUrl}
                                 src={resolvedVideoUrl}
                                 autoPlay
                                 loop

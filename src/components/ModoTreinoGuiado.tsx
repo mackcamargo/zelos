@@ -686,16 +686,27 @@ export default function ModoTreinoGuiado({
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         {/* Miniatura */}
-                        <div className="w-10 h-10 rounded-lg bg-surface-2 border border-line flex items-center justify-center shrink-0 overflow-hidden">
-                          {item.exercicio?.video_url_masc || item.exercicio?.video_url_fem ? (
-                            <img
-                              src={item.exercicio.video_url_masc || item.exercicio.video_url_fem}
-                              alt={item.exercicio?.nome}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Dumbbell className="w-4 h-4 text-[#F26A1B]" />
-                          )}
+                        <div className="w-10 h-10 rounded-lg bg-surface-2 border border-line flex items-center justify-center shrink-0 overflow-hidden relative">
+                          {(() => {
+                            const videoPath = isFemale 
+                              ? (item.exercicio?.video_url_fem || item.exercicio?.video_url_masc) 
+                              : (item.exercicio?.video_url_masc || item.exercicio?.video_url_fem);
+                            const videoUrl = dbService.getExerciseVideoUrl(videoPath);
+                            
+                            return videoUrl ? (
+                              <video
+                                src={videoUrl}
+                                className="w-full h-full object-cover"
+                                muted
+                                playsInline
+                                preload="metadata"
+                                onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
+                                onMouseOut={(e) => (e.target as HTMLVideoElement).pause()}
+                              />
+                            ) : (
+                              <Dumbbell className="w-4 h-4 text-[#F26A1B]" />
+                            );
+                          })()}
                         </div>
 
                         <div className="min-w-0">

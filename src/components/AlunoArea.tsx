@@ -333,7 +333,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const [workoutsWithProgress, setWorkoutsWithProgress] = useState<Set<string>>(new Set());
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [selectedExIdProgress, setSelectedExIdProgress] = useState<string | null>(null);
-  const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
   const [evolucaoCargaData, setEvolucaoCargaData] = useState<any[]>([]);
   const [selectedExForEvolution, setSelectedExForEvolution] = useState<string>('');
   
@@ -577,55 +576,6 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const isFemale = (headerProfile?.avatar_tipo || profile?.avatar_tipo) === 'feminino';
 
   // Resolve signed URLs for AlunoArea exercises (selectedWorkout & selectedExercise)
-  useEffect(() => {
-    const fetchSignedUrls = async () => {
-      const pathsToFetch: string[] = [];
-      const exercisesToProcess: any[] = [];
-
-      if (selectedWorkout?.exercicios) {
-        selectedWorkout.exercicios.forEach((item: any) => {
-          if (item.exercicio) {
-            exercisesToProcess.push(item.exercicio);
-          }
-        });
-      }
-      if (selectedExercise) {
-        exercisesToProcess.push(selectedExercise);
-      }
-
-      exercisesToProcess.forEach((ex) => {
-        const path = isFemale 
-          ? (ex.video_url_fem || ex.video_url_masc) 
-          : (ex.video_url_masc || ex.video_url_fem);
-        if (path && !pathsToFetch.includes(path)) {
-          pathsToFetch.push(path);
-        }
-      });
-
-      if (pathsToFetch.length === 0) return;
-
-      try {
-        const promises = pathsToFetch.map(async (path) => {
-          const signedUrl = await dbService.getSignedUrl(path);
-          return { path, url: signedUrl };
-        });
-
-        const results = await Promise.all(promises);
-        const newMap = { ...videoUrls };
-        results.forEach(({ path, url }) => {
-          if (url) {
-            newMap[path] = url;
-          }
-        });
-        setVideoUrls(newMap);
-      } catch (err) {
-        console.error('Erro ao buscar signed URLs para aluno:', err);
-      }
-    };
-
-    fetchSignedUrls();
-  }, [selectedWorkout, selectedExercise, isFemale]);
-
   // Load published workouts on mount / tab change & set up Realtime subscription
   useEffect(() => {
     loadStudentWorkouts();

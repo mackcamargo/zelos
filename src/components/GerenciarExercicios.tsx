@@ -186,30 +186,16 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     loadData();
   }, []);
 
-  // Fetch signed urls for previewing existing videos
+  // Sync previews for existing videos
   useEffect(() => {
-    async function loadPreviews() {
-      if (!selectedExercicio) {
-        setVideoPreviewMasc(null);
-        setVideoPreviewFem(null);
-        return;
-      }
-
-      if (selectedExercicio.video_url_masc) {
-        const resolved = await dbService.getSignedUrl(selectedExercicio.video_url_masc);
-        setVideoPreviewMasc(resolved);
-      } else {
-        setVideoPreviewMasc(null);
-      }
-
-      if (selectedExercicio.video_url_fem) {
-        const resolved = await dbService.getSignedUrl(selectedExercicio.video_url_fem);
-        setVideoPreviewFem(resolved);
-      } else {
-        setVideoPreviewFem(null);
-      }
+    if (!selectedExercicio) {
+      setVideoPreviewMasc(null);
+      setVideoPreviewFem(null);
+      return;
     }
-    loadPreviews();
+
+    setVideoPreviewMasc(dbService.getExerciseVideoUrl(selectedExercicio.video_url_masc));
+    setVideoPreviewFem(dbService.getExerciseVideoUrl(selectedExercicio.video_url_fem));
   }, [selectedExercicio]);
 
   // Handle Edit click
@@ -427,10 +413,10 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
         setVideoUrlFem(selectData.video_url_fem || null);
 
         if (selectData.video_url_masc) {
-          setVideoPreviewMasc(await dbService.getSignedUrl(selectData.video_url_masc));
+          setVideoPreviewMasc(dbService.getExerciseVideoUrl(selectData.video_url_masc));
         }
         if (selectData.video_url_fem) {
-          setVideoPreviewFem(await dbService.getSignedUrl(selectData.video_url_fem));
+          setVideoPreviewFem(dbService.getExerciseVideoUrl(selectData.video_url_fem));
         }
 
         await loadData();
