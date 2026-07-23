@@ -542,7 +542,7 @@ export default function ModoTreinoGuiado({
             {/* 2. CARD DO EXERCÍCIO ATUAL (MÍDIA/VÍDEO + EXPANDIR) */}
             <div className="bg-surface border border-line/60 rounded-2xl overflow-hidden shadow-lg relative group">
               {/* Mídia Banner */}
-              <div className={`relative bg-surface-2 transition-all duration-300 ${mediaExpanded ? 'h-80' : 'h-52'} flex items-center justify-center overflow-hidden`}>
+              <div className={`relative w-full bg-[#EDE9E3] transition-all duration-300 ${mediaExpanded ? 'aspect-square md:aspect-[16/9]' : 'aspect-[4/3] md:aspect-[16/9]'} flex items-center justify-center overflow-hidden`}>
                 {(() => {
                   const videoPath = isFemale 
                     ? (currentEx.exercicio?.video_url_fem || currentEx.exercicio?.video_url_masc)
@@ -558,7 +558,7 @@ export default function ModoTreinoGuiado({
                         loop
                         muted
                         playsInline
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                         onError={() => setVideoError(true)}
                       />
                     );
@@ -591,7 +591,7 @@ export default function ModoTreinoGuiado({
                 <button
                   type="button"
                   onClick={() => setMediaExpanded(!mediaExpanded)}
-                  className="absolute top-3 right-3 p-2 bg-black/70 backdrop-blur-md rounded-lg text-white hover:bg-black/90 transition-all cursor-pointer"
+                  className="absolute bottom-3 right-3 p-2 bg-black/70 backdrop-blur-md rounded-lg text-white hover:bg-black/90 transition-all cursor-pointer z-10"
                   title={mediaExpanded ? 'Recolher vídeo' : 'Expandir vídeo'}
                 >
                   {mediaExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -624,30 +624,6 @@ export default function ModoTreinoGuiado({
                     <p className="flex-1 font-mono">{currentEx.nota}</p>
                   </div>
                 )}
-
-                {/* 3. DOIS BOTÕES: "Substituir" e "Nota" */}
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setModalSubstituir(true)}
-                    className="bg-surface-2 border border-line hover:border-line-strong hover:bg-raise py-2.5 px-3 rounded-xl text-xs font-display font-bold text-ink-2 hover:text-ink flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5 text-[#F26A1B]" />
-                    <span>Substituir</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNotaTexto(currentEx.nota || '');
-                      setModalNota(true);
-                    }}
-                    className="bg-surface-2 border border-line hover:border-line-strong hover:bg-raise py-2.5 px-3 rounded-xl text-xs font-display font-bold text-ink-2 hover:text-ink flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
-                  >
-                    <Edit3 className="w-3.5 h-3.5 text-[#F26A1B]" />
-                    <span>{currentEx.nota ? 'Editar Nota' : 'Adicionar Nota'}</span>
-                  </button>
-                </div>
               </div>
             </div>
 
