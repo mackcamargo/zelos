@@ -382,6 +382,20 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
         }
       } else {
         // Saving as a standard Workout
+        if (selectedExercises.length === 0) {
+          if (treinoId) {
+            const { error } = await dbService.deleteTreino(treinoId);
+            if (!error) {
+              showToast('Treino removido pois ficou sem exercícios.');
+              onBack();
+              return;
+            }
+          } else {
+            showToast('Adicione pelo menos um exercício ao treino.');
+            return;
+          }
+        }
+
         const treinoPayload = {
           id: treinoId || undefined,
           aluno_id: aluno.id,

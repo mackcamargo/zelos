@@ -267,20 +267,49 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
   }
 
   // Remover Exercício do Treino
-  async function handleRemoverExercicio(exercicioId: string) {
+  async function handleRemoverExercicio(targetItem: any, indexToRemove: number) {
     if (!treinoDetalhe) return;
 
-    const exAtualizados = (treinoDetalhe.exercicios || []).filter(ex => ex.id !== exercicioId);
-    const treinoAtualizado = { ...treinoDetalhe, exercicios: exAtualizados };
+    const exAtualizados = (treinoDetalhe.exercicios || []).filter((ex: any, idx: number) => {
+      if (idx === indexToRemove) return false;
+      if (targetItem?.id && ex?.id && String(ex.id) === String(targetItem.id)) return false;
+      return true;
+    });
 
-    setTreinos(prev => prev.map(t => t.id === treinoDetalhe.id ? treinoAtualizado : t));
     setMenuExercicioAberto(null);
 
-    if (isSupabaseConfigured && supabase) {
+    // Se o treino ficou completamente sem exercícios após a remoção
+    if (exAtualizados.length === 0) {
+      const targetTreinoId = treinoDetalhe.id;
+      // 1. Remover o treino do estado local
+      setTreinos(prev => prev.filter(t => t.id !== targetTreinoId));
+      // 2. Fechar a tela de detalhe do treino
+      setTreinoDetalheId(null);
+
+      // 3. Deletar o treino do banco de dados (remover treino e seus exercícios vinculados)
       try {
-        await supabase.from('treino_exercicios').delete().eq('id', exercicioId);
+        if (dbService?.deleteTreino) {
+          await dbService.deleteTreino(targetTreinoId);
+        } else if (isSupabaseConfigured && supabase) {
+          await supabase.from('treino_exercicios').delete().eq('treino_id', targetTreinoId);
+          await supabase.from('treinos').delete().eq('id', targetTreinoId);
+        }
       } catch (e) {
-        console.error('Erro ao remover exercício:', e);
+        console.error('Erro ao deletar treino sem exercícios:', e);
+      }
+      return;
+    }
+
+    // Caso ainda existam outros exercícios no treino
+    const treinoAtualizado = { ...treinoDetalhe, exercicios: exAtualizados };
+    setTreinos(prev => prev.map(t => t.id === treinoDetalhe.id ? treinoAtualizado : t));
+
+    // Tenta deletar no banco o exercício específico se ele possuir ID no Supabase
+    if (targetItem?.id && isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('treino_exercicios').delete().eq('id', targetItem.id);
+      } catch (e) {
+        console.error('Erro ao remover exercício do banco:', e);
       }
     }
   }
@@ -436,8 +465,20 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
                       </p>
                     </div>
 
-                    {/* Menu ⋮ */}
-                    <div className="relative shrink-0">
+                    {/* Ações: Lixeira direta e Menu ⋮ */}
+                    <div className="flex items-center gap-1 shrink-0 relative">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoverExercicio(item, idx);
+                        }}
+                        className="p-2 text-red-400/80 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                        title="Excluir exercício"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
                       <button
                         type="button"
                         onClick={(e) => {
@@ -485,7 +526,7 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleRemoverExercicio(item.id || '')}
+                              onClick={() => handleRemoverExercicio(item, idx)}
                               className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2"
                             >
                               <Trash2 className="w-3.5 h-3.5 text-red-400" />
