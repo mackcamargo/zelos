@@ -498,26 +498,26 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       {/* 1. BARRA SUPERIOR FIXA */}
       {/* =================================================================== */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-line/60 px-4 py-3 flex items-center justify-between gap-3 shadow-md">
+      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-line/60 px-3 py-2 flex items-center justify-between gap-2 shadow-md">
         {/* Botão Fechar (X) */}
         <button
           type="button"
           onClick={() => setModalConfirmarSaida(true)}
-          className="p-2 rounded-xl bg-surface border border-line text-ink-2 hover:text-ink hover:border-line-strong transition-all cursor-pointer active:scale-95"
+          className="p-1.5 rounded-xl bg-surface border border-line text-ink-2 hover:text-ink transition-all cursor-pointer active:scale-95"
           title="Sair do Treino"
         >
-          <X className="w-5 h-5 text-red-400" />
+          <X className="w-4 h-4 text-red-400" />
         </button>
 
         {/* Título & Progresso do Exercício */}
-        <div className="text-center min-w-0 flex-1">
-          <span className="text-[10px] font-mono text-[#F26A1B] uppercase tracking-wider font-bold block">
+        <div className="text-center min-w-0 flex-1 leading-tight">
+          <span className="text-[9px] font-mono text-[#F26A1B] uppercase tracking-wider font-bold block">
             Modo Treino Guiado
           </span>
-          <h2 className="font-display font-bold text-sm sm:text-base text-ink truncate leading-tight">
+          <h2 className="font-display font-bold text-base text-ink truncate leading-tight">
             {treino.titulo}
           </h2>
-          <span className="text-[11px] text-ink-3 font-mono">
+          <span className="text-xs text-ink-3 font-mono block">
             Exercício {currentExIdx + 1} de {exercicios.length}
           </span>
         </div>
@@ -526,9 +526,9 @@ export default function ModoTreinoGuiado({
         <button
           type="button"
           onClick={() => setModalEstatisticas(true)}
-          className="px-3 py-1.5 rounded-xl bg-[#F26A1B]/10 border border-[#F26A1B]/30 text-[#F26A1B] hover:bg-[#F26A1B]/20 text-xs font-display font-bold flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+          className="px-2.5 py-1 rounded-xl bg-[#F26A1B]/10 border border-[#F26A1B]/30 text-[#F26A1B] hover:bg-[#F26A1B]/20 text-xs font-display font-bold flex items-center gap-1 transition-all cursor-pointer active:scale-95"
         >
-          <BarChart2 className="w-4 h-4" />
+          <BarChart2 className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Estatísticas</span>
         </button>
       </header>
@@ -536,13 +536,13 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       {/* CONTEÚDO PRINCIPAL (SCROLLÁVEL) */}
       {/* =================================================================== */}
-      <main className="flex-1 max-w-2xl w-full mx-auto p-4 space-y-5 pb-36">
+      <main className="flex-1 max-w-2xl w-full mx-auto px-3 py-2 space-y-2 pb-28">
         {currentEx && (
           <>
-            {/* 2. CARD DO EXERCÍCIO ATUAL (MÍDIA/VÍDEO + EXPANDIR) */}
-            <div className="bg-surface border border-line/60 rounded-2xl overflow-hidden shadow-lg relative group">
+            {/* 2. CARD DO EXERCÍCIO ATUAL (MÍDIA/VÍDEO + UNIFICADO) */}
+            <div className="bg-surface border border-line/60 rounded-2xl p-2 shadow-lg relative group space-y-1.5">
               {/* Mídia Banner */}
-              <div className={`relative w-full bg-[#EDE9E3] transition-all duration-300 ${mediaExpanded ? 'aspect-square md:aspect-[16/9]' : 'aspect-[4/3] md:aspect-[16/9]'} flex items-center justify-center overflow-hidden`}>
+              <div className={`relative w-full h-[30vh] max-h-[260px] bg-[#EDE9E3] rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 ${mediaExpanded ? 'h-[40vh] max-h-[360px]' : ''}`}>
                 {(() => {
                   const videoPath = isFemale 
                     ? (currentEx.exercicio?.video_url_fem || currentEx.exercicio?.video_url_masc)
@@ -565,25 +565,25 @@ export default function ModoTreinoGuiado({
                   }
 
                   return (
-                    <div className="flex flex-col items-center justify-center text-ink-3 gap-2 p-6 text-center">
-                      <div className="w-16 h-16 rounded-full bg-[#F26A1B]/10 flex items-center justify-center mb-1">
-                        <Dumbbell className="w-8 h-8 text-[#F26A1B]/60" />
+                    <div className="flex flex-col items-center justify-center text-ink-3 gap-1.5 p-4 text-center">
+                      <div className="w-12 h-12 rounded-full bg-[#F26A1B]/10 flex items-center justify-center mb-0.5">
+                        <Dumbbell className="w-6 h-6 text-[#F26A1B]/60" />
                       </div>
-                      <span className="text-sm font-display font-bold text-ink-2">Vídeo em breve</span>
-                      <span className="text-[10px] opacity-60 max-w-[200px]">
-                        Estamos preparando as instruções em vídeo para este exercício.
+                      <span className="text-xs font-display font-bold text-ink-2">Vídeo em breve</span>
+                      <span className="text-[10px] opacity-60 max-w-[180px]">
+                        Instruções em vídeo para este exercício.
                       </span>
                     </div>
                   );
                 })()}
 
-                <div className="absolute top-3 right-3 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
-                  <Sparkles className="w-3 h-3 text-flame animate-pulse" />
+                <div className="absolute top-2.5 right-2.5 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2 py-1 flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
+                  <Sparkles className="w-2.5 h-2.5 text-flame animate-pulse" />
                   <span>Movimento Ilustrativo</span>
                 </div>
 
                 {/* Tag de Músculo Primário */}
-                <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-[#F26A1B] text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded-lg border border-[#F26A1B]/30">
+                <span className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md text-[#F26A1B] text-[10px] font-mono font-bold uppercase px-2 py-1 rounded-lg border border-[#F26A1B]/30">
                   {currentEx.exercicio?.musculo_primario?.[0] || 'Geral'}
                 </span>
 
@@ -591,40 +591,38 @@ export default function ModoTreinoGuiado({
                 <button
                   type="button"
                   onClick={() => setMediaExpanded(!mediaExpanded)}
-                  className="absolute bottom-3 right-3 p-2 bg-black/70 backdrop-blur-md rounded-lg text-white hover:bg-black/90 transition-all cursor-pointer z-10"
+                  className="absolute bottom-2.5 right-2.5 p-1.5 bg-black/70 backdrop-blur-md rounded-lg text-white hover:bg-black/90 transition-all cursor-pointer z-10"
                   title={mediaExpanded ? 'Recolher vídeo' : 'Expandir vídeo'}
                 >
-                  {mediaExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  {mediaExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
                 </button>
               </div>
 
-              {/* Informações do Exercício */}
-              <div className="p-4 space-y-2 border-t border-line/40">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-display font-bold text-lg text-ink leading-tight">
-                      {currentEx.exercicio?.nome || `Exercício ${currentExIdx + 1}`}
-                    </h3>
-                    {currentEx.substituido_de && (
-                      <span className="text-[10px] text-[#F26A1B] font-mono block mt-0.5">
-                        🔄 Substituído durante o treino
-                      </span>
-                    )}
-                  </div>
-
-                  <span className="text-xs font-mono text-ink-3 bg-raise px-2 py-1 rounded-lg border border-line shrink-0">
-                    {seriesCurrentEx.length} séries
-                  </span>
+              {/* Informações do Exercício (linha única) */}
+              <div className="py-2 px-3 flex items-center justify-between gap-2 bg-surface-2/60 rounded-xl border border-line/40">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-display font-semibold text-base text-ink truncate leading-tight">
+                    {currentEx.exercicio?.nome || `Exercício ${currentExIdx + 1}`}
+                  </h3>
+                  {currentEx.substituido_de && (
+                    <span className="text-[10px] text-[#F26A1B] font-mono block">
+                      🔄 Substituído durante o treino
+                    </span>
+                  )}
                 </div>
 
-                {/* Nota do Exercício (Se Houver) */}
-                {currentEx.nota && (
-                  <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/30 rounded-xl p-2.5 text-xs text-ink flex items-start gap-2">
-                    <FileText className="w-4 h-4 text-[#F26A1B] shrink-0 mt-0.5" />
-                    <p className="flex-1 font-mono">{currentEx.nota}</p>
-                  </div>
-                )}
+                <span className="text-xs font-mono text-ink-3 bg-raise px-2 py-0.5 rounded-lg border border-line shrink-0">
+                  {seriesCurrentEx.length} séries
+                </span>
               </div>
+
+              {/* Nota do Exercício (Se Houver) */}
+              {currentEx.nota && (
+                <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/30 rounded-xl px-2.5 py-1.5 text-xs text-ink flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5 text-[#F26A1B] shrink-0" />
+                  <p className="flex-1 font-mono text-[11px] truncate">{currentEx.nota}</p>
+                </div>
+              )}
             </div>
 
             {/* 4. BLOCO DE AQUECIMENTO (SE tem_aquecimento = true) */}
@@ -632,16 +630,16 @@ export default function ModoTreinoGuiado({
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-[#F26A1B]/15 via-[#F26A1B]/10 to-transparent border border-[#F26A1B]/40 rounded-2xl p-4 space-y-3 relative overflow-hidden shadow-sm"
+                className="bg-gradient-to-r from-[#F26A1B]/15 via-[#F26A1B]/10 to-transparent border border-[#F26A1B]/40 rounded-xl p-3 space-y-2 relative overflow-hidden shadow-sm"
               >
-                <div className="flex items-center gap-2.5 text-[#F26A1B]">
-                  <Flame className="w-5 h-5 animate-bounce" />
-                  <h4 className="font-display font-bold text-sm uppercase tracking-wide">
+                <div className="flex items-center gap-2 text-[#F26A1B]">
+                  <Flame className="w-4 h-4 animate-bounce" />
+                  <h4 className="font-display font-bold text-xs uppercase tracking-wide">
                     Aquecimento — Repetições livres · Carga leve
                   </h4>
                 </div>
-                <p className="text-xs text-ink-2 leading-relaxed font-mono">
-                  Realize de 15 a 20 repetições com cerca de 30% a 40% da carga normal para lubrificar as articulações antes de iniciar as séries valendo.
+                <p className="text-[11px] text-ink-2 leading-relaxed font-mono">
+                  Realize de 15 a 20 repetições com carga leve (30%-40%) para lubrificar as articulações.
                 </p>
                 <button
                   type="button"
@@ -649,18 +647,18 @@ export default function ModoTreinoGuiado({
                     setAquecimentoConcluidoMap(prev => ({ ...prev, [currentEx.id || '']: true }));
                     tocar('sucesso');
                   }}
-                  className="bg-[#F26A1B] text-white text-xs font-display font-bold py-2 px-4 rounded-xl flex items-center gap-2 shadow-sm cursor-pointer hover:bg-[#ff8a3d] transition-all"
+                  className="bg-[#F26A1B] text-white text-xs font-display font-bold py-1.5 px-3 rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer hover:bg-[#ff8a3d] transition-all"
                 >
-                  <Check className="w-4 h-4 stroke-[3]" />
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
                   <span>Concluir Aquecimento</span>
                 </button>
               </motion.div>
             )}
 
-            {/* 5. TIMELINE DE SÉRIES (VERTICAL COM BOLINHAS CONECTADAS) */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <h3 className="font-display font-bold text-base text-ink">
+            {/* 5. TIMELINE DE SÉRIES (UMA LINHA POR SÉRIE) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between px-1 mt-3 mb-2">
+                <h3 className="font-display font-semibold text-sm text-ink">
                   Séries do Exercício
                 </h3>
                 <span className="text-xs font-mono text-ink-3">
@@ -669,7 +667,7 @@ export default function ModoTreinoGuiado({
               </div>
 
               {/* Timeline Vertical */}
-              <div className="relative pl-7 space-y-3.5 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-line/60">
+              <div className="relative pl-6 space-y-2 before:absolute before:left-2.5 before:top-2.5 before:bottom-2.5 before:w-0.5 before:bg-line/60">
                 {seriesCurrentEx.map((serie) => {
                   const isCurrentSet = serie.numero_serie === currentSetNum;
                   const isCompleted = serie.concluida;
@@ -677,92 +675,81 @@ export default function ModoTreinoGuiado({
                   return (
                     <div key={serie.id || serie.numero_serie} className="relative">
                       {/* Bolinha da Timeline */}
-                      <div className={`absolute -left-[27px] top-3.5 w-6 h-6 rounded-full border-2 flex items-center justify-center font-display font-bold text-xs transition-all ${
+                      <div className={`absolute -left-[23px] top-2.5 w-5 h-5 rounded-full border-2 flex items-center justify-center font-display font-bold text-[10px] transition-all z-10 ${
                         isCompleted
-                          ? 'border-ok bg-ok text-white shadow-md shadow-ok/20'
+                          ? 'border-ok bg-ok text-white shadow-sm'
                           : isCurrentSet
-                          ? 'border-[#F26A1B] bg-[#F26A1B] text-white scale-110 shadow-md shadow-[#F26A1B]/40 ring-4 ring-[#F26A1B]/20'
+                          ? 'border-[#F26A1B] bg-[#F26A1B] text-white scale-105 shadow-sm ring-2 ring-[#F26A1B]/20'
                           : 'border-line-strong bg-surface-2 text-ink-3'
                       }`}>
                         {isCompleted ? (
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                          <Check className="w-3 h-3 stroke-[3]" />
                         ) : (
                           serie.numero_serie
                         )}
                       </div>
 
-                      {/* Card da Série */}
+                      {/* Card da Série (Uma Linha) */}
                       <div
                         onClick={() => setCurrentSetNum(serie.numero_serie)}
-                        className={`bg-surface border rounded-xl p-3.5 transition-all flex items-center justify-between gap-3 shadow-sm cursor-pointer ${
+                        className={`bg-surface border rounded-xl px-3 py-2 transition-all flex items-center justify-between gap-2 shadow-sm cursor-pointer ${
                           isCurrentSet
-                            ? 'border-[#F26A1B] bg-[#F26A1B]/5 shadow-md shadow-[#F26A1B]/10 ring-1 ring-[#F26A1B]/30'
+                            ? 'border-[#F26A1B] bg-[#F26A1B]/5 ring-1 ring-[#F26A1B]/30'
                             : isCompleted
                             ? 'border-ok/30 bg-ok/5'
                             : 'border-line/60 hover:border-line-strong'
                         }`}
                       >
-                        <div className="space-y-1 min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-display font-bold text-sm text-ink">
-                              Série {serie.numero_serie}
-                            </span>
-                            {isCurrentSet && !isCompleted && (
-                              <span className="text-[9px] font-mono bg-[#F26A1B] text-white uppercase px-1.5 py-0.5 rounded font-bold animate-pulse">
-                                EM FOCO
-                              </span>
-                            )}
+                        {/* Título Série N */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="font-display font-bold text-xs text-ink whitespace-nowrap">
+                            Série {serie.numero_serie}
+                          </span>
+                        </div>
+
+                        {/* Inputs Reps e Carga */}
+                        <div className="flex items-center gap-2 flex-1 justify-center min-w-0">
+                          {/* Repetições */}
+                          <div className="flex items-center gap-1 bg-surface-2 border border-line/80 rounded-lg px-2 py-1">
+                            <span className="text-[11px] font-mono text-ink-3">Reps:</span>
+                            <input
+                              type="text"
+                              value={serie.repeticoes}
+                              onChange={(e) => handleEditarSerieValue(serie.numero_serie, 'repeticoes', e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-12 text-center bg-transparent text-sm font-bold font-mono text-ink focus:outline-none"
+                            />
                           </div>
 
-                          {/* Ajustes Rápidos de Repetições e Carga */}
-                          <div className="flex items-center gap-3 pt-1">
-                            {/* Repetições */}
-                            <div className="flex items-center gap-1 bg-surface-2 border border-line/80 rounded-lg px-2 py-1">
-                              <span className="text-[10px] font-mono text-ink-3">Reps:</span>
-                              <input
-                                type="text"
-                                value={serie.repeticoes}
-                                onChange={(e) => handleEditarSerieValue(serie.numero_serie, 'repeticoes', e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-8 text-center bg-transparent text-xs font-bold font-mono text-ink focus:outline-none"
-                              />
-                            </div>
-
-                            {/* Carga (kg) */}
-                            <div className="flex flex-col items-center">
-                              <div className="flex items-center gap-1 bg-surface-2 border border-line/80 rounded-lg px-2 py-1">
-                                <span className="text-[10px] font-mono text-ink-3">Carga:</span>
-                                <input
-                                  type="number"
-                                  value={serie.carga_kg ?? ''}
-                                  placeholder={currentEx.carga_kg ? String(currentEx.carga_kg) : (lastLoads[currentEx.exercicio_id]?.carga_kg ? String(lastLoads[currentEx.exercicio_id].carga_kg) : '')}
-                                  onChange={(e) => handleEditarSerieValue(serie.numero_serie, 'carga_kg', e.target.value === '' ? null : Number(e.target.value))}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="w-12 text-center bg-transparent text-xs font-bold font-mono text-ink focus:outline-none"
-                                />
-                                <span className="text-[10px] font-mono text-ink-3">kg</span>
-                              </div>
-                              {serie.carga_kg === null && lastLoads[currentEx.exercicio_id] && (
-                                <span className="text-[8px] text-ink-3 mt-0.5">sugestão: {lastLoads[currentEx.exercicio_id].carga_kg}kg</span>
-                              )}
-                            </div>
+                          {/* Carga (kg) */}
+                          <div className="flex items-center gap-1 bg-surface-2 border border-line/80 rounded-lg px-2 py-1">
+                            <span className="text-[11px] font-mono text-ink-3">Carga:</span>
+                            <input
+                              type="number"
+                              value={serie.carga_kg ?? ''}
+                              placeholder={currentEx.carga_kg ? String(currentEx.carga_kg) : (lastLoads[currentEx.exercicio_id]?.carga_kg ? String(lastLoads[currentEx.exercicio_id].carga_kg) : '')}
+                              onChange={(e) => handleEditarSerieValue(serie.numero_serie, 'carga_kg', e.target.value === '' ? null : Number(e.target.value))}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-14 text-center bg-transparent text-sm font-bold font-mono text-ink focus:outline-none"
+                            />
+                            <span className="text-[11px] font-mono text-ink-3">kg</span>
                           </div>
                         </div>
 
-                        {/* Botão Botão Concluir Série */}
+                        {/* Botão Concluir/Feito */}
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleToggleSerie(serie.numero_serie);
                           }}
-                          className={`py-2 px-3.5 rounded-xl font-display font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0 active:scale-95 ${
+                          className={`px-3 py-1.5 rounded-xl font-display font-bold text-sm flex items-center gap-1 transition-all cursor-pointer shrink-0 active:scale-95 ${
                             isCompleted
                               ? 'bg-ok/20 border border-ok/40 text-ok hover:bg-ok/30'
-                              : 'bg-[#F26A1B] hover:bg-[#ff8a3d] text-white shadow-md shadow-[#F26A1B]/20'
+                              : 'bg-[#F26A1B] hover:bg-[#ff8a3d] text-white shadow-sm'
                           }`}
                         >
-                          <Check className={`w-4 h-4 stroke-[3] ${isCompleted ? 'text-ok' : 'text-white'}`} />
+                          <Check className={`w-3.5 h-3.5 stroke-[3] ${isCompleted ? 'text-ok' : 'text-white'}`} />
                           <span>{isCompleted ? 'Feito' : 'Concluir'}</span>
                         </button>
                       </div>
