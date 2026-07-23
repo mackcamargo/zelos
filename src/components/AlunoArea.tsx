@@ -1050,9 +1050,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
 
   const handleFinishWorkout = async () => {
     if (selectedWorkout) {
-      // Force database status update
-      await dbService.updateTreinoStatus(selectedWorkout.id, 'concluido');
-
+      // O status é controlado pelo gatilho do banco baseado nas séries concluídas.
+      // Apenas tentamos ler o status atualizado para refletir na UI.
       if (supabase && isSupabaseConfigured) {
         try {
           const { data: updatedTreino } = await supabase
@@ -1063,6 +1062,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
 
           if (updatedTreino) {
             setSelectedWorkout(prev => prev ? { ...prev, status: updatedTreino.status } : null);
+            
+            if (updatedTreino.status !== 'concluido') {
+              const total = selectedWorkout.exercicios?.reduce((acc: number, item: any) => acc + (Number(item.series) || 0), 0) || 0;
+              alert(`Atenção: o treino não pôde ser finalizado automaticamente. Verifique se você marcou todas as ${total} séries como concluídas.`);
+              return;
+            }
           }
         } catch (err) {
           console.error(err);

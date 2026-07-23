@@ -1264,34 +1264,23 @@ export const dbService = {
   async saveSerieExecucao(serie: any): Promise<{ data: any; error: any }> {
     if (isSupabaseConfigured && supabase) {
       try {
-        if (serie.id && !serie.id.startsWith('temp-') && !serie.id.startsWith('local-')) {
-          const { data, error } = await supabase
-            .from('treino_exercicio_series')
-            .update({
-              concluida: serie.concluida,
-              concluida_em: serie.concluida ? new Date().toISOString() : null,
-              repeticoes: serie.repeticoes,
-              carga_kg: serie.carga_kg
-            })
-            .eq('id', serie.id)
-            .select()
-            .single();
-          if (!error && data) return { data, error: null };
-        } else {
-          const { data, error } = await supabase
-            .from('treino_exercicio_series')
-            .insert({
-              treino_exercicio_id: serie.treino_exercicio_id,
-              numero_serie: serie.numero_serie,
-              repeticoes: serie.repeticoes,
-              carga_kg: serie.carga_kg,
-              concluida: serie.concluida,
-              concluida_em: serie.concluida ? new Date().toISOString() : null
-            })
-            .select()
-            .single();
-          if (!error && data) return { data, error: null };
-        }
+        const payload = {
+          treino_exercicio_id: serie.treino_exercicio_id,
+          numero_serie: serie.numero_serie,
+          concluida: serie.concluida,
+          concluida_em: serie.concluida ? (serie.concluida_em || new Date().toISOString()) : null,
+          repeticoes: serie.repeticoes,
+          carga_kg: (serie.carga_kg === '' || serie.carga_kg === undefined) ? null : serie.carga_kg
+        };
+
+        const { data, error } = await supabase
+          .from('treino_exercicio_series')
+          .upsert(payload, { onConflict: 'treino_exercicio_id,numero_serie' })
+          .select()
+          .single();
+        
+        if (!error && data) return { data, error: null };
+        if (error) throw error;
       } catch (e) {
         console.warn('Erro ao salvar serie no supabase:', e);
       }

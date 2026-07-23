@@ -252,7 +252,7 @@ export default function ModoTreinoGuiado({
           concluida: proximoStatus,
           concluida_em: proximoStatus ? new Date().toISOString() : null
         };
-        // Persistir no backend
+        // Persistir no backend - enviamos apenas esta série
         dbService.saveSerieExecucao(serieAtualizada);
         return serieAtualizada;
       }
@@ -274,21 +274,6 @@ export default function ModoTreinoGuiado({
       // Mudar foco para a próxima série
       if (numeroSerie < (currentEx.series || seriesNovas.length)) {
         setCurrentSetNum(numeroSerie + 1);
-      } else {
-        // Se concluiu todas as séries prescritas deste exercício, marcar status_execucao
-        const concluidasCount = seriesNovas.filter(s => s.concluida).length;
-        const totalPrescritas = currentEx.series || seriesNovas.length;
-
-        if (concluidasCount >= totalPrescritas) {
-          dbService.updateTreinoExercicioDetalhe(currentEx.id || '', {
-            status_execucao: 'concluido'
-          });
-
-          // Atualizar no estado local
-          setExercicios(prev => prev.map((ex, idx) => 
-            idx === currentExIdx ? { ...ex, status_execucao: 'concluido' } : ex
-          ));
-        }
       }
     }
   }
@@ -407,21 +392,8 @@ export default function ModoTreinoGuiado({
     setModalAviso(prev => ({ ...prev, show: false }));
     
     try {
-      // Tentar atualizar status no banco
-      const { error } = await dbService.updateTreinoStatus(treino.id, 'concluido');
-      
-      if (error) {
-        setModalAviso({
-          show: true,
-          tipo: 'erro',
-          titulo: 'Erro ao Finalizar',
-          mensagem: "Erro ao finalizar treino: " + error.message,
-          confirmLabel: 'Ok'
-        });
-        return;
-      }
-
-      // Validar se o status REALMENTE mudou (devido ao gatilho do banco)
+      // O status é controlado pelo gatilho do banco. 
+      // Apenas verificamos se o status REALMENTE mudou após as séries serem concluídas.
       if (isSupabaseConfigured && supabase) {
         const { data: updatedTreino } = await supabase
           .from('treinos')
