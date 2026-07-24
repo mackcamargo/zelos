@@ -1276,6 +1276,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
             {!selectedWorkout ? (
               <ProgramaGuiadoAluno 
                 alunoId={userId} 
+                userRole={profile?.papel || headerProfile?.papel || 'aluno'}
                 onIniciarTreinoGuiado={(treino) => handleAbrirModoGuiado(treino)} 
               />
             ) : (() => {

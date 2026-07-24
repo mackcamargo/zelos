@@ -5,12 +5,13 @@ import {
   Trash2, Edit3, Sparkles, Filter, ChevronUp, Layers, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
+import { dbService, authService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Treino, TreinoExercicioDetailed, Exercicio, Profile } from '../types';
 import ModoTreinoGuiado from './ModoTreinoGuiado';
 
 interface ProgramaGuiadoAlunoProps {
   alunoId: string;
+  userRole?: string;
   onIniciarTreinoGuiado?: (treino: Treino) => void;
 }
 
@@ -40,13 +41,39 @@ const DIAS_SEMANA_MAP: Record<number, string> = {
   7: 'Sábado'
 };
 
-export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: ProgramaGuiadoAlunoProps) {
+export default function ProgramaGuiadoAluno({ alunoId, userRole, onIniciarTreinoGuiado }: ProgramaGuiadoAlunoProps) {
   const [loading, setLoading] = useState(true);
+  const [currentUserRole, setCurrentUserRole] = useState<string>(userRole || '');
   const [programa, setPrograma] = useState<Programa | null>(null);
   const [fases, setFases] = useState<Fase[]>([]);
   const [faseSelecionadaId, setFaseSelecionadaId] = useState<string | null>(null);
   const [treinos, setTreinos] = useState<Treino[]>([]);
   const [alunoProfile, setAlunoProfile] = useState<Profile | null>(null);
+
+  const isPersonal = currentUserRole === 'personal' || currentUserRole === 'professor';
+
+  useEffect(() => {
+    async function checkUserRole() {
+      if (userRole) {
+        setCurrentUserRole(userRole);
+        return;
+      }
+      try {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser?.id) {
+          const { data: userProfile } = await dbService.getProfile(currentUser.id);
+          if (userProfile?.papel) {
+            setCurrentUserRole(userProfile.papel);
+          } else if (currentUser.user_metadata?.papel) {
+            setCurrentUserRole(currentUser.user_metadata.papel);
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao verificar papel do usuário logado:', e);
+      }
+    }
+    checkUserRole();
+  }, [userRole]);
   
   // Navigation State
   const [treinoDetalheId, setTreinoDetalheId] = useState<string | null>(null);
@@ -571,14 +598,16 @@ export default function ProgramaGuiadoAluno({ alunoId, onIniciarTreinoGuiado }: 
           </div>
 
           {/* Botão + Adicionar no Fim */}
-          <button
-            type="button"
-            onClick={() => setModalExercicioAberto(true)}
-            className="w-full border-2 border-dashed border-line hover:border-[#F26A1B]/50 hover:bg-[#F26A1B]/5 rounded-xl py-3.5 text-xs font-display font-bold text-ink-2 hover:text-[#F26A1B] flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer mt-3"
-          >
-            <Plus className="w-4 h-4 text-[#F26A1B]" />
-            <span>Adicionar Exercício</span>
-          </button>
+          {isPersonal && (
+            <button
+              type="button"
+              onClick={() => setModalExercicioAberto(true)}
+              className="w-full border-2 border-dashed border-line hover:border-[#F26A1B]/50 hover:bg-[#F26A1B]/5 rounded-xl py-3.5 text-xs font-display font-bold text-ink-2 hover:text-[#F26A1B] flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer mt-3"
+            >
+              <Plus className="w-4 h-4 text-[#F26A1B]" />
+              <span>Adicionar Exercício</span>
+            </button>
+          )}
         </div>
 
         {/* Modal Selecionar Exercício */}
