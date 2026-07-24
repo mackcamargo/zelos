@@ -32,6 +32,8 @@ import { Checkin } from '../types';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
 import { AnamneseForm } from './AnamneseForm';
 
+import { useSessaoPersistente, SessaoAtiva } from '../hooks/useSessaoPersistente';
+
 interface AlunoAreaProps {
   userId: string;
   userEmail: string;
@@ -39,6 +41,8 @@ interface AlunoAreaProps {
   onLogout: () => void;
   isDemoMode: boolean;
   onProfileUpdate?: () => void;
+  sessaoRestaurada?: SessaoAtiva | null;
+  onSessaoConsumida?: () => void;
 }
 
 const resizeImage = (file: File): Promise<File> => {
@@ -111,12 +115,15 @@ const getStartOfWeek = (d: Date = new Date()) => {
   return new Date(date.setDate(diff)).toISOString().split('T')[0];
 };
 
-function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate }: AlunoAreaProps) {
+function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate, sessaoRestaurada, onSessaoConsumida }: AlunoAreaProps) {
   const [activeTab, setActiveTab] = useState<TabType>('treino');
+  const { salvarSessao } = useSessaoPersistente();
+
   const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
   const [hasAnamnese, setHasAnamnese] = useState(false);
   const [showAnamneseForm, setShowAnamneseForm] = useState(false);
+  const [sessaoAtivaParaRestaurar, setSessaoAtivaParaRestaurar] = useState<SessaoAtiva | null>(null);
 
   useEffect(() => {
     const tabLabels: Record<TabType, string> = {
@@ -315,6 +322,30 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const [showFotoUpload, setShowFotoUpload] = useState(false);
   const [fotoRefreshTrigger, setFotoRefreshTrigger] = useState(0);
   const [modoGuiadoAtivo, setModoGuiadoAtivo] = useState<Treino | null>(null);
+
+  // Restaurar sessão se houver
+  useEffect(() => {
+    if (sessaoRestaurada) {
+      if (sessaoRestaurada.contexto.tipo === 'treino_guiado') {
+        const { treino_id } = sessaoRestaurada.contexto;
+        if (treino_id) {
+          setSessaoAtivaParaRestaurar(sessaoRestaurada);
+          handleAbrirModoGuiado(treino_id);
+          if (onSessaoConsumida) onSessaoConsumida();
+        }
+      } else if (sessaoRestaurada.contexto.tipo === 'navegacao' && sessaoRestaurada.contexto.activeTab) {
+        setActiveTab(sessaoRestaurada.contexto.activeTab as TabType);
+        if (onSessaoConsumida) onSessaoConsumida();
+      }
+    }
+  }, [sessaoRestaurada]);
+
+  // Salvar sessão a cada mudança de aba (se não estiver em modo guiado)
+  useEffect(() => {
+    if (!modoGuiadoAtivo) {
+      salvarSessao(userId, window.location.pathname, { tipo: 'navegacao', activeTab });
+    }
+  }, [activeTab, userId, salvarSessao, modoGuiadoAtivo]);
 
   const fetchCheckinDaSemana = async () => {
     const semana = getStartOfWeek();
@@ -1148,10 +1179,15 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
           <ModoTreinoGuiado
             treino={modoGuiadoAtivo}
             alunoId={userId}
-            onClose={() => setModoGuiadoAtivo(null)}
+            sessaoInicial={sessaoAtivaParaRestaurar?.contexto}
+            onClose={() => {
+              setModoGuiadoAtivo(null);
+              setSessaoAtivaParaRestaurar(null);
+            }}
             onTreinoConcluido={() => {
               setModoGuiadoAtivo(null);
               setSelectedWorkout(null);
+              setSessaoAtivaParaRestaurar(null);
               loadStudentWorkouts();
             }}
           />

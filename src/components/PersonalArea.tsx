@@ -18,6 +18,8 @@ import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionC
 import { useTheme } from '../contexts/ThemeContext';
 import LogoZelos from './LogoZelos';
 
+import { useSessaoPersistente, SessaoAtiva } from '../hooks/useSessaoPersistente';
+
 interface PersonalAreaProps {
   userId: string;
   userEmail: string;
@@ -25,6 +27,8 @@ interface PersonalAreaProps {
   onLogout: () => void;
   isDemoMode: boolean;
   onProfileUpdate?: () => void;
+  sessaoRestaurada?: SessaoAtiva | null;
+  onSessaoConsumida?: () => void;
 }
 
 const resizeImage = (file: File): Promise<File> => {
@@ -82,9 +86,23 @@ const resizeImage = (file: File): Promise<File> => {
 
 type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos' | 'cortesias';
 
-function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate }: PersonalAreaProps) {
+function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate, sessaoRestaurada, onSessaoConsumida }: PersonalAreaProps) {
   const isAdmin = userId === 'fdcb50c9-9057-4922-b2f8-c6093d6941f4';
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const { salvarSessao } = useSessaoPersistente();
+
+  // Restaurar sessão se houver
+  useEffect(() => {
+    if (sessaoRestaurada && sessaoRestaurada.contexto.tipo === 'navegacao' && sessaoRestaurada.contexto.activeTab) {
+      setActiveTab(sessaoRestaurada.contexto.activeTab as TabType);
+      if (onSessaoConsumida) onSessaoConsumida();
+    }
+  }, [sessaoRestaurada]);
+
+  // Salvar sessão a cada mudança de aba
+  useEffect(() => {
+    salvarSessao(userId, window.location.pathname, { tipo: 'navegacao', activeTab });
+  }, [activeTab, userId, salvarSessao]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);

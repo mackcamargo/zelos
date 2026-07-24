@@ -3027,6 +3027,49 @@ export const dbService = {
       save('zenite_mock_alunos', Alunos);
     }
     return { error: null };
+  },
+
+  async upsertSessaoAtiva(userId: string, rota: string, contexto: any): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('sessao_ativa')
+        .upsert({
+          user_id: userId,
+          rota,
+          contexto,
+          atualizado_em: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      return { error };
+    }
+    // Mock
+    save('zelos_mock_sessao_ativa_' + userId, { user_id: userId, rota, contexto, atualizado_em: new Date().toISOString() });
+    return { error: null };
+  },
+
+  async getSessaoAtiva(userId: string): Promise<{ data: any; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      return await supabase
+        .from('sessao_ativa')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+    }
+    // Mock
+    const data = load('zelos_mock_sessao_ativa_' + userId, null);
+    return { data, error: null };
+  },
+
+  async deleteSessaoAtiva(userId: string): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('sessao_ativa')
+        .delete()
+        .eq('user_id', userId);
+      return { error };
+    }
+    // Mock
+    localStorage.removeItem('zelos_mock_sessao_ativa_' + userId);
+    return { error: null };
   }
 };
 

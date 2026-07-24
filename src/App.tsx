@@ -4,9 +4,10 @@ import { Profile } from './types';
 import Auth from './components/Auth';
 import PersonalArea from './components/PersonalArea';
 import AlunoArea from './components/AlunoArea';
-import { Sparkles, Terminal } from 'lucide-react';
+import { Sparkles, Terminal, Play, X, Clock, Dumbbell, History } from 'lucide-react';
 import { initSom, tocar } from './lib/som';
 import LogoZelos from './components/LogoZelos';
+import { useSessaoPersistente, SessaoAtiva } from './hooks/useSessaoPersistente';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -15,6 +16,8 @@ export default function App() {
   const [showConviteConflict, setShowConviteConflict] = useState(false);
   const [conviteCode, setConviteCode] = useState<string | null>(null);
   const [modoRecuperacao, setModoRecuperacao] = useState(false);
+  const [sessaoRecuperada, setSessaoRecuperada] = useState<SessaoAtiva | null>(null);
+  const { carregarSessao, limparSessao } = useSessaoPersistente();
 
   useEffect(() => {
     initSom();
@@ -140,6 +143,16 @@ export default function App() {
             criado_em: new Date().toISOString()
           });
         }
+
+        // Verificar sessão pendente
+        const sessao = await carregarSessao(currentUser.id);
+        if (sessao) {
+          if (sessao.contexto.tipo === 'navegacao') {
+            window.history.replaceState({}, '', sessao.rota);
+          } else if (sessao.contexto.tipo === 'treino_guiado') {
+            setSessaoRecuperada(sessao);
+          }
+        }
       }
     } catch (err) {
       console.error('Erro ao verificar sessão do usuário:', err);
@@ -180,6 +193,9 @@ export default function App() {
   const handleLogout = async () => {
     setLoading(true);
     try {
+      if (user) {
+        await limparSessao(user.id);
+      }
       await authService.signOut();
       setUser(null);
       setProfile(null);
@@ -295,6 +311,84 @@ export default function App() {
         </div>
       )}
 
+      {sessaoRecuperada && sessaoRecuperada.contexto.tipo === 'treino_guiado' && sessaoRecuperada.ts !== -1 && (
+        <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-surface border border-line rounded-3xl w-full max-w-sm p-6 space-y-6 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/5 blur-3xl pointer-events-none rounded-full" />
+            
+            <div className="text-center space-y-4 relative z-10">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-[#F26A1B]/10 rounded-full flex items-center justify-center border border-[#F26A1B]/20 relative">
+                  <History className="w-8 h-8 text-[#F26A1B]" />
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#F26A1B] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-[#F26A1B]"></span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <h2 className="font-display font-extrabold text-xl text-ink leading-tight">
+                  Retomar treino?
+                </h2>
+                <p className="text-sm text-ink-2">
+                  Encontramos um treino interrompido. Deseja continuar de onde parou?
+                </p>
+              </div>
+
+              <div className="bg-raise rounded-2xl p-4 border border-line space-y-2 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-surface rounded-lg border border-line">
+                    <Dumbbell className="w-4 h-4 text-[#F26A1B]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-mono text-ink-3 uppercase font-bold">Último Exercício</p>
+                    <p className="text-xs font-bold text-ink truncate">Exercício { (sessaoRecuperada.contexto.exercicio_index ?? 0) + 1 }</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-surface rounded-lg border border-line">
+                    <Clock className="w-4 h-4 text-[#F26A1B]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-mono text-ink-3 uppercase font-bold">Visto em</p>
+                    <p className="text-xs font-bold text-ink">{ new Date(sessaoRecuperada.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    tocar('tap');
+                    // Mantemos a sessão no estado local para que o AlunoArea possa lê-la
+                    // Mas mudamos o contexto para indicar que ela foi ACEITA (opcional)
+                    setSessaoRecuperada({ ...sessaoRecuperada, ts: -1 }); // Flag para AlunoArea saber que pode abrir
+                  }}
+                  className="w-full py-4 px-6 rounded-2xl bg-[#F26A1B] hover:bg-[#ff8a3d] text-white font-display font-bold text-sm shadow-lg shadow-[#F26A1B]/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <Play className="w-4 h-4 fill-current" />
+                  Sim, retomar agora
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    tocar('tap');
+                    await limparSessao(user.id);
+                    setSessaoRecuperada(null);
+                  }}
+                  className="w-full py-3 px-6 rounded-2xl bg-surface hover:bg-raise border border-line text-ink-3 hover:text-ink font-display font-bold text-xs transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Descartar e começar do zero
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {profile.papel === 'personal' ? (
         <PersonalArea
           userId={user.id}
@@ -303,6 +397,8 @@ export default function App() {
           onLogout={handleLogout}
           isDemoMode={!isSupabaseConfigured}
           onProfileUpdate={refreshProfile}
+          sessaoRestaurada={sessaoRecuperada}
+          onSessaoConsumida={() => setSessaoRecuperada(null)}
         />
       ) : (
         <AlunoArea
@@ -312,6 +408,8 @@ export default function App() {
           onLogout={handleLogout}
           isDemoMode={!isSupabaseConfigured}
           onProfileUpdate={refreshProfile}
+          sessaoRestaurada={sessaoRecuperada?.ts === -1 ? sessaoRecuperada : null}
+          onSessaoConsumida={() => setSessaoRecuperada(null)}
         />
       )}
     </div>

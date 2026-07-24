@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   X, BarChart2, Play, Pause, Plus, Check, ChevronRight, ChevronLeft, 
   RefreshCw, Edit3, Flame, Timer, Dumbbell, Maximize2, Minimize2, 
@@ -9,36 +9,42 @@ import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Treino, TreinoExercicioDetailed, TreinoExercicioSerie, Exercicio, Profile } from '../types';
 import { tocar } from '../lib/som';
+import { useSessaoPersistente, SessaoContexto } from '../hooks/useSessaoPersistente';
 
 interface ModoTreinoGuiadoProps {
   treino: Treino;
   alunoId: string;
   onClose: () => void;
   onTreinoConcluido: () => void;
+  sessaoInicial?: SessaoContexto | null;
 }
 
 export default function ModoTreinoGuiado({
   treino,
   alunoId,
   onClose,
-  onTreinoConcluido
+  onTreinoConcluido,
+  sessaoInicial
 }: ModoTreinoGuiadoProps) {
+  const { salvarSessao, limparSessao } = useSessaoPersistente();
+
   // Exercícios do Treino
   const [exercicios, setExercicios] = useState<TreinoExercicioDetailed[]>(
     treino.exercicios || []
   );
-  const [currentExIdx, setCurrentExIdx] = useState(0);
+  const [currentExIdx, setCurrentExIdx] = useState(sessaoInicial?.exercicio_index ?? 0);
 
   // Mapeamento de séries por exercício (treino_exercicio_id -> TreinoExercicioSerie[])
   const [seriesMap, setSeriesMap] = useState<Record<string, TreinoExercicioSerie[]>>({});
-  const [currentSetNum, setCurrentSetNum] = useState(1);
+  const [currentSetNum, setCurrentSetNum] = useState(sessaoInicial?.serie_index ?? 1);
 
   // Estados Visuais e Aquecimento
   const [mediaExpanded, setMediaExpanded] = useState(false);
   const [aquecimentoConcluidoMap, setAquecimentoConcluidoMap] = useState<Record<string, boolean>>({});
 
   // Cronômetro do Treino Total
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState(sessaoInicial?.cronometro_segundos ?? 0);
+  const iniciadoEmRef = useRef<string>(sessaoInicial?.iniciado_em ?? new Date().toISOString());
 
   // Cronômetro de Descanso
   const [restSecondsLeft, setRestSecondsLeft] = useState(0);
@@ -248,6 +254,27 @@ export default function ModoTreinoGuiado({
       newMap[exId] = currentSeries;
     }
 
+    // Se temos uma sessão inicial, garantir que todas as séries do mapa sejam rehidratadas
+    if (sessaoInicial?.series_estado) {
+      Object.keys(newMap).forEach(exId => {
+        newMap[exId] = newMap[exId].map(s => {
+          const sSalva = sessaoInicial.series_estado?.find(ss => 
+            ss.exercicio_id === exId && ss.serie_numero === s.numero_serie
+          );
+          if (sSalva) {
+            return {
+              ...s,
+              repeticoes: sSalva.reps,
+              carga_kg: sSalva.carga,
+              concluida: sSalva.concluida,
+              concluida_em: sSalva.concluida ? s.concluida_em || new Date().toISOString() : null
+            };
+          }
+          return s;
+        });
+      });
+    }
+
     setSeriesMap(newMap);
   }
 
@@ -445,6 +472,7 @@ export default function ModoTreinoGuiado({
         }
       }
 
+      await limparSessao(alunoId);
       tocar('celebracao');
       setModalConcluido(true);
     } catch (err) {
@@ -492,6 +520,50 @@ export default function ModoTreinoGuiado({
     const secs = totalSec % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
+
+  // Persistência de Sessão
+  const sessionContext = useMemo((): SessaoContexto => ({
+    tipo: "treino_guiado",
+    treino_id: treino.id,
+    aluno_id: alunoId,
+    exercicio_index: currentExIdx,
+    serie_index: currentSetNum,
+    series_estado: Object.entries(seriesMap).flatMap(([exId, series]) => 
+      series.map(s => ({
+        exercicio_id: exId,
+        serie_numero: s.numero_serie,
+        reps: s.repeticoes,
+        carga: s.carga_kg,
+        concluida: s.concluida
+      }))
+    ),
+    iniciado_em: iniciadoEmRef.current,
+    cronometro_segundos: elapsedSeconds
+  }), [treino.id, alunoId, currentExIdx, currentSetNum, seriesMap, elapsedSeconds]);
+
+  useEffect(() => {
+    salvarSessao(alunoId, window.location.pathname, sessionContext);
+  }, [sessionContext, alunoId, salvarSessao]);
+
+  useEffect(() => {
+    const handleSaveImediato = () => {
+      salvarSessao(alunoId, window.location.pathname, sessionContext, true);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleSaveImediato();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handleSaveImediato);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handleSaveImediato);
+    };
+  }, [alunoId, sessionContext, salvarSessao]);
 
   return (
     <div className="fixed inset-0 z-[60] bg-bg text-ink overflow-y-auto flex flex-col font-sans select-none">
@@ -982,7 +1054,10 @@ export default function ModoTreinoGuiado({
                 </button>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={async () => {
+                    await limparSessao(alunoId);
+                    onClose();
+                  }}
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600"
                 >
                   Sair
