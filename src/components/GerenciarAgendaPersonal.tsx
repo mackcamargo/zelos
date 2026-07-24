@@ -178,9 +178,9 @@ export default function GerenciarAgendaPersonal({ personalId, isReadOnly = false
             {!isReadOnly && (
               <button 
                 onClick={() => setModalAberto(true)} 
-                className="w-full py-2.5 rounded-xl bg-accent text-white text-[11px] font-bold uppercase tracking-wider hover:bg-accent/90 transition-all shadow-sm flex items-center justify-center gap-2 mt-2 border border-accent/20"
+                className="w-full py-2.5 rounded-xl bg-accent text-white text-[11px] font-bold tracking-wider hover:bg-accent/90 transition-all shadow-sm flex items-center justify-center gap-2 mt-2 border border-accent/20"
               >
-                <Plus className="w-3.5 h-3.5" /> Criar p/ aluno
+                <Plus className="w-3.5 h-3.5" /> Agendar Sessão
               </button>
             )}
           </div>
