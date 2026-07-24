@@ -1199,7 +1199,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
       className="bg-bg text-ink font-sans flex flex-col h-screen overflow-hidden"
     >
       {/* Top Header */}
-      <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-40 border-b border-line py-4 px-4 sm:px-6 shrink-0">
+      <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-40 border-b border-line py-4 px-4 sm:px-6 shrink-0 pt-[calc(1rem+env(safe-area-inset-top))]">
         <div className="w-full flex justify-between items-center">
           <div>
             <div className="flex items-center gap-2">
@@ -3268,7 +3268,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
 
       {/* Bottom Navigation Tab Bar */}
       {!modoGuiadoAtivo && (
-        <nav className="fixed bottom-0 left-0 right-0 h-20 bg-surface/90 backdrop-blur-md border-t border-line py-1 px-4 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.15)]">
+        <nav className="fixed bottom-0 left-0 right-0 h-auto min-h-[80px] bg-surface/90 backdrop-blur-md border-t border-line py-1 px-4 z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.15)] pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-md md:max-w-lg h-full mx-auto grid grid-cols-5 gap-1 items-center">
           {/* Tab 1 - Treino */}
           <button

@@ -8,6 +8,8 @@ import { Sparkles, Terminal, Play, X, Clock, Dumbbell, History } from 'lucide-re
 import { initSom, tocar } from './lib/som';
 import LogoZelos from './components/LogoZelos';
 import { useSessaoPersistente, SessaoAtiva } from './hooks/useSessaoPersistente';
+import AtualizacaoDisponivel from './components/AtualizacaoDisponivel';
+import CardInstalarPWA from './components/CardInstalarPWA';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -260,7 +262,9 @@ export default function App() {
 
   // 3. AUTHENTICATED SYSTEM ROUTING
   return (
-    <div id="app-workspace-root" className="min-h-screen bg-void relative">
+    <div id="app-workspace-root" className="min-h-screen bg-void relative pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <AtualizacaoDisponivel />
+      <CardInstalarPWA />
       {/* Invitation Conflict Modal */}
       {showConviteConflict && (
         <div className="z-overlay !z-[200]">

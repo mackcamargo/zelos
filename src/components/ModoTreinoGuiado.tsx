@@ -566,11 +566,11 @@ export default function ModoTreinoGuiado({
   }, [alunoId, sessionContext, salvarSessao]);
 
   return (
-    <div className="fixed inset-0 z-[60] bg-bg text-ink overflow-y-auto flex flex-col font-sans select-none">
+    <div id="modo-treino-guiado-root" className="fixed inset-0 z-[60] bg-bg text-ink overflow-y-auto flex flex-col font-sans select-none">
       {/* =================================================================== */}
       {/* 1. BARRA SUPERIOR FIXA */}
       {/* =================================================================== */}
-      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-line/60 px-3 py-2 flex items-center justify-between gap-2 shadow-md">
+      <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-line/60 px-3 py-2 flex items-center justify-between gap-2 shadow-md pt-[calc(0.5rem+env(safe-area-inset-top))]">
         {/* Botão Fechar (X) */}
         <button
           type="button"
@@ -931,7 +931,7 @@ export default function ModoTreinoGuiado({
       {/* =================================================================== */}
       {/* 6. BARRA INFERIOR FIXA (DESCANSO E NAVEGAÇÃO) */}
       {/* =================================================================== */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-line/60 p-3 sm:p-4 space-y-2.5 shadow-2xl">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-lg border-t border-line/60 p-3 sm:p-4 space-y-2.5 shadow-2xl pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <div className="max-w-2xl mx-auto space-y-2.5">
           {/* Cronômetro de Descanso (Se Ativo) */}
           {restTimerActive && (

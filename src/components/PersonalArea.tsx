@@ -562,7 +562,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
         </div>
 
         {/* Footer profile & logout */}
-        <div className="p-2 border-t border-line/40 shrink-0 relative group/footer">
+        <div className="p-2 border-t border-line/40 shrink-0 relative group/footer pb-[env(safe-area-inset-bottom)]">
           <button
             type="button"
             onClick={() => setActiveTab('perfil')}
@@ -697,7 +697,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-line/40 shrink-0">
+        <div className="p-3 border-t border-line/40 shrink-0 pb-[env(safe-area-inset-bottom)]">
           <div className="w-full flex items-center justify-between gap-3 p-2 rounded-xl bg-raise/40">
             <button
               type="button"
