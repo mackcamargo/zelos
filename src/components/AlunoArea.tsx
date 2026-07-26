@@ -8,7 +8,7 @@ import {
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
   Trophy, Info, X,
   Volume2, VolumeX, Bell,
-  Trash2, Loader2
+  Trash2, Loader2, Sun, Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -31,6 +31,7 @@ import { MessageSquare } from 'lucide-react';
 import { Checkin } from '../types';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
 import { AnamneseForm } from './AnamneseForm';
+import { useTheme } from '../contexts/ThemeContext';
 
 import { useSessaoPersistente, SessaoAtiva } from '../hooks/useSessaoPersistente';
 
@@ -116,6 +117,7 @@ const getStartOfWeek = (d: Date = new Date()) => {
 };
 
 function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate, sessaoRestaurada, onSessaoConsumida }: AlunoAreaProps) {
+  const { theme, setTheme, resolved } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('treino');
   const { salvarSessao } = useSessaoPersistente();
 
@@ -1211,12 +1213,29 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
             <p className="text-xs text-ink-3 mt-1 font-mono tracking-wider">WORKSPACE · ÁREA DE ATIVAÇÃO</p>
           </div>
           
-          <button
-            type="button"
-            onClick={() => setActiveTab('perfil')}
-            className="flex items-center gap-2.5 sm:gap-3 text-right hover:opacity-85 active:scale-[0.97] transition-all focus:outline-none cursor-pointer group"
-            id="header-avatar-btn"
-          >
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setTheme(resolved === 'dark' ? 'light' : 'dark');
+                tocar('tap');
+              }}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-line bg-surface flex items-center justify-center text-ink-3 hover:text-accent hover:border-accent/30 transition-all active:scale-95 shadow-sm cursor-pointer"
+              title={`Alternar para tema ${resolved === 'dark' ? 'claro' : 'escuro'}`}
+            >
+              {resolved === 'dark' ? (
+                <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
+              ) : (
+                <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('perfil')}
+              className="flex items-center gap-2.5 sm:gap-3 text-right hover:opacity-85 active:scale-[0.97] transition-all focus:outline-none cursor-pointer group"
+              id="header-avatar-btn"
+            >
             <div className="flex flex-col items-end">
               <span className="text-[9px] sm:text-[10px] text-ink-3 font-mono uppercase tracking-wider">
                 {isFemale ? 'ALUNA' : 'ALUNO'}
@@ -1248,7 +1267,8 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
             </div>
           </button>
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* Main View Area */}
       <main className={`flex-1 w-full px-3 sm:px-6 overflow-y-auto ${
@@ -2847,6 +2867,40 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                   >
                     <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-all ${somHabilitado ? 'left-6.5' : 'left-0.5'}`} />
                   </button>
+                </div>
+
+                {/* Theme Settings */}
+                <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl space-y-4 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                        <Sparkles className="w-5 h-5 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-ink">Tema Visual</p>
+                        <p className="text-[10px] text-ink-3 uppercase font-mono font-bold">Aparência do app</p>
+                      </div>
+                    </div>
+                    <div className="flex bg-raise border border-line rounded-xl p-1 gap-1 w-full sm:w-auto">
+                      {(['light', 'dark', 'system'] as const).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => {
+                            setTheme(t);
+                            tocar('tap');
+                          }}
+                          className={`flex-1 sm:flex-initial py-1.5 px-3.5 text-[10px] font-bold rounded-lg transition-all capitalize cursor-pointer uppercase tracking-wider font-mono ${
+                            theme === t 
+                              ? 'bg-accent text-white shadow-md shadow-accent/20' 
+                              : 'text-ink-3 hover:text-ink'
+                          }`}
+                        >
+                          {t === 'light' ? 'Claro' : t === 'dark' ? 'Escuro' : 'Sistema'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
