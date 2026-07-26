@@ -291,6 +291,15 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     }, 200);
 
     try {
+      // 1. GARANTIR SESSÃO VÁLIDA (BUG 2: TELA TRAVA)
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
+        if (refreshErr || !refreshData.session) {
+          throw new Error('Sessão expirada. Por favor, faça login novamente para realizar o upload.');
+        }
+      }
+
       const isNew = !selectedExercicio?.id || String(selectedExercicio.id).startsWith('ex-');
       let id_exercicio: any = isNew ? null : selectedExercicio!.id;
 
@@ -299,10 +308,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
         const { data: userData } = await supabase.auth.getUser();
         const personalId = userData?.user?.id;
         if (!personalId) {
-          setUploadError('Sessão expirada. Faça login novamente para enviar vídeos.');
-          setProgress(null);
-          clearInterval(interval);
-          return;
+          throw new Error('Sessão expirada. Faça login novamente para enviar vídeos.');
         }
 
         if (isNew) {
@@ -321,10 +327,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
 
           if (insErr || !inserted) {
             console.error('Erro ao criar exercício antes do upload:', insErr);
-            setUploadError(`Erro ao preparar o exercício no banco: ${insErr?.message || 'Erro'}`);
-            setProgress(null);
-            clearInterval(interval);
-            return;
+            throw new Error(`Erro ao preparar o exercício no banco: ${insErr?.message || 'Erro'}`);
           }
           id_exercicio = inserted.id;
           setSelectedExercicio(inserted);
@@ -343,44 +346,54 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
         }
 
         if (!id_exercicio) {
-          console.error('ID do exercício inválido para persistência de vídeo.');
-          setUploadError('Erro: Identificador do exercício inválido para salvar o vídeo.');
-          setProgress(null);
-          clearInterval(interval);
-          return;
+          throw new Error('ID do exercício inválido para persistência de vídeo.');
         }
 
-        const selectedCat = categorias.find((c) => c.id === categoriaId);
-        const catSlug = selectedCat ? selectedCat.slug : 'geral';
-        const caminho = gender === 'masc'
-          ? `${catSlug}/${id_exercicio}-masc.mp4`
-          : `${catSlug}/${id_exercicio}-fem.mp4`;
-
-        const { error: uploadErr } = await supabase.storage
-          .from('exercicios')
-          .upload(caminho, file, { upsert: true, cacheControl: '3600' });
-
-        if (uploadErr) {
-          console.error('Erro de upload:', uploadErr);
-          setUploadError(`Erro ao enviar vídeo: ${uploadErr.message || 'Falha no servidor'}`);
-          setProgress(null);
-          clearInterval(interval);
-          return;
-        }
-
+        // BUG 1: TROCAR VÍDEO - USAR CAMINHO ESTÁVEL E QUEBRAR CACHE
         const dbField = gender === 'masc' ? 'video_url_masc' : 'video_url_fem';
+        const oldPath = selectedExercicio ? (selectedExercicio as any)[dbField] : null;
+
+        // Nome novo e único (timestamp) para garantir que o navegador não use cache
+        const timestamp = Date.now();
+        const newFilename = `${id_exercicio}-${gender}-${timestamp}.mp4`;
+        const caminho = `videos/${newFilename}`; 
+
+        // Função de upload com tentativa de reconexão (BUG 2)
+        const performUpload = async (retry = true): Promise<void> => {
+          const { error: uploadErr } = await supabase.storage
+            .from('exercicios')
+            .upload(caminho, file, { 
+              upsert: true, 
+              cacheControl: '3600' 
+            });
+
+          if (uploadErr) {
+            if ((uploadErr.message?.includes('JWT') || (uploadErr as any).status === 401) && retry) {
+              await supabase.auth.refreshSession();
+              return performUpload(false);
+            }
+            throw uploadErr;
+          }
+        };
+
+        await performUpload();
+
         const { error: updError } = await supabase
           .from('exercicios')
           .update({ [dbField]: caminho })
-          .eq('id', id_exercicio)
-          .select();
+          .eq('id', id_exercicio);
 
         if (updError) {
-          console.error('Erro ao persistir caminho do vídeo:', updError);
-          setUploadError(`Erro ao salvar caminho do vídeo no banco: ${updError.message || 'Erro'}`);
-          setProgress(null);
-          clearInterval(interval);
-          return;
+          throw new Error(`Erro ao salvar caminho do vídeo no banco: ${updError.message}`);
+        }
+
+        // SUCESSO NO BANCO -> AGORA PODEMOS APAGAR O ANTIGO (BUG 1)
+        if (oldPath && oldPath !== caminho) {
+          try {
+            await supabase.storage.from('exercicios').remove([oldPath]);
+          } catch (delErr) {
+            console.warn('Falha ao apagar o antigo do storage:', delErr);
+          }
         }
 
         const { data: selectData, error: selectErr } = await supabase
@@ -390,24 +403,15 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           .single();
 
         if (selectErr || !selectData) {
-          console.error('Erro ao verificar gravação:', selectErr);
-          setUploadError(`Erro ao confirmar gravação do vídeo: ${selectErr?.message || 'Erro'}`);
-          setProgress(null);
-          clearInterval(interval);
-          return;
+          throw new Error(`Erro ao confirmar gravação: ${selectErr?.message || 'Erro'}`);
         }
 
         const verifiedPath = gender === 'masc' ? selectData.video_url_masc : selectData.video_url_fem;
-        if (!verifiedPath) {
-          setUploadError('Erro: O campo de vídeo continua vazio após atualização no banco de dados.');
-          setProgress(null);
-          clearInterval(interval);
-          return;
-        }
-
+        
         setProgress(100);
         setUrl(verifiedPath);
         setPreview(URL.createObjectURL(file));
+        
         setSelectedExercicio(selectData);
         setVideoUrlMasc(selectData.video_url_masc || null);
         setVideoUrlFem(selectData.video_url_fem || null);
@@ -501,6 +505,11 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setUploadError(null);
     setFeedback(null);
     try {
+      // GARANTIR SESSÃO VÁLIDA (BUG 2: TELA TRAVA)
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        await supabase.auth.refreshSession();
+      }
       // 1. Commit any pending text from inputs to the final arrays
       let finalPrimarios = [...musculoPrimario];
       if (newPrimario.trim()) {
@@ -1413,6 +1422,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     {videoPreviewMasc ? (
                       <div className="relative w-full h-full">
                         <video
+                          key={videoPreviewMasc}
                           src={videoPreviewMasc}
                           loop
                           muted
@@ -1474,9 +1484,24 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     {!isReadOnly && videoUrlMasc && (
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
+                          if (!window.confirm('Deseja remover o vídeo masculino permanentemente?')) return;
+                          
+                          const oldPath = videoUrlMasc;
                           setVideoUrlMasc(null);
                           setVideoPreviewMasc(null);
+                          
+                          // Se já estiver no banco, tenta remover do storage e limpar o campo no banco
+                          if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
+                            try {
+                              if (oldPath && !oldPath.startsWith('http')) {
+                                await supabase.storage.from('exercicios').remove([oldPath]);
+                              }
+                              await supabase.from('exercicios').update({ video_url_masc: null }).eq('id', selectedExercicio.id);
+                            } catch (err) {
+                              console.error('Erro ao remover vídeo do storage/banco:', err);
+                            }
+                          }
                         }}
                         className="p-2.5 rounded-xl border border-white/5 bg-void text-ink-3 hover:text-ember transition-colors"
                         title="Remover vídeo"
@@ -1510,6 +1535,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     {videoPreviewFem ? (
                       <div className="relative w-full h-full">
                         <video
+                          key={videoPreviewFem}
                           src={videoPreviewFem}
                           loop
                           muted
@@ -1571,9 +1597,24 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     {!isReadOnly && videoUrlFem && (
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
+                          if (!window.confirm('Deseja remover o vídeo feminino permanentemente?')) return;
+                          
+                          const oldPath = videoUrlFem;
                           setVideoUrlFem(null);
                           setVideoPreviewFem(null);
+                          
+                          // Se já estiver no banco, tenta remover do storage e limpar o campo no banco
+                          if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
+                            try {
+                              if (oldPath && !oldPath.startsWith('http')) {
+                                await supabase.storage.from('exercicios').remove([oldPath]);
+                              }
+                              await supabase.from('exercicios').update({ video_url_fem: null }).eq('id', selectedExercicio.id);
+                            } catch (err) {
+                              console.error('Erro ao remover vídeo do storage/banco:', err);
+                            }
+                          }
                         }}
                         className="p-2.5 rounded-xl border border-white/5 bg-void text-ink-3 hover:text-ember transition-colors"
                         title="Remover vídeo"
