@@ -1773,10 +1773,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                       {ex?.impacto && (
                                         <span className={`px-2.5 py-1 rounded-full border font-medium ${
                                           ex.impacto === 'alto' ? 'bg-danger/10 border-danger/20 text-danger' :
-                                          ex.impacto === 'medio' ? 'bg-warn/10 border-warn/20 text-warn' :
+                                          ex.impacto === 'moderado' ? 'bg-warn/10 border-warn/20 text-warn' :
                                           'bg-ok/10 border-ok/20 text-ok'
                                         }`}>
-                                          Impacto articular: {ex.impacto === 'alto' ? 'Alto' : ex.impacto === 'medio' ? 'Médio' : 'Baixo'}
+                                          Impacto articular: {ex.impacto === 'alto' ? 'Alto' : ex.impacto === 'moderado' ? 'Moderado' : 'Baixo'}
                                         </span>
                                       )}
                                       {ex?.publico_alvo?.map((p: string) => (
@@ -3098,10 +3098,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                     {selectedExercise.impacto && (
                       <span className={`px-2.5 py-1 rounded-full border font-medium ${
                         selectedExercise.impacto === 'alto' ? 'bg-danger/10 border-danger/20 text-danger' :
-                        selectedExercise.impacto === 'medio' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                        selectedExercise.impacto === 'moderado' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
                         'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                       }`}>
-                        Impacto articular: {selectedExercise.impacto === 'alto' ? 'Alto' : selectedExercise.impacto === 'medio' ? 'Médio' : 'Baixo'}
+                        Impacto articular: {selectedExercise.impacto === 'alto' ? 'Alto' : selectedExercise.impacto === 'moderado' ? 'Moderado' : 'Baixo'}
                       </span>
                     )}
                     {selectedExercise.publico_alvo?.map((p: string) => (

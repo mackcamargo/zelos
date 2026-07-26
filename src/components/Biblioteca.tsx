@@ -23,7 +23,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
   // Extended Filter States
   const [publicoAlvoFilter, setPublicoAlvoFilter] = useState('');
   const [semContraindicacaoFilter, setSemContraindicacaoFilter] = useState('');
-  const [impactoFilter, setImpactoFilter] = useState<'' | 'baixo' | 'medio' | 'alto'>('');
+  const [impactoFilter, setImpactoFilter] = useState<'' | 'baixo' | 'moderado' | 'alto'>('');
   const [equipamentoFilter, setEquipamentoFilter] = useState('');
 
   // Fetch Categories on Mount
@@ -200,7 +200,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 >
                   <option value="">Todos</option>
                   <option value="baixo">Baixo impacto</option>
-                  <option value="medio">Médio impacto</option>
+                  <option value="moderado">Moderado impacto</option>
                   <option value="alto">Alto impacto</option>
                 </select>
               </div>
@@ -455,7 +455,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                       <span className="text-ink-3">Impacto articular:</span>
                       <span className={`font-semibold capitalize ${
                         selectedExercicio.impacto === 'alto' ? 'text-amber-400' :
-                        selectedExercicio.impacto === 'medio' ? 'text-amber-200' : 'text-emerald-400'
+                        selectedExercicio.impacto === 'moderado' ? 'text-amber-200' : 'text-emerald-400'
                       }`}>{selectedExercicio.impacto}</span>
                     </div>
                   )}

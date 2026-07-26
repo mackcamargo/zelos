@@ -44,7 +44,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   const [dicas, setDicas] = useState<string[]>([]);
   const [publicoAlvo, setPublicoAlvo] = useState<string[]>([]);
   const [contraindicacoes, setContraindicacoes] = useState<string[]>([]);
-  const [impacto, setImpacto] = useState<'baixo' | 'medio' | 'alto' | null>(null);
+  const [impacto, setImpacto] = useState<'baixo' | 'moderado' | 'alto' | null>(null);
   const [equipamento, setEquipamento] = useState('');
   
   const [newPrimario, setNewPrimario] = useState('');
@@ -510,8 +510,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
       if (!sessionData.session) {
         await supabase.auth.refreshSession();
       }
-      // 1. Commit any pending text from inputs to the final arrays
-      let finalPrimarios = [...musculoPrimario];
+      let finalPrimarios = Array.isArray(musculoPrimario) ? [...musculoPrimario] : [];
       if (newPrimario.trim()) {
         const val = newPrimario.trim();
         if (!finalPrimarios.includes(val)) {
@@ -521,7 +520,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
         setNewPrimario('');
       }
 
-      let finalAuxiliares = [...musculoSecundario];
+      let finalAuxiliares = Array.isArray(musculoSecundario) ? [...musculoSecundario] : [];
       if (newSecundario.trim()) {
         const val = newSecundario.trim();
         if (!finalAuxiliares.includes(val)) {
@@ -531,7 +530,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
         setNewSecundario('');
       }
 
-      let finalDicas = [...dicas];
+      let finalDicas = Array.isArray(dicas) ? [...dicas] : [];
       if (newDica.trim()) {
         const val = newDica.trim();
         finalDicas.push(val);
@@ -539,52 +538,54 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
         setNewDica('');
       }
 
+      const finalPublico = Array.isArray(publicoAlvo) ? [...publicoAlvo] : [];
+      const finalContra = Array.isArray(contraindicacoes) ? [...contraindicacoes] : [];
+
       if (isSupabaseConfigured && supabase) {
         const isNew = !selectedExercicio?.id || String(selectedExercicio.id).startsWith('ex-');
         
-        let query;
+        const payload = {
+          nome: nome.trim(),
+          categoria_id: Number(categoriaId),
+          musculo_primario: finalPrimarios,
+          musculo_secundario: finalAuxiliares,
+          dicas: finalDicas,
+          video_url_masc: videoUrlMasc || null,
+          video_url_fem: videoUrlFem || null,
+          publico_alvo: finalPublico,
+          contraindicacoes: finalContra,
+          impacto: impacto || null,
+          equipamento: equipamento.trim() || null
+        };
+
+        let result;
         if (isNew) {
           const { data: userData } = await supabase.auth.getUser();
           const personalId = userData?.user?.id || null;
 
-          query = supabase.from("exercicios").insert({
-            nome: nome.trim(),
-            categoria_id: Number(categoriaId),
-            musculo_primario: finalPrimarios,
-            musculo_secundario: finalAuxiliares,
-            dicas: finalDicas,
-            video_url_masc: videoUrlMasc || null,
-            video_url_fem: videoUrlFem || null,
-            personal_id: personalId,
-            publico_alvo: publicoAlvo,
-            contraindicacoes: contraindicacoes,
-            impacto: impacto || null,
-            equipamento: equipamento.trim() || null
-          });
+          result = await supabase.from("exercicios").insert({
+            ...payload,
+            personal_id: personalId
+          }).select().single();
         } else {
-          query = supabase.from("exercicios").update({
-            nome: nome.trim(),
-            categoria_id: Number(categoriaId),
-            musculo_primario: finalPrimarios,
-            musculo_secundario: finalAuxiliares,
-            dicas: finalDicas,
-            video_url_masc: videoUrlMasc || null,
-            video_url_fem: videoUrlFem || null,
-            publico_alvo: publicoAlvo,
-            contraindicacoes: contraindicacoes,
-            impacto: impacto || null,
-            equipamento: equipamento.trim() || null
-          }).eq("id", selectedExercicio.id);
+          result = await supabase.from("exercicios")
+            .update(payload)
+            .eq("id", selectedExercicio.id)
+            .select()
+            .single();
         }
 
-        const { data, error } = await query.select();
-
-        if (error) {
-          throw error;
+        if (result.error) {
+          // Captura erro real do banco (ex: FK violation, Check constraint)
+          console.error('Erro de banco ao salvar:', result.error);
+          let msg = result.error.message;
+          if (result.error.code === '23503') msg = "Categoria inválida ou inexistente.";
+          if (result.error.code === '23502') msg = "Campos obrigatórios faltando.";
+          throw new Error(msg);
         }
 
-        if (!data || data.length === 0) {
-          throw new Error("Nenhum registro foi alterado ou retornado.");
+        if (!result.data) {
+          throw new Error("Nenhum registro foi retornado após salvar.");
         }
       } else {
         // Fallback for Mock Mode
@@ -598,29 +599,28 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           musculo_primario: finalPrimarios,
           musculo_secundario: finalAuxiliares,
           dicas: finalDicas,
-          publico_alvo: publicoAlvo,
-          contraindicacoes: contraindicacoes,
+          publico_alvo: finalPublico,
+          contraindicacoes: finalContra,
           impacto: impacto,
           equipamento: equipamento.trim() || null
         };
 
         const { error } = await dbService.saveExercicio(payload);
         if (error) {
-          setUploadError(`Erro ao salvar exercício localmente: ${error.message || 'Conexão indisponível'}`);
-          return;
+          throw new Error(`Erro ao salvar exercício localmente: ${error.message}`);
         }
       }
 
-      // Success
+      // SÓ CHEGA AQUI SE SALVOU COM SUCESSO NO BANCO
       await loadData();
       setSelectedExercicio(null);
-      setFeedback("Exercício salvo!");
-      // Automatically clear feedback after 5 seconds
+      setFeedback("Exercício salvo com sucesso!");
       setTimeout(() => setFeedback(null), 5000);
 
     } catch (err: any) {
       console.error('Erro ao salvar exercício:', err);
-      setUploadError(`Erro ao salvar: ${err.message || 'Erro desconhecido'}`);
+      // Mantém o formulário aberto e mostra o erro real
+      setUploadError(`FALHA AO SALVAR: ${err.message || 'Erro inesperado no servidor'}`);
     } finally {
       setSaving(false);
     }
@@ -1070,12 +1070,12 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     <select
                       id="form-ex-impact"
                       value={impacto || ''}
-                      onChange={(e) => setImpacto(e.target.value ? (e.target.value as 'baixo' | 'medio' | 'alto') : null)}
+                      onChange={(e) => setImpacto(e.target.value ? (e.target.value as 'baixo' | 'moderado' | 'alto') : null)}
                       className="z-input cursor-pointer"
                     >
                       <option value="">Não informado</option>
                       <option value="baixo">Baixo impacto</option>
-                      <option value="medio">Médio impacto</option>
+                      <option value="moderado">Moderado impacto</option>
                       <option value="alto">Alto impacto</option>
                     </select>
                   </div>

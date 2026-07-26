@@ -47,7 +47,7 @@ export interface Exercicio {
   nivel?: string[];
   publico_alvo?: string[];
   contraindicacoes?: string[];
-  impacto?: 'baixo' | 'medio' | 'alto' | null;
+  impacto?: 'baixo' | 'moderado' | 'alto' | null;
   equipamento?: string | null;
   ajuste?: ExercicioAjuste;
 }
