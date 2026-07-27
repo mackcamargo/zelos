@@ -1244,13 +1244,13 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
  
               {/* Barra de Busca de Suplementos */}
               <div className="relative w-full sm:w-64">
-                <Search className="w-4 h-4 text-ink-3 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Search className="w-4 h-4 text-ink-3 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   value={suplementoSearchTerm}
                   onChange={(e) => setSuplementoSearchTerm(e.target.value)}
                   placeholder="Buscar suplemento..."
-                  className="z-input !h-9 w-full pl-9 text-xs font-sans rounded-xl bg-raise border border-line focus:border-flame focus:ring-1 focus:ring-flame/15"
+                  className="z-input !h-9 w-full pl-10 text-xs font-sans rounded-xl bg-raise border border-line focus:border-flame focus:ring-1 focus:ring-flame/15"
                 />
                 {suplementoSearchTerm && (
                   <button 
