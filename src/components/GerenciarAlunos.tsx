@@ -98,6 +98,8 @@ export default function GerenciarAlunos({
     file: File | null;
     searchQuery: string;
     isSearching: boolean;
+    searchResults: CondicaoOrtopedica[];
+    loadingSearch: boolean;
   }>>([]);
   const [salvandoCondicao, setSalvandoCondicao] = useState(false);
   const searchContainerRef = React.useRef<HTMLDivElement>(null);
@@ -110,7 +112,9 @@ export default function GerenciarAlunos({
     observacao: '',
     file: null,
     searchQuery: '',
-    isSearching: false
+    isSearching: false,
+    searchResults: [],
+    loadingSearch: false
   });
 
   useEffect(() => {
@@ -146,15 +150,59 @@ export default function GerenciarAlunos({
     onConfirm: () => void;
   } | null>(null);
 
-  const getFilteredCondicoes = (query: string) => {
-    if (!query.trim()) return condicoesDisponiveis;
+  const handleCondicaoSearch = async (tempId: string, query: string) => {
+    setCondicaoBlocks(prev => prev.map(b => b.tempId === tempId ? { ...b, searchQuery: query, isSearching: true } : b));
+
+    if (query.trim().length < 2) {
+      setCondicaoBlocks(prev => prev.map(b => b.tempId === tempId ? { ...b, searchResults: [], loadingSearch: false } : b));
+      return;
+    }
+
+    setCondicaoBlocks(prev => prev.map(b => b.tempId === tempId ? { ...b, loadingSearch: true } : b));
+
+    try {
+      const { data, error } = await supabase.rpc('buscar_condicoes_ortopedicas', { termo: query });
+      
+      if (error) throw error;
+
+      setCondicaoBlocks(prev => prev.map(b => b.tempId === tempId ? { 
+        ...b, 
+        searchResults: data || [], 
+        loadingSearch: false 
+      } : b));
+    } catch (err) {
+      console.error('Erro na busca inteligente:', err);
+      setCondicaoBlocks(prev => prev.map(b => b.tempId === tempId ? { ...b, loadingSearch: false } : b));
+    }
+  };
+
+  // Debounced search logic using useEffect
+  useEffect(() => {
+    const searchingBlocks = condicaoBlocks.filter(b => b.isSearching && b.searchQuery.length >= 2);
+    
+    const timeouts = searchingBlocks.map(block => {
+      return setTimeout(() => {
+        handleCondicaoSearch(block.tempId, block.searchQuery);
+      }, 300);
+    });
+
+    return () => timeouts.forEach(t => clearTimeout(t));
+  }, [condicaoBlocks.map(b => b.searchQuery).join('|')]);
+
+  const getFilteredCondicoes = (query: string, searchResults: CondicaoOrtopedica[] = []) => {
+    if (!query.trim()) return condicoesDisponiveis.slice(0, 20);
+    
+    // Se temos resultados da busca inteligente (RPC), usamos eles
+    if (searchResults.length > 0) return searchResults;
+
+    // Fallback para busca local caso o RPC falhe ou não tenha retornado nada ainda
     const normalizedQuery = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     return condicoesDisponiveis.filter(c => {
       const nome = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const cid = (c.cid || '').toLowerCase();
       const sinonimos = (c.sinonimos || []).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       return nome.includes(normalizedQuery) || cid.includes(normalizedQuery) || sinonimos.includes(normalizedQuery);
-    });
+    }).slice(0, 20);
   };
 
   const showToast = (msg: string) => {
@@ -1547,7 +1595,9 @@ Bora juntos! 💪`;
                                   observacao: ac.observacao || '',
                                   file: null,
                                   searchQuery: ac.condicoes_ortopedicas?.nome || '',
-                                  isSearching: false
+                                  isSearching: false,
+                                  searchResults: [],
+                                  loadingSearch: false
                                 }]);
                                 setShowAddCondicaoModal(true);
                               }}
@@ -1826,7 +1876,7 @@ Bora juntos! 💪`;
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, searchQuery: '', condicao_id: '', isSearching: true } : b));
+                                        setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, searchQuery: '', condicao_id: '', isSearching: true, searchResults: [] } : b));
                                       }}
                                       className="absolute inset-y-0 right-3 flex items-center text-ink-3 hover:text-ink transition-colors"
                                     >
@@ -1838,13 +1888,18 @@ Bora juntos! 💪`;
                                 {/* Search Results Dropdown */}
                                 {block.isSearching && (
                                   <div className="absolute z-50 w-full mt-1 bg-surface border border-line rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
-                                    {getFilteredCondicoes(block.searchQuery).length > 0 ? (
-                                      getFilteredCondicoes(block.searchQuery).map((c) => (
+                                    {block.loadingSearch ? (
+                                      <div className="px-4 py-8 text-center flex items-center justify-center gap-2">
+                                        <RefreshCw className="w-4 h-4 text-accent animate-spin" />
+                                        <p className="text-ink-3 text-xs">Buscando...</p>
+                                      </div>
+                                    ) : getFilteredCondicoes(block.searchQuery, block.searchResults).length > 0 ? (
+                                      getFilteredCondicoes(block.searchQuery, block.searchResults).map((c) => (
                                         <button
                                           key={c.id}
                                           type="button"
                                           onClick={() => {
-                                            setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, condicao_id: c.id, searchQuery: c.nome, isSearching: false } : b));
+                                            setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, condicao_id: c.id, searchQuery: c.nome, isSearching: false, searchResults: [] } : b));
                                           }}
                                           className={`w-full text-left px-4 py-3 hover:bg-raise border-b border-line last:border-0 transition-colors flex flex-col gap-0.5 ${
                                             String(block.condicao_id) === String(c.id) ? 'bg-[#F26A1B]/5' : ''
@@ -1865,9 +1920,48 @@ Bora juntos! 💪`;
                                           )}
                                         </button>
                                       ))
+                                    ) : block.searchQuery.trim().length >= 2 ? (
+                                      <div className="p-4 text-center">
+                                        <p className="text-ink-3 text-xs mb-3">Nenhuma condição encontrada</p>
+                                        <button
+                                          type="button"
+                                          onClick={async () => {
+                                            try {
+                                              if (!supabase) return;
+                                              const { data, error } = await supabase
+                                                .from('condicoes_ortopedicas')
+                                                .insert({ 
+                                                  nome: block.searchQuery.trim(), 
+                                                  origem: 'personalizada',
+                                                  regiao: 'Geral',
+                                                  orientacao_geral: 'Condição personalizada cadastrada pelo professor. Recomenda-se cautela no treino.'
+                                                })
+                                                .select()
+                                                .single();
+                                              
+                                              if (error) throw error;
+                                              
+                                              setCondicoesDisponiveis(prev => [...prev, data]);
+                                              setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { 
+                                                ...b, 
+                                                condicao_id: data.id, 
+                                                searchQuery: data.nome, 
+                                                isSearching: false, 
+                                                searchResults: [] 
+                                              } : b));
+                                            } catch (err) {
+                                              console.error('Erro ao criar condição personalizada:', err);
+                                              showToast('Erro ao criar condição personalizada.');
+                                            }
+                                          }}
+                                          className="w-full py-2 bg-accent/10 border border-accent/20 rounded-lg text-accent text-xs font-bold hover:bg-accent/20 transition-colors"
+                                        >
+                                          Criar "{block.searchQuery}" como personalizada
+                                        </button>
+                                      </div>
                                     ) : (
                                       <div className="px-4 py-8 text-center">
-                                        <p className="text-ink-3 text-xs">Nenhuma condição encontrada</p>
+                                        <p className="text-ink-3 text-xs">Digite pelo menos 2 caracteres...</p>
                                       </div>
                                     )}
                                   </div>
