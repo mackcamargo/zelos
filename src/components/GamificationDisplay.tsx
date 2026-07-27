@@ -18,6 +18,7 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
   const [conquistas, setConquistas] = useState<Conquista[]>([]);
   const [alunoConquistas, setAlunoConquistas] = useState<AlunoConquista[]>([]);
   const [prs, setPrs] = useState<RecordePessoal[]>([]);
+  const [historicoCargas, setHistoricoCargas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedPrIds, setExpandedPrIds] = useState<number[]>([]);
   const [expandedConquistaId, setExpandedConquistaId] = useState<number | null>(null);
@@ -29,15 +30,17 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
   const loadData = async () => {
     setLoading(true);
     try {
-      const [allC, alunoC, allPrs] = await Promise.all([
+      const [allC, alunoC, allPrs, historico] = await Promise.all([
         dbService.getConquistas(),
         dbService.getAlunoConquistas(alunoId),
-        dbService.getRecordesPessoais(alunoId)
+        dbService.getRecordesPessoais(alunoId),
+        dbService.getHistoricoCargas(alunoId)
       ]);
       
       if (allC.data) setConquistas(allC.data);
       if (alunoC.data) setAlunoConquistas(alunoC.data);
       if (allPrs.data) setPrs(allPrs.data);
+      if (historico.data) setHistoricoCargas(historico.data);
     } finally {
       setLoading(false);
     }
@@ -127,16 +130,63 @@ export default function GamificationDisplay({ alunoId, isPersonalView = false }:
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="overflow-hidden border-t border-line-soft bg-bg/40"
+                      className="overflow-hidden border-t border-line/30 bg-void/5"
                     >
-                      <div className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
-                        <div className="flex items-center gap-2 text-ink-2">
-                          <Calendar className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Data do recorde: <strong className="text-ink">{formattedDate}</strong></span>
+                      <div className="p-4 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] font-mono">
+                          <div className="flex items-center gap-2 text-ink-3">
+                            <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                            <span>Recorde alcançado em: <strong className="text-ink">{formattedDate}</strong></span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-amber-600 font-bold bg-amber-500/10 px-2.5 py-1 rounded-lg w-fit">
+                            <Flame className="w-3.5 h-3.5" />
+                            <span>Personal Record</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 text-amber-600 font-bold bg-amber-500/10 px-2.5 py-1 rounded-lg w-fit">
-                          <Flame className="w-3.5 h-3.5" />
-                          <span>Recorde Pessoal Confirmado</span>
+
+                        {/* Histórico de Evolução */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 mb-2">
+                            <History className="w-3.5 h-3.5 text-ink-3" />
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-ink-3">Histórico de Evolução</span>
+                          </div>
+                          
+                          <div className="bg-surface border border-line rounded-xl overflow-hidden">
+                            <div className="grid grid-cols-3 bg-raise/20 px-3 py-1.5 text-[9px] uppercase font-bold tracking-tight text-ink-3 border-b border-line">
+                              <span>Data</span>
+                              <span className="text-center">Carga</span>
+                              <span className="text-right">Reps</span>
+                            </div>
+                            <div className="max-h-40 overflow-y-auto divide-y divide-line">
+                              {(() => {
+                                const history = historicoCargas
+                                  .filter(h => h.exercicio_nome === pr.exercicio_nome || h.exercicio_id === String(pr.exercicio_id))
+                                  .sort((a, b) => new Date(b.concluida_em || b.data_treino).getTime() - new Date(a.concluida_em || a.data_treino).getTime());
+
+                                if (history.length === 0) {
+                                  return <div className="p-4 text-center text-[11px] text-ink-3 italic">Nenhum histórico detalhado disponível.</div>;
+                                }
+
+                                return history.map((h, i) => {
+                                  const date = h.concluida_em || h.data_treino;
+                                  const dStr = date ? new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '--/--';
+                                  const isPR = h.carga_kg === pr.carga_kg;
+
+                                  return (
+                                    <div key={i} className={`grid grid-cols-3 px-3 py-2 text-[11px] font-mono items-center ${isPR ? 'bg-amber-500/5' : ''}`}>
+                                      <span className="text-ink-2">{dStr}</span>
+                                      <div className="flex justify-center">
+                                        <span className={`px-2 py-0.5 rounded-md font-bold ${isPR ? 'bg-amber-500/20 text-amber-600 border border-amber-500/30' : 'text-ink'}`}>
+                                          {h.carga_kg} kg
+                                        </span>
+                                      </div>
+                                      <span className="text-right text-ink-3">{h.repeticoes} reps</span>
+                                    </div>
+                                  );
+                                });
+                              })()}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </motion.div>

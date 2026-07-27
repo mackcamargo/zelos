@@ -2437,6 +2437,65 @@ export const dbService = {
     return { data: prs.filter((r: any) => r.aluno_id === alunoId), error: null };
   },
 
+  async getHistoricoCargas(alunoId: string): Promise<{ data: any[]; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from("treino_exercicio_series")
+          .select("carga_kg, repeticoes, concluida_em, treino_exercicios!inner(exercicio_id, exercicios!inner(nome), treinos!inner(data_treino, aluno_id))")
+          .eq("treino_exercicios.treinos.aluno_id", alunoId)
+          .eq("concluida", true)
+          .not("carga_kg", "is", null)
+          .order("concluida_em", { ascending: true });
+
+        if (error) throw error;
+
+        const mapped = (data || []).map((item: any) => {
+          const te = item.treino_exercicios || {};
+          const ex = te.exercicios || {};
+          const tr = te.treinos || {};
+          return {
+            carga_kg: Number(item.carga_kg) || 0,
+            repeticoes: Number(item.repeticoes) || 0,
+            concluida_em: item.concluida_em,
+            exercicio_id: te.exercicio_id,
+            exercicio_nome: ex.nome || 'Exercício',
+            data_treino: tr.data_treino
+          };
+        });
+
+        return { data: mapped, error: null };
+      } catch (err) {
+        console.error('Erro ao buscar histórico de cargas:', err);
+        return { data: [], error: err };
+      }
+    }
+    
+    // Fallback Mock
+    const series = load('zenite_treino_exercicio_series', []);
+    const treinos = load('zenite_mock_treinos', []);
+    const te = load('zenite_mock_treino_exercicios', []);
+    const exercicios = load('zenite_exercicios', []);
+
+    const filteredSeries = series.filter((s: any) => s.concluida && s.aluno_id === alunoId);
+    const mapped = filteredSeries.map((s: any) => {
+      const parentTe = te.find((t: any) => t.id === s.treino_exercicio_id) || {};
+      const parentTreino = treinos.find((t: any) => t.id === parentTe.treino_id) || {};
+      const exercicio = exercicios.find((e: any) => e.id === parentTe.exercicio_id) || {};
+
+      return {
+        carga_kg: Number(s.carga_kg) || 0,
+        repeticoes: Number(s.repeticoes) || 0,
+        concluida_em: s.concluida_em || parentTreino.data_treino,
+        exercicio_id: parentTe.exercicio_id,
+        exercicio_nome: exercicio.nome || parentTe.exercicio_nome || 'Exercício',
+        data_treino: parentTreino.data_treino
+      };
+    });
+
+    return { data: mapped, error: null };
+  },
+
   async verificarConquistas(alunoId: string): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
       const { error } = await supabase.rpc('verificar_conquistas', { p_aluno: alunoId });
