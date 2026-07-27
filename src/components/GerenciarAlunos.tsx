@@ -1157,7 +1157,7 @@ Bora juntos! 💪`;
                       <h3 className="font-display font-bold text-base text-ink">Anamnese do Aluno</h3>
                       {studentAnamnese && (() => {
                         const dRespondida = studentAnamnese?.respondido_em ? new Date(studentAnamnese.respondido_em) : null;
-                        const dAtualizada = (studentAnamnese as any)?.atualizado_em || studentAnamnese?.updated_at ? new Date((studentAnamnese as any)?.atualizado_em || studentAnamnese?.updated_at) : null;
+                        const dAtualizada = studentAnamnese?.atualizado_em ? new Date(studentAnamnese.atualizado_em) : null;
                         
                         const respondidaValida = dRespondida && !isNaN(dRespondida.getTime());
                         const atualizadaValida = dAtualizada && !isNaN(dAtualizada.getTime());

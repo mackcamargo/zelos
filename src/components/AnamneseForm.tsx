@@ -31,7 +31,7 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const [formData, setFormData] = useState<Omit<Anamnese, 'criado_em' | 'updated_at'>>({
+  const [formData, setFormData] = useState<Omit<Anamnese, 'criado_em' | 'atualizado_em'>>({
     aluno_id: alunoId,
     personal_id: personalId || undefined,
     objetivo_principal: '',
@@ -143,7 +143,6 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
       };
 
       if (isEditing) {
-        payload.updated_at = new Date().toISOString();
         payload.atualizado_em = new Date().toISOString();
       }
 

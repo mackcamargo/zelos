@@ -87,7 +87,7 @@ export interface Anamnese {
   observacoes: string | null;
   criado_em?: string;
   respondido_em?: string;
-  updated_at?: string;
+  atualizado_em?: string;
 }
 
 export interface ProgramaTreino {
@@ -398,7 +398,7 @@ export interface Assinatura {
   limite_alunos: number;
   expira_em: string;
   criado_em: string;
-  updated_at: string;
+  atualizado_em: string;
   cancelado_em?: string | null;
 }
 

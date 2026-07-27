@@ -428,7 +428,7 @@ export const dbService = {
         limite_alunos: 10,
         expira_em: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         criado_em: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        atualizado_em: new Date().toISOString()
       }, 
       error: null 
     };
@@ -2826,7 +2826,7 @@ export const dbService = {
     const index = list.findIndex((x: any) => x.aluno_id === anamnese.aluno_id);
     const updated = { 
       ...anamnese, 
-      updated_at: new Date().toISOString(),
+      atualizado_em: new Date().toISOString(),
       respondido_em: anamnese.respondido_em || new Date().toISOString()
     };
     if (index >= 0) {
