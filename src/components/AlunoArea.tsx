@@ -388,8 +388,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const [workoutsWithProgress, setWorkoutsWithProgress] = useState<Set<string>>(new Set());
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [selectedExIdProgress, setSelectedExIdProgress] = useState<string | null>(null);
+  const [isExProgressOpen, setIsExProgressOpen] = useState(false);
   const [evolucaoCargaData, setEvolucaoCargaData] = useState<any[]>([]);
   const [selectedExForEvolution, setSelectedExForEvolution] = useState<string>('');
+  const [isExEvolutionOpen, setIsExEvolutionOpen] = useState(false);
   
   // Modal states for manual metrics registration
   const [showAddMetricaModal, setShowAddMetricaModal] = useState(false);
@@ -2203,17 +2205,43 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                           
                           {/* Dropdown selector */}
                           {exercisesList.length > 0 ? (
-                            <div className="relative shrink-0">
-                              <select
-                                value={activeExId || ''}
-                                onChange={(e) => setSelectedExIdProgress(e.target.value)}
-                                className="w-full sm:w-auto bg-raise text-xs font-semibold text-ink border border-line rounded-xl py-2 px-3 pr-8 appearance-none focus:outline-none focus:border-accent cursor-pointer transition-colors"
+                            <div className="relative shrink-0 z-20">
+                              <button
+                                onClick={() => setIsExProgressOpen(!isExProgressOpen)}
+                                className="w-full sm:min-w-[140px] sm:w-auto bg-raise text-xs font-semibold text-ink border border-line rounded-xl py-2 px-3 pr-8 flex items-center justify-between gap-2 hover:border-accent transition-colors cursor-pointer"
                               >
-                                {exercisesList.map((ex: any) => (
-                                  <option key={ex.id} value={ex.id}>{ex.nome}</option>
-                                ))}
-                              </select>
-                              <ChevronDown className="w-4 h-4 text-ink-2 absolute right-2.5 top-2.5 pointer-events-none" />
+                                <span className="truncate">{exercisesList.find(ex => ex.id === activeExId)?.nome || 'Selecionar'}</span>
+                                <ChevronDown className={`w-4 h-4 text-ink-2 transition-transform duration-200 ${isExProgressOpen ? 'rotate-180' : ''}`} />
+                              </button>
+                              
+                              <AnimatePresence>
+                                {isExProgressOpen && (
+                                  <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsExProgressOpen(false)} />
+                                    <motion.div
+                                      initial={{ opacity: 0, y: -10 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      exit={{ opacity: 0, y: -10 }}
+                                      className="absolute top-full right-0 mt-1 w-full sm:min-w-[200px] bg-surface border border-line rounded-xl shadow-xl z-20 overflow-hidden py-1"
+                                    >
+                                      <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                                        {exercisesList.map((ex: any) => (
+                                          <button
+                                            key={ex.id}
+                                            onClick={() => {
+                                              setSelectedExIdProgress(ex.id);
+                                              setIsExProgressOpen(false);
+                                            }}
+                                            className={`w-full text-left px-3 py-1.5 text-[10px] sm:text-[11px] hover:bg-raise transition-colors ${activeExId === ex.id ? 'text-accent font-bold bg-accent/5' : 'text-ink-2'}`}
+                                          >
+                                            {ex.nome}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </motion.div>
+                                  </>
+                                )}
+                              </AnimatePresence>
                             </div>
                           ) : (
                             <span className="text-xs text-ink-3 font-mono">Sem exercícios realizados</span>
@@ -2578,17 +2606,43 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                       <h4 className="font-display font-bold text-base text-ink mt-0.5">Evolução Histórica</h4>
                                     </div>
                                     {exercisesWithCarga.length > 0 && (
-                                      <div className="relative shrink-0">
-                                        <select
-                                          value={activeEx}
-                                          onChange={(e) => setSelectedExForEvolution(e.target.value)}
-                                          className="w-full sm:w-auto bg-surface text-xs font-semibold text-ink border border-line rounded-xl py-2 px-3 pr-8 appearance-none focus:outline-none focus:border-accent cursor-pointer transition-colors"
+                                      <div className="relative shrink-0 z-20">
+                                        <button
+                                          onClick={() => setIsExEvolutionOpen(!isExEvolutionOpen)}
+                                          className="w-full sm:min-w-[140px] sm:w-auto bg-surface text-xs font-semibold text-ink border border-line rounded-xl py-2 px-3 pr-8 flex items-center justify-between gap-2 hover:border-accent transition-colors cursor-pointer"
                                         >
-                                          {exercisesWithCarga.map((name) => (
-                                            <option key={name} value={name}>{name}</option>
-                                          ))}
-                                        </select>
-                                        <ChevronDown className="w-4 h-4 text-ink-2 absolute right-2.5 top-2.5 pointer-events-none" />
+                                          <span className="truncate">{activeEx || 'Selecionar'}</span>
+                                          <ChevronDown className={`w-4 h-4 text-ink-2 transition-transform duration-200 ${isExEvolutionOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        <AnimatePresence>
+                                          {isExEvolutionOpen && (
+                                            <>
+                                              <div className="fixed inset-0 z-10" onClick={() => setIsExEvolutionOpen(false)} />
+                                              <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="absolute top-full right-0 mt-1 w-full sm:min-w-[200px] bg-surface border border-line rounded-xl shadow-xl z-20 overflow-hidden py-1"
+                                              >
+                                                <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                                                  {exercisesWithCarga.map((name) => (
+                                                    <button
+                                                      key={name}
+                                                      onClick={() => {
+                                                        setSelectedExForEvolution(name);
+                                                        setIsExEvolutionOpen(false);
+                                                      }}
+                                                      className={`w-full text-left px-3 py-1.5 text-[10px] sm:text-[11px] hover:bg-raise transition-colors ${activeEx === name ? 'text-accent font-bold bg-accent/5' : 'text-ink-2'}`}
+                                                    >
+                                                      {name}
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                              </motion.div>
+                                            </>
+                                          )}
+                                        </AnimatePresence>
                                       </div>
                                     )}
                                   </div>
