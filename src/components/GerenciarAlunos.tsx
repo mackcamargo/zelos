@@ -1496,8 +1496,12 @@ Bora juntos! 💪`;
                               </span>
                             )}
                             {cond?.requer_laudo && (
-                              <span className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[10px] font-semibold text-rose-500">
-                                Requer Laudo
+                              <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase ${
+                                ac.tem_laudo 
+                                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
+                                  : 'bg-amber-500/10 border-amber-500/20 text-amber-600'
+                              }`}>
+                                {ac.tem_laudo ? 'Laudo Validado' : 'Pendente de Laudo'}
                               </span>
                             )}
                           </div>
@@ -1593,12 +1597,7 @@ Bora juntos! 💪`;
                         }
                         
                         const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
-                        const hasAlreadyLaudo = editingCondicao?.laudo_url;
-                        if (selectedCond?.requer_laudo && !newFile && !hasAlreadyLaudo) {
-                          showToast('Esta condição requer o upload de um laudo técnico.');
-                          return;
-                        }
-
+                        
                         setSalvandoCondicao(true);
                         try {
                           let laudoUrl: string | null = editingCondicao?.laudo_url || null;
@@ -1872,8 +1871,12 @@ Bora juntos! 💪`;
                                     </span>
                                   )}
                                   {cond?.requer_laudo && (
-                                    <span className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 text-[10px] font-semibold text-rose-500">
-                                      Requer Laudo
+                                    <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase ${
+                                      ac.tem_laudo 
+                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
+                                        : 'bg-amber-500/10 border-amber-500/20 text-amber-600'
+                                    }`}>
+                                      {ac.tem_laudo ? 'Laudo Validado' : 'Pendente de Laudo'}
                                     </span>
                                   )}
                                 </div>
