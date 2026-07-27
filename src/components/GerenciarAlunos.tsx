@@ -7,7 +7,7 @@ import {
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
   Activity, Award, CheckCircle, ExternalLink, ShieldCheck,
   Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle,
-  Send, Link2, ClipboardList, Pencil, ChevronDown, ChevronUp
+  Send, Link2, ClipboardList, Pencil, ChevronDown, ChevronUp, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
@@ -353,12 +353,37 @@ export default function GerenciarAlunos({
     }
   };
 
+  const [expandedAnamnese, setExpandedAnamnese] = useState<Record<string, boolean>>({});
+
+  const toggleAnamneseExpanded = (section: string) => {
+    setExpandedAnamnese(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const loadStudentAnamnese = async () => {
     if (!selectedAluno) return;
     setLoadingAnamnese(true);
     try {
       const { data } = await dbService.getAnamnese(selectedAluno.id);
       setStudentAnamnese(data);
+      if (data) {
+        setEditObjetivo(selectedAluno.objetivo || data.objetivo_principal || '');
+        
+        // Auto-expand PAR-Q if it has any positive response
+        const hasParqPositive = 
+          data.parq_problema_cardiaco || 
+          data.parq_dor_no_peito || 
+          data.parq_tontura_desmaio || 
+          data.parq_problema_osseo_articular || 
+          data.parq_medicamento_pressao || 
+          data.parq_outra_razao;
+        
+        if (hasParqPositive) {
+          setExpandedAnamnese(prev => ({ ...prev, parq: true }));
+        }
+      }
     } catch (err) {
       console.error('Erro ao carregar anamnese do aluno:', err);
     } finally {
@@ -1199,11 +1224,6 @@ Bora juntos! 💪`;
                 <CheckinsPainel alunoId={selectedAluno.id} />
               </div>
 
-              {/* BLOCK 4: HÁBITOS DIÁRIOS */}
-              <div className="bg-surface border border-white/5 rounded-2xl p-6 md:col-span-2 space-y-6">
-                <GerenciarHabitos alunoId={selectedAluno.id} personalId={personalId} isReadOnly={isReadOnly} />
-              </div>
-
               {/* BLOCK 5: GAMIFICAÇÃO & RECORDES */}
               <div className="bg-surface border border-white/5 rounded-2xl p-6 md:col-span-2 space-y-6">
                 <div className="flex items-center gap-3 pb-4 border-b border-white/5">
@@ -1332,182 +1352,409 @@ Bora juntos! 💪`;
                   </div>
                 </div>
 
-                {/* Editable Goal/Objective Field */}
-                <div className="bg-raise/10 border border-line rounded-2xl p-5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[12px] text-ink-2 flex items-center gap-1.5 font-medium">
-                      <Target className="w-3.5 h-3.5 text-accent" strokeWidth={1.75} />
-                      <span>Foco e objetivo do aluno</span>
-                    </label>
-                    
-                    {savedFeedback && (
-                      <span className="text-[11px] text-ok font-semibold flex items-center gap-1">
-                        <Check className="w-3.5 h-3.5" /> Salvo!
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      id="input-edit-objective"
-                      type="text"
-                      list="objetivos-detalhe"
-                      value={editObjetivo}
-                      onChange={(e) => setEditObjetivo(e.target.value)}
-                      placeholder="Defina o objetivo do aluno (Ex: Hipertrofia de MMSS com foco em força)"
-                      className="flex-1 h-12 px-4 py-3 text-sm rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
-                    />
-                    <datalist id="objetivos-detalhe">
-                      <option value="Hipertrofia (ganho de massa muscular)" />
-                      <option value="Emagrecimento / perda de gordura" />
-                      <option value="Definição muscular" />
-                      <option value="Condicionamento físico / cardio" />
-                      <option value="Força" />
-                      <option value="Resistência muscular" />
-                      <option value="Saúde e qualidade de vida" />
-                      <option value="Reabilitação / fortalecimento" />
-                      <option value="Performance esportiva" />
-                      <option value="Mobilidade e flexibilidade" />
-                      <option value="Ganho de peso" />
-                      <option value="Preparação para prova física / concurso" />
-                    </datalist>
-                    <button
-                      id="btn-save-objective"
-                      type="button"
-                      disabled={salvandoObjetivo || editObjetivo === selectedAluno.objetivo}
-                      onClick={handleSaveObjective}
-                      className="h-12 px-6 rounded-xl bg-[#F26A1B] text-white font-display font-bold text-xs hover:bg-[#D45914] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer"
+                <div className="flex flex-col gap-3">
+                  {/* SEÇÃO 1: FOCO E OBJETIVO */}
+                  <div className="bg-void/5 border border-line rounded-2xl overflow-hidden transition-all duration-200">
+                    <div 
+                      className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-raise/10 transition-colors"
+                      onClick={() => toggleAnamneseExpanded('foco')}
                     >
-                      {salvandoObjetivo ? 'Salvando...' : 'Salvar'}
-                    </button>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Target className="w-4 h-4 text-accent" />
+                        <div className="truncate">
+                          <h4 className="font-bold text-sm text-ink truncate">Foco e objetivo do aluno</h4>
+                          <p className="text-[10px] text-ink-3 uppercase font-bold tracking-tight truncate max-w-[300px]">
+                            {selectedAluno.objetivo || studentAnamnese?.objetivo_principal || 'Não definido'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`p-1.5 rounded-full bg-void transition-transform duration-300 ${expandedAnamnese['foco'] ? 'rotate-180' : ''}`}>
+                        <ChevronDown className="w-4 h-4 text-ink-3" />
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {expandedAnamnese['foco'] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-5 pt-2 space-y-3 border-t border-line/30">
+                            <div className="flex items-center justify-between">
+                              <label className="text-[10px] uppercase tracking-wider font-bold text-ink-3">Definir Objetivo Principal</label>
+                              {savedFeedback && (
+                                <span className="text-[11px] text-ok font-semibold flex items-center gap-1">
+                                  <Check className="w-3.5 h-3.5" /> Salvo!
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                              <input
+                                id="input-edit-objective"
+                                type="text"
+                                list="objetivos-detalhe"
+                                value={editObjetivo}
+                                onChange={(e) => setEditObjetivo(e.target.value)}
+                                placeholder="Ex: Hipertrofia de MMSS com foco em força"
+                                className="flex-1 h-11 px-4 py-3 text-sm rounded-xl border border-ink/20 bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B] transition-all"
+                              />
+                              <datalist id="objetivos-detalhe">
+                                <option value="Hipertrofia (ganho de massa muscular)" />
+                                <option value="Emagrecimento / perda de gordura" />
+                                <option value="Definição muscular" />
+                                <option value="Condicionamento físico / cardio" />
+                                <option value="Força" />
+                                <option value="Resistência muscular" />
+                                <option value="Saúde e qualidade de vida" />
+                                <option value="Reabilitação / fortalecimento" />
+                                <option value="Performance esportiva" />
+                                <option value="Mobilidade e flexibilidade" />
+                                <option value="Ganho de peso" />
+                                <option value="Preparação para prova física / concurso" />
+                              </datalist>
+                              <button
+                                id="btn-save-objective"
+                                type="button"
+                                disabled={salvandoObjetivo || editObjetivo === selectedAluno.objetivo}
+                                onClick={handleSaveObjective}
+                                className="h-11 px-6 rounded-xl bg-[#F26A1B] text-white font-display font-bold text-xs hover:bg-[#D45914] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md cursor-pointer"
+                              >
+                                {salvandoObjetivo ? 'Salvando...' : 'Salvar'}
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+
+                  {!studentAnamnese ? (
+                    <div className="py-6 text-center bg-void/10 border border-line/30 rounded-2xl">
+                      <p className="text-sm text-rose-400 font-medium">Anamnese não respondida</p>
+                      <p className="text-xs text-ink-3 mt-1">Este aluno ainda não possui ficha de anamnese registrada.</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* SEÇÃO 2: OBJETIVO & EXPERIÊNCIA */}
+                      <div className="bg-void/5 border border-line rounded-2xl overflow-hidden transition-all duration-200">
+                        <div 
+                          className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-raise/10 transition-colors"
+                          onClick={() => toggleAnamneseExpanded('objetivo')}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Activity className="w-4 h-4 text-ink-3" />
+                            <div className="truncate">
+                              <h4 className="font-bold text-sm text-ink truncate">Objetivo & Experiência</h4>
+                              <p className="text-[10px] text-ink-3 uppercase font-bold tracking-tight truncate max-w-[300px]">
+                                {studentAnamnese.objetivo_principal}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`p-1.5 rounded-full bg-void transition-transform duration-300 ${expandedAnamnese['objetivo'] ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="w-4 h-4 text-ink-3" />
+                          </div>
+                        </div>
+                        <AnimatePresence>
+                          {expandedAnamnese['objetivo'] && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-5 pt-2 space-y-3 border-t border-line/30 text-xs">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Objetivo principal</p>
+                                    <p className="text-ink-2">{studentAnamnese.objetivo_principal}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Experiência</p>
+                                    <p className="text-ink-2">
+                                      {studentAnamnese.experiencia === 'nunca_treinou' ? 'Nunca treinou' :
+                                       studentAnamnese.experiencia === 'iniciante' ? 'Iniciante' :
+                                       studentAnamnese.experiencia === 'intermediario' ? 'Intermediário' : 'Avançado'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Tempo sem treinar</p>
+                                    <p className="text-ink-2">{studentAnamnese.tempo_sem_treinar || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Frequência semanal desejada</p>
+                                    <p className="text-ink-2">{studentAnamnese.frequencia_semanal_desejada} dias</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      {/* SEÇÃO 3: SAÚDE & LESÕES */}
+                      <div className="bg-void/5 border border-line rounded-2xl overflow-hidden transition-all duration-200">
+                        <div 
+                          className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-raise/10 transition-colors"
+                          onClick={() => toggleAnamneseExpanded('saude')}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Heart className="w-4 h-4 text-rose-500" />
+                            <div className="truncate">
+                              <h4 className="font-bold text-sm text-ink truncate">Saúde & Lesões</h4>
+                              <p className="text-[10px] text-ink-3 uppercase font-bold tracking-tight truncate max-w-[300px]">
+                                {studentAnamnese.possui_lesao ? `Possui lesão: ${studentAnamnese.lesoes}` : 'Sem lesões relatadas'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`p-1.5 rounded-full bg-void transition-transform duration-300 ${expandedAnamnese['saude'] ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="w-4 h-4 text-ink-3" />
+                          </div>
+                        </div>
+                        <AnimatePresence>
+                          {expandedAnamnese['saude'] && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-5 pt-2 space-y-4 border-t border-line/30 text-xs">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Possui lesão</p>
+                                    <p className="text-ink-2">
+                                      {studentAnamnese.possui_lesao ? (
+                                        <span className="text-rose-400 font-semibold">Sim ({studentAnamnese.lesoes})</span>
+                                      ) : 'Não'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Cirurgias</p>
+                                    <p className="text-ink-2">{studentAnamnese.cirurgias || 'Não'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Doenças crônicas</p>
+                                    <p className="text-ink-2">
+                                      {studentAnamnese.doencas_cronicas && studentAnamnese.doencas_cronicas.length > 0
+                                        ? studentAnamnese.doencas_cronicas.join(', ')
+                                        : 'Nenhuma'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Medicamentos em uso</p>
+                                    <p className="text-ink-2">{studentAnamnese.medicamentos || 'Nenhum'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Alergias</p>
+                                    <p className="text-ink-2">{studentAnamnese.alergias || 'Nenhuma'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Liberação médica</p>
+                                    <p className="text-ink-2">
+                                      {studentAnamnese.possui_liberacao_medica ? 'Sim' : 'Não'}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      {/* SEÇÃO 4: PAR-Q */}
+                      <div className="bg-void/5 border border-line rounded-2xl overflow-hidden transition-all duration-200">
+                        <div 
+                          className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-raise/10 transition-colors"
+                          onClick={() => toggleAnamneseExpanded('parq')}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <ClipboardList className="w-4 h-4 text-ink-3" />
+                            <div className="truncate">
+                              <h4 className="font-bold text-sm text-ink truncate">Questionário de Prontidão (PAR-Q)</h4>
+                              <p className={`text-[10px] uppercase font-bold tracking-tight truncate max-w-[300px] ${
+                                (studentAnamnese.parq_problema_cardiaco || studentAnamnese.parq_dor_no_peito || studentAnamnese.parq_tontura_desmaio || studentAnamnese.parq_problema_osseo_articular || studentAnamnese.parq_medicamento_pressao || studentAnamnese.parq_outra_razao)
+                                  ? 'text-rose-400'
+                                  : 'text-emerald-400'
+                              }`}>
+                                {(studentAnamnese.parq_problema_cardiaco || studentAnamnese.parq_dor_no_peito || studentAnamnese.parq_tontura_desmaio || studentAnamnese.parq_problema_osseo_articular || studentAnamnese.parq_medicamento_pressao || studentAnamnese.parq_outra_razao)
+                                  ? 'Atenção: Sinalizado(s)'
+                                  : 'Sem restrições'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`p-1.5 rounded-full bg-void transition-transform duration-300 ${expandedAnamnese['parq'] ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="w-4 h-4 text-ink-3" />
+                          </div>
+                        </div>
+                        <AnimatePresence>
+                          {expandedAnamnese['parq'] && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-5 pt-2 space-y-3 border-t border-line/30 text-xs">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                                  <div className="flex justify-between items-center py-0.5">
+                                    <span className="text-ink-3">Problema cardíaco?</span>
+                                    <span className={studentAnamnese.parq_problema_cardiaco ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                                      {studentAnamnese.parq_problema_cardiaco ? 'Sim' : 'Não'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center py-0.5">
+                                    <span className="text-ink-3">Dor no peito sob esforço?</span>
+                                    <span className={studentAnamnese.parq_dor_no_peito ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                                      {studentAnamnese.parq_dor_no_peito ? 'Sim' : 'Não'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center py-0.5">
+                                    <span className="text-ink-3">Tontura ou desmaio?</span>
+                                    <span className={studentAnamnese.parq_tontura_desmaio ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                                      {studentAnamnese.parq_tontura_desmaio ? 'Sim' : 'Não'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center py-0.5">
+                                    <span className="text-ink-3">Problema articular/ósseo?</span>
+                                    <span className={studentAnamnese.parq_problema_osseo_articular ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                                      {studentAnamnese.parq_problema_osseo_articular ? 'Sim' : 'Não'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center py-0.5">
+                                    <span className="text-ink-3">Toma remédio de pressão/coração?</span>
+                                    <span className={studentAnamnese.parq_medicamento_pressao ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                                      {studentAnamnese.parq_medicamento_pressao ? 'Sim' : 'Não'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between items-center py-0.5">
+                                    <span className="text-ink-3">Outra razão de saúde impeditiva?</span>
+                                    <span className={studentAnamnese.parq_outra_razao ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
+                                      {studentAnamnese.parq_outra_razao ? 'Sim' : 'Não'}
+                                    </span>
+                                  </div>
+                                  {studentAnamnese.parq_outra_razao && (
+                                    <div className="sm:col-span-2 pt-1 border-t border-line/30 mt-1">
+                                      <span className="text-[10px] uppercase tracking-wider font-bold text-ink-3 block mb-1">Detalhe da razão:</span>
+                                      <span className="text-rose-300 italic">{studentAnamnese.parq_outra_razao_qual}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      {/* SEÇÃO 5: ESTILO DE VIDA */}
+                      <div className="bg-void/5 border border-line rounded-2xl overflow-hidden transition-all duration-200">
+                        <div 
+                          className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-raise/10 transition-colors"
+                          onClick={() => toggleAnamneseExpanded('estilo')}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Info className="w-4 h-4 text-ink-3" />
+                            <div className="truncate">
+                              <h4 className="font-bold text-sm text-ink truncate">Estilo de Vida & Observações</h4>
+                              <p className="text-[10px] text-ink-3 uppercase font-bold tracking-tight truncate max-w-[300px]">
+                                {studentAnamnese.fumante ? 'Fumante' : 'Não fumante'} • {studentAnamnese.horas_sono}h Sono • {studentAnamnese.nivel_atividade_diaria}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`p-1.5 rounded-full bg-void transition-transform duration-300 ${expandedAnamnese['estilo'] ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="w-4 h-4 text-ink-3" />
+                          </div>
+                        </div>
+                        <AnimatePresence>
+                          {expandedAnamnese['estilo'] && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-5 pt-2 space-y-4 border-t border-line/30 text-xs">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Fumante</p>
+                                    <p className="text-ink-2">{studentAnamnese.fumante ? 'Sim' : 'Não'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Consumo de álcool</p>
+                                    <p className="text-ink-2">
+                                      {studentAnamnese.consumo_alcool === 'nao' ? 'Não consome' :
+                                       studentAnamnese.consumo_alcool === 'social' ? 'Socialmente' : 'Frequentemente'}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Horas de sono</p>
+                                    <p className="text-ink-2">{studentAnamnese.horas_sono} horas/noite</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 mb-1">Atividade diária</p>
+                                    <p className="text-ink-2">
+                                      {studentAnamnese.nivel_atividade_diaria === 'sedentario' ? 'Sedentário' :
+                                       studentAnamnese.nivel_atividade_diaria === 'leve' ? 'Leve' :
+                                       studentAnamnese.nivel_atividade_diaria === 'moderado' ? 'Moderado' : 'Intenso'}
+                                    </p>
+                                  </div>
+                                  {studentAnamnese.observacoes && (
+                                    <div className="sm:col-span-2 pt-2 border-t border-line/30 mt-1">
+                                      <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3 block mb-1">Observações adicionais:</p>
+                                      <p className="mt-1 bg-void/30 p-3 rounded-xl text-ink leading-relaxed border border-line/30 italic">
+                                        {studentAnamnese.observacoes}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      {/* SEÇÃO 6: HÁBITOS DIÁRIOS */}
+                      <div className="bg-void/5 border border-line rounded-2xl overflow-hidden transition-all duration-200">
+                        <div 
+                          className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-raise/10 transition-colors"
+                          onClick={() => toggleAnamneseExpanded('habitos')}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <TrendingUp className="w-4 h-4 text-[#F26A1B]" />
+                            <div className="truncate">
+                              <h4 className="font-bold text-sm text-ink truncate">Hábitos Diários</h4>
+                              <p className="text-[10px] text-ink-3 uppercase font-bold tracking-tight truncate max-w-[300px]">
+                                Gestão de disciplina e rotina diária
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`p-1.5 rounded-full bg-void transition-transform duration-300 ${expandedAnamnese['habitos'] ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="w-4 h-4 text-ink-3" />
+                          </div>
+                        </div>
+                        <AnimatePresence>
+                          {expandedAnamnese['habitos'] && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-5 pt-2 space-y-4 border-t border-line/30">
+                                <GerenciarHabitos alunoId={selectedAluno.id} personalId={personalId} isReadOnly={isReadOnly} />
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </>
+                  )}
                 </div>
-
-                {!studentAnamnese ? (
-                  <div className="py-4 text-center">
-                    <p className="text-sm text-rose-400 font-medium">Anamnese não respondida</p>
-                    <p className="text-xs text-ink-3 mt-1">Este aluno ainda não possui ficha de anamnese registrada.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    {/* Bloco 1: Objetivo e Experiência */}
-                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2">
-                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Objetivo & Experiência</p>
-                      <div className="space-y-1 text-ink-2">
-                        <p><span className="text-ink-3">Objetivo principal:</span> {studentAnamnese.objetivo_principal}</p>
-                        <p>
-                          <span className="text-ink-3">Experiência:</span>{' '}
-                          {studentAnamnese.experiencia === 'nunca_treinou' ? 'Nunca treinou' :
-                           studentAnamnese.experiencia === 'iniciante' ? 'Iniciante' :
-                           studentAnamnese.experiencia === 'intermediario' ? 'Intermediário' : 'Avançado'}
-                        </p>
-                        <p><span className="text-ink-3">Tempo sem treinar:</span> {studentAnamnese.tempo_sem_treinar || 'N/A'}</p>
-                        <p><span className="text-ink-3">Frequência semanal desejada:</span> {studentAnamnese.frequencia_semanal_desejada} dias</p>
-                      </div>
-                    </div>
-
-                    {/* Bloco 2: Saúde & Lesões */}
-                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2">
-                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Saúde & Lesões</p>
-                      <div className="space-y-1 text-ink-2">
-                        <p>
-                          <span className="text-ink-3">Possui lesão:</span>{' '}
-                          {studentAnamnese.possui_lesao ? (
-                            <span className="text-rose-400 font-semibold">Sim ({studentAnamnese.lesoes})</span>
-                          ) : 'Não'}
-                        </p>
-                        <p><span className="text-ink-3">Cirurgias:</span> {studentAnamnese.cirurgias || 'Não'}</p>
-                        <p>
-                          <span className="text-ink-3">Doenças crônicas:</span>{' '}
-                          {studentAnamnese.doencas_cronicas && studentAnamnese.doencas_cronicas.length > 0
-                            ? studentAnamnese.doencas_cronicas.join(', ')
-                            : 'Nenhuma'}
-                        </p>
-                        <p><span className="text-ink-3">Medicamentos em uso:</span> {studentAnamnese.medicamentos || 'Nenhum'}</p>
-                        <p><span className="text-ink-3">Alergias:</span> {studentAnamnese.alergias || 'Nenhuma'}</p>
-                        <p>
-                          <span className="text-ink-3">Liberação médica:</span>{' '}
-                          {studentAnamnese.possui_liberacao_medica ? 'Sim' : 'Não'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Bloco 3: Questionário PAR-Q */}
-                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2 md:col-span-2">
-                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Questionário de Prontidão (PAR-Q)</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-ink-2">
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-ink-3">Problema cardíaco?</span>
-                          <span className={studentAnamnese.parq_problema_cardiaco ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
-                            {studentAnamnese.parq_problema_cardiaco ? 'Sim' : 'Não'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-ink-3">Dor no peito sob esforço?</span>
-                          <span className={studentAnamnese.parq_dor_no_peito ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
-                            {studentAnamnese.parq_dor_no_peito ? 'Sim' : 'Não'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-ink-3">Tontura ou desmaio?</span>
-                          <span className={studentAnamnese.parq_tontura_desmaio ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
-                            {studentAnamnese.parq_tontura_desmaio ? 'Sim' : 'Não'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-ink-3">Problema articular/ósseo?</span>
-                          <span className={studentAnamnese.parq_problema_osseo_articular ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
-                            {studentAnamnese.parq_problema_osseo_articular ? 'Sim' : 'Não'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-ink-3">Toma remédio de pressão/coração?</span>
-                          <span className={studentAnamnese.parq_medicamento_pressao ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
-                            {studentAnamnese.parq_medicamento_pressao ? 'Sim' : 'Não'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-ink-3">Outra razão de saúde impeditiva?</span>
-                          <span className={studentAnamnese.parq_outra_razao ? "text-rose-400 font-bold" : "text-emerald-400 font-medium"}>
-                            {studentAnamnese.parq_outra_razao ? 'Sim' : 'Não'}
-                          </span>
-                        </div>
-                        {studentAnamnese.parq_outra_razao && (
-                          <div className="sm:col-span-2 pt-1 border-t border-white/5 mt-1">
-                            <span className="text-ink-3">Detalhe da razão:</span> <span className="text-rose-300">{studentAnamnese.parq_outra_razao_qual}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Bloco 4: Estilo de Vida & Observações */}
-                    <div className="p-4 bg-void/30 border border-white/5 rounded-xl space-y-2 md:col-span-2">
-                      <p className="font-semibold text-ink border-b border-white/5 pb-1">Estilo de Vida & Observações</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-ink-2">
-                        <p><span className="text-ink-3">Fumante:</span> {studentAnamnese.fumante ? 'Sim' : 'Não'}</p>
-                        <p>
-                          <span className="text-ink-3">Consumo de álcool:</span>{' '}
-                          {studentAnamnese.consumo_alcool === 'nao' ? 'Não consome' :
-                           studentAnamnese.consumo_alcool === 'social' ? 'Socialmente' : 'Frequentemente'}
-                        </p>
-                        <p><span className="text-ink-3">Horas de sono:</span> {studentAnamnese.horas_sono} horas/noite</p>
-                        <p>
-                          <span className="text-ink-3">Atividade diária:</span>{' '}
-                          {studentAnamnese.nivel_atividade_diaria === 'sedentario' ? 'Sedentário' :
-                           studentAnamnese.nivel_atividade_diaria === 'leve' ? 'Leve' :
-                           studentAnamnese.nivel_atividade_diaria === 'moderado' ? 'Moderado' : 'Intenso'}
-                        </p>
-                        {studentAnamnese.observacoes && (
-                          <div className="sm:col-span-2 pt-2 border-t border-white/5 mt-2">
-                            <p className="text-ink-3">Observações adicionais:</p>
-                            <p className="mt-1 bg-void/50 p-2.5 rounded-lg text-ink leading-relaxed border border-white/5">{studentAnamnese.observacoes}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                  </div>
-                )}
               </div>
             )}
 
