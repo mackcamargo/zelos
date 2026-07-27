@@ -87,21 +87,34 @@ export default function GerenciarAlunos({
   
   // Form states
   const [editingCondicao, setEditingCondicao] = useState<AlunoCondicao | null>(null);
-  const [newCondicaoId, setNewCondicaoId] = useState<string | number>('');
-  const [newLado, setNewLado] = useState<'esquerdo' | 'direito' | 'bilateral' | null>(null);
-  const [newGrau, setNewGrau] = useState('');
-  const [newObservacao, setNewObservacao] = useState('');
-  const [newFile, setNewFile] = useState<File | null>(null);
-  const [uploadingLaudo, setUploadingLaudo] = useState(false);
+  const [condicaoBlocks, setCondicaoBlocks] = useState<Array<{
+    tempId: string;
+    condicao_id: string | number;
+    lado: 'esquerdo' | 'direito' | 'bilateral' | null;
+    grau: string;
+    observacao: string;
+    file: File | null;
+    searchQuery: string;
+    isSearching: boolean;
+  }>>([]);
   const [salvandoCondicao, setSalvandoCondicao] = useState(false);
-  const [condicaoSearchQuery, setCondicaoSearchQuery] = useState('');
-  const [isSearchingCondicao, setIsSearchingCondicao] = useState(false);
   const searchContainerRef = React.useRef<HTMLDivElement>(null);
+
+  const createEmptyBlock = () => ({
+    tempId: Math.random().toString(36).substr(2, 9),
+    condicao_id: '',
+    lado: null,
+    grau: '',
+    observacao: '',
+    file: null,
+    searchQuery: '',
+    isSearching: false
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        setIsSearchingCondicao(false);
+        setCondicaoBlocks(prev => prev.map(b => ({ ...b, isSearching: false })));
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -120,19 +133,16 @@ export default function GerenciarAlunos({
   // General Notification toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const filteredCondicoes = React.useMemo(() => {
-    if (!condicaoSearchQuery.trim()) return condicoesDisponiveis;
-    
-    const query = condicaoSearchQuery.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    
+  const getFilteredCondicoes = (query: string) => {
+    if (!query.trim()) return condicoesDisponiveis;
+    const normalizedQuery = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     return condicoesDisponiveis.filter(c => {
       const nome = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const cid = (c.cid || '').toLowerCase();
       const sinonimos = (c.sinonimos || []).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      
-      return nome.includes(query) || cid.includes(query) || sinonimos.includes(query);
+      return nome.includes(normalizedQuery) || cid.includes(normalizedQuery) || sinonimos.includes(normalizedQuery);
     });
-  }, [condicaoSearchQuery, condicoesDisponiveis]);
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -1434,13 +1444,7 @@ Bora juntos! 💪`;
                   type="button"
                   onClick={() => {
                     setEditingCondicao(null);
-                    setNewCondicaoId('');
-                    setNewLado(null);
-                    setNewGrau('');
-                    setNewObservacao('');
-                    setNewFile(null);
-                    setCondicaoSearchQuery('');
-                    setIsSearchingCondicao(false);
+                    setCondicaoBlocks([createEmptyBlock()]);
                     setShowAddCondicaoModal(true);
                   }}
                   className="py-2 px-4 rounded-lg bg-[#F26A1B] text-white text-xs font-semibold hover:bg-[#D45914] transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -1478,14 +1482,16 @@ Bora juntos! 💪`;
                                 type="button"
                                 onClick={() => {
                                   setEditingCondicao(ac);
-                                  setNewCondicaoId(ac.condicao_id);
-                                  setNewLado(ac.lado);
-                                  setNewGrau(ac.grau || '');
-                                  setNewObservacao(ac.observacao || '');
-                                  setNewFile(null);
-                                  const condName = ac.condicoes_ortopedicas?.nome || '';
-                                  setCondicaoSearchQuery(condName);
-                                  setIsSearchingCondicao(false);
+                                  setCondicaoBlocks([{
+                                    tempId: 'edit',
+                                    condicao_id: ac.condicao_id,
+                                    lado: ac.lado,
+                                    grau: ac.grau || '',
+                                    observacao: ac.observacao || '',
+                                    file: null,
+                                    searchQuery: ac.condicoes_ortopedicas?.nome || '',
+                                    isSearching: false
+                                  }]);
                                   setShowAddCondicaoModal(true);
                                 }}
                                 className="text-ink-3 hover:text-[#F26A1B] transition-colors p-1.5 rounded-lg hover:bg-[#F26A1B]/10 cursor-pointer"
@@ -1623,274 +1629,284 @@ Bora juntos! 💪`;
                     <form
                       onSubmit={async (e) => {
                         e.preventDefault();
-                        if (!newCondicaoId) {
-                          showToast('Selecione uma condição ortopédica.');
+                        
+                        const validBlocks = condicaoBlocks.filter(b => b.condicao_id);
+                        if (validBlocks.length === 0) {
+                          showToast('Selecione pelo menos uma condição ortopédica.');
+                          return;
+                        }
+
+                        // Check for duplicates
+                        const selectedIds = validBlocks.map(b => String(b.condicao_id));
+                        const hasDuplicates = selectedIds.some((id, index) => selectedIds.indexOf(id) !== index);
+                        if (hasDuplicates) {
+                          showToast('Você selecionou a mesma condição mais de uma vez.');
                           return;
                         }
                         
-                        const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
-                        
                         setSalvandoCondicao(true);
                         try {
-                          let laudoUrl: string | null = editingCondicao?.laudo_url || null;
-                          if (newFile) {
-                            const { url, error: uploadErr } = await dbService.uploadLaudo(selectedAluno!.id, newFile);
-                            if (uploadErr) {
-                              console.error('Erro ao fazer upload do laudo:', uploadErr);
-                              showToast('Erro ao enviar o arquivo de laudo.');
-                              setSalvandoCondicao(false);
-                              return;
+                          for (const block of validBlocks) {
+                            const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(block.condicao_id));
+                            
+                            let laudoUrl: string | null = (editingCondicao && block.tempId === 'edit') ? editingCondicao.laudo_url : null;
+                            if (block.file) {
+                              const { url, error: uploadErr } = await dbService.uploadLaudo(selectedAluno!.id, block.file);
+                              if (uploadErr) {
+                                console.error('Erro ao fazer upload do laudo:', uploadErr);
+                                showToast(`Erro ao enviar o laudo para ${selectedCond?.nome || 'condição'}.`);
+                                continue;
+                              }
+                              laudoUrl = url;
                             }
-                            laudoUrl = url;
+
+                            const payload = {
+                              aluno_id: selectedAluno!.id,
+                              condicao_id: Number(block.condicao_id),
+                              lado: block.lado,
+                              grau: block.grau.trim() || null,
+                              tem_laudo: !!laudoUrl,
+                              laudo_url: laudoUrl,
+                              observacao: block.observacao.trim() || null,
+                              ativo: true
+                            };
+
+                            if (editingCondicao && block.tempId === 'edit') {
+                              await dbService.updateAlunoCondicao(editingCondicao.id, payload);
+                            } else {
+                              await dbService.addAlunoCondicao(payload);
+                            }
                           }
 
-                          const payload = {
-                            aluno_id: selectedAluno!.id,
-                            condicao_id: Number(newCondicaoId),
-                            lado: newLado,
-                            grau: newGrau.trim() || null,
-                            tem_laudo: !!laudoUrl,
-                            laudo_url: laudoUrl,
-                            observacao: newObservacao.trim() || null,
-                            ativo: true
-                          };
-
-                          if (editingCondicao) {
-                            await dbService.updateAlunoCondicao(editingCondicao.id, payload);
-                            showToast('Condição ortopédica atualizada com sucesso!');
-                          } else {
-                            await dbService.addAlunoCondicao(payload);
-                            showToast('Condição ortopédica adicionada com sucesso!');
-                          }
-
+                          showToast(editingCondicao ? 'Condição ortopédica atualizada!' : 'Condições ortopédicas adicionadas!');
                           setShowAddCondicaoModal(false);
                           loadStudentCondicoes();
                         } catch (err) {
                           console.error(err);
-                          showToast('Erro ao salvar condição.');
+                          showToast('Erro ao salvar algumas condições.');
                         } finally {
                           setSalvandoCondicao(false);
                         }
                       }}
-                      className="p-6 space-y-4 overflow-y-auto"
+                      className="flex flex-col h-full overflow-hidden"
                     >
-                      {/* Selecionar Condição */}
-                      <div className="space-y-1.5 relative" ref={searchContainerRef}>
-                        <label className="text-xs font-semibold text-ink-2">Condição Ortopédica *</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                            <Search className="w-4 h-4 text-ink-3" />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Busque por nome, CID ou sinônimo..."
-                            value={condicaoSearchQuery}
-                            onFocus={() => setIsSearchingCondicao(true)}
-                            onChange={(e) => {
-                              setCondicaoSearchQuery(e.target.value);
-                              setIsSearchingCondicao(true);
-                            }}
-                            className="w-full h-11 pl-10 pr-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
-                          />
-                          {condicaoSearchQuery && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setCondicaoSearchQuery('');
-                                setNewCondicaoId('');
-                                setIsSearchingCondicao(true);
-                              }}
-                              className="absolute inset-y-0 right-3 flex items-center text-ink-3 hover:text-ink transition-colors"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Search Results Dropdown */}
-                        {isSearchingCondicao && (
-                          <div className="absolute z-50 w-full mt-1 bg-surface border border-line rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
-                            {filteredCondicoes.length > 0 ? (
-                              filteredCondicoes.map((c) => (
+                      <div className="p-6 space-y-8 overflow-y-auto flex-1 custom-scrollbar" ref={searchContainerRef}>
+                        {condicaoBlocks.map((block, index) => {
+                          const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(block.condicao_id));
+                          
+                          return (
+                            <div key={block.tempId} className="relative space-y-4 p-4 rounded-2xl bg-raise/5 border border-line/30 group">
+                              {/* Remove Button */}
+                              {!editingCondicao && condicaoBlocks.length > 1 && (
                                 <button
-                                  key={c.id}
                                   type="button"
-                                  onClick={() => {
-                                    setNewCondicaoId(c.id);
-                                    setCondicaoSearchQuery(c.nome);
-                                    setIsSearchingCondicao(false);
-                                    setNewFile(null);
-                                  }}
-                                  className={`w-full text-left px-4 py-3 hover:bg-raise border-b border-line last:border-0 transition-colors flex flex-col gap-0.5 ${
-                                    String(newCondicaoId) === String(c.id) ? 'bg-[#F26A1B]/5' : ''
-                                  }`}
+                                  onClick={() => setCondicaoBlocks(prev => prev.filter(b => b.tempId !== block.tempId))}
+                                  className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center hover:bg-rose-600 transition-colors shadow-lg z-10"
+                                  title="Remover este bloco"
                                 >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-sm font-semibold text-ink">
-                                      {c.nome} {c.cid ? `(${c.cid})` : ''}
-                                    </span>
-                                    {c.origem === 'personalizada' && (
-                                      <span className="text-[9px] bg-[#F26A1B]/10 text-[#F26A1B] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Personalizada</span>
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              {/* Title for Multiple Blocks */}
+                              {!editingCondicao && condicaoBlocks.length > 1 && (
+                                <div className="flex items-center gap-2 pb-2 border-b border-line/20">
+                                  <span className="w-5 h-5 rounded-full bg-[#F26A1B]/10 text-[#F26A1B] text-[10px] font-bold flex items-center justify-center">
+                                    {index + 1}
+                                  </span>
+                                  <span className="text-[11px] font-bold text-ink-3 uppercase tracking-wider">Nova Condição</span>
+                                </div>
+                              )}
+
+                              {/* Selecionar Condição */}
+                              <div className="space-y-1.5 relative">
+                                <label className="text-xs font-semibold text-ink-2">Condição Ortopédica *</label>
+                                <div className="relative">
+                                  <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                                    <Search className="w-4 h-4 text-ink-3" />
+                                  </div>
+                                  <input
+                                    type="text"
+                                    placeholder="Busque por nome, CID ou sinônimo..."
+                                    value={block.searchQuery}
+                                    onFocus={() => setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, isSearching: true } : { ...b, isSearching: false }))}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, searchQuery: val, isSearching: true } : b));
+                                    }}
+                                    className="w-full h-11 pl-10 pr-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
+                                  />
+                                  {block.searchQuery && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, searchQuery: '', condicao_id: '', isSearching: true } : b));
+                                      }}
+                                      className="absolute inset-y-0 right-3 flex items-center text-ink-3 hover:text-ink transition-colors"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+
+                                {/* Search Results Dropdown */}
+                                {block.isSearching && (
+                                  <div className="absolute z-50 w-full mt-1 bg-surface border border-line rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
+                                    {getFilteredCondicoes(block.searchQuery).length > 0 ? (
+                                      getFilteredCondicoes(block.searchQuery).map((c) => (
+                                        <button
+                                          key={c.id}
+                                          type="button"
+                                          onClick={() => {
+                                            setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, condicao_id: c.id, searchQuery: c.nome, isSearching: false } : b));
+                                          }}
+                                          className={`w-full text-left px-4 py-3 hover:bg-raise border-b border-line last:border-0 transition-colors flex flex-col gap-0.5 ${
+                                            String(block.condicao_id) === String(c.id) ? 'bg-[#F26A1B]/5' : ''
+                                          }`}
+                                        >
+                                          <div className="flex items-center justify-between gap-2">
+                                            <span className="text-sm font-semibold text-ink">
+                                              {c.nome} {c.cid ? `(${c.cid})` : ''}
+                                            </span>
+                                            {c.origem === 'personalizada' && (
+                                              <span className="text-[9px] bg-[#F26A1B]/10 text-[#F26A1B] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Personalizada</span>
+                                            )}
+                                          </div>
+                                          {c.sinonimos && c.sinonimos.length > 0 && (
+                                            <span className="text-[10px] text-ink-3 italic line-clamp-1">
+                                              Sinônimos: {c.sinonimos.join(', ')}
+                                            </span>
+                                          )}
+                                        </button>
+                                      ))
+                                    ) : (
+                                      <div className="px-4 py-8 text-center">
+                                        <p className="text-ink-3 text-xs">Nenhuma condição encontrada</p>
+                                      </div>
                                     )}
                                   </div>
-                                  {c.sinonimos && c.sinonimos.length > 0 && (
-                                    <span className="text-[10px] text-ink-3 italic line-clamp-1">
-                                      Sinônimos: {c.sinonimos.join(', ')}
-                                    </span>
-                                  )}
-                                </button>
-                              ))
-                            ) : (
-                              <div className="px-4 py-8 text-center space-y-2">
-                                <p className="text-ink-3 text-xs">Nenhuma condição encontrada para "{condicaoSearchQuery}"</p>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    // Here we could allow adding a custom one if it doesn't exist,
-                                    // but the requirement says "Maintain custom condition option that we already discussed".
-                                    // If 'personalizada' is in condicoesDisponiveis, it will show up.
-                                  }}
-                                  className="text-[11px] text-[#F26A1B] font-bold hover:underline"
-                                >
-                                  Tente termos mais genéricos
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                                )}
 
-                        {/* Selected Condition Status/Warning */}
-                        {newCondicaoId && !isSearchingCondicao && (
-                          (() => {
-                            const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
-                            if (selectedCond?.origem === 'personalizada') {
-                              return (
-                                <div className="mt-1 flex items-center gap-1.5 text-[10px] text-[#F26A1B] font-medium bg-[#F26A1B]/5 p-2 rounded-lg border border-[#F26A1B]/10">
-                                  <AlertCircle className="w-3 h-3 shrink-0" />
-                                  <span>Condição personalizada: Sem regras de segurança automáticas.</span>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()
-                        )}
-                      </div>
-
-                      {/* Show details of selected condition if any */}
-                      {(() => {
-                        const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
-                        if (!selectedCond) return null;
-                        return (
-                          <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/20 p-4 rounded-2xl text-xs space-y-1">
-                            <p className="font-semibold text-accent flex items-center gap-1">
-                              <AlertTriangle className="w-4 h-4 shrink-0 text-[#F26A1B]" />
-                              <span>Orientações da Condição:</span>
-                            </p>
-                            <p className="text-ink-2 leading-relaxed mt-1">{selectedCond.orientacao_geral}</p>
-                            {selectedCond.requer_laudo && (
-                              <p className="text-rose-500 font-bold mt-2 flex items-center gap-1 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-                                ⚠️ Atenção: Esta condição requer anexo de laudo técnico médico ou de fisioterapeuta.
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })()}
-
-                      {/* Lado Acometido */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-ink-2">Lado Acometido</label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { value: 'esquerdo', label: 'Esquerdo' },
-                            { value: 'direito', label: 'Direito' },
-                            { value: 'bilateral', label: 'Bilateral' }
-                          ].map(opt => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => setNewLado(newLado === opt.value ? null : opt.value as any)}
-                              className={`h-10 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
-                                newLado === opt.value
-                                  ? 'bg-[#F26A1B] text-white border-transparent'
-                                  : 'bg-surface hover:bg-raise text-ink-2 border-line'
-                              }`}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Grau / Detalhe livre */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-ink-2">Grau, Nível ou Especificação (ex: L4-L5, Grau III)</label>
-                        <input
-                          type="text"
-                          value={newGrau}
-                          onChange={(e) => setNewGrau(e.target.value)}
-                          placeholder="Ex: Protrusão L4-S1, Grau II, etc."
-                          className="w-full h-11 px-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
-                        />
-                      </div>
-
-                      {/* Observações do Professor */}
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-ink-2">Observações / Cuidados Específicos do Treino</label>
-                        <textarea
-                          rows={3}
-                          value={newObservacao}
-                          onChange={(e) => setNewObservacao(e.target.value)}
-                          placeholder="Adicione notas do professor para este aluno sobre esta condição específica..."
-                          className="w-full p-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
-                        />
-                      </div>
-
-                      {/* File Upload (Laudo) */}
-                      {(() => {
-                        const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
-                        const isRequerido = selectedCond?.requer_laudo;
-                        
-                        return (
-                          <div className="space-y-2">
-                            <label className="text-xs font-semibold text-ink-2 flex items-center justify-between">
-                              <span>Laudo Técnico {isRequerido ? '(Obrigatório *)' : '(Opcional)'}</span>
-                            </label>
-                            
-                            {editingCondicao?.laudo_url && (
-                              <p className="text-[11px] text-[#F26A1B] font-semibold">
-                                * Já existe um laudo cadastrado para esta condição. Faça o upload de um novo arquivo apenas se desejar substituí-lo.
-                              </p>
-                            )}
-
-                            <div className="border border-dashed border-ink/20 rounded-xl p-4 bg-surface text-center hover:bg-raise/20 transition-all cursor-pointer relative">
-                              <input
-                                type="file"
-                                accept=".pdf,.png,.jpg,.jpeg"
-                                onChange={(e) => {
-                                  if (e.target.files && e.target.files[0]) {
-                                    setNewFile(e.target.files[0]);
-                                  }
-                                }}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              />
-                              <div className="space-y-1 text-xs">
-                                <Upload className="w-5 h-5 mx-auto text-ink-3" />
-                                {newFile ? (
-                                  <p className="text-[#F26A1B] font-semibold">{newFile.name}</p>
-                                ) : (
-                                  <>
-                                    <p className="text-ink-2">Clique ou arraste o laudo médico aqui</p>
-                                    <p className="text-ink-3 text-[10px]">Formatos aceitos: PDF, PNG, JPG (Máx 5MB)</p>
-                                  </>
+                                {/* Selected Condition Status/Warning */}
+                                {block.condicao_id && !block.isSearching && selectedCond?.origem === 'personalizada' && (
+                                  <div className="mt-1 flex items-center gap-1.5 text-[10px] text-[#F26A1B] font-medium bg-[#F26A1B]/5 p-2 rounded-lg border border-[#F26A1B]/10">
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    <span>Condição personalizada: Sem regras de segurança automáticas.</span>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                          </div>
-                        );
-                      })()}
 
-                      {/* Actions */}
-                      <div className="pt-4 border-t border-line flex gap-3 justify-end bg-raise/5 p-4">
+                              {/* Orientações da Condição */}
+                              {selectedCond && (
+                                <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/20 p-4 rounded-2xl text-xs space-y-1">
+                                  <p className="font-semibold text-accent flex items-center gap-1">
+                                    <AlertTriangle className="w-4 h-4 shrink-0 text-[#F26A1B]" />
+                                    <span>Orientações:</span>
+                                  </p>
+                                  <p className="text-ink-2 leading-relaxed mt-1">{selectedCond.orientacao_geral}</p>
+                                  {selectedCond.requer_laudo && (
+                                    <p className="text-rose-500 font-bold mt-2 flex items-center gap-1 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
+                                      ⚠️ Atenção: Requer anexo de laudo técnico.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* Lado Acometido */}
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-semibold text-ink-2">Lado Acometido</label>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {['esquerdo', 'direito', 'bilateral'].map(val => (
+                                      <button
+                                        key={val}
+                                        type="button"
+                                        onClick={() => setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, lado: b.lado === val ? null : val as any } : b))}
+                                        className={`h-10 text-[10px] font-bold uppercase rounded-xl border transition-all cursor-pointer ${
+                                          block.lado === val
+                                            ? 'bg-[#F26A1B] text-white border-transparent'
+                                            : 'bg-surface hover:bg-raise text-ink-2 border-line'
+                                        }`}
+                                      >
+                                        {val}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Grau */}
+                                <div className="space-y-1.5">
+                                  <label className="text-xs font-semibold text-ink-2">Grau / Nível (ex: L4-L5)</label>
+                                  <input
+                                    type="text"
+                                    value={block.grau}
+                                    onChange={(e) => setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, grau: e.target.value } : b))}
+                                    placeholder="Ex: Grau II, L4-S1..."
+                                    className="w-full h-10 px-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B]"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Observações */}
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-ink-2">Observações / Cuidados Treino</label>
+                                <textarea
+                                  rows={2}
+                                  value={block.observacao}
+                                  onChange={(e) => setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, observacao: e.target.value } : b))}
+                                  placeholder="Notas específicas para esta condição..."
+                                  className="w-full p-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B]"
+                                />
+                              </div>
+
+                              {/* File Upload */}
+                              <div className="space-y-2">
+                                <label className="text-xs font-semibold text-ink-2">
+                                  Laudo Técnico {selectedCond?.requer_laudo ? '(Obrigatório *)' : '(Opcional)'}
+                                </label>
+                                <div className="border border-dashed border-ink/20 rounded-xl p-3 bg-surface/50 text-center hover:bg-raise/20 transition-all cursor-pointer relative">
+                                  <input
+                                    type="file"
+                                    accept=".pdf,.png,.jpg,.jpeg"
+                                    onChange={(e) => {
+                                      if (e.target.files?.[0]) {
+                                        const file = e.target.files[0];
+                                        setCondicaoBlocks(prev => prev.map(b => b.tempId === block.tempId ? { ...b, file } : b));
+                                      }
+                                    }}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  />
+                                  <div className="flex items-center justify-center gap-2 text-[10px] font-medium text-ink-2">
+                                    <Upload className="w-4 h-4 text-ink-3" />
+                                    {block.file ? (
+                                      <span className="text-[#F26A1B]">{block.file.name}</span>
+                                    ) : (
+                                      <span>{editingCondicao ? 'Clique para substituir' : 'Anexar laudo (PDF, JPG)'}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Add Another Block Button */}
+                        {!editingCondicao && (
+                          <button
+                            type="button"
+                            onClick={() => setCondicaoBlocks(prev => [...prev, createEmptyBlock()])}
+                            className="w-full py-4 rounded-2xl border-2 border-dashed border-line hover:border-[#F26A1B] hover:bg-[#F26A1B]/5 transition-all group flex flex-col items-center gap-1 cursor-pointer"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-line group-hover:bg-[#F26A1B] flex items-center justify-center transition-colors">
+                              <Plus className="w-5 h-5 text-ink group-hover:text-white" />
+                            </div>
+                            <span className="text-xs font-bold text-ink-2 group-hover:text-[#F26A1B]">Adicionar outra condição</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Actions Footer */}
+                      <div className="p-6 border-t border-line flex gap-3 justify-end bg-surface-2/50">
                         <button
                           type="button"
                           disabled={salvandoCondicao}
@@ -1902,15 +1918,18 @@ Bora juntos! 💪`;
                         <button
                           type="submit"
                           disabled={salvandoCondicao}
-                          className="h-11 px-6 rounded-xl bg-[#F26A1B] hover:bg-[#D45914] text-white transition-colors text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                          className="h-11 px-8 rounded-xl bg-[#F26A1B] hover:bg-[#D45914] text-white transition-colors text-xs font-bold flex items-center gap-2 shadow-lg shadow-[#F26A1B]/20 cursor-pointer"
                         >
                           {salvandoCondicao ? (
                             <>
-                              <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></span>
+                              <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
                               <span>Salvando...</span>
                             </>
                           ) : (
-                            <span>{editingCondicao ? 'Salvar alterações' : 'Adicionar Condição'}</span>
+                            <>
+                              <CheckCircle className="w-4 h-4" />
+                              <span>{editingCondicao ? 'Salvar alterações' : condicaoBlocks.length > 1 ? `Adicionar ${condicaoBlocks.length} Condições` : 'Adicionar Condição'}</span>
+                            </>
                           )}
                         </button>
                       </div>
