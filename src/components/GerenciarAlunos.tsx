@@ -7,7 +7,7 @@ import {
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
   Activity, Award, CheckCircle, ExternalLink, ShieldCheck,
   Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle,
-  Send, Link2, ClipboardList, Pencil
+  Send, Link2, ClipboardList, Pencil, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
@@ -81,6 +81,7 @@ export default function GerenciarAlunos({
 
   // Orthopedic Profile states
   const [alunoCondicoes, setAlunoCondicoes] = useState<AlunoCondicao[]>([]);
+  const [expandedCondicoes, setExpandedCondicoes] = useState<Record<string, boolean>>({});
   const [condicoesDisponiveis, setCondicoesDisponiveis] = useState<CondicaoOrtopedica[]>([]);
   const [loadingCondicoes, setLoadingCondicoes] = useState(false);
   const [showAddCondicaoModal, setShowAddCondicaoModal] = useState(false);
@@ -315,6 +316,21 @@ export default function GerenciarAlunos({
     } finally {
       setLoadingAnamnese(false);
     }
+  };
+
+  useEffect(() => {
+    if (alunoCondicoes.length === 1) {
+      setExpandedCondicoes({ [alunoCondicoes[0].id]: true });
+    } else {
+      setExpandedCondicoes({});
+    }
+  }, [alunoCondicoes]);
+
+  const toggleCondicaoExpanded = (id: string) => {
+    setExpandedCondicoes(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   };
 
   const loadStudentCondicoes = async () => {
@@ -571,7 +587,7 @@ Bora juntos! 💪`;
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 left-1/2 -translate-x-1/2 z-50 py-3 px-5 bg-raise border border-line rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-2"
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] py-3 px-5 bg-raise border border-line rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-2"
           >
             <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
             <span className="text-xs font-medium text-ink">{toastMessage}</span>
@@ -1484,124 +1500,169 @@ Bora juntos! 💪`;
                   <p className="text-xs text-ink-3 mt-1">Clique em "Adicionar Condição" para registrar limitações ou patologias.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-3">
                   {alunoCondicoes.map((ac) => {
                     const cond = ac.condicoes_ortopedicas;
+                    const isExpanded = !!expandedCondicoes[ac.id];
+                    
                     return (
-                      <div key={ac.id} className="p-5 bg-raise/5 border border-line rounded-2xl space-y-4 relative group flex flex-col justify-between">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <h4 className="font-semibold text-sm text-ink">{cond?.nome || 'Condição'}</h4>
-                              <p className="text-[11px] text-ink-3 mt-0.5">Região: {cond?.regiao || 'Geral'}</p>
+                      <div key={ac.id} className="bg-void/5 border border-line rounded-2xl overflow-hidden transition-all duration-200">
+                        {/* Header Compacto */}
+                        <div 
+                          className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-raise/10 transition-colors"
+                          onClick={() => toggleCondicaoExpanded(String(ac.id))}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-2 h-2 rounded-full shrink-0 ${ac.tem_laudo ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                            <div className="truncate">
+                              <h4 className="font-bold text-sm text-ink truncate">{cond?.nome || 'Condição'}</h4>
+                              <p className="text-[10px] text-ink-3 uppercase font-bold tracking-tight">Região: {cond?.regiao || 'Geral'}</p>
                             </div>
                             
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingCondicao(ac);
-                                  setCondicaoBlocks([{
-                                    tempId: 'edit',
-                                    condicao_id: ac.condicao_id,
-                                    lado: ac.lado,
-                                    grau: ac.grau || '',
-                                    observacao: ac.observacao || '',
-                                    file: null,
-                                    searchQuery: ac.condicoes_ortopedicas?.nome || '',
-                                    isSearching: false
-                                  }]);
-                                  setShowAddCondicaoModal(true);
-                                }}
-                                className="text-ink-3 hover:text-[#F26A1B] transition-colors p-1.5 rounded-lg hover:bg-[#F26A1B]/10 cursor-pointer"
-                                title="Editar condição"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              
-                              <button
-                                type="button"
-                                 onClick={() => {
-                                   setModalConfig({
-                                     show: true,
-                                     type: "confirm",
-                                     variant: "danger",
-                                     title: "Inativar Condição?",
-                                     message: "Deseja inativar esta condição ortopédica para o aluno?",
-                                     confirmLabel: "Inativar",
-                                     onConfirm: async () => {
-                                       try {
-                                         await dbService.inativarAlunoCondicao(ac.id);
-                                         showToast("Condição ortopédica removida.");
-                                         loadStudentCondicoes();
-                                       } catch (err) {
-                                         console.error(err);
-                                         showToast("Erro ao remover condição.");
-                                       } finally {
-                                         setModalConfig(null);
-                                       }
-                                     }
-                                   });
-                                 }}
-                                className="text-ink-3 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-rose-500/10 cursor-pointer"
-                                title="Remover condição"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                            <div className="hidden sm:flex items-center gap-1.5 shrink-0 ml-2">
+                              {ac.lado && (
+                                <span className="px-1.5 py-0.5 rounded bg-surface border border-line text-[9px] font-bold uppercase text-ink-3">
+                                  {ac.lado === 'esquerdo' ? 'Esq' : ac.lado === 'direito' ? 'Dir' : 'Bilat'}
+                                </span>
+                              )}
+                              {!ac.tem_laudo && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[9px] font-bold uppercase text-amber-600">
+                                  Pendente
+                                </span>
+                              )}
                             </div>
                           </div>
-
-                          <div className="flex flex-wrap gap-1.5">
-                            {ac.lado && (
-                              <span className="px-2 py-0.5 rounded bg-surface border border-line text-[10px] font-semibold uppercase text-ink-2">
-                                Lado: {ac.lado === 'esquerdo' ? 'Esquerdo' : ac.lado === 'direito' ? 'Direito' : 'Bilateral'}
-                              </span>
-                            )}
-                            {ac.grau && (
-                              <span className="px-2 py-0.5 rounded bg-surface border border-line text-[10px] font-semibold text-ink-2">
-                                Grau/Detalhe: {ac.grau}
-                              </span>
-                            )}
-                            <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase ${
-                              ac.tem_laudo 
-                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
-                                : 'bg-amber-500/10 border-amber-500/20 text-amber-600'
-                            }`}>
-                              {ac.tem_laudo ? 'Laudo Validado' : 'Pendente de Laudo'}
-                            </span>
-                          </div>
-
-                          {cond?.orientacao_geral && (
-                            <div className="bg-[#F26A1B]/10 border border-[#F26A1B]/20 p-3 rounded-xl text-xs text-[#F26A1B] leading-relaxed font-medium">
-                              <p className="font-bold text-[10px] uppercase tracking-wider mb-1 text-accent">Recomendação Geral:</p>
-                              {cond.orientacao_geral}
-                            </div>
-                          )}
-
-                          {ac.observacao && (
-                            <div className="text-xs text-ink-2 leading-relaxed bg-surface/80 border border-line/40 p-2.5 rounded-xl">
-                              <span className="font-semibold text-ink-3 text-[11px]">Observação do Professor:</span>
-                              <p className="mt-0.5 italic">{ac.observacao}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        {ac.tem_laudo && ac.laudo_url && (
-                          <div className="pt-2 border-t border-line flex items-center justify-between text-xs mt-2">
-                            <span className="text-ink-3 flex items-center gap-1 font-medium">
-                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                              Laudo técnico anexado
-                            </span>
+                          
+                          <div className="flex items-center gap-1 shrink-0">
                             <button
                               type="button"
-                              onClick={() => abrirLaudo(ac.laudo_url)}
-                              className="text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer bg-transparent border-0 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingCondicao(ac);
+                                setCondicaoBlocks([{
+                                  tempId: 'edit',
+                                  condicao_id: ac.condicao_id,
+                                  lado: ac.lado,
+                                  grau: ac.grau || '',
+                                  observacao: ac.observacao || '',
+                                  file: null,
+                                  searchQuery: ac.condicoes_ortopedicas?.nome || '',
+                                  isSearching: false
+                                }]);
+                                setShowAddCondicaoModal(true);
+                              }}
+                              className="text-ink-3 hover:text-accent transition-colors p-2 rounded-lg hover:bg-accent/10 cursor-pointer"
+                              title="Editar"
                             >
-                              <span>Ver laudo</span>
-                              <ExternalLink className="w-3 h-3" />
+                              <Pencil className="w-3.5 h-3.5" />
                             </button>
+                            
+                            <button
+                              type="button"
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setModalConfig({
+                                   show: true,
+                                   type: "confirm",
+                                   variant: "danger",
+                                   title: "Inativar Condição?",
+                                   message: "Deseja inativar esta condição ortopédica para o aluno?",
+                                   confirmLabel: "Inativar",
+                                   onConfirm: async () => {
+                                     try {
+                                       await dbService.inativarAlunoCondicao(ac.id);
+                                       showToast("Condição ortopédica removida.");
+                                       loadStudentCondicoes();
+                                     } catch (err) {
+                                       console.error(err);
+                                       showToast("Erro ao remover condição.");
+                                     } finally {
+                                       setModalConfig(null);
+                                     }
+                                   }
+                                 });
+                               }}
+                              className="text-ink-3 hover:text-rose-500 transition-colors p-2 rounded-lg hover:bg-rose-500/10 cursor-pointer"
+                              title="Remover"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <div className="w-px h-4 bg-line mx-1" />
+                            
+                            <div className={`p-1.5 rounded-full bg-void transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                              <ChevronDown className="w-4 h-4 text-ink-3" />
+                            </div>
                           </div>
-                        )}
+                        </div>
+
+                        {/* Detalhes Expandidos */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-5 pt-2 space-y-4 border-t border-line/30">
+                                <div className="flex flex-wrap gap-1.5 sm:hidden">
+                                  {ac.lado && (
+                                    <span className="px-2 py-0.5 rounded bg-surface border border-line text-[10px] font-semibold uppercase text-ink-2">
+                                      Lado: {ac.lado === 'esquerdo' ? 'Esquerdo' : ac.lado === 'direito' ? 'Direito' : 'Bilateral'}
+                                    </span>
+                                  )}
+                                  <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase ${
+                                    ac.tem_laudo 
+                                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
+                                      : 'bg-amber-500/10 border-amber-500/20 text-amber-600'
+                                  }`}>
+                                    {ac.tem_laudo ? 'Laudo Validado' : 'Pendente de Laudo'}
+                                  </span>
+                                </div>
+
+                                {ac.grau && (
+                                  <div className="space-y-1">
+                                    <p className="text-[10px] uppercase tracking-wider font-bold text-ink-3">Grau / Detalhes:</p>
+                                    <p className="text-xs text-ink">{ac.grau}</p>
+                                  </div>
+                                )}
+
+                                {cond?.orientacao_geral && (
+                                  <div className="bg-accent/5 border border-accent/10 p-3 rounded-xl text-xs text-accent leading-relaxed">
+                                    <p className="font-bold text-[10px] uppercase tracking-wider mb-1 opacity-70">Recomendação Geral:</p>
+                                    {cond.orientacao_geral}
+                                  </div>
+                                )}
+
+                                {ac.observacao && (
+                                  <div className="text-xs text-ink-2 leading-relaxed bg-surface/50 border border-line/30 p-3 rounded-xl">
+                                    <span className="font-bold text-[10px] uppercase tracking-wider text-ink-3 block mb-1">Observação do Professor:</span>
+                                    <p className="italic">{ac.observacao}</p>
+                                  </div>
+                                )}
+
+                                {ac.tem_laudo && ac.laudo_url && (
+                                  <div className="pt-3 border-t border-line/40 flex items-center justify-between text-xs">
+                                    <span className="text-ink-3 flex items-center gap-1 font-medium">
+                                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                                      Laudo técnico anexado
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => abrirLaudo(ac.laudo_url)}
+                                      className="text-accent hover:underline flex items-center gap-1 font-semibold cursor-pointer bg-transparent border-0 p-0"
+                                    >
+                                      <span>Ver laudo</span>
+                                      <ExternalLink className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}

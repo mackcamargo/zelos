@@ -3428,7 +3428,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
       )}
 
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 bg-surface border border-line p-3 rounded-2xl shadow-xl flex items-center gap-2.5 z-[100] animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-6 right-6 bg-surface border border-line p-3 rounded-2xl shadow-xl flex items-center gap-2.5 z-[9999] animate-in fade-in slide-in-from-bottom-5">
           <div className="w-2 h-2 rounded-full bg-[#F26A1B]" />
           <span className="text-xs font-medium text-ink">{toastMessage}</span>
         </div>
