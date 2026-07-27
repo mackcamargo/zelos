@@ -14,7 +14,8 @@ import {
   DollarSign,
   ArrowRight,
   Search,
-  LayoutDashboard
+  LayoutDashboard,
+  Sparkles
 } from 'lucide-react';
 import { ZelosModal } from './ZelosModal';
 

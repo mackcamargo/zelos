@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2 } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarCortesias from './GerenciarCortesias';
