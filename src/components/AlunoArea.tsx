@@ -2232,7 +2232,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                               setSelectedExIdProgress(ex.id);
                                               setIsExProgressOpen(false);
                                             }}
-                                            className={`w-full text-left px-3 py-1.5 text-[10px] sm:text-[11px] hover:bg-raise transition-colors ${activeExId === ex.id ? 'text-accent font-bold bg-accent/5' : 'text-ink-2'}`}
+                                            className={`w-full text-left px-3 py-2 text-[13px] sm:text-[14px] hover:bg-raise transition-colors ${activeExId === ex.id ? 'text-accent font-bold bg-accent/5' : 'text-ink-2'}`}
                                           >
                                             {ex.nome}
                                           </button>
@@ -2633,7 +2633,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                                         setSelectedExForEvolution(name);
                                                         setIsExEvolutionOpen(false);
                                                       }}
-                                                      className={`w-full text-left px-3 py-1.5 text-[10px] sm:text-[11px] hover:bg-raise transition-colors ${activeEx === name ? 'text-accent font-bold bg-accent/5' : 'text-ink-2'}`}
+                                                      className={`w-full text-left px-3 py-2 text-[13px] sm:text-[14px] hover:bg-raise transition-colors ${activeEx === name ? 'text-accent font-bold bg-accent/5' : 'text-ink-2'}`}
                                                     >
                                                       {name}
                                                     </button>
