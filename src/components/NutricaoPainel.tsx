@@ -1457,11 +1457,6 @@ export default function NutricaoPainel({ alunoId }: NutricaoPainelProps) {
 
           </div>
 
-          {/* Rodapé com Aviso Educativo */}
-          <div className="border-t border-line/45 pt-6">
-            <AvisoEducativo />
-          </div>
-
         </div>
         </ErrorBoundary>
       )}
