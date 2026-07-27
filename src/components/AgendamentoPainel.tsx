@@ -214,66 +214,66 @@ export default function AgendamentoPainel({ alunoId, personalId }: AgendamentoPa
                 transition={{ delay: index * 0.05 }}
                 key={agendamento.id}
                 onClick={() => setSelectedAgendamento(agendamento)}
-                className="z-card z-card--tap !p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="z-card z-card--tap !p-2.5 sm:!p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
               >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center font-semibold shrink-0 ${
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex flex-col items-center justify-center font-semibold shrink-0 ${
                     agendamento.status === 'confirmado' ? 'bg-accent text-white shadow-sm shadow-accent/20' : 'bg-raise text-ink-3 border border-line'
                   }`}>
-                    <span className="text-[9px] uppercase tracking-tighter opacity-80 leading-none mb-0.5">
+                    <span className="text-[8px] uppercase tracking-tighter opacity-80 leading-none mb-0.5">
                       {parseDataHora(agendamento.data_hora).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
                     </span>
-                    <span className="text-xl leading-none num font-bold">
+                    <span className="text-lg leading-none num font-bold">
                       {parseDataHora(agendamento.data_hora).getDate()}
                     </span>
                   </div>
                   
-                  <div className="space-y-0.5">
+                  <div className="space-y-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-base font-bold text-ink leading-none num">
+                      <h4 className="text-sm font-bold text-ink leading-none num">
                         {parseDataHora(agendamento.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </h4>
-                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider ${config.color}`}>
+                      <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[8px] font-bold uppercase tracking-wider ${config.color}`}>
                         <StatusIcon className="w-2.5 h-2.5" />
                         {config.label}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px] text-ink-3">
+                    <div className="flex items-center gap-3 text-[10px] text-ink-3">
                       <span className="flex items-center gap-1">
                         {agendamento.tipo === 'presencial' ? (
                           <>
-                            <MapPin className="w-3 h-3 text-accent" />
+                            <MapPin className="w-2.5 h-2.5 text-accent" />
                             <span>Presencial</span>
                           </>
                         ) : agendamento.tipo === 'online' ? (
                           <>
-                            <Video className="w-3 h-3 text-accent" />
+                            <Video className="w-2.5 h-2.5 text-accent" />
                             <span>Online</span>
                           </>
                         ) : (
                           <>
-                            <FileText className="w-3 h-3 text-accent" />
+                            <FileText className="w-2.5 h-2.5 text-accent" />
                             <span>Avaliação</span>
                           </>
                         )}
                       </span>
                       {agendamento.observacao && (
-                        <span className="flex items-center gap-1.5 italic text-[12px] opacity-60">
-                           <Info className="w-3.5 h-3.5" /> {agendamento.observacao}
+                        <span className="flex items-center gap-1 italic text-[11px] opacity-60 truncate max-w-[150px] sm:max-w-[300px]">
+                           <Info className="w-3 h-3" /> {agendamento.observacao}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                    {agendamento.status === 'confirmado' && (
-                     <div className="px-4 py-2 bg-ok/5 text-ok border border-ok/10 rounded-xl text-[12px] font-semibold">
+                     <div className="px-3 py-1.5 bg-ok/5 text-ok border border-ok/10 rounded-lg text-[10px] sm:text-[11px] font-semibold">
                        Sessão confirmada
                      </div>
                    )}
                    {agendamento.status === 'solicitado' && (
-                     <div className="px-4 py-2 bg-warn/5 text-warn border border-warn/10 rounded-xl text-[12px] font-semibold italic animate-pulse">
+                     <div className="px-3 py-1.5 bg-warn/5 text-warn border border-warn/10 rounded-lg text-[10px] sm:text-[11px] font-semibold italic animate-pulse">
                        Aguardando personal...
                      </div>
                    )}
