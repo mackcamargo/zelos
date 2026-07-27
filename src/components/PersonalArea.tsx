@@ -12,6 +12,7 @@ import GerenciarCheckins from './GerenciarCheckins';
 import { DashPersonalBemEstar } from './DashPersonalBemEstar';
 import ChatPersonal from './ChatPersonal';
 import PlanosArea from './PlanosArea';
+import AdminArea from './AdminArea';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
 import { ZelosModal } from './ZelosModal';
@@ -85,10 +86,10 @@ const resizeImage = (file: File): Promise<File> => {
   });
 };
 
-type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos' | 'cortesias';
+type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | 'templates' | 'perfil' | 'gerenciar' | 'chat' | 'planos' | 'cortesias' | 'administracao';
 
 function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate, sessaoRestaurada, onSessaoConsumida }: PersonalAreaProps) {
-  const isAdmin = userId === 'fdcb50c9-9057-4922-b2f8-c6093d6941f4';
+  const isAdmin = profile.is_admin === true;
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const { salvarSessao } = useSessaoPersistente();
 
@@ -130,6 +131,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
       chat: 'Mensagens',
       planos: 'Planos',
       cortesias: 'Cortesias',
+      administracao: 'Administração',
     };
     const label = tabLabels[activeTab] || 'Área do Personal';
     document.title = `Zelos Personal · ${label}`;
@@ -267,6 +269,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
     { id: 'planos', label: 'Assinatura', icon: CreditCard },
     { id: 'perfil', label: 'Perfil', icon: User },
     ...(isAdmin ? [{ id: 'cortesias', label: 'Cortesias', icon: ShieldCheck }] : []),
+    ...(isAdmin ? [{ id: 'administracao', label: 'Administração', icon: LayoutDashboard }] : []),
   ];
 
   const getPlanoLabel = (plano: string | null | undefined) => {
@@ -817,6 +820,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
                   {activeTab === 'perfil' && 'Seu perfil'}
                   {activeTab === 'gerenciar' && 'Monte Seu Exercício'}
                   {activeTab === 'cortesias' && 'Códigos de Cortesia'}
+                  {activeTab === 'administracao' && 'Administração do Sistema'}
                 </h1>
                 <p className="text-sm text-ink-2 leading-none">
                   {activeTab === 'dashboard' && 'Aqui está o resumo dos seus alunos hoje'}
@@ -829,6 +833,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
                   {activeTab === 'perfil' && 'Gerencie seus dados cadastrais e assinatura'}
                   {activeTab === 'gerenciar' && 'Adicione movimentos, dicas de execução e faça upload dos vídeos'}
                   {activeTab === 'cortesias' && 'Gerencie e distribua códigos de acesso gratuito para alunos'}
+                  {activeTab === 'administracao' && 'Gestão de KPIs, personais, alunos e planos do sistema'}
                 </p>
               </div>
             </div>
@@ -1121,7 +1126,14 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
         {/* TAB: CORTESIAS ADMIN */}
         {activeTab === 'cortesias' && isAdmin && (
           <div id="tab-content-cortesias" className="space-y-6">
-            <GerenciarCortesias />
+            <GerenciarCortesias personalId={userId} />
+          </div>
+        )}
+
+        {/* TAB: ADMINISTRAÇÃO (ADMIN) */}
+        {activeTab === 'administracao' && isAdmin && (
+          <div id="tab-content-administracao" className="space-y-6">
+            <AdminArea />
           </div>
         )}
 
