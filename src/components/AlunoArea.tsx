@@ -8,8 +8,9 @@ import {
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
   Trophy, Info, X,
   Volume2, VolumeX, Bell,
-  Trash2, Loader2, Sun, Moon
+  Trash2, Loader2, Sun, Moon, Image as ImageIcon
 } from 'lucide-react';
+import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ResponsiveContainer, LineChart, Line, BarChart, Bar, 
@@ -1532,19 +1533,15 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                 }
                               </div>
 
-                              {/* Miniatura do vídeo */}
+                              {/* Miniatura da mídia */}
                               <div className="mt-1 w-12 h-12 rounded-xl bg-raise border border-line overflow-hidden flex items-center justify-center shrink-0 relative">
                                 {videoSrc ? (
-                                  <video
+                                  <ExerciseMedia
                                     src={videoSrc}
-                                    autoPlay
-                                    loop
-                                    muted
-                                    playsInline
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <Dumbbell className="w-5 h-5 text-ink-3" />
+                                  <ImageIcon className="w-5 h-5 text-ink-3" />
                                 )}
                               </div>
 
@@ -1603,21 +1600,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                   >
                                     {videoSrc ? (
                                       <div className="relative w-full h-full">
-                                        <video
+                                        <ExerciseMedia
                                           src={videoSrc}
-                                          autoPlay
-                                          loop
-                                          muted
-                                          playsInline
                                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                          onError={(e) => {
-                                            (e.target as HTMLVideoElement).style.display = 'none';
-                                            const parent = (e.target as HTMLElement).parentElement;
-                                            if (parent) {
-                                              const placeholder = parent.querySelector('.video-placeholder');
-                                              if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
-                                            }
-                                          }}
                                         />
                                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
@@ -1625,17 +1610,17 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                                         </div>
                                         <div className="video-placeholder hidden absolute inset-0 flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
                                           <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center">
-                                            <Dumbbell className="w-6 h-6 text-[#F26A1B]/60" />
+                                            <ImageIcon className="w-6 h-6 text-[#F26A1B]/60" />
                                           </div>
-                                          <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
+                                          <span className="text-sm font-display font-bold text-ink">Mídia em breve</span>
                                         </div>
                                       </div>
                                     ) : (
                                       <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
                                         <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center">
-                                          <Dumbbell className="w-6 h-6 text-[#F26A1B]/60" />
+                                          <ImageIcon className="w-6 h-6 text-[#F26A1B]/60" />
                                         </div>
-                                        <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
+                                        <span className="text-sm font-display font-bold text-ink">Mídia em breve</span>
                                       </div>
                                     )}
 
@@ -3012,22 +2997,9 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
 
                     return videoUrl ? (
                       <div className="relative w-full h-full">
-                        <video
+                        <ExerciseMedia
                           src={videoUrl}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
                           className="w-full h-full object-cover bg-void"
-                          style={{ objectFit: 'cover' }}
-                          onError={(e) => {
-                            (e.target as HTMLVideoElement).style.display = 'none';
-                            const parent = (e.target as HTMLElement).parentElement;
-                            if (parent) {
-                              const placeholder = parent.querySelector('.video-placeholder');
-                              if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
-                            }
-                          }}
                         />
                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
@@ -3035,19 +3007,19 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                         </div>
                         <div className="video-placeholder hidden absolute inset-0 flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
                           <div className="w-16 h-16 rounded-full bg-raise flex items-center justify-center">
-                            <Dumbbell className="w-8 h-8 text-[#F26A1B]/60" />
+                            <ImageIcon className="w-8 h-8 text-[#F26A1B]/60" />
                           </div>
-                          <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
-                          <span className="text-[10px] text-ink-3 max-w-[180px]">As instruções para este exercício estão sendo preparadas.</span>
+                          <span className="text-sm font-display font-bold text-ink">Mídia em breve</span>
+                          <span className="text-[10px] text-ink-3 max-w-[180px]">As instruções visuais para este exercício estão sendo preparadas.</span>
                         </div>
                       </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
                         <div className="w-16 h-16 rounded-full bg-raise flex items-center justify-center">
-                          <Dumbbell className="w-8 h-8 text-[#F26A1B]/60" />
+                          <ImageIcon className="w-8 h-8 text-[#F26A1B]/60" />
                         </div>
-                        <span className="text-sm font-display font-bold text-ink">Vídeo em breve</span>
-                        <span className="text-[10px] text-ink-3 max-w-[180px]">As instruções para este exercício estão sendo preparadas.</span>
+                        <span className="text-sm font-display font-bold text-ink">Mídia em breve</span>
+                        <span className="text-[10px] text-ink-3 max-w-[180px]">As instruções visuais para este exercício estão sendo preparadas.</span>
                       </div>
                     );
                   })()}
@@ -3302,13 +3274,10 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="relative w-full h-full">
-                  <video
+                  <ExerciseMedia
                     src={fullscreenVideo}
-                    autoPlay
-                    loop
-                    playsInline
-                    controls
                     className="w-full h-full object-contain"
+                    controls={true}
                   />
                   <div className="absolute top-6 left-6 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                     <Sparkles className="w-4 h-4 text-flame animate-pulse" />

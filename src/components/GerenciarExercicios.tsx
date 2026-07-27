@@ -4,8 +4,9 @@ import { Categoria, Exercicio } from '../types';
 import { 
   ChevronLeft, Plus, Search, Check, X, Film, UploadCloud, 
   Trash2, Save, Info, Sparkles, Loader, AlertCircle, Dumbbell,
-  MoreVertical, EyeOff, Eye, Move, Copy, RotateCcw
+  MoreVertical, EyeOff, Eye, Move, Copy, RotateCcw, Image as ImageIcon
 } from 'lucide-react';
+import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface GerenciarExerciciosProps {
@@ -271,8 +272,10 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
       setUploadError('O arquivo excede o limite recomendado de 50MB. Comprima-o antes do envio.');
       return;
     }
-    if (!file.type.startsWith('video/')) {
-      setUploadError('Formato inválido. Por favor, envie apenas arquivos de vídeo (MP4, WEBM).');
+    
+    const acceptedTypes = ['video/mp4', 'image/gif', 'image/jpeg', 'image/png', 'image/webp'];
+    if (!acceptedTypes.includes(file.type)) {
+      setUploadError('Formato inválido. Envie vídeos (MP4) ou imagens (GIF, JPG, PNG, WEBP).');
       return;
     }
 
@@ -355,7 +358,8 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
 
         // Nome novo e único (timestamp) para garantir que o navegador não use cache
         const timestamp = Date.now();
-        const newFilename = `${id_exercicio}-${gender}-${timestamp}.mp4`;
+        const extension = file.name.split('.').pop() || (file.type.startsWith('video/') ? 'mp4' : 'jpg');
+        const newFilename = `${id_exercicio}-${gender}-${timestamp}.${extension}`;
         const caminho = `videos/${newFilename}`; 
 
         // Função de upload com tentativa de reconexão (BUG 2)
@@ -1403,8 +1407,8 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                 <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
                   <div className="flex justify-between items-center border-b border-white/5 pb-3">
                     <div className="flex items-center gap-1.5">
-                      <Film className="w-4 h-4 text-violet" />
-                      <h4 className="font-display font-medium text-sm text-ink">Vídeo masculino</h4>
+                      <ImageIcon className="w-4 h-4 text-violet" />
+                      <h4 className="font-display font-medium text-sm text-ink">Demonstração masculina</h4>
                     </div>
                     {selectedExercicio?.video_url_masc ? (
                       <span className="text-[12px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-semibold">
@@ -1421,13 +1425,8 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   <div className="aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">
                     {videoPreviewMasc ? (
                       <div className="relative w-full h-full">
-                        <video
-                          key={videoPreviewMasc}
+                        <ExerciseMedia
                           src={videoPreviewMasc}
-                          loop
-                          muted
-                          playsInline
-                          autoPlay
                           className="w-full h-full object-cover brightness-95"
                         />
                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
@@ -1439,7 +1438,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       <div className="text-center p-6 space-y-2 text-ink-3">
                         <UploadCloud className="w-10 h-10 mx-auto stroke-1 text-ink-3 animate-pulse" />
                         <p className="text-[11px] font-medium text-ink-2">Arraste ou clique para enviar</p>
-                        <p className="text-[9px] font-mono">Formatos: MP4, WEBM (Máx 50MB)</p>
+                        <p className="text-[9px] font-mono uppercase">MP4, GIF, JPG, PNG (MÁX 50MB)</p>
                       </div>
                     )}
 
@@ -1466,7 +1465,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       const file = e.target.files?.[0];
                       if (file) handleVideoUpload(file, 'masc');
                     }}
-                    accept="video/*"
+                    accept="video/mp4,image/gif,image/jpeg,image/png,image/webp"
                     className="hidden"
                   />
 
@@ -1478,7 +1477,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                         className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
                       >
                         <UploadCloud className="w-4 h-4" />
-                        <span>{videoUrlMasc ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
+                        <span>{videoUrlMasc ? 'Substituir Mídia' : 'Escolher Mídia'}</span>
                       </button>
                     )}
                     {!isReadOnly && videoUrlMasc && (
@@ -1516,8 +1515,8 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                 <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
                   <div className="flex justify-between items-center border-b border-white/5 pb-3">
                     <div className="flex items-center gap-1.5">
-                      <Film className="w-4 h-4 text-flame" />
-                      <h4 className="font-display font-medium text-sm text-ink">Vídeo feminino</h4>
+                      <ImageIcon className="w-4 h-4 text-flame" />
+                      <h4 className="font-display font-medium text-sm text-ink">Demonstração feminina</h4>
                     </div>
                     {selectedExercicio?.video_url_fem ? (
                       <span className="text-[12px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-semibold">
@@ -1534,13 +1533,8 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   <div className="aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">
                     {videoPreviewFem ? (
                       <div className="relative w-full h-full">
-                        <video
-                          key={videoPreviewFem}
+                        <ExerciseMedia
                           src={videoPreviewFem}
-                          loop
-                          muted
-                          playsInline
-                          autoPlay
                           className="w-full h-full object-cover brightness-95"
                         />
                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
@@ -1552,7 +1546,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       <div className="text-center p-6 space-y-2 text-ink-3">
                         <UploadCloud className="w-10 h-10 mx-auto stroke-1 text-ink-3 animate-pulse" />
                         <p className="text-[11px] font-medium text-ink-2">Arraste ou clique para enviar</p>
-                        <p className="text-[9px] font-mono">Formatos: MP4, WEBM (Máx 50MB)</p>
+                        <p className="text-[9px] font-mono uppercase">MP4, GIF, JPG, PNG (MÁX 50MB)</p>
                       </div>
                     )}
 
@@ -1579,7 +1573,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       const file = e.target.files?.[0];
                       if (file) handleVideoUpload(file, 'fem');
                     }}
-                    accept="video/*"
+                    accept="video/mp4,image/gif,image/jpeg,image/png,image/webp"
                     className="hidden"
                   />
 
@@ -1591,7 +1585,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                         className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
                       >
                         <UploadCloud className="w-4 h-4" />
-                        <span>{videoUrlFem ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
+                        <span>{videoUrlFem ? 'Substituir Mídia' : 'Escolher Mídia'}</span>
                       </button>
                     )}
                     {!isReadOnly && videoUrlFem && (

@@ -2,8 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ArrowLeft, Play, Flame, Timer, Dumbbell, ChevronDown, ChevronRight, 
   MoreVertical, Plus, CheckCircle2, Clock, Award, Check, RefreshCw, 
-  Trash2, Edit3, Sparkles, Filter, ChevronUp, Layers, Calendar
+  Trash2, Edit3, Sparkles, Filter, ChevronUp, Layers, Calendar,
+  Image as ImageIcon
 } from 'lucide-react';
+import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, authService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Treino, TreinoExercicioDetailed, Exercicio, Profile } from '../types';
@@ -479,30 +481,13 @@ export default function ProgramaGuiadoAluno({ alunoId, userRole, onIniciarTreino
                     {/* Miniatura */}
                     <div className="w-12 h-12 rounded-lg bg-surface-2 border border-line flex items-center justify-center shrink-0 overflow-hidden relative">
                       {thumbUrl ? (
-                        <video 
-                          key={thumbUrl}
+                        <ExerciseMedia 
                           src={thumbUrl} 
-                          className="w-full h-full object-cover transition-opacity duration-300"
-                          muted
-                          playsInline
-                          autoPlay
-                          loop
-                          onLoadedData={(e) => {
-                            (e.target as HTMLVideoElement).style.opacity = '1';
-                          }}
-                          style={{ opacity: 0 }}
-                          onError={(e) => {
-                            (e.target as HTMLVideoElement).style.display = 'none';
-                            const parent = (e.target as HTMLElement).parentElement;
-                            if (parent) {
-                              const placeholder = parent.querySelector('.video-placeholder');
-                              if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
-                            }
-                          }}
+                          className="w-full h-full object-cover"
                         />
                       ) : null}
                       <div className={`video-placeholder flex-col items-center justify-center text-[8px] text-ink-3/60 font-bold uppercase ${thumbUrl ? 'hidden absolute inset-0' : 'flex w-full h-full'}`}>
-                        <Dumbbell className="w-5 h-5 text-[#F26A1B]/70 mb-0.5" />
+                        <ImageIcon className="w-5 h-5 text-[#F26A1B]/70 mb-0.5" />
                         <span className="leading-none scale-75">Breve</span>
                       </div>
                     </div>

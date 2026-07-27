@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { dbService } from '../lib/supabase';
 import { Categoria, Exercicio } from '../types';
-import { BookOpen, Play, ChevronLeft, Award, Sparkles, Flame, Search, Info } from 'lucide-react';
+import { BookOpen, Play, ChevronLeft, Award, Sparkles, Flame, Search, Info, Image as ImageIcon } from 'lucide-react';
+import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface BibliotecaProps {
@@ -258,19 +259,14 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                       {/* Video loop preview */}
                       <div className="aspect-video w-full rounded-xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">
                         {videoUrl ? (
-                          <video
-                            ref={handleVideoRef}
+                          <ExerciseMedia
                             src={videoUrl}
-                            loop
-                            muted
-                            playsInline
-                            autoPlay
                             className="w-full h-full object-cover brightness-90 group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="flex flex-col items-center gap-2 text-ink-3">
-                            <Play className="w-8 h-8 text-ink-3 stroke-1" />
-                            <span className="text-[10px]">Prévia em breve</span>
+                            <ImageIcon className="w-8 h-8 text-ink-3 stroke-1" />
+                            <span className="text-[10px]">Mídia em breve</span>
                           </div>
                         )}
                         <div className="absolute top-3 right-3 bg-void/80 backdrop-blur-md border border-white/5 rounded-lg px-2 py-1 flex items-center gap-1">
@@ -299,7 +295,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
 
                         <div className="pt-2 flex justify-end">
                           <span className="text-[10px] text-ink-3 group-hover:text-ink transition-colors flex items-center gap-1">
-                            Ver vídeo demonstrativo →
+                            Ver demonstração →
                           </span>
                         </div>
                       </div>
@@ -352,22 +348,9 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 
                 return videoUrl ? (
                   <>
-                    <video
-                      ref={handleVideoRef}
+                    <ExerciseMedia
                       src={videoUrl}
-                      loop
-                      muted
-                      playsInline
-                      autoPlay
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLVideoElement).style.display = 'none';
-                        const parent = (e.target as HTMLElement).parentElement;
-                        if (parent) {
-                          const placeholder = parent.querySelector('.video-placeholder');
-                          if (placeholder) (placeholder as HTMLElement).style.display = 'flex';
-                        }
-                      }}
                     />
                     <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-3.5 py-1.5 flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                       <Sparkles className="w-3.5 h-3.5 text-flame animate-pulse" />
@@ -385,11 +368,11 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                 return dbService.getExerciseVideoUrl(videoPath);
               })() ? 'hidden absolute inset-0' : 'flex w-full h-full'}`}>
                 <div className="w-16 h-16 rounded-full bg-[#F26A1B]/10 flex items-center justify-center mx-auto mb-2">
-                  <Play className="w-8 h-8 text-[#F26A1B]/60" />
+                  <ImageIcon className="w-8 h-8 text-[#F26A1B]/60" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[14px] font-display font-bold text-ink">Vídeo em breve</p>
-                  <p className="text-xs text-ink-3 max-w-[200px] mx-auto">As instruções em vídeo para este exercício estão sendo preparadas.</p>
+                  <p className="text-[14px] font-display font-bold text-ink">Mídia em breve</p>
+                  <p className="text-xs text-ink-3 max-w-[200px] mx-auto">As instruções visuais para este exercício estão sendo preparadas.</p>
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@ import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Aluno, Anamnese, AlunoCondicao, CondicaoOrtopedica } from '../types';
 import { AnamneseForm } from './AnamneseForm';
 import { 
-  ArrowLeft, Search, Plus, Target, Users, Check, Copy, 
+  ArrowLeft, Search, Plus, Target, Users, Check, Copy, X,
   RefreshCw, Trash2, Mail, User, AlertTriangle, Sparkles, 
   Activity, Award, CheckCircle, ExternalLink, ShieldCheck,
   Scale, TrendingUp, Dumbbell, Calendar, BarChart3, Clock, FolderHeart, AlertCircle,
@@ -94,6 +94,19 @@ export default function GerenciarAlunos({
   const [newFile, setNewFile] = useState<File | null>(null);
   const [uploadingLaudo, setUploadingLaudo] = useState(false);
   const [salvandoCondicao, setSalvandoCondicao] = useState(false);
+  const [condicaoSearchQuery, setCondicaoSearchQuery] = useState('');
+  const [isSearchingCondicao, setIsSearchingCondicao] = useState(false);
+  const searchContainerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchingCondicao(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Workouts states
   const [isMontandoTreino, setIsMontandoTreino] = useState(false);
@@ -106,6 +119,20 @@ export default function GerenciarAlunos({
 
   // General Notification toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const filteredCondicoes = React.useMemo(() => {
+    if (!condicaoSearchQuery.trim()) return condicoesDisponiveis;
+    
+    const query = condicaoSearchQuery.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    return condicoesDisponiveis.filter(c => {
+      const nome = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const cid = (c.cid || '').toLowerCase();
+      const sinonimos = (c.sinonimos || []).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      
+      return nome.includes(query) || cid.includes(query) || sinonimos.includes(query);
+    });
+  }, [condicaoSearchQuery, condicoesDisponiveis]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -1412,6 +1439,8 @@ Bora juntos! 💪`;
                     setNewGrau('');
                     setNewObservacao('');
                     setNewFile(null);
+                    setCondicaoSearchQuery('');
+                    setIsSearchingCondicao(false);
                     setShowAddCondicaoModal(true);
                   }}
                   className="py-2 px-4 rounded-lg bg-[#F26A1B] text-white text-xs font-semibold hover:bg-[#D45914] transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -1454,6 +1483,9 @@ Bora juntos! 💪`;
                                   setNewGrau(ac.grau || '');
                                   setNewObservacao(ac.observacao || '');
                                   setNewFile(null);
+                                  const condName = ac.condicoes_ortopedicas?.nome || '';
+                                  setCondicaoSearchQuery(condName);
+                                  setIsSearchingCondicao(false);
                                   setShowAddCondicaoModal(true);
                                 }}
                                 className="text-ink-3 hover:text-[#F26A1B] transition-colors p-1.5 rounded-lg hover:bg-[#F26A1B]/10 cursor-pointer"
@@ -1643,24 +1675,105 @@ Bora juntos! 💪`;
                       className="p-6 space-y-4 overflow-y-auto"
                     >
                       {/* Selecionar Condição */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5 relative" ref={searchContainerRef}>
                         <label className="text-xs font-semibold text-ink-2">Condição Ortopédica *</label>
-                        <select
-                          required
-                          value={newCondicaoId}
-                          onChange={(e) => {
-                            setNewCondicaoId(e.target.value);
-                            setNewFile(null);
-                          }}
-                          className="w-full h-11 px-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
-                        >
-                          <option value="">Selecione uma patologia/limitação...</option>
-                          {condicoesDisponiveis.map(c => (
-                            <option key={c.id} value={c.id}>
-                              {c.nome} ({c.regiao})
-                            </option>
-                          ))}
-                        </select>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                            <Search className="w-4 h-4 text-ink-3" />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Busque por nome, CID ou sinônimo..."
+                            value={condicaoSearchQuery}
+                            onFocus={() => setIsSearchingCondicao(true)}
+                            onChange={(e) => {
+                              setCondicaoSearchQuery(e.target.value);
+                              setIsSearchingCondicao(true);
+                            }}
+                            className="w-full h-11 pl-10 pr-3 rounded-xl border border-ink/20 bg-surface text-ink text-sm focus:outline-none focus:ring-2 focus:ring-[#F26A1B] focus:border-[#F26A1B]"
+                          />
+                          {condicaoSearchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCondicaoSearchQuery('');
+                                setNewCondicaoId('');
+                                setIsSearchingCondicao(true);
+                              }}
+                              className="absolute inset-y-0 right-3 flex items-center text-ink-3 hover:text-ink transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Search Results Dropdown */}
+                        {isSearchingCondicao && (
+                          <div className="absolute z-50 w-full mt-1 bg-surface border border-line rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
+                            {filteredCondicoes.length > 0 ? (
+                              filteredCondicoes.map((c) => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setNewCondicaoId(c.id);
+                                    setCondicaoSearchQuery(c.nome);
+                                    setIsSearchingCondicao(false);
+                                    setNewFile(null);
+                                  }}
+                                  className={`w-full text-left px-4 py-3 hover:bg-raise border-b border-line last:border-0 transition-colors flex flex-col gap-0.5 ${
+                                    String(newCondicaoId) === String(c.id) ? 'bg-[#F26A1B]/5' : ''
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-sm font-semibold text-ink">
+                                      {c.nome} {c.cid ? `(${c.cid})` : ''}
+                                    </span>
+                                    {c.origem === 'personalizada' && (
+                                      <span className="text-[9px] bg-[#F26A1B]/10 text-[#F26A1B] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Personalizada</span>
+                                    )}
+                                  </div>
+                                  {c.sinonimos && c.sinonimos.length > 0 && (
+                                    <span className="text-[10px] text-ink-3 italic line-clamp-1">
+                                      Sinônimos: {c.sinonimos.join(', ')}
+                                    </span>
+                                  )}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-8 text-center space-y-2">
+                                <p className="text-ink-3 text-xs">Nenhuma condição encontrada para "{condicaoSearchQuery}"</p>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    // Here we could allow adding a custom one if it doesn't exist,
+                                    // but the requirement says "Maintain custom condition option that we already discussed".
+                                    // If 'personalizada' is in condicoesDisponiveis, it will show up.
+                                  }}
+                                  className="text-[11px] text-[#F26A1B] font-bold hover:underline"
+                                >
+                                  Tente termos mais genéricos
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Selected Condition Status/Warning */}
+                        {newCondicaoId && !isSearchingCondicao && (
+                          (() => {
+                            const selectedCond = condicoesDisponiveis.find(c => String(c.id) === String(newCondicaoId));
+                            if (selectedCond?.origem === 'personalizada') {
+                              return (
+                                <div className="mt-1 flex items-center gap-1.5 text-[10px] text-[#F26A1B] font-medium bg-[#F26A1B]/5 p-2 rounded-lg border border-[#F26A1B]/10">
+                                  <AlertCircle className="w-3 h-3 shrink-0" />
+                                  <span>Condição personalizada: Sem regras de segurança automáticas.</span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()
+                        )}
                       </div>
 
                       {/* Show details of selected condition if any */}

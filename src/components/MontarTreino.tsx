@@ -3,8 +3,10 @@ import { dbService } from '../lib/supabase';
 import { Exercicio, Treino, TreinoExercicioDetailed, Categoria, TemplateTreino, TemplateExercicioDetailed } from '../types';
 import { 
   ArrowLeft, Trash2, ChevronUp, ChevronDown, Plus, Check, Sparkles, 
-  Save, Send, Calendar, Clock, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info, AlertCircle
+  Save, Send, Calendar, Clock, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info, AlertCircle,
+  Image as ImageIcon
 } from 'lucide-react';
+import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface MontarTreinoProps {
@@ -795,20 +797,15 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                         {/* Compact metadata column */}
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           
-                          {/* Mini Looping Video or Icon */}
+                          {/* Mini Looping Media or Icon */}
                           <div className="w-12 h-12 rounded-lg bg-surface border border-line flex items-center justify-center shrink-0 overflow-hidden relative">
                             {resolvedVideoUrl ? (
-                              <video
-                                key={resolvedVideoUrl}
+                              <ExerciseMedia
                                 src={resolvedVideoUrl}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <Dumbbell className="w-5 h-5 text-ink-3" />
+                              <ImageIcon className="w-5 h-5 text-ink-3" />
                             )}
                           </div>
 
@@ -1014,17 +1011,12 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                           {/* Small Media thumbnail preview */}
                           <div className="w-10 h-10 rounded-lg bg-surface border border-line flex items-center justify-center overflow-hidden shrink-0 relative">
                             {resolvedVideoUrl ? (
-                              <video
-                                key={resolvedVideoUrl}
+                              <ExerciseMedia
                                 src={resolvedVideoUrl}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <Dumbbell className="w-4 h-4 text-ink-3" />
+                              <ImageIcon className="w-4 h-4 text-ink-3" />
                             )}
                           </div>
                           

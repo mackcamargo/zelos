@@ -421,6 +421,10 @@ export interface CondicaoOrtopedica {
   resumo?: string | null;
   orientacao_geral: string;
   requer_laudo: boolean;
+  cid?: string | null;
+  cid_descricao?: string | null;
+  sinonimos?: string[] | null;
+  origem?: 'catalogo' | 'personalizada';
 }
 
 export interface AlunoCondicao {

@@ -3,8 +3,9 @@ import {
   X, BarChart2, Play, Pause, Plus, Check, ChevronRight, ChevronLeft, 
   RefreshCw, Edit3, Flame, Timer, Dumbbell, Maximize2, Minimize2, 
   Volume2, VolumeX, AlertTriangle, Trophy, Sparkles, CheckCircle2, 
-  Clock, ArrowRight, FileText, AlertCircle
+  Clock, ArrowRight, FileText, AlertCircle, Image as ImageIcon
 } from 'lucide-react';
+import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
 import { dbService, supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Treino, TreinoExercicioDetailed, TreinoExercicioSerie, Exercicio, Profile } from '../types';
@@ -623,15 +624,9 @@ export default function ModoTreinoGuiado({
 
                   if (videoUrl && !videoError) {
                     return (
-                      <video
-                        key={videoUrl}
+                      <ExerciseMedia
                         src={videoUrl}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
                         className="w-full h-full object-contain"
-                        onError={() => setVideoError(true)}
                       />
                     );
                   }
@@ -639,11 +634,11 @@ export default function ModoTreinoGuiado({
                   return (
                     <div className="flex flex-col items-center justify-center text-ink-3 gap-1.5 p-4 text-center">
                       <div className="w-12 h-12 rounded-full bg-[#F26A1B]/10 flex items-center justify-center mb-0.5">
-                        <Dumbbell className="w-6 h-6 text-[#F26A1B]/60" />
+                        <ImageIcon className="w-6 h-6 text-[#F26A1B]/60" />
                       </div>
-                      <span className="text-xs font-display font-bold text-ink-2">Vídeo em breve</span>
+                      <span className="text-xs font-display font-bold text-ink-2">Mídia em breve</span>
                       <span className="text-[10px] opacity-60 max-w-[180px]">
-                        Instruções em vídeo para este exercício.
+                        Instruções visuais para este exercício.
                       </span>
                     </div>
                   );
@@ -869,17 +864,12 @@ export default function ModoTreinoGuiado({
                             const videoUrl = dbService.getExerciseVideoUrl(videoPath);
                             
                             return videoUrl ? (
-                              <video
+                              <ExerciseMedia
                                 src={videoUrl}
                                 className="w-full h-full object-cover"
-                                muted
-                                playsInline
-                                preload="metadata"
-                                onMouseOver={(e) => (e.target as HTMLVideoElement).play()}
-                                onMouseOut={(e) => (e.target as HTMLVideoElement).pause()}
                               />
                             ) : (
-                              <Dumbbell className="w-4 h-4 text-[#F26A1B]" />
+                              <ImageIcon className="w-4 h-4 text-[#F26A1B]" />
                             );
                           })()}
                         </div>
