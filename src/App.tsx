@@ -115,6 +115,24 @@ export default function App() {
   }, []);
 
   // Initialize and check current session
+  const recordAccess = async (profileData: Profile) => {
+    // Evitar registrar acessos múltiplos na mesma sessão de aba
+    if (sessionStorage.getItem('zelos_access_recorded')) return;
+    
+    try {
+      if (isSupabaseConfigured && supabase) {
+        await supabase.from('admin_acessos').insert({
+          usuario_id: profileData.id,
+          papel: profileData.papel,
+          nome: profileData.nome
+        });
+        sessionStorage.setItem('zelos_access_recorded', 'true');
+      }
+    } catch (err) {
+      console.error('Erro ao registrar acesso:', err);
+    }
+  };
+
   const checkSession = async () => {
     setLoading(true);
     try {
@@ -132,19 +150,24 @@ export default function App() {
         setUser(currentUser);
         // Fetch profile
         const { data: userProfile } = await dbService.getProfile(currentUser.id);
+        let finalProfile: Profile;
+
         if (userProfile) {
-          setProfile(userProfile);
+          finalProfile = userProfile;
         } else {
           // If authenticated but profile doesn't exist yet, we fall back to metadata
-          setProfile({
+          finalProfile = {
             id: currentUser.id,
             papel: currentUser.user_metadata?.papel || 'personal',
             nome: currentUser.user_metadata?.nome || 'Membro Zelos',
             avatar_url: currentUser.user_metadata?.avatar_url || null,
             avatar_tipo: currentUser.user_metadata?.avatar_tipo || 'masculino',
             criado_em: new Date().toISOString()
-          });
+          };
         }
+
+        setProfile(finalProfile);
+        recordAccess(finalProfile);
 
         // Verificar sessão pendente
         const sessao = await carregarSessao(currentUser.id);
@@ -172,19 +195,22 @@ export default function App() {
     setLoading(true);
     try {
       const { data: userProfile } = await dbService.getProfile(authenticatedUser.id);
+      let finalProfile: Profile;
       if (userProfile) {
-        setProfile(userProfile);
+        finalProfile = userProfile;
       } else {
         // Fallback or metadata creation (especially for first signup)
-        setProfile({
+        finalProfile = {
           id: authenticatedUser.id,
           papel: authenticatedUser.user_metadata?.papel || 'personal',
           nome: authenticatedUser.user_metadata?.nome || 'Membro Zelos',
           avatar_url: authenticatedUser.user_metadata?.avatar_url || null,
           avatar_tipo: authenticatedUser.user_metadata?.avatar_tipo || 'masculino',
           criado_em: new Date().toISOString()
-        });
+        };
       }
+      setProfile(finalProfile);
+      recordAccess(finalProfile);
     } catch (err) {
       console.error('Erro ao obter perfil de usuário:', err);
     } finally {

@@ -66,15 +66,31 @@ interface NovoCadastro {
   criado_em: string;
 }
 
+interface AdminAcessoResumo {
+  nome: string;
+  papel: string;
+  acessos_24h: number;
+  acessos_7d: number;
+  ultimo_acesso: string;
+}
+
+interface AdminUltimoAcesso {
+  nome: string;
+  papel: string;
+  acessado_em: string;
+}
+
 export default function AdminArea() {
   const [kpis, setKpis] = useState<AdminKPIs | null>(null);
   const [personais, setPersonais] = useState<AdminPersonal[]>([]);
   const [alunos, setAlunos] = useState<AdminAluno[]>([]);
   const [planos, setPlanos] = useState<AdminPlano[]>([]);
+  const [acessosResumo, setAcessosResumo] = useState<AdminAcessoResumo[]>([]);
+  const [ultimosAcessos, setUltimosAcessos] = useState<AdminUltimoAcesso[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPersonalId, setSelectedPersonalId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeSection, setActiveSection] = useState<'personais' | 'alunos' | 'planos'>('personais');
+  const [activeSection, setActiveSection] = useState<'personais' | 'alunos' | 'planos' | 'acessos'>('personais');
 
   const [modalConfig, setModalConfig] = useState<{
     show: boolean;
@@ -95,17 +111,21 @@ export default function AdminArea() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [kpiRes, personaisRes, alunosRes, planosRes] = await Promise.all([
+      const [kpiRes, personaisRes, alunosRes, planosRes, acessosRes, ultimosRes] = await Promise.all([
         supabase.from('v_admin_kpis').select('*').single(),
         supabase.from('v_admin_personais').select('*').order('receita_mes_centavos', { ascending: false }),
         supabase.from('v_admin_alunos').select('*').order('aluno_nome'),
-        supabase.from('v_admin_por_plano').select('*').order('receita_mes_centavos', { ascending: false })
+        supabase.from('v_admin_por_plano').select('*').order('receita_mes_centavos', { ascending: false }),
+        supabase.from('v_admin_acessos_resumo').select('*').order('ultimo_acesso', { ascending: false }),
+        supabase.from('v_admin_ultimos_acessos').select('*').limit(50)
       ]);
 
       if (kpiRes.data) setKpis(kpiRes.data);
       if (personaisRes.data) setPersonais(personaisRes.data);
       if (alunosRes.data) setAlunos(alunosRes.data);
       if (planosRes.data) setPlanos(planosRes.data);
+      if (acessosRes.data) setAcessosResumo(acessosRes.data);
+      if (ultimosRes.data) setUltimosAcessos(ultimosRes.data);
 
       // Check for new notifications
       const { data: novos } = await supabase.from('v_admin_novos_nao_avisados').select('*');
@@ -145,6 +165,8 @@ export default function AdminArea() {
     : [];
 
   const [highlightedPersonalId, setHighlightedPersonalId] = useState<string | null>(null);
+
+  const usuariosUnicos24h = acessosResumo.filter(a => a.acessos_24h > 0).length;
 
   return (
     <div className="space-y-8 pb-12">
@@ -213,6 +235,11 @@ export default function AdminArea() {
             active={activeSection === 'planos'} 
             onClick={() => { setActiveSection('planos'); setSelectedPersonalId(null); setHighlightedPersonalId(null); }}
             label="Planos"
+          />
+          <TabButton 
+            active={activeSection === 'acessos'} 
+            onClick={() => { setActiveSection('acessos'); setSelectedPersonalId(null); setHighlightedPersonalId(null); }}
+            label="Acessos"
           />
         </div>
 
@@ -473,6 +500,101 @@ export default function AdminArea() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeSection === 'acessos' && (
+          <div className="space-y-8">
+            {/* Resumo Acessos */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <KPICard 
+                title="Usuários Ativos (24h)" 
+                value={usuariosUnicos24h.toString()} 
+                icon={Activity} 
+                color="text-accent" 
+                bgColor="bg-accent/10"
+              />
+              <KPICard 
+                title="Total Logs (Feed)" 
+                value={ultimosAcessos.length.toString()} 
+                icon={Search} 
+                color="text-ink-3" 
+                bgColor="bg-void"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Tabela de Resumo por Usuário */}
+              <div className="lg:col-span-8">
+                <div className="bg-surface border border-line rounded-3xl overflow-hidden">
+                  <div className="px-6 py-4 border-b border-line bg-void/30">
+                    <h3 className="text-sm font-bold text-ink">Estatísticas de Acesso</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-void/50 border-b border-line">
+                          <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Usuário</th>
+                          <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider text-center">24h</th>
+                          <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider text-center">7d</th>
+                          <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider text-right">Último</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line">
+                        {acessosResumo.map((a, idx) => (
+                          <tr key={idx} className="hover:bg-accent/5 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-ink">{a.nome}</span>
+                                <span className="text-[10px] text-ink-3 uppercase font-bold tracking-wider">{a.papel}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-mono text-ink">
+                              {a.acessos_24h}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-mono text-ink">
+                              {a.acessos_7d}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-[11px] font-mono text-ink-3">
+                              {new Date(a.ultimo_acesso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feed de Últimos Acessos */}
+              <div className="lg:col-span-4">
+                <div className="bg-surface border border-line rounded-3xl p-6 sticky top-24">
+                  <h3 className="font-display font-bold text-ink mb-6">Feed de Atividade</h3>
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    {ultimosAcessos.map((a, idx) => {
+                      const data = new Date(a.acessado_em);
+                      const isHoje = new Date().toDateString() === data.toDateString();
+                      
+                      return (
+                        <div key={idx} className="flex gap-3 items-start group">
+                          <div className="w-1 bg-line group-hover:bg-accent rounded-full self-stretch transition-colors" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-ink-2 leading-snug">
+                              <span className="font-bold text-ink">{a.nome}</span> 
+                              <span className="text-[10px] text-ink-3 uppercase font-bold ml-1">({a.papel})</span>
+                            </p>
+                            <p className="text-[10px] text-ink-3 mt-0.5">
+                              Entrou às {data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} 
+                              {isHoje ? ' de hoje' : ` em ${data.toLocaleDateString('pt-BR')}`}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
