@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
+import { ZelosModal } from './ZelosModal';
 
 interface MontarTreinoProps {
   aluno: any | null; // Aluno profile, null if creating/editing a template
@@ -57,6 +58,15 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   // Confirmation modals
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{
     show: boolean;
     index: number | null;
@@ -544,15 +554,26 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
   const handleDeleteTemplate = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Excluir este modelo permanentemente?')) return;
-    try {
-      const { error } = await dbService.deleteTemplate(id);
-      if (error) throw error;
-      showToast(`Modelo excluído.`);
-      fetchTemplates();
-    } catch (err) {
-      console.error(err);
-    }
+    setModalConfig({
+      show: true,
+      type: 'confirm',
+      variant: 'danger',
+      title: 'Excluir Modelo?',
+      message: 'Excluir este modelo permanentemente?',
+      confirmLabel: 'Excluir',
+      onConfirm: async () => {
+        try {
+          const { error } = await dbService.deleteTemplate(id);
+          if (error) throw error;
+          showToast(`Modelo excluído.`);
+          fetchTemplates();
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setModalConfig(null);
+        }
+      }
+    });
   };
 
   // Filtering Library Exercises
@@ -1332,6 +1353,19 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
         )}
       </AnimatePresence>
 
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </div>
   );
 }

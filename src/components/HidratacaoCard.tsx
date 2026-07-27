@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Droplets, Plus, Settings, Trash2, Loader2, CheckCircle2, Volume2, VolumeX } from 'lucide-react';
+import { Droplets, Plus, Settings, Trash2, Loader2, CheckCircle2, Volume2, VolumeX, CheckCircle } from 'lucide-react';
 import { dbService, getHojeString } from '../lib/supabase';
 import { tocar } from '../lib/som';
+import { ZelosModal } from './ZelosModal';
 
 interface HidratacaoCardProps {
   alunoId: string;
@@ -20,6 +21,18 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
   const [showRain, setShowRain] = useState<boolean>(false);
   const [showRipple, setShowRipple] = useState<boolean>(false);
   const [historico, setHistorico] = useState<{ data: string; total: number }[]>([]);
+  
+  // Custom Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   const [activeBarDate, setActiveBarDate] = useState<string | null>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(false);
 
@@ -246,35 +259,44 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
 
   const handleReset = async () => {
     if (!alunoId) return;
-    if (!confirm('Deseja zerar o consumo de água de hoje?')) return;
+    
+    setModalConfig({
+      show: true,
+      type: 'confirm',
+      variant: 'danger',
+      title: 'Zerar Consumo?',
+      message: 'Deseja zerar o consumo de água de hoje?',
+      confirmLabel: 'Zerar',
+      onConfirm: async () => {
+        try {
+          setSaving(true);
+          const hoje = getHojeString();
 
-    try {
-      setSaving(true);
-      const hoje = getHojeString();
+          await dbService.saveRegistroHidratacao({
+            aluno_id: alunoId,
+            data: hoje,
+            ml: 0
+          });
 
-      await dbService.saveRegistroHidratacao({
-        aluno_id: alunoId,
-        data: hoje,
-        ml: 0
-      });
+          localStorage.removeItem(`zelos_celebrated_${alunoId}_${hoje}`);
+          localStorage.removeItem(`zelos_hidratacao_meta_${hoje}`);
 
-      // Clear celebration status for today
-      localStorage.removeItem(`zelos_celebrated_${alunoId}_${hoje}`);
-      localStorage.removeItem(`zelos_hidratacao_meta_${hoje}`);
+          setConsumido(0);
+          setPercent(0);
 
-      setConsumido(0);
-      setPercent(0);
-
-      setHistorico(prev =>
-        prev.map(item =>
-          item.data === hoje ? { ...item, total: 0 } : item
-        )
-      );
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSaving(false);
-    }
+          setHistorico(prev =>
+            prev.map(item =>
+              item.data === hoje ? { ...item, total: 0 } : item
+            )
+          );
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setSaving(false);
+          setModalConfig(null);
+        }
+      }
+    });
   };
 
   const handleSaveMeta = async () => {
@@ -739,6 +761,20 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
           </div>
         </div>
       </div>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </div>
   );
 }

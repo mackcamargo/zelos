@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import MontarTreino from './MontarTreino';
+import { ZelosModal } from './ZelosModal';
 
 interface GerenciarTemplatesProps {
   personalId: string;
@@ -41,6 +42,17 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
   
   // Feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Custom Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -120,20 +132,30 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
 
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Deseja excluir este modelo permanentemente?')) return;
-    
-    try {
-      const { error } = await dbService.deleteTemplate(id);
-      if (error) {
-        console.error('Erro ao excluir modelo:', error);
-        showToast(`Erro ao excluir: ${error.message}`);
-      } else {
-        showToast('Modelo excluído com sucesso');
-        loadTemplates();
+    setModalConfig({
+      show: true,
+      type: 'confirm',
+      variant: 'danger',
+      title: 'Excluir Modelo?',
+      message: 'Deseja excluir este modelo permanentemente?',
+      confirmLabel: 'Excluir',
+      onConfirm: async () => {
+        try {
+          const { error } = await dbService.deleteTemplate(id);
+          if (error) {
+            console.error('Erro ao excluir modelo:', error);
+            showToast(`Erro ao excluir: ${error.message}`);
+          } else {
+            showToast('Modelo excluído com sucesso');
+            loadTemplates();
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setModalConfig(null);
+        }
       }
-    } catch (err) {
-      console.error(err);
-    }
+    });
   };
 
   const filteredTemplates = templates.filter((t) => 
@@ -475,6 +497,20 @@ export default function GerenciarTemplates({ personalId, isReadOnly = false }: G
           </div>
         )}
       </AnimatePresence>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </div>
   );
 }

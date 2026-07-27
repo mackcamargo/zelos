@@ -14,6 +14,7 @@ import ChatPersonal from './ChatPersonal';
 import PlanosArea from './PlanosArea';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { tocar, getSomHabilitado, setSomHabilitado } from '../lib/som';
+import { ZelosModal } from './ZelosModal';
 import { SubscriptionProvider, useSubscription } from '../contexts/SubscriptionContext';
 import { useTheme } from '../contexts/ThemeContext';
 import LogoZelos from './LogoZelos';
@@ -140,6 +141,17 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Custom Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -185,25 +197,34 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   };
 
   const handleRemoveAvatar = async () => {
-    if (!window.confirm('Deseja realmente remover sua foto de perfil?')) return;
-    
-    setUploadingAvatar(true);
-    try {
-      const { error: dbErr } = await dbService.updateProfileAvatar(userId, null);
-      if (dbErr) {
-        throw dbErr;
-      }
+    setModalConfig({
+      show: true,
+      type: 'confirm',
+      variant: 'danger',
+      title: 'Remover Foto?',
+      message: 'Deseja realmente remover sua foto de perfil?',
+      confirmLabel: 'Remover',
+      onConfirm: async () => {
+        setUploadingAvatar(true);
+        try {
+          const { error: dbErr } = await dbService.updateProfileAvatar(userId, null);
+          if (dbErr) {
+            throw dbErr;
+          }
 
-      showToast('Foto de perfil removida com sucesso!');
-      if (onProfileUpdate) {
-        onProfileUpdate();
+          showToast('Foto de perfil removida com sucesso!');
+          if (onProfileUpdate) {
+            onProfileUpdate();
+          }
+        } catch (err) {
+          console.error('Erro ao remover foto de perfil:', err);
+          showToast('Não foi possível remover a foto, tente novamente.');
+        } finally {
+          setUploadingAvatar(false);
+          setModalConfig(null);
+        }
       }
-    } catch (err) {
-      console.error('Erro ao remover foto de perfil:', err);
-      showToast('Não foi possível remover a foto, tente novamente.');
-    } finally {
-      setUploadingAvatar(false);
-    }
+    });
   };
 
   useEffect(() => {
@@ -1110,6 +1131,20 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
         )}
       </main>
       </div>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
 
       {toastMessage && (
         <div className="fixed bottom-6 right-6 bg-surface border border-line p-3 rounded-2xl shadow-xl flex items-center gap-2.5 z-[100] animate-in fade-in slide-in-from-bottom-5">

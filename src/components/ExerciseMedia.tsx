@@ -21,10 +21,9 @@ export const ExerciseMedia: React.FC<ExerciseMediaProps> = ({
 }) => {
   if (!src) return null;
 
-  // Detect type by extension
-  const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(src);
-  const isGif = /\.gif$/i.test(src);
-
+  // Detect type by extension or mimetype if available in data URI
+  const isImage = /\.(jpg|jpeg|png|webp|gif|avif|svg)$/i.test(src) || src.startsWith('data:image/');
+  
   if (isImage) {
     return (
       <img 
@@ -32,6 +31,7 @@ export const ExerciseMedia: React.FC<ExerciseMediaProps> = ({
         alt="Demonstração do exercício" 
         className={className}
         loading="lazy"
+        referrerPolicy="no-referrer"
       />
     );
   }

@@ -18,7 +18,8 @@ import FotoProgressoGaleria from './FotoProgressoGaleria';
 import GerenciarNutricao from './GerenciarNutricao';
 import GerenciarSuplementos from './GerenciarSuplementos';
 import HidratacaoStats from './HidratacaoStats';
-import { Flame, Camera, Utensils, Droplets, Heart, Upload } from 'lucide-react';
+import { ZelosModal } from './ZelosModal';
+import { Flame, Camera, Utensils, Droplets, Heart, Upload, X as LucideX } from 'lucide-react';
 import { useSubscription } from '../contexts/SubscriptionContext';
 
 interface GerenciarAlunosProps {
@@ -133,6 +134,17 @@ export default function GerenciarAlunos({
   // General Notification toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Custom Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   const getFilteredCondicoes = (query: string) => {
     if (!query.trim()) return condicoesDisponiveis;
     const normalizedQuery = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -162,7 +174,14 @@ export default function GerenciarAlunos({
     const { data, error } = await supabase.storage.from('laudos').createSignedUrl(path, 3600);
     if (error || !data?.signedUrl) {
       console.error('Erro laudo:', error, 'path:', path);
-      alert('Não foi possível abrir o laudo.');
+      setModalConfig({
+        show: true,
+        type: 'alert',
+        variant: 'danger',
+        title: 'Erro ao abrir',
+        message: 'Não foi possível abrir o laudo.',
+        onConfirm: () => setModalConfig(null)
+      });
       return;
     }
     window.open(data.signedUrl, '_blank');
@@ -1502,18 +1521,28 @@ Bora juntos! 💪`;
                               
                               <button
                                 type="button"
-                                onClick={async () => {
-                                  if (confirm('Deseja inativar esta condição ortopédica para o aluno?')) {
-                                    try {
-                                      await dbService.inativarAlunoCondicao(ac.id);
-                                      showToast('Condição ortopédica removida.');
-                                      loadStudentCondicoes();
-                                    } catch (err) {
-                                      console.error(err);
-                                      showToast('Erro ao remover condição.');
-                                    }
-                                  }
-                                }}
+                                 onClick={() => {
+                                   setModalConfig({
+                                     show: true,
+                                     type: "confirm",
+                                     variant: "danger",
+                                     title: "Inativar Condição?",
+                                     message: "Deseja inativar esta condição ortopédica para o aluno?",
+                                     confirmLabel: "Inativar",
+                                     onConfirm: async () => {
+                                       try {
+                                         await dbService.inativarAlunoCondicao(ac.id);
+                                         showToast("Condição ortopédica removida.");
+                                         loadStudentCondicoes();
+                                       } catch (err) {
+                                         console.error(err);
+                                         showToast("Erro ao remover condição.");
+                                       } finally {
+                                         setModalConfig(null);
+                                       }
+                                     }
+                                   });
+                                 }}
                                 className="text-ink-3 hover:text-rose-500 transition-colors p-1.5 rounded-lg hover:bg-rose-500/10 cursor-pointer"
                                 title="Remover condição"
                               >
@@ -1533,15 +1562,13 @@ Bora juntos! 💪`;
                                 Grau/Detalhe: {ac.grau}
                               </span>
                             )}
-                            {cond?.requer_laudo && (
-                              <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase ${
-                                ac.tem_laudo 
-                                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
-                                  : 'bg-amber-500/10 border-amber-500/20 text-amber-600'
-                              }`}>
-                                {ac.tem_laudo ? 'Laudo Validado' : 'Pendente de Laudo'}
-                              </span>
-                            )}
+                            <span className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase ${
+                              ac.tem_laudo 
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' 
+                                : 'bg-amber-500/10 border-amber-500/20 text-amber-600'
+                            }`}>
+                              {ac.tem_laudo ? 'Laudo Validado' : 'Pendente de Laudo'}
+                            </span>
                           </div>
 
                           {cond?.orientacao_geral && (
@@ -1636,11 +1663,9 @@ Bora juntos! 💪`;
                           return;
                         }
 
-                        // Check for duplicates
-                        const selectedIds = validBlocks.map(b => String(b.condicao_id));
-                        const hasDuplicates = selectedIds.some((id, index) => selectedIds.indexOf(id) !== index);
-                        if (hasDuplicates) {
-                          showToast('Você selecionou a mesma condição mais de uma vez.');
+                        const incompleteBlocks = validBlocks.filter(b => !b.lado);
+                        if (incompleteBlocks.length > 0) {
+                          showToast('Selecione o lado acometido para todas as condições.');
                           return;
                         }
                         
@@ -1806,7 +1831,7 @@ Bora juntos! 💪`;
                                   <p className="text-ink-2 leading-relaxed mt-1">{selectedCond.orientacao_geral}</p>
                                   {selectedCond.requer_laudo && (
                                     <p className="text-rose-500 font-bold mt-2 flex items-center gap-1 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-                                      ⚠️ Atenção: Requer anexo de laudo técnico.
+                                      ⚠️ Atenção: Laudo técnico recomendado para validação completa.
                                     </p>
                                   )}
                                 </div>
@@ -2465,6 +2490,20 @@ Bora juntos! 💪`;
           </div>
         )}
       </AnimatePresence>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </div>
   );
 }

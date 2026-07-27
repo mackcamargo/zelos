@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { ExerciseMedia } from './ExerciseMedia';
 import { motion, AnimatePresence } from 'motion/react';
+import { ZelosModal } from './ZelosModal';
 
 interface GerenciarExerciciosProps {
   onBack?: () => void;
@@ -25,6 +26,16 @@ const COMMON_MUSCLES = [
 ];
 
 export default function GerenciarExercicios({ onBack, personalId, isReadOnly = false }: GerenciarExerciciosProps) {
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
   const [selectedExercicio, setSelectedExercicio] = useState<Exercicio | null>(null);
@@ -1483,24 +1494,32 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     {!isReadOnly && videoUrlMasc && (
                       <button
                         type="button"
-                        onClick={async () => {
-                          if (!window.confirm('Deseja remover o vídeo masculino permanentemente?')) return;
-                          
-                          const oldPath = videoUrlMasc;
-                          setVideoUrlMasc(null);
-                          setVideoPreviewMasc(null);
-                          
-                          // Se já estiver no banco, tenta remover do storage e limpar o campo no banco
-                          if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
-                            try {
-                              if (oldPath && !oldPath.startsWith('http')) {
-                                await supabase.storage.from('exercicios').remove([oldPath]);
+                        onClick={() => {
+                          setModalConfig({
+                            show: true,
+                            type: 'confirm',
+                            variant: 'danger',
+                            title: 'Remover Vídeo?',
+                            message: 'Deseja remover o vídeo masculino permanentemente?',
+                            confirmLabel: 'Remover',
+                            onConfirm: async () => {
+                              const oldPath = videoUrlMasc;
+                              setVideoUrlMasc(null);
+                              setVideoPreviewMasc(null);
+                              
+                              if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
+                                try {
+                                  if (oldPath && !oldPath.startsWith('http')) {
+                                    await supabase.storage.from('exercicios').remove([oldPath]);
+                                  }
+                                  await supabase.from('exercicios').update({ video_url_masc: null }).eq('id', selectedExercicio.id);
+                                } catch (err) {
+                                  console.error('Erro ao remover vídeo do storage/banco:', err);
+                                }
                               }
-                              await supabase.from('exercicios').update({ video_url_masc: null }).eq('id', selectedExercicio.id);
-                            } catch (err) {
-                              console.error('Erro ao remover vídeo do storage/banco:', err);
+                              setModalConfig(null);
                             }
-                          }
+                          });
                         }}
                         className="p-2.5 rounded-xl border border-white/5 bg-void text-ink-3 hover:text-ember transition-colors"
                         title="Remover vídeo"
@@ -1591,24 +1610,32 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     {!isReadOnly && videoUrlFem && (
                       <button
                         type="button"
-                        onClick={async () => {
-                          if (!window.confirm('Deseja remover o vídeo feminino permanentemente?')) return;
-                          
-                          const oldPath = videoUrlFem;
-                          setVideoUrlFem(null);
-                          setVideoPreviewFem(null);
-                          
-                          // Se já estiver no banco, tenta remover do storage e limpar o campo no banco
-                          if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
-                            try {
-                              if (oldPath && !oldPath.startsWith('http')) {
-                                await supabase.storage.from('exercicios').remove([oldPath]);
+                        onClick={() => {
+                          setModalConfig({
+                            show: true,
+                            type: 'confirm',
+                            variant: 'danger',
+                            title: 'Remover Vídeo?',
+                            message: 'Deseja remover o vídeo feminino permanentemente?',
+                            confirmLabel: 'Remover',
+                            onConfirm: async () => {
+                              const oldPath = videoUrlFem;
+                              setVideoUrlFem(null);
+                              setVideoPreviewFem(null);
+                              
+                              if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
+                                try {
+                                  if (oldPath && !oldPath.startsWith('http')) {
+                                    await supabase.storage.from('exercicios').remove([oldPath]);
+                                  }
+                                  await supabase.from('exercicios').update({ video_url_fem: null }).eq('id', selectedExercicio.id);
+                                } catch (err) {
+                                  console.error('Erro ao remover vídeo do storage/banco:', err);
+                                }
                               }
-                              await supabase.from('exercicios').update({ video_url_fem: null }).eq('id', selectedExercicio.id);
-                            } catch (err) {
-                              console.error('Erro ao remover vídeo do storage/banco:', err);
+                              setModalConfig(null);
                             }
-                          }
+                          });
                         }}
                         className="p-2.5 rounded-xl border border-white/5 bg-void text-ink-3 hover:text-ember transition-colors"
                         title="Remover vídeo"
@@ -1704,6 +1731,20 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           </div>
         )}
       </AnimatePresence>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </div>
   );
 }

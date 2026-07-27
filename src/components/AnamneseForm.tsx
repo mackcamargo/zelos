@@ -5,6 +5,7 @@ import {
   ArrowLeft, ArrowRight, Save, ShieldAlert, Heart, Activity, 
   Target, Info, Check, AlertTriangle, ChevronRight, ClipboardList
 } from 'lucide-react';
+import { ZelosModal } from './ZelosModal';
 
 interface AnamneseFormProps {
   alunoId: string;
@@ -30,6 +31,17 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  // Custom Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   const [formData, setFormData] = useState<Omit<Anamnese, 'criado_em' | 'atualizado_em'>>({
     aluno_id: alunoId,
@@ -148,13 +160,27 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
 
       const { data, error } = await dbService.salvarAnamnese(payload);
       if (error) {
-        alert('Erro ao salvar anamnese: ' + error.message);
+        setModalConfig({
+          show: true,
+          type: 'alert',
+          variant: 'danger',
+          title: 'Erro ao salvar',
+          message: 'Erro ao salvar anamnese: ' + error.message,
+          onConfirm: () => setModalConfig(null)
+        });
       } else {
         if (onSave) onSave();
         onClose();
       }
     } catch (err: any) {
-      alert('Erro inesperado: ' + err.message);
+      setModalConfig({
+        show: true,
+        type: 'alert',
+        variant: 'danger',
+        title: 'Erro inesperado',
+        message: 'Erro inesperado: ' + err.message,
+        onConfirm: () => setModalConfig(null)
+      });
     } finally {
       setSaving(false);
     }
@@ -651,6 +677,20 @@ export function AnamneseForm({ alunoId, onClose, onSave, isPersonalEditing = fal
         </div>
 
       </form>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </div>
   );
 }

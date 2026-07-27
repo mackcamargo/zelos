@@ -5,6 +5,7 @@ import {
   Zap, Moon, Flame, AlertCircle, Scale, 
   MessageSquare, CheckCircle2, X, Loader2
 } from 'lucide-react';
+import { ZelosModal } from './ZelosModal';
 import { motion } from 'motion/react';
 
 interface CheckinFormProps {
@@ -26,6 +27,17 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Custom Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   useEffect(() => {
     loadExistingCheckin();
@@ -82,8 +94,14 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
 
       const { error } = await dbService.salvarCheckin(payload);
       if (error) {
-        console.error('Erro ao salvar check-in:', error);
-        alert(`Erro ao salvar check-in: ${error.message || 'Tente novamente.'}`);
+        setModalConfig({
+          show: true,
+          type: 'alert',
+          variant: 'danger',
+          title: 'Erro ao salvar',
+          message: `Erro ao salvar check-in: ${error.message || 'Tente novamente.'}`,
+          onConfirm: () => setModalConfig(null)
+        });
       } else {
         setSuccess(true);
         setTimeout(() => {
@@ -310,6 +328,20 @@ export default function CheckinForm({ alunoId, personalId, semana, onSuccess, on
           </button>
         </div>
       </motion.div>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </motion.div>
   );
 }

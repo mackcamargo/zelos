@@ -7,6 +7,7 @@ import {
   Zap, Droplet, Utensils, Moon, Footprints, Activity, PhoneOff, Sun,
   CheckCircle2, AlertCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { ZelosModal } from './ZelosModal';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface GerenciarHabitosProps {
@@ -54,6 +55,17 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
   const [newIcone, setNewIcone] = useState('⚡');
   const [newMeta, setNewMeta] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Custom Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    show: boolean;
+    type: 'confirm' | 'alert';
+    variant?: 'danger' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   const toggleExpand = (id: number) => {
     setExpandedHabitoIds(prev => 
@@ -153,28 +165,38 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
   };
 
   const handleDesativar = async (id: number) => {
-    if (!confirm('Deseja realmente remover este hábito do aluno?')) return;
-    
-    try {
-      if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase
-          .from('habitos')
-          .update({ ativo: false })
-          .eq('id', id);
-        if (error) throw error;
-      } else {
-        // Fallback for demo mode
-        const habitosMock = JSON.parse(localStorage.getItem('zenite_habitos') || '[]');
-        const index = habitosMock.findIndex((h: any) => h.id === id);
-        if (index >= 0) {
-          habitosMock[index].ativo = false;
-          localStorage.setItem('zenite_habitos', JSON.stringify(habitosMock));
+    setModalConfig({
+      show: true,
+      type: 'confirm',
+      variant: 'danger',
+      title: 'Remover Hábito?',
+      message: 'Deseja realmente remover este hábito do aluno?',
+      confirmLabel: 'Remover',
+      onConfirm: async () => {
+        try {
+          if (isSupabaseConfigured && supabase) {
+            const { error } = await supabase
+              .from('habitos')
+              .update({ ativo: false })
+              .eq('id', id);
+            if (error) throw error;
+          } else {
+            // Fallback for demo mode
+            const habitosMock = JSON.parse(localStorage.getItem('zenite_habitos') || '[]');
+            const index = habitosMock.findIndex((h: any) => h.id === id);
+            if (index >= 0) {
+              habitosMock[index].ativo = false;
+              localStorage.setItem('zenite_habitos', JSON.stringify(habitosMock));
+            }
+          }
+          setHabitos(prev => prev.filter(h => h.id !== id));
+        } catch (err) {
+          console.error("Erro ao desativar hábito:", err);
+        } finally {
+          setModalConfig(null);
         }
       }
-      setHabitos(prev => prev.filter(h => h.id !== id));
-    } catch (err) {
-      console.error("Erro ao desativar hábito:", err);
-    }
+    });
   };
 
   // Last 7 days helper
@@ -501,6 +523,20 @@ export default function GerenciarHabitos({ alunoId, personalId, isReadOnly = fal
           </div>
         )}
       </div>
+
+      {/* CUSTOM ZELOS MODAL */}
+      {modalConfig && (
+        <ZelosModal
+          show={modalConfig.show}
+          type={modalConfig.type}
+          variant={modalConfig.variant}
+          title={modalConfig.title}
+          message={modalConfig.message}
+          confirmLabel={modalConfig.confirmLabel}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={() => setModalConfig(null)}
+        />
+      )}
     </div>
   );
 }
