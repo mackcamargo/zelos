@@ -47,6 +47,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   const [mostrarOcultos, setMostrarOcultos] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [movingExId, setMovingExId] = useState<string | null>(null);
+  const [duplicatingFrom, setDuplicatingFrom] = useState<string | null>(null);
 
   // Form states
   const [nome, setNome] = useState('');
@@ -212,6 +213,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
 
   // Handle Edit click
   const handleEdit = (ex: Exercicio) => {
+    setDuplicatingFrom(null);
     setSelectedExercicio(ex);
     setNome(ex.nome);
     setCategoriaId(ex.categoria_id);
@@ -231,6 +233,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
 
   // Handle "+ Monte Seu Exercício" click
   const handleNew = () => {
+    setDuplicatingFrom(null);
     const newId = 'ex-' + Math.random().toString(36).substring(2, 9);
     setSelectedExercicio({
       id: newId,
@@ -263,6 +266,44 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setUploadError(null);
     setUploadProgressMasc(null);
     setUploadProgressFem(null);
+  };
+
+  const handleStartDuplicating = (ex: Exercicio) => {
+    const newId = 'ex-' + Math.random().toString(36).substring(2, 9);
+    setDuplicatingFrom(ex.nome);
+    setSelectedExercicio({
+      id: newId,
+      nome: '',
+      categoria_id: ex.ajuste?.categoria_id || ex.categoria_id,
+      personal_id: null, // Will be set to current user ID on save
+      video_url_masc: null,
+      video_url_fem: null,
+      musculo_primario: ex.musculo_primario || [],
+      musculo_secundario: ex.musculo_secundario || [],
+      dicas: ex.dicas || [],
+      publico_alvo: ex.publico_alvo || [],
+      contraindicacoes: ex.contraindicacoes || [],
+      impacto: ex.impacto || null,
+      equipamento: ex.equipamento || ''
+    });
+    
+    setNome('');
+    setCategoriaId(ex.ajuste?.categoria_id || ex.categoria_id);
+    setMusculoPrimario(ex.musculo_primario || []);
+    setMusculoSecundario(ex.musculo_secundario || []);
+    setDicas(ex.dicas || []);
+    setVideoUrlMasc(null);
+    setVideoUrlFem(null);
+    setVideoPreviewMasc(null);
+    setVideoPreviewFem(null);
+    setPublicoAlvo(ex.publico_alvo || []);
+    setContraindicacoes(ex.contraindicacoes || []);
+    setImpacto(ex.impacto || null);
+    setEquipamento(ex.equipamento || '');
+    setUploadError(null);
+    setUploadProgressMasc(null);
+    setUploadProgressFem(null);
+    setOpenMenuId(null);
   };
 
   // Helper to generate a clean URL/storage path slug
@@ -629,6 +670,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
       // SÓ CHEGA AQUI SE SALVOU COM SUCESSO NO BANCO
       await loadData();
       setSelectedExercicio(null);
+      setDuplicatingFrom(null);
       setFeedback("Exercício salvo com sucesso!");
       setTimeout(() => setFeedback(null), 5000);
 
@@ -962,18 +1004,13 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                                               </button>
                                             )}
 
-                                            {isGlobal && (
-                                              <button
-                                                onClick={() => {
-                                                  handleDuplicarExercicio(ex);
-                                                  setOpenMenuId(null);
-                                                }}
-                                                className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-medium text-ink-2 hover:bg-white/5 hover:text-ink flex items-center gap-2 transition-all"
-                                              >
-                                                <Copy className="w-4 h-4 text-violet" />
-                                                <span>Duplicar para minha biblioteca</span>
-                                              </button>
-                                            )}
+                                            <button
+                                              onClick={() => handleStartDuplicating(ex)}
+                                              className="w-full text-left px-3 py-2 rounded-xl text-[12px] font-medium text-ink-2 hover:bg-white/5 hover:text-ink flex items-center gap-2 transition-all"
+                                            >
+                                              <Copy className="w-4 h-4 text-violet" />
+                                              <span>Duplicar exercício</span>
+                                            </button>
                                           </div>
                                         </motion.div>
                                       </>
@@ -1001,6 +1038,14 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
             transition={{ duration: 0.2 }}
             className="space-y-6"
           >
+            {/* Duplication Notice */}
+            {duplicatingFrom && (
+              <div className="p-3 bg-violet/10 border border-violet/20 rounded-xl flex items-center gap-2 text-[11px] text-violet font-semibold">
+                <Copy className="w-3.5 h-3.5" />
+                <span>Duplicando de: <span className="text-violet/80 italic">{duplicatingFrom}</span></span>
+              </div>
+            )}
+
             {/* Form Header */}
             <div className="flex items-center justify-between">
               <button
