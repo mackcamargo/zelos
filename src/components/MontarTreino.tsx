@@ -1421,16 +1421,6 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     </div>
                   );
                 })()}
-
-                {/* Watermark Logo - New orange version */}
-                <div className="absolute bottom-2.5 left-2.5 opacity-35 pointer-events-none z-10 select-none">
-                  <img 
-                    src="/zelos_logo_orange.png" 
-                    alt="Zelos Personal Watermark"
-                    className="w-12 sm:w-16 h-auto"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
               </div>
 
               {/* Content Area - Flex-1 and overflow-hidden to allow internal scroll */}
