@@ -1423,9 +1423,9 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   );
                 })()}
 
-                {/* Watermark Logo */}
-                <div className="absolute bottom-3 left-3 opacity-60 pointer-events-none z-10">
-                  <LogoZelos size="xs" className="scale-75 origin-bottom-left sm:scale-100" />
+                {/* Watermark Logo - Very discreet signature */}
+                <div className="absolute bottom-2.5 left-2.5 opacity-35 pointer-events-none z-10 select-none">
+                  <LogoZelos size="xs" className="scale-[0.4] sm:scale-[0.5] origin-bottom-left" />
                 </div>
               </div>
 
