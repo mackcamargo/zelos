@@ -7,7 +7,6 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { ExerciseMedia } from './ExerciseMedia';
-import LogoZelos from './LogoZelos';
 import { motion, AnimatePresence } from 'motion/react';
 import { ZelosModal } from './ZelosModal';
 
@@ -1423,9 +1422,14 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   );
                 })()}
 
-                {/* Watermark Logo - Very discreet signature */}
+                {/* Watermark Logo - New orange version */}
                 <div className="absolute bottom-2.5 left-2.5 opacity-35 pointer-events-none z-10 select-none">
-                  <LogoZelos size="xs" className="scale-[0.4] sm:scale-[0.5] origin-bottom-left" />
+                  <img 
+                    src="/zelos_logo_orange.png" 
+                    alt="Zelos Personal Watermark"
+                    className="w-12 sm:w-16 h-auto"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
               </div>
 
