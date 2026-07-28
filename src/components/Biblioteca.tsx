@@ -278,7 +278,7 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                       {/* Content block */}
                       <div className="space-y-2 flex-1 flex flex-col justify-between">
                         <div>
-                          <h3 className="font-semibold text-base text-ink group-hover:text-flame transition-colors">
+                          <h3 className="font-semibold text-base text-ink group-hover:text-flame transition-colors truncate">
                             {ex.nome}
                           </h3>
                           <div className="flex flex-wrap gap-1.5 mt-2">

@@ -3,7 +3,7 @@ import { dbService } from '../lib/supabase';
 import { Exercicio, Treino, TreinoExercicioDetailed, Categoria, TemplateTreino, TemplateExercicioDetailed } from '../types';
 import { 
   ArrowLeft, Trash2, ChevronUp, ChevronDown, Plus, Check, Sparkles, 
-  Save, Send, Calendar, Clock, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info, AlertCircle,
+  Save, Send, Calendar, Clock, Search, Dumbbell, Play, RefreshCw, FolderHeart, Info, AlertCircle, X,
   Image as ImageIcon
 } from 'lucide-react';
 import { ExerciseMedia } from './ExerciseMedia';
@@ -48,6 +48,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   const [searchLibrary, setSearchLibrary] = useState('');
   const [loadingLibrary, setLoadingLibrary] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [previewExercise, setPreviewExercise] = useState<Exercicio | null>(null);
 
   // Template states
   const [showTemplatesModal, setShowTemplatesModal] = useState(false);
@@ -1025,10 +1026,12 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       <div
                         id={`lib-exercise-item-${ex.id}`}
                         key={ex.id}
-                        onClick={() => handleAddExercise(ex)}
-                        className="flex items-center justify-between p-2.5 bg-bg-sub rounded-xl border border-line hover:border-line-strong hover:bg-raise transition-all cursor-pointer group clicavel"
+                        className="flex items-center justify-between p-2.5 bg-bg-sub rounded-xl border border-line hover:border-line-strong hover:bg-raise transition-all group clicavel"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
+                        <div 
+                          onClick={() => setPreviewExercise(ex)}
+                          className="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer"
+                        >
                           {/* Small Media thumbnail preview */}
                           <div className="w-10 h-10 rounded-lg bg-surface border border-line flex items-center justify-center overflow-hidden shrink-0 relative">
                             {resolvedVideoUrl ? (
@@ -1041,11 +1044,11 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                             )}
                           </div>
                           
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-xs text-ink group-hover:text-accent transition-colors truncate">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-semibold text-xs text-ink group-hover:text-accent transition-colors truncate block">
                               {ex.nome}
                             </h4>
-                            <span className="font-muscle-tag text-[11px] text-ink-3 block mt-0.5">
+                            <span className="font-muscle-tag text-[11px] text-ink-3 block mt-0.5 truncate">
                               {ex.musculo_primario?.[0]}
                             </span>
                           </div>
@@ -1053,6 +1056,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
                         <button
                           type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddExercise(ex);
+                          }}
                           className="p-1.5 rounded-lg bg-raise text-ink-2 hover:text-white hover:bg-accent transition-colors shrink-0 cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -1366,6 +1373,112 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
           onCancel={() => setModalConfig(null)}
         />
       )}
+
+      {/* EXERCISE PREVIEW MODAL / BOTTOM SHEET */}
+      <AnimatePresence>
+        {previewExercise && (
+          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+            {/* Backdrop for closing */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPreviewExercise(null)}
+              className="absolute inset-0"
+            />
+
+            <motion.div
+              initial={{ y: "100%", opacity: 0.5 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0.5 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh]"
+            >
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setPreviewExercise(null)}
+                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Video Preview */}
+              <div className="aspect-[9/16] w-full bg-void overflow-hidden relative border-b border-white/5">
+                {(() => {
+                  const videoPath = previewExercise.video_url_masc || previewExercise.video_url_fem;
+                  const videoUrl = dbService.getExerciseVideoUrl(videoPath);
+                  
+                  return videoUrl ? (
+                    <ExerciseMedia
+                      src={videoUrl}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-ink-3 gap-3">
+                      <ImageIcon className="w-10 h-10 stroke-1" />
+                      <span className="text-xs">Mídia em breve</span>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-5 overflow-y-auto">
+                <div className="space-y-1">
+                  <h3 className="font-display font-bold text-xl text-ink leading-tight">
+                    {previewExercise.nome}
+                  </h3>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {previewExercise.musculo_primario.map(m => (
+                      <span key={m} className="px-2.5 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-wider">
+                        {m}
+                      </span>
+                    ))}
+                    {previewExercise.musculo_secundario?.map(m => (
+                      <span key={m} className="px-2.5 py-0.5 rounded-full bg-ink/5 border border-ink/10 text-ink-3 text-[11px] font-bold uppercase tracking-wider">
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {previewExercise.dicas && previewExercise.dicas.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[11px] font-bold text-ink-3 uppercase tracking-widest flex items-center gap-1.5">
+                      <Info className="w-3.5 h-3.5" />
+                      Instruções
+                    </h4>
+                    <ul className="space-y-2">
+                      {previewExercise.dicas.map((dica, idx) => (
+                        <li key={idx} className="flex gap-3 text-[12.5px] text-ink-2 leading-relaxed">
+                          <span className="text-accent font-bold">{idx + 1}.</span>
+                          <span>{dica}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Footer Action */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleAddExercise(previewExercise);
+                      setPreviewExercise(null);
+                    }}
+                    className="z-btn z-btn--primary w-full h-12 text-sm font-bold flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    <span>Adicionar ao treino</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
