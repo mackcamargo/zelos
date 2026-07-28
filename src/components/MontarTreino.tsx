@@ -7,6 +7,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { ExerciseMedia } from './ExerciseMedia';
+import LogoZelos from './LogoZelos';
 import { motion, AnimatePresence } from 'motion/react';
 import { ZelosModal } from './ZelosModal';
 
@@ -1421,6 +1422,11 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     </div>
                   );
                 })()}
+
+                {/* Watermark Logo */}
+                <div className="absolute bottom-3 left-3 opacity-60 pointer-events-none z-10">
+                  <LogoZelos size="xs" className="scale-75 origin-bottom-left sm:scale-100" />
+                </div>
               </div>
 
               {/* Content Area - Flex-1 and overflow-hidden to allow internal scroll */}
