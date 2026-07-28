@@ -416,11 +416,9 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
                 className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-fade-in group`}
               >
                 <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'} relative`}>
-                  {showSenderName && (
-                    <span className="text-[12px] font-semibold text-[#F26A1B] mb-1">
-                      {personalFirstName}
-                    </span>
-                  )}
+                  <span className="text-[12px] font-semibold text-[#F26A1B] mb-1">
+                    {isOwn ? 'Você' : `${personalFirstName} Personal`}
+                  </span>
                                <div className="flex items-center gap-1.5 max-w-full">
                     {/* Menu Trigger for Own Message (Not Excluded) */}
                     {isOwn && !isMessageExcluded && !isEditing && !isConfirmingDelete && (

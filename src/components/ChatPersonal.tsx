@@ -709,11 +709,9 @@ export default function ChatPersonal({
                       className={`flex ${isOwn ? 'justify-end' : 'justify-start'} animate-fade-in group`}
                     >
                       <div className={`max-w-[75%] flex flex-col ${isOwn ? 'items-end' : 'items-start'} relative`}>
-                        {showSenderName && (
-                          <span className="text-[12px] font-semibold text-accent mb-1">
-                            {studentFirstName}
-                          </span>
-                        )}
+                        <span className="text-[12px] font-semibold text-accent mb-1">
+                          {isOwn ? 'Você' : studentFirstName}
+                        </span>
                         
                         <div className="flex items-center gap-1.5 max-w-full">
                           {/* Menu Trigger for Own Message (Not Excluded) */}

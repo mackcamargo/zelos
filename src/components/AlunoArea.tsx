@@ -6,7 +6,7 @@ import {
   ShieldCheck, Heart, ArrowLeft, CheckCircle, Play, Sparkles, 
   ChevronRight, Check, Award, Flame, RefreshCw, Star,
   Scale, Plus, ChevronDown, Activity, TrendingDown, Camera, Utensils, BookOpen,
-  Trophy, Info, X,
+  Trophy, Info, X, AlertCircle, Settings2,
   Volume2, VolumeX, Bell,
   Trash2, Loader2, Sun, Moon, Image as ImageIcon
 } from 'lucide-react';
@@ -2885,88 +2885,99 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
               </div>
 
               {/* Grid of info cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Goal section */}
-                {objetivo && (
-                  <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
-                    <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                      <Target className="w-5 h-5 text-accent" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-mono text-accent uppercase tracking-wider block font-bold mb-1">Objetivo Estabelecido</span>
-                      <p className="text-sm text-ink leading-relaxed font-semibold">{objetivo}</p>
-                    </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Column 1: Informações de Aluno */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 px-1 mb-2">
+                    <User className="w-3.5 h-3.5 text-ink-3" />
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-ink-3">Informações</span>
                   </div>
-                )}
-
-                {/* Additional Account Metadata details */}
-                    <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm">
-                  <div className="w-10 h-10 rounded-xl bg-flame/10 flex items-center justify-center shrink-0">
-                    <Calendar className="w-5 h-5 text-flame" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block font-bold mb-1">Criado Em</span>
-                    <p className="text-sm font-mono text-ink font-semibold">
-                      {new Date(profile.criado_em).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                </div>
-
-                    {/* Footer Copyright */}
-                <div className="py-4 text-center text-[11px] text-ink-3 font-mono">
-                  © {new Date().getFullYear()} ZELOS Personal • Todos os direitos reservados
-                </div>
-
-                {/* Sound Settings */}
-                <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-center justify-between shadow-sm">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${somHabilitado ? 'bg-accent/10' : 'bg-ink/5'}`}>
-                      {somHabilitado ? <Volume2 className="w-5 h-5 text-accent" /> : <VolumeX className="w-5 h-5 text-ink-3" />}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-ink">Sons do App</p>
-                      <p className="text-[10px] text-ink-3 uppercase font-mono font-bold">Feedback sonoro</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={toggleSom}
-                    className={`w-12 h-6 rounded-full transition-all relative border border-line ${somHabilitado ? 'bg-accent' : 'bg-surface-2 shadow-inner'}`}
-                  >
-                    <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-all ${somHabilitado ? 'left-6.5' : 'left-0.5'}`} />
-                  </button>
-                </div>
-
-                {/* Theme Settings */}
-                <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl space-y-4 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-4">
+                  
+                  {/* Goal section */}
+                  {objetivo && (
+                    <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm hover:border-accent/30 transition-colors">
                       <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                        <Sparkles className="w-5 h-5 text-accent" />
+                        <Target className="w-5 h-5 text-accent" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-ink">Tema Visual</p>
-                        <p className="text-[10px] text-ink-3 uppercase font-mono font-bold">Aparência do app</p>
+                        <span className="text-[10px] font-mono text-accent uppercase tracking-wider block font-bold mb-1">Objetivo Estabelecido</span>
+                        <p className="text-sm text-ink leading-relaxed font-semibold">{objetivo}</p>
                       </div>
                     </div>
-                    <div className="flex bg-raise border border-line rounded-xl p-1 gap-1 w-full sm:w-auto">
-                      {(['light', 'dark', 'system'] as const).map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => {
-                            setTheme(t);
-                            tocar('tap');
-                          }}
-                          className={`flex-1 sm:flex-initial py-1.5 px-3.5 text-[10px] font-bold rounded-lg transition-all capitalize cursor-pointer uppercase tracking-wider font-mono ${
-                            theme === t 
-                              ? 'bg-accent text-white shadow-md shadow-accent/20' 
-                              : 'text-ink-3 hover:text-ink'
-                          }`}
-                        >
-                          {t === 'light' ? 'Claro' : t === 'dark' ? 'Escuro' : 'Sistema'}
-                        </button>
-                      ))}
+                  )}
+
+                  {/* Additional Account Metadata details */}
+                  <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-start gap-4 shadow-sm hover:border-flame/30 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-flame/10 flex items-center justify-center shrink-0">
+                      <Calendar className="w-5 h-5 text-flame" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block font-bold mb-1">Membro desde</span>
+                      <p className="text-sm font-mono text-ink font-semibold">
+                        {new Date(profile.criado_em).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Column 2: App Preferences */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 px-1 mb-2">
+                    <Settings2 className="w-3.5 h-3.5 text-ink-3" />
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-ink-3">Preferências</span>
+                  </div>
+
+                  {/* Sound Settings */}
+                  <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl flex items-center justify-between shadow-sm hover:border-accent/30 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${somHabilitado ? 'bg-accent/10' : 'bg-ink/5'}`}>
+                        {somHabilitado ? <Volume2 className="w-5 h-5 text-accent" /> : <VolumeX className="w-5 h-5 text-ink-3" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-ink">Sons do App</p>
+                        <p className="text-[10px] text-ink-3 uppercase font-mono font-bold">Feedback sonoro</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleSom}
+                      className={`w-12 h-6 rounded-full transition-all relative border border-line ${somHabilitado ? 'bg-accent' : 'bg-surface-2 shadow-inner'}`}
+                    >
+                      <div className={`absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-all ${somHabilitado ? 'left-6.5' : 'left-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Theme Settings */}
+                  <div className="p-4 sm:p-5 bg-surface border border-line rounded-2xl space-y-4 shadow-sm hover:border-accent/30 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                          <Sparkles className="w-5 h-5 text-accent" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-ink">Tema Visual</p>
+                          <p className="text-[10px] text-ink-3 uppercase font-mono font-bold">Aparência do app</p>
+                        </div>
+                      </div>
+                      <div className="flex bg-raise border border-line rounded-xl p-1 gap-1 w-full sm:w-auto">
+                        {(['light', 'dark', 'system'] as const).map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => {
+                              setTheme(t);
+                              tocar('tap');
+                            }}
+                            className={`flex-1 sm:flex-initial py-1.5 px-3.5 text-[10px] font-bold rounded-lg transition-all capitalize cursor-pointer uppercase tracking-wider font-mono ${
+                              theme === t 
+                                ? 'bg-accent text-white shadow-md shadow-accent/20' 
+                                : 'text-ink-3 hover:text-ink'
+                            }`}
+                          >
+                            {t === 'light' ? 'Claro' : t === 'dark' ? 'Escuro' : 'Sistema'}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2986,6 +2997,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
               </div>
             </div>
 
+            {/* Anamnese Card */}
             {showAnamneseForm ? (
               <AnamneseForm 
                 alunoId={userId} 
@@ -3018,17 +3030,28 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                   {hasAnamnese ? (
                     <>
                       <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
-                      <span className="text-xs font-semibold text-emerald-700">Sua anamnese está preenchida e atualizada para o seu personal trainer.</span>
+                      <div>
+                        <p className="text-sm font-bold text-ink">Anamnese concluída</p>
+                        <p className="text-[11px] text-ink-3">Seus dados estão atualizados e disponíveis para seu treinador.</p>
+                      </div>
                     </>
                   ) : (
                     <>
-                      <Info className="w-5 h-5 text-amber-500 shrink-0" />
-                      <span className="text-xs font-semibold text-amber-700">Você ainda não respondeu a sua anamnese. Responda para liberar treinos mais seguros.</span>
+                      <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+                      <div>
+                        <p className="text-sm font-bold text-ink">Anamnese pendente</p>
+                        <p className="text-[11px] text-ink-3">Responda para que seu treinador possa planejar seus treinos com segurança.</p>
+                      </div>
                     </>
                   )}
                 </div>
               </div>
             )}
+
+            {/* Footer Copyright */}
+            <div className="py-8 text-center text-[10px] text-ink-3 font-mono opacity-60 uppercase tracking-widest">
+              © {new Date().getFullYear()} ZELOS Personal • Todos os direitos reservados
+            </div>
           </div>
         )}
       </main>
