@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { dbService, isSupabaseConfigured, supabase, getHojeString } from '../lib/supabase';
 import { Profile, Exercicio, Treino } from '../types';
 import { 
@@ -122,6 +122,18 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
   const { theme, setTheme, resolved } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('treino');
   const { salvarSessao } = useSessaoPersistente();
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Scroll back to top whenever active tab changes
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.querySelectorAll('main, .overflow-y-auto').forEach(el => {
+      el.scrollTop = 0;
+    });
+  }, [activeTab]);
 
   const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
@@ -1303,7 +1315,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
     </header>
 
       {/* Main View Area */}
-      <main className={`flex-1 w-full px-3 sm:px-6 overflow-y-auto ${
+      <main ref={mainRef} className={`flex-1 w-full px-3 sm:px-6 overflow-y-auto ${
         activeTab === 'chat' 
           ? 'pt-4 pb-[88px] flex flex-col min-h-0 overflow-hidden' 
           : 'pt-8 pb-32 md:pb-16'

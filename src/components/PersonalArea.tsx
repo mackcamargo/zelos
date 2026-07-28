@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
 import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard } from 'lucide-react';
@@ -91,7 +91,20 @@ type TabType = 'dashboard' | 'alunos' | 'exercicios' | 'agenda' | 'checkins' | '
 function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, onProfileUpdate, sessaoRestaurada, onSessaoConsumida }: PersonalAreaProps) {
   const isAdmin = profile.is_admin === true;
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [selectedAlunoIdForFicha, setSelectedAlunoIdForFicha] = useState<string | null>(null);
   const { salvarSessao } = useSessaoPersistente();
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Scroll back to top whenever tab or selected student changes
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.querySelectorAll('main, .overflow-y-auto').forEach(el => {
+      el.scrollTop = 0;
+    });
+  }, [activeTab, selectedAlunoIdForFicha]);
 
   // Restaurar sessão se houver
   useEffect(() => {
@@ -112,7 +125,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   const [checkinsPendingCount, setCheckinsPendingCount] = useState<number>(0);
   const [somHabilitado, setSomLocal] = useState(getSomHabilitado());
 
-  const [selectedAlunoIdForFicha, setSelectedAlunoIdForFicha] = useState<string | null>(null);
   const [selectedAlunoIdForChat, setSelectedAlunoIdForChat] = useState<string | null>(null);
 
   const { assinatura, loading, isReadOnly, daysRemaining } = useSubscription();
@@ -857,7 +869,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
         </header>
 
         {/* Main View Area */}
-        <main className={`flex-1 w-full px-3 sm:px-6 overflow-y-auto ${
+        <main ref={mainRef} className={`flex-1 w-full px-3 sm:px-6 overflow-y-auto ${
           activeTab === 'chat' ? 'pt-4 pb-4 flex flex-col min-h-0 overflow-hidden' : 'pt-8 pb-16'
         }`}>
         

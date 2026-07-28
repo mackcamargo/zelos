@@ -297,6 +297,13 @@ export default function GerenciarAlunos({
   }, [personalId]);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.querySelectorAll('main, .overflow-y-auto').forEach(el => {
+      el.scrollTop = 0;
+    });
+  }, [selectedAluno, isMontandoTreino]);
+
+  useEffect(() => {
     if (initialSelectedAlunoId && alunos.length > 0) {
       const found = alunos.find(a => a.id === initialSelectedAlunoId);
       if (found) {
