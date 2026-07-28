@@ -1392,7 +1392,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0.5 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh]"
+              className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[85vh]"
             >
               {/* Close Button */}
               <button
@@ -1403,8 +1403,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Video Preview */}
-              <div className="aspect-[9/16] w-full bg-void overflow-hidden relative border-b border-white/5">
+              {/* Video Preview - Fixed height (approx 35% of container) */}
+              <div className="h-[35%] w-full bg-void overflow-hidden relative border-b border-white/5">
                 {(() => {
                   const videoPath = previewExercise.video_url_masc || previewExercise.video_url_fem;
                   const videoUrl = dbService.getExerciseVideoUrl(videoPath);
@@ -1423,52 +1423,60 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 })()}
               </div>
 
-              {/* Content */}
-              <div className="p-6 space-y-5 overflow-y-auto">
-                <div className="space-y-1">
+              {/* Content Area - Flex-1 and overflow-hidden to allow internal scroll */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Header Info - Non-scrolling */}
+                <div className="p-5 pb-3 space-y-1">
                   <h3 className="font-display font-bold text-xl text-ink leading-tight">
                     {previewExercise.nome}
                   </h3>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {previewExercise.musculo_primario.map(m => (
-                      <span key={m} className="px-2.5 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-[11px] font-bold uppercase tracking-wider">
+                      <span key={m} className="px-2.5 py-0.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-[10px] font-bold uppercase tracking-wider">
                         {m}
                       </span>
                     ))}
-                    {previewExercise.musculo_secundario?.map(m => (
-                      <span key={m} className="px-2.5 py-0.5 rounded-full bg-ink/5 border border-ink/10 text-ink-3 text-[11px] font-bold uppercase tracking-wider">
+                    {previewExercise.musculo_secundario?.slice(0, 2).map(m => (
+                      <span key={m} className="px-2.5 py-0.5 rounded-full bg-ink/5 border border-ink/10 text-ink-3 text-[10px] font-bold uppercase tracking-wider">
                         {m}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                {previewExercise.dicas && previewExercise.dicas.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-[11px] font-bold text-ink-3 uppercase tracking-widest flex items-center gap-1.5">
-                      <Info className="w-3.5 h-3.5" />
-                      Instruções
-                    </h4>
-                    <ul className="space-y-2">
-                      {previewExercise.dicas.map((dica, idx) => (
-                        <li key={idx} className="flex gap-3 text-[12.5px] text-ink-2 leading-relaxed">
-                          <span className="text-accent font-bold">{idx + 1}.</span>
-                          <span>{dica}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {/* Instructions - Scrolled area */}
+                <div className="flex-1 overflow-y-auto px-5 py-2 custom-scrollbar">
+                  {previewExercise.dicas && previewExercise.dicas.length > 0 ? (
+                    <div className="space-y-2 mb-4">
+                      <h4 className="text-[10px] font-bold text-ink-3 uppercase tracking-widest flex items-center gap-1.5 sticky top-0 bg-surface py-1">
+                        <Info className="w-3.5 h-3.5" />
+                        Instruções
+                      </h4>
+                      <ul className="space-y-1.5 pb-2">
+                        {previewExercise.dicas.map((dica, idx) => (
+                          <li key={idx} className="flex gap-2.5 text-[12px] text-ink-2 leading-tight">
+                            <span className="text-accent font-bold shrink-0">{idx + 1}.</span>
+                            <span>{dica}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-ink-3 text-xs italic">
+                      Nenhuma instrução cadastrada.
+                    </div>
+                  )}
+                </div>
 
-                {/* Footer Action */}
-                <div className="pt-2">
+                {/* Footer Action - Always visible */}
+                <div className="p-5 pt-3 bg-surface border-t border-line/40">
                   <button
                     type="button"
                     onClick={() => {
                       handleAddExercise(previewExercise);
                       setPreviewExercise(null);
                     }}
-                    className="z-btn z-btn--primary w-full h-12 text-sm font-bold flex items-center justify-center gap-2"
+                    className="z-btn z-btn--primary w-full h-12 text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-accent/20"
                   >
                     <Plus className="w-5 h-5" />
                     <span>Adicionar ao treino</span>
