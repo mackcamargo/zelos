@@ -1421,6 +1421,13 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                     </div>
                   );
                 })()}
+
+                {/* Text Watermark */}
+                <div className="absolute bottom-2.5 right-2.5 opacity-75 pointer-events-none z-10 select-none">
+                  <span className="text-[10px] font-semibold text-[#F26A1B] tracking-[0.5px] uppercase">
+                    ZELOS PERSONAL
+                  </span>
+                </div>
               </div>
 
               {/* Content Area - Flex-1 and overflow-hidden to allow internal scroll */}
