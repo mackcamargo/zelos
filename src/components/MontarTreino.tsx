@@ -1392,7 +1392,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0.5 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[85vh]"
+              className="relative w-full sm:max-w-md bg-surface sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden flex flex-col h-auto max-h-[95vh] sm:max-h-[85vh]"
             >
               {/* Close Button */}
               <button
@@ -1404,7 +1404,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               </button>
 
               {/* Video Preview - Fixed height (approx 35% of container) */}
-              <div className="h-[35%] w-full bg-void overflow-hidden relative border-b border-white/5">
+              <div className="h-[30vh] sm:h-[35%] w-full bg-void overflow-hidden relative border-b border-white/5">
                 {(() => {
                   const videoPath = previewExercise.video_url_masc || previewExercise.video_url_fem;
                   const videoUrl = dbService.getExerciseVideoUrl(videoPath);
@@ -1412,7 +1412,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   return videoUrl ? (
                     <ExerciseMedia
                       src={videoUrl}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain bg-void/50"
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full text-ink-3 gap-3">
@@ -1424,7 +1424,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               </div>
 
               {/* Content Area - Flex-1 and overflow-hidden to allow internal scroll */}
-              <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {/* Header Info - Non-scrolling */}
                 <div className="p-5 pb-3 space-y-1">
                   <h3 className="font-display font-bold text-xl text-ink leading-tight">
@@ -1445,10 +1445,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 </div>
 
                 {/* Instructions - Scrolled area */}
-                <div className="flex-1 overflow-y-auto px-5 py-2 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto px-5 py-0 custom-scrollbar">
                   {previewExercise.dicas && previewExercise.dicas.length > 0 ? (
                     <div className="space-y-2 mb-4">
-                      <h4 className="text-[10px] font-bold text-ink-3 uppercase tracking-widest flex items-center gap-1.5 sticky top-0 bg-surface py-1">
+                      <h4 className="text-[10px] font-bold text-ink-3 uppercase tracking-widest flex items-center gap-1.5 sticky top-0 bg-surface py-2 z-10">
                         <Info className="w-3.5 h-3.5" />
                         Instruções
                       </h4>
@@ -1469,7 +1469,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 </div>
 
                 {/* Footer Action - Always visible */}
-                <div className="p-5 pt-3 bg-surface border-t border-line/40">
+                <div className="p-5 pt-3 bg-surface border-t border-line/40 mt-auto">
                   <button
                     type="button"
                     onClick={() => {
