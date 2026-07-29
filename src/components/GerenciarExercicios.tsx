@@ -92,17 +92,13 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   };
 
   // Video Upload States
-  const [uploadProgressMasc, setUploadProgressMasc] = useState<number | null>(null);
-  const [uploadProgressFem, setUploadProgressFem] = useState<number | null>(null);
-  const [videoUrlMasc, setVideoUrlMasc] = useState<string | null>(null);
-  const [videoUrlFem, setVideoUrlFem] = useState<string | null>(null);
-  const [videoPreviewMasc, setVideoPreviewMasc] = useState<string | null>(null);
-  const [videoPreviewFem, setVideoPreviewFem] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const fileInputMascRef = useRef<HTMLInputElement>(null);
-  const fileInputFemRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load Categories & Exercises
   const loadData = async () => {
@@ -202,13 +198,12 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   // Sync previews for existing videos
   useEffect(() => {
     if (!selectedExercicio) {
-      setVideoPreviewMasc(null);
-      setVideoPreviewFem(null);
+      setVideoPreview(null);
       return;
     }
 
-    setVideoPreviewMasc(dbService.getExerciseVideoUrl(selectedExercicio.video_url_masc));
-    setVideoPreviewFem(dbService.getExerciseVideoUrl(selectedExercicio.video_url_fem));
+    // Use video_url_masc as the primary preview (they will be identical anyway)
+    setVideoPreview(dbService.getExerciseVideoUrl(selectedExercicio.video_url_masc || selectedExercicio.video_url_fem));
   }, [selectedExercicio]);
 
   // Handle Edit click
@@ -220,15 +215,13 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setMusculoPrimario(ex.musculo_primario || []);
     setMusculoSecundario(ex.musculo_secundario || []);
     setDicas(ex.dicas || []);
-    setVideoUrlMasc(ex.video_url_masc || null);
-    setVideoUrlFem(ex.video_url_fem || null);
+    setVideoUrl(ex.video_url_masc || ex.video_url_fem || null);
     setPublicoAlvo(ex.publico_alvo || []);
     setContraindicacoes(ex.contraindicacoes || []);
     setImpacto(ex.impacto || null);
     setEquipamento(ex.equipamento || '');
     setUploadError(null);
-    setUploadProgressMasc(null);
-    setUploadProgressFem(null);
+    setUploadProgress(null);
   };
 
   // Handle "+ Monte Seu Exercício" click
@@ -255,17 +248,14 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setMusculoPrimario([]);
     setMusculoSecundario([]);
     setDicas([]);
-    setVideoUrlMasc(null);
-    setVideoUrlFem(null);
-    setVideoPreviewMasc(null);
-    setVideoPreviewFem(null);
+    setVideoUrl(null);
+    setVideoPreview(null);
     setPublicoAlvo([]);
     setContraindicacoes([]);
     setImpacto(null);
     setEquipamento('');
     setUploadError(null);
-    setUploadProgressMasc(null);
-    setUploadProgressFem(null);
+    setUploadProgress(null);
   };
 
   const handleStartDuplicating = (ex: Exercicio) => {
@@ -292,17 +282,14 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     setMusculoPrimario(ex.musculo_primario || []);
     setMusculoSecundario(ex.musculo_secundario || []);
     setDicas(ex.dicas || []);
-    setVideoUrlMasc(null);
-    setVideoUrlFem(null);
-    setVideoPreviewMasc(null);
-    setVideoPreviewFem(null);
+    setVideoUrl(null);
+    setVideoPreview(null);
     setPublicoAlvo(ex.publico_alvo || []);
     setContraindicacoes(ex.contraindicacoes || []);
     setImpacto(ex.impacto || null);
     setEquipamento(ex.equipamento || '');
     setUploadError(null);
-    setUploadProgressMasc(null);
-    setUploadProgressFem(null);
+    setUploadProgress(null);
     setOpenMenuId(null);
   };
 
@@ -319,7 +306,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   };
 
   // Handle file select & upload
-  const handleVideoUpload = async (file: File, gender: 'masc' | 'fem') => {
+  const handleVideoUpload = async (file: File) => {
     if (file.size > 50 * 1024 * 1024) {
       setUploadError('O arquivo excede o limite recomendado de 50MB. Comprima-o antes do envio.');
       return;
@@ -332,13 +319,9 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     }
 
     setUploadError(null);
-    const setProgress = gender === 'masc' ? setUploadProgressMasc : setUploadProgressFem;
-    const setUrl = gender === 'masc' ? setVideoUrlMasc : setVideoUrlFem;
-    const setPreview = gender === 'masc' ? setVideoPreviewMasc : setVideoPreviewFem;
-
-    setProgress(10);
+    setUploadProgress(10);
     const interval = setInterval(() => {
-      setProgress((prev) => {
+      setUploadProgress((prev) => {
         if (prev === null) return null;
         if (prev >= 90) return prev;
         return prev + 15;
@@ -346,7 +329,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     }, 200);
 
     try {
-      // 1. GARANTIR SESSÃO VÁLIDA (BUG 2: TELA TRAVA)
+      // 1. GARANTIR SESSÃO VÁLIDA
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
         const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
@@ -359,7 +342,6 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
       let id_exercicio: any = isNew ? null : selectedExercicio!.id;
 
       if (isSupabaseConfigured && supabase) {
-        // Descobre o personal logado (obrigatório: exercicios.personal_id deve ser = auth.uid())
         const { data: userData } = await supabase.auth.getUser();
         const personalId = userData?.user?.id;
         if (!personalId) {
@@ -404,17 +386,15 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           throw new Error('ID do exercício inválido para persistência de vídeo.');
         }
 
-        // BUG 1: TROCAR VÍDEO - USAR CAMINHO ESTÁVEL E QUEBRAR CACHE
-        const dbField = gender === 'masc' ? 'video_url_masc' : 'video_url_fem';
-        const oldPath = selectedExercicio ? (selectedExercicio as any)[dbField] : null;
+        const oldPath = selectedExercicio ? selectedExercicio.video_url_masc : null;
 
         // Nome novo e único (timestamp) para garantir que o navegador não use cache
         const timestamp = Date.now();
         const extension = file.name.split('.').pop() || (file.type.startsWith('video/') ? 'mp4' : 'jpg');
-        const newFilename = `${id_exercicio}-${gender}-${timestamp}.${extension}`;
+        const newFilename = `${id_exercicio}-${timestamp}.${extension}`;
         const caminho = `videos/${newFilename}`; 
 
-        // Função de upload com tentativa de reconexão (BUG 2)
+        // Função de upload com tentativa de reconexão
         const performUpload = async (retry = true): Promise<void> => {
           const { error: uploadErr } = await supabase.storage
             .from('exercicios')
@@ -434,16 +414,20 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
 
         await performUpload();
 
+        // Update both masc and fem columns with the same path
         const { error: updError } = await supabase
           .from('exercicios')
-          .update({ [dbField]: caminho })
+          .update({ 
+            video_url_masc: caminho,
+            video_url_fem: caminho 
+          })
           .eq('id', id_exercicio);
 
         if (updError) {
           throw new Error(`Erro ao salvar caminho do vídeo no banco: ${updError.message}`);
         }
 
-        // SUCESSO NO BANCO -> AGORA PODEMOS APAGAR O ANTIGO (BUG 1)
+        // SUCESSO NO BANCO -> AGORA PODEMOS APAGAR O ANTIGO
         if (oldPath && oldPath !== caminho) {
           try {
             await supabase.storage.from('exercicios').remove([oldPath]);
@@ -462,50 +446,33 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           throw new Error(`Erro ao confirmar gravação: ${selectErr?.message || 'Erro'}`);
         }
 
-        const verifiedPath = gender === 'masc' ? selectData.video_url_masc : selectData.video_url_fem;
-        
-        setProgress(100);
-        setUrl(verifiedPath);
-        setPreview(URL.createObjectURL(file));
-        
+        setUploadProgress(100);
+        setVideoUrl(selectData.video_url_masc);
+        setVideoPreview(URL.createObjectURL(file));
         setSelectedExercicio(selectData);
-        setVideoUrlMasc(selectData.video_url_masc || null);
-        setVideoUrlFem(selectData.video_url_fem || null);
-
-        if (selectData.video_url_masc) {
-          setVideoPreviewMasc(dbService.getExerciseVideoUrl(selectData.video_url_masc));
-        }
-        if (selectData.video_url_fem) {
-          setVideoPreviewFem(dbService.getExerciseVideoUrl(selectData.video_url_fem));
-        }
 
         await loadData();
       } else {
         const mockId = id_exercicio || 'ex-' + Math.random().toString(36).substring(2, 9);
         const selectedCat = categorias.find((c) => c.id === categoriaId);
         const catSlug = selectedCat ? selectedCat.slug : 'geral';
-        const caminho = gender === 'masc' ? `${catSlug}/${mockId}-masc.mp4` : `${catSlug}/${mockId}-fem.mp4`;
-        const dbField = gender === 'masc' ? 'video_url_masc' : 'video_url_fem';
+        const caminho = `${catSlug}/${mockId}.mp4`;
 
-        const { error: updateErr } = await dbService.updateExercicioVideo(mockId, dbField, caminho);
-        if (updateErr) {
-          setUploadError(`Erro ao persistir caminho mock: ${updateErr.message}`);
-          setProgress(null);
-          clearInterval(interval);
-          return;
-        }
+        // Mock update for both fields
+        await dbService.updateExercicioVideo(mockId, 'video_url_masc', caminho);
+        await dbService.updateExercicioVideo(mockId, 'video_url_fem', caminho);
 
-        setProgress(100);
-        setUrl(caminho);
-        setPreview(URL.createObjectURL(file));
+        setUploadProgress(100);
+        setVideoUrl(caminho);
+        setVideoPreview(URL.createObjectURL(file));
       }
 
-      setTimeout(() => setProgress(null), 1500);
+      setTimeout(() => setUploadProgress(null), 1500);
     } catch (err: any) {
       clearInterval(interval);
       console.error('Erro no upload de vídeo:', err);
       setUploadError(`Erro no upload: ${err.message || 'Ocorreu uma exceção inesperada'}`);
-      setProgress(null);
+      setUploadProgress(null);
     }
   };
 
@@ -606,8 +573,8 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           musculo_primario: finalPrimarios,
           musculo_secundario: finalAuxiliares,
           dicas: finalDicas,
-          video_url_masc: videoUrlMasc || null,
-          video_url_fem: videoUrlFem || null,
+          video_url_masc: videoUrl || null,
+          video_url_fem: videoUrl || null,
           publico_alvo: finalPublico,
           contraindicacoes: finalContra,
           impacto: impacto || null,
@@ -650,8 +617,8 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
           nome: nome.trim(),
           categoria_id: categoriaId,
           personal_id: selectedExercicio?.personal_id || null,
-          video_url_masc: videoUrlMasc,
-          video_url_fem: videoUrlFem,
+          video_url_masc: videoUrl,
+          video_url_fem: videoUrl,
           musculo_primario: finalPrimarios,
           musculo_secundario: finalAuxiliares,
           dicas: finalDicas,
@@ -821,8 +788,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       <tr className="border-b border-line bg-raise text-ink-3 text-[12px] h-14">
                         <th className="px-6 font-semibold align-middle">Nome</th>
                         <th className="px-6 font-semibold align-middle">Categoria</th>
-                        <th className="px-6 text-center font-semibold align-middle">Vídeo masc</th>
-                        <th className="px-6 text-center font-semibold align-middle">Vídeo fem</th>
+                        <th className="px-6 text-center font-semibold align-middle">Vídeo de demonstração</th>
                         <th className="px-6 text-right font-semibold align-middle">Ação</th>
                       </tr>
                     </thead>
@@ -891,20 +857,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             </td>
                             <td className="py-4 px-6 text-center">
                               <div className="inline-flex items-center justify-center">
-                                {ex.video_url_masc ? (
-                                  <span className="text-[10px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2 py-0.5 rounded-full">
-                                    <Check className="w-3 h-3" strokeWidth={2.5} />
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] font-medium flex items-center gap-1 bg-white/5 text-ink-3 px-2 py-0.5 rounded-full border border-line">
-                                    <X className="w-3 h-3 text-danger" />
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-4 px-6 text-center">
-                              <div className="inline-flex items-center justify-center">
-                                {ex.video_url_fem ? (
+                                {(ex.video_url_masc || ex.video_url_fem) ? (
                                   <span className="text-[10px] font-semibold flex items-center gap-1 bg-ok/10 border border-ok/20 text-ok px-2 py-0.5 rounded-full">
                                     <Check className="w-3 h-3" strokeWidth={2.5} />
                                   </span>
@@ -1456,35 +1409,44 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                 </div>
               </div>
 
-              {/* RIGHT FORM COLUMN: VIDEO UPLOADS & SAVE (5 cols) */}
+              {/* RIGHT FORM COLUMN: VIDEO UPLOAD & SAVE (5 cols) */}
               <div className="md:col-span-5 space-y-6">
                 
-                {/* UPLOAD MASCULINO */}
+                {/* VÍDEO DE DEMONSTRAÇÃO UNIFICADO */}
                 <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
                   <div className="flex justify-between items-center border-b border-white/5 pb-3">
                     <div className="flex items-center gap-1.5">
-                      <ImageIcon className="w-4 h-4 text-violet" />
-                      <h4 className="font-display font-medium text-sm text-ink">Demonstração masculina</h4>
+                      <Film className="w-4 h-4 text-accent" />
+                      <h4 className="font-display font-medium text-sm text-ink">Vídeo de demonstração</h4>
                     </div>
-                    {selectedExercicio?.video_url_masc ? (
+                    {videoUrl ? (
                       <span className="text-[12px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-semibold">
-                        MASC ✓
+                        CONCLUÍDO ✓
                       </span>
                     ) : (
                       <span className="text-[12px] text-ink-3 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                        MASC PENDENTE
+                        PENDENTE
                       </span>
                     )}
                   </div>
 
                   {/* Video preview / upload box */}
-                  <div className="aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">
-                    {videoPreviewMasc ? (
-                      <div className="relative w-full h-full">
+                  <div 
+                    className={`aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border-2 border-dashed transition-all cursor-pointer flex items-center justify-center ${
+                      videoPreview ? 'border-accent/40 bg-accent/5' : 'border-white/5 hover:border-accent/50 hover:bg-raise'
+                    }`}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {videoPreview ? (
+                      <div className="relative w-full h-full group">
                         <ExerciseMedia
-                          src={videoPreviewMasc}
+                          src={videoPreview}
                           className="w-full h-full object-cover brightness-95"
                         />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                          <UploadCloud className="w-8 h-8 text-white" />
+                          <span className="text-white text-[10px] font-bold uppercase tracking-wider">Alterar vídeo</span>
+                        </div>
                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
                           <span>Movimento Ilustrativo</span>
@@ -1499,27 +1461,27 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     )}
 
                     {/* Overlay progress bar */}
-                    {uploadProgressMasc !== null && (
-                      <div className="absolute inset-0 bg-void/90 backdrop-blur-sm flex flex-col items-center justify-center p-4">
+                    {uploadProgress !== null && (
+                      <div className="absolute inset-0 bg-void/90 backdrop-blur-sm flex flex-col items-center justify-center p-4 z-20">
                         <Loader className="w-8 h-8 text-flame animate-spin mb-2" />
-                        <span className="text-xs font-mono text-ink">Enviando vídeo: {uploadProgressMasc}%</span>
+                        <span className="text-xs font-mono text-ink text-center">Enviando demonstração: {uploadProgress}%</span>
                         <div className="w-32 h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
                           <div 
                             className="h-full bg-flame transition-all duration-300" 
-                            style={{ width: `${uploadProgressMasc}%` }}
+                            style={{ width: `${uploadProgress}%` }}
                           />
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* File selectors */}
+                  {/* File selector */}
                   <input
                     type="file"
-                    ref={fileInputMascRef}
+                    ref={fileInputRef}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) handleVideoUpload(file, 'masc');
+                      if (file) handleVideoUpload(file);
                     }}
                     accept="video/mp4,image/gif,image/jpeg,image/png,image/webp"
                     className="hidden"
@@ -1529,14 +1491,14 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     {!isReadOnly && (
                       <button
                         type="button"
-                        onClick={() => fileInputMascRef.current?.click()}
+                        onClick={() => fileInputRef.current?.click()}
                         className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
                       >
                         <UploadCloud className="w-4 h-4" />
-                        <span>{videoUrlMasc ? 'Substituir Mídia' : 'Escolher Mídia'}</span>
+                        <span>{videoUrl ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
                       </button>
                     )}
-                    {!isReadOnly && videoUrlMasc && (
+                    {!isReadOnly && videoUrl && (
                       <button
                         type="button"
                         onClick={() => {
@@ -1545,19 +1507,23 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                             type: 'confirm',
                             variant: 'danger',
                             title: 'Remover Vídeo?',
-                            message: 'Deseja remover o vídeo masculino permanentemente?',
+                            message: 'Deseja remover o vídeo de demonstração permanentemente?',
                             confirmLabel: 'Remover',
                             onConfirm: async () => {
-                              const oldPath = videoUrlMasc;
-                              setVideoUrlMasc(null);
-                              setVideoPreviewMasc(null);
+                              const oldPath = videoUrl;
+                              setVideoUrl(null);
+                              setVideoPreview(null);
                               
                               if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
                                 try {
                                   if (oldPath && !oldPath.startsWith('http')) {
                                     await supabase.storage.from('exercicios').remove([oldPath]);
                                   }
-                                  await supabase.from('exercicios').update({ video_url_masc: null }).eq('id', selectedExercicio.id);
+                                  // Update both fields to null
+                                  await supabase.from('exercicios').update({ 
+                                    video_url_masc: null,
+                                    video_url_fem: null 
+                                  }).eq('id', selectedExercicio.id);
                                 } catch (err) {
                                   console.error('Erro ao remover vídeo do storage/banco:', err);
                                 }
@@ -1573,121 +1539,10 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       </button>
                     )}
                   </div>
-                </div>
-
-                {/* UPLOAD FEMININO */}
-                <div className="bg-surface border border-white/5 rounded-3xl p-6 space-y-4">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                    <div className="flex items-center gap-1.5">
-                      <ImageIcon className="w-4 h-4 text-flame" />
-                      <h4 className="font-display font-medium text-sm text-ink">Demonstração feminina</h4>
-                    </div>
-                    {selectedExercicio?.video_url_fem ? (
-                      <span className="text-[12px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-semibold">
-                        FEM ✓
-                      </span>
-                    ) : (
-                      <span className="text-[12px] text-ink-3 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                        FEM PENDENTE
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Video preview / upload box */}
-                  <div className="aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border border-white/5 flex items-center justify-center">
-                    {videoPreviewFem ? (
-                      <div className="relative w-full h-full">
-                        <ExerciseMedia
-                          src={videoPreviewFem}
-                          className="w-full h-full object-cover brightness-95"
-                        />
-                        <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
-                          <Sparkles className="w-3 h-3 text-flame animate-pulse" />
-                          <span>Movimento Ilustrativo</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center p-6 space-y-2 text-ink-3">
-                        <UploadCloud className="w-10 h-10 mx-auto stroke-1 text-ink-3 animate-pulse" />
-                        <p className="text-[11px] font-medium text-ink-2">Arraste ou clique para enviar</p>
-                        <p className="text-[9px] font-mono uppercase">MP4, GIF, JPG, PNG (MÁX 50MB)</p>
-                      </div>
-                    )}
-
-                    {/* Overlay progress bar */}
-                    {uploadProgressFem !== null && (
-                      <div className="absolute inset-0 bg-void/90 backdrop-blur-sm flex flex-col items-center justify-center p-4">
-                        <Loader className="w-8 h-8 text-flame animate-spin mb-2" />
-                        <span className="text-xs font-mono text-ink">Enviando vídeo: {uploadProgressFem}%</span>
-                        <div className="w-32 h-1 bg-white/10 rounded-full mt-2 overflow-hidden">
-                          <div 
-                            className="h-full bg-flame transition-all duration-300" 
-                            style={{ width: `${uploadProgressFem}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* File selectors */}
-                  <input
-                    type="file"
-                    ref={fileInputFemRef}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleVideoUpload(file, 'fem');
-                    }}
-                    accept="video/mp4,image/gif,image/jpeg,image/png,image/webp"
-                    className="hidden"
-                  />
-
-                  <div className="flex gap-2">
-                    {!isReadOnly && (
-                      <button
-                        type="button"
-                        onClick={() => fileInputFemRef.current?.click()}
-                        className="w-full py-2.5 rounded-xl border border-white/5 bg-surface-2 hover:bg-surface-3 hover:border-white/10 text-xs font-semibold text-ink-2 hover:text-ink transition-colors flex items-center justify-center gap-1.5"
-                      >
-                        <UploadCloud className="w-4 h-4" />
-                        <span>{videoUrlFem ? 'Substituir Mídia' : 'Escolher Mídia'}</span>
-                      </button>
-                    )}
-                    {!isReadOnly && videoUrlFem && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setModalConfig({
-                            show: true,
-                            type: 'confirm',
-                            variant: 'danger',
-                            title: 'Remover Vídeo?',
-                            message: 'Deseja remover o vídeo feminino permanentemente?',
-                            confirmLabel: 'Remover',
-                            onConfirm: async () => {
-                              const oldPath = videoUrlFem;
-                              setVideoUrlFem(null);
-                              setVideoPreviewFem(null);
-                              
-                              if (selectedExercicio?.id && !String(selectedExercicio.id).startsWith('ex-')) {
-                                try {
-                                  if (oldPath && !oldPath.startsWith('http')) {
-                                    await supabase.storage.from('exercicios').remove([oldPath]);
-                                  }
-                                  await supabase.from('exercicios').update({ video_url_fem: null }).eq('id', selectedExercicio.id);
-                                } catch (err) {
-                                  console.error('Erro ao remover vídeo do storage/banco:', err);
-                                }
-                              }
-                              setModalConfig(null);
-                            }
-                          });
-                        }}
-                        className="p-2.5 rounded-xl border border-white/5 bg-void text-ink-3 hover:text-ember transition-colors"
-                        title="Remover vídeo"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                  
+                  <div className="flex items-start gap-2 px-1 pt-1 text-[11px] text-ink-3 italic leading-tight">
+                    <Info className="w-3.5 h-3.5 shrink-0 text-accent" />
+                    <p>O mesmo vídeo será exibido para ambos os avatares no app do aluno.</p>
                   </div>
                 </div>
 
