@@ -658,7 +658,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     const matchesSearch = ex.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ex.musculo_primario.some((m) => m.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesCategory = selectedCategoryFilter === 'todos' || categoriaEfetiva === selectedCategoryFilter;
+    const matchesCategory = selectedCategoryFilter === 'todos' || String(categoriaEfetiva) === selectedCategoryFilter;
     
     // Filtro de visibilidade
     if (!mostrarOcultos && isOculto) return false;
