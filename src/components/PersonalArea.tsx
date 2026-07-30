@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard, Sun, Moon } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarCortesias from './GerenciarCortesias';
@@ -128,7 +128,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   const [selectedAlunoIdForChat, setSelectedAlunoIdForChat] = useState<string | null>(null);
 
   const { assinatura, loading, isReadOnly, daysRemaining } = useSubscription();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolved } = useTheme();
 
   useEffect(() => {
     const tabLabels: Record<TabType, string> = {
@@ -851,11 +851,32 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex flex-col items-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setTheme(resolved === 'dark' ? 'light' : 'dark');
+                  tocar('tap');
+                }}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-line bg-surface flex items-center justify-center text-ink-3 hover:text-accent hover:border-accent/30 transition-all active:scale-95 shadow-sm cursor-pointer"
+                title={`Alternar para tema ${resolved === 'dark' ? 'claro' : 'escuro'}`}
+              >
+                {resolved === 'dark' ? (
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                ) : (
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-ink-3" />
+                )}
+              </button>
+
+              <div className="hidden sm:flex flex-col items-end cursor-pointer" onClick={() => handleTabChange('perfil')}>
                 <span className="text-sm font-semibold text-ink">{profile.nome}</span>
                 <span className="text-[12px] text-ink-2">Personal</span>
               </div>
-              <div className="w-9 h-9 rounded-full brand-gradient-bg p-[1px]">
+              <button
+                type="button"
+                onClick={() => handleTabChange('perfil')}
+                className="w-9 h-9 rounded-full brand-gradient-bg p-[1px] cursor-pointer"
+                title="Ir para meu perfil"
+              >
                 <div className="w-full h-full rounded-full bg-raise flex items-center justify-center font-display font-semibold text-ink text-sm overflow-hidden">
                   {profile.avatar_url ? (
                     <img src={profile.avatar_url} alt={profile.nome} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -863,7 +884,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
                     profile.nome.charAt(0).toUpperCase()
                   )}
                 </div>
-              </div>
+              </button>
             </div>
           </div>
         </header>

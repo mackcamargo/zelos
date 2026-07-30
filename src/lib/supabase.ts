@@ -59,6 +59,7 @@ interface MockUser {
   avatar_tipo: TipoAvatar;
   avatar_url: string | null;
   criado_em: string;
+  tema_preferido?: string | null;
 }
 
 // Helper to load/save from localStorage
@@ -3110,6 +3111,33 @@ export const dbService = {
     if (alunoIdx >= 0) {
       if (Alunos[alunoIdx].profile) {
         Alunos[alunoIdx].profile.avatar_url = avatarUrl;
+      }
+      save('zenite_mock_alunos', Alunos);
+    }
+    return { error: null };
+  },
+
+  async updateProfileTheme(userId: string, temaPreferido: 'claro' | 'escuro'): Promise<{ error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ tema_preferido: temaPreferido })
+        .eq('id', userId);
+      return { error };
+    }
+    // Mock mode: update local mock users and mock student profiles
+    const users = loadMockUsers();
+    const userIdx = users.findIndex(u => u.id === userId);
+    if (userIdx >= 0) {
+      users[userIdx].tema_preferido = temaPreferido;
+      save('zenite_mock_users', users);
+    }
+
+    const Alunos = loadMockAlunos();
+    const alunoIdx = Alunos.findIndex(a => a.id === userId || a.profile?.id === userId);
+    if (alunoIdx >= 0) {
+      if (Alunos[alunoIdx].profile) {
+        Alunos[alunoIdx].profile.tema_preferido = temaPreferido;
       }
       save('zenite_mock_alunos', Alunos);
     }

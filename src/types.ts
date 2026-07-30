@@ -9,6 +9,7 @@ export interface Profile {
   avatar_tipo: TipoAvatar | null;
   criado_em: string;
   is_admin?: boolean;
+  tema_preferido?: 'claro' | 'escuro' | string | null;
 }
 
 export interface Personal {

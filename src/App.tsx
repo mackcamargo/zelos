@@ -10,6 +10,7 @@ import LogoZelos from './components/LogoZelos';
 import { useSessaoPersistente, SessaoAtiva } from './hooks/useSessaoPersistente';
 import AtualizacaoDisponivel from './components/AtualizacaoDisponivel';
 import CardInstalarPWA from './components/CardInstalarPWA';
+import { useTheme } from './contexts/ThemeContext';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -20,6 +21,15 @@ export default function App() {
   const [modoRecuperacao, setModoRecuperacao] = useState(false);
   const [sessaoRecuperada, setSessaoRecuperada] = useState<SessaoAtiva | null>(null);
   const { carregarSessao, limparSessao } = useSessaoPersistente();
+  const { syncUserTheme } = useTheme();
+
+  useEffect(() => {
+    if (profile) {
+      syncUserTheme(profile.id, profile.tema_preferido);
+    } else {
+      syncUserTheme(null, null);
+    }
+  }, [profile?.id, profile?.tema_preferido]);
 
   useEffect(() => {
     initSom();
