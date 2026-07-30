@@ -391,6 +391,13 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         if (authError) {
           setError(traduzErro(authError.message));
         } else if (data?.user) {
+          // Google Ads Conversion tracking
+          if (typeof (window as any).gtag === 'function') {
+            (window as any).gtag('event', 'conversion', {
+              'send_to': 'AW-18360766421/73M-CL_zo9kcENWfjLNE'
+            });
+          }
+
           if (!data.session) {
             setIsLogin(true);
             playSuccess();
