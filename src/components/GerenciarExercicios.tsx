@@ -1466,6 +1466,12 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                           src={videoPreview}
                           className="w-full h-full object-cover brightness-95"
                         />
+                        {/* Source Credit */}
+                        <div className="absolute top-2.5 inset-x-0 flex justify-center opacity-90 pointer-events-none z-10 select-none">
+                          <span className="text-[10px] font-semibold text-[#F26A1B]">
+                            Créditos gifdotreino.com
+                          </span>
+                        </div>
                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
                           <span>Movimento Ilustrativo</span>
