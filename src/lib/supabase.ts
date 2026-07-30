@@ -743,41 +743,91 @@ export const dbService = {
     return { data: filtered, error: null };
   },
 
+  sanitizeStorageUrl(rawUrlOrPath: string | null): string | null {
+    if (!rawUrlOrPath) return null;
+    if (rawUrlOrPath.startsWith('data:') || rawUrlOrPath.startsWith('blob:')) {
+      return rawUrlOrPath;
+    }
+
+    const sanitizeSegments = (p: string) => {
+      return p
+        .split('/')
+        .map(segment => {
+          try {
+            return encodeURIComponent(decodeURIComponent(segment));
+          } catch {
+            return encodeURIComponent(segment);
+          }
+        })
+        .join('/');
+    };
+
+    if (rawUrlOrPath.startsWith('http://') || rawUrlOrPath.startsWith('https://')) {
+      try {
+        const urlObj = new URL(rawUrlOrPath);
+        urlObj.pathname = sanitizeSegments(urlObj.pathname);
+        return urlObj.toString();
+      } catch {
+        return rawUrlOrPath.replace(/ /g, '%20');
+      }
+    }
+
+    const [base, query] = rawUrlOrPath.split('?');
+    const encodedBase = sanitizeSegments(base);
+    return query ? `${encodedBase}?${query}` : encodedBase;
+  },
+
   async getSignedUrl(path: string): Promise<string | null> {
     if (!path) return null;
-    // Se já for uma URL completa ou data URI (mock), retorna direto
-    if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) {
+    if (path.startsWith('data:') || path.startsWith('blob:')) {
       return path;
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return this.sanitizeStorageUrl(path);
     }
     if (isSupabaseConfigured && supabase) {
       // Como tornamos o bucket público, podemos usar getPublicUrl para melhor performance e cache
       const { data } = supabase.storage
         .from('exercicios')
         .getPublicUrl(path);
-      return data?.publicUrl ?? null;
+      return data?.publicUrl ? this.sanitizeStorageUrl(data.publicUrl) : null;
     }
     // Modo demo: tenta recuperar blob local
-    if ((window as any).__zenite_mock_videos && (window as any).__zenite_mock_videos[path]) {
-      return (window as any).__zenite_mock_videos[path];
+    if ((window as any).__zenite_mock_videos) {
+      if ((window as any).__zenite_mock_videos[path]) {
+        return (window as any).__zenite_mock_videos[path];
+      }
+      const decoded = decodeURIComponent(path);
+      if ((window as any).__zenite_mock_videos[decoded]) {
+        return (window as any).__zenite_mock_videos[decoded];
+      }
     }
-    return path;
+    return this.sanitizeStorageUrl(path);
   },
 
   getExerciseVideoUrl(path: string | null): string | null {
     if (!path) return null;
-    // Se já for uma URL completa ou data URI (mock), retorna direto
-    if (path.startsWith('http') || path.startsWith('data:') || path.startsWith('blob:')) {
+    if (path.startsWith('data:') || path.startsWith('blob:')) {
       return path;
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return this.sanitizeStorageUrl(path);
     }
     if (isSupabaseConfigured && supabase) {
       const { data } = supabase.storage.from('exercicios').getPublicUrl(path);
-      return data.publicUrl;
+      return data?.publicUrl ? this.sanitizeStorageUrl(data.publicUrl) : null;
     }
     // Modo demo: tenta recuperar blob local
-    if ((window as any).__zenite_mock_videos && (window as any).__zenite_mock_videos[path]) {
-      return (window as any).__zenite_mock_videos[path];
+    if ((window as any).__zenite_mock_videos) {
+      if ((window as any).__zenite_mock_videos[path]) {
+        return (window as any).__zenite_mock_videos[path];
+      }
+      const decoded = decodeURIComponent(path);
+      if ((window as any).__zenite_mock_videos[decoded]) {
+        return (window as any).__zenite_mock_videos[decoded];
+      }
     }
-    return path;
+    return this.sanitizeStorageUrl(path);
   },
 
   async saveExercicio(exercicio: Partial<Exercicio>): Promise<{ data: Exercicio | null; error: any }> {

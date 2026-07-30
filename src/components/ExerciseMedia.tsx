@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 interface ExerciseMediaProps {
@@ -9,6 +9,40 @@ interface ExerciseMediaProps {
   loop?: boolean;
   muted?: boolean;
   controls?: boolean;
+}
+
+export function sanitizeStorageUrl(rawUrlOrPath: string | null): string | null {
+  if (!rawUrlOrPath) return null;
+  if (rawUrlOrPath.startsWith('data:') || rawUrlOrPath.startsWith('blob:')) {
+    return rawUrlOrPath;
+  }
+
+  const sanitizeSegments = (p: string) => {
+    return p
+      .split('/')
+      .map(segment => {
+        try {
+          return encodeURIComponent(decodeURIComponent(segment));
+        } catch {
+          return encodeURIComponent(segment);
+        }
+      })
+      .join('/');
+  };
+
+  if (rawUrlOrPath.startsWith('http://') || rawUrlOrPath.startsWith('https://')) {
+    try {
+      const urlObj = new URL(rawUrlOrPath);
+      urlObj.pathname = sanitizeSegments(urlObj.pathname);
+      return urlObj.toString();
+    } catch {
+      return rawUrlOrPath.replace(/ /g, '%20');
+    }
+  }
+
+  const [base, query] = rawUrlOrPath.split('?');
+  const encodedBase = sanitizeSegments(base);
+  return query ? `${encodedBase}?${query}` : encodedBase;
 }
 
 export const ExerciseMedia: React.FC<ExerciseMediaProps> = ({
@@ -22,7 +56,9 @@ export const ExerciseMedia: React.FC<ExerciseMediaProps> = ({
 }) => {
   const [error, setError] = useState(false);
 
-  if (!src) return null;
+  const formattedSrc = useMemo(() => sanitizeStorageUrl(src), [src]);
+
+  if (!formattedSrc) return null;
 
   if (error) {
     return (
@@ -34,12 +70,13 @@ export const ExerciseMedia: React.FC<ExerciseMediaProps> = ({
   }
 
   // Detect type by extension or mimetype if available in data URI
-  const isImage = /\.(jpg|jpeg|png|webp|gif|avif|svg)$/i.test(src) || src.startsWith('data:image/');
+  const cleanUrlPath = formattedSrc.split('?')[0].split('#')[0];
+  const isImage = /\.(jpg|jpeg|png|webp|gif|avif|svg)$/i.test(cleanUrlPath) || formattedSrc.startsWith('data:image/');
   
   if (isImage) {
     return (
       <img 
-        src={src} 
+        src={formattedSrc} 
         alt="Demonstração do exercício" 
         className={className}
         loading="lazy"
@@ -51,7 +88,7 @@ export const ExerciseMedia: React.FC<ExerciseMediaProps> = ({
 
   return (
     <video
-      src={src}
+      src={formattedSrc}
       className={className}
       poster={poster}
       autoPlay={autoPlay}
