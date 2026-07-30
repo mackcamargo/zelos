@@ -48,6 +48,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
   const [searchLibrary, setSearchLibrary] = useState('');
   const [loadingLibrary, setLoadingLibrary] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [libraryLimit, setLibraryLimit] = useState(40);
   const [previewExercise, setPreviewExercise] = useState<Exercicio | null>(null);
 
   // Template states
@@ -579,11 +580,23 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
 
   // Filtering Library Exercises
   const filteredLibrary = allExercicios.filter(ex => {
-    const categoryMatch = selectedCategoriaId === 'all' || ex.categoria_id === selectedCategoriaId;
+    const categoryMatch = selectedCategoriaId === 'all' || String(ex.categoria_id) === String(selectedCategoriaId);
     const nameMatch = ex.nome.toLowerCase().includes(searchLibrary.toLowerCase()) || 
                       ex.musculo_primario.some(m => m.toLowerCase().includes(searchLibrary.toLowerCase()));
     return categoryMatch && nameMatch;
   });
+
+  // Pagination logic
+  const visibleLibrary = filteredLibrary.slice(0, libraryLimit);
+  const hasMoreInLibrary = libraryLimit < filteredLibrary.length;
+
+  useEffect(() => {
+    setLibraryLimit(40);
+  }, [searchLibrary, selectedCategoriaId]);
+
+  const handleLoadMoreLibrary = () => {
+    setLibraryLimit(prev => prev + 40);
+  };
 
   return (
     <div id="workout-creator-root" className="space-y-6">
@@ -1016,7 +1029,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 <p className="text-xs text-ink-3 italic text-center py-8">Nenhum exercício correspondente encontrado.</p>
               ) : (
                 <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
-                  {filteredLibrary.map(ex => {
+                  {visibleLibrary.map(ex => {
                     const isMascVideo = ex.video_url_masc;
                     const isFemVideo = ex.video_url_fem;
                     const videoPath = isMascVideo || isFemVideo;
@@ -1038,6 +1051,7 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                               <ExerciseMedia
                                 src={resolvedVideoUrl}
                                 className="w-full h-full object-cover"
+                                autoPlay={false}
                               />
                             ) : (
                               <ImageIcon className="w-4 h-4 text-ink-3" />
@@ -1067,6 +1081,16 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                       </div>
                     );
                   })}
+
+                  {hasMoreInLibrary && (
+                    <button
+                      type="button"
+                      onClick={handleLoadMoreLibrary}
+                      className="w-full py-3 text-[11px] font-bold text-accent hover:text-accent-light transition-colors uppercase tracking-widest border border-dashed border-accent/20 rounded-xl mt-2"
+                    >
+                      Carregar mais exercícios ({filteredLibrary.length - libraryLimit} restantes)
+                    </button>
+                  )}
                 </div>
               )}
             </div>

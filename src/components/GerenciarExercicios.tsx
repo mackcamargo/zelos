@@ -48,6 +48,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [movingExId, setMovingExId] = useState<string | null>(null);
   const [duplicatingFrom, setDuplicatingFrom] = useState<string | null>(null);
+  const [listLimit, setListLimit] = useState(40);
 
   // Form states
   const [nome, setNome] = useState('');
@@ -666,6 +667,17 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     return matchesSearch && matchesCategory;
   });
 
+  const visibleExercicios = filteredExercicios.slice(0, listLimit);
+  const hasMoreInList = listLimit < filteredExercicios.length;
+
+  useEffect(() => {
+    setListLimit(40);
+  }, [searchTerm, selectedCategoryFilter, mostrarOcultos]);
+
+  const handleLoadMoreList = () => {
+    setListLimit(prev => prev + 40);
+  };
+
   return (
     <div id="gerenciar-exercicios-root" className="space-y-6">
       <AnimatePresence mode="wait">
@@ -793,7 +805,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line/40">
-                      {filteredExercicios.map((ex) => {
+                      {visibleExercicios.map((ex) => {
                         const categoriaEfetivaId = ex.ajuste?.categoria_id ?? ex.categoria_id;
                         const isOculto = ex.ajuste?.oculto === true;
                         const isGlobal = ex.personal_id === null;
@@ -978,6 +990,18 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                     </tbody>
                   </table>
                 </div>
+
+                {hasMoreInList && (
+                  <div className="p-4 border-t border-line flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleLoadMoreList}
+                      className="z-btn z-btn--ghost text-accent font-bold text-[11px] uppercase tracking-widest"
+                    >
+                      Carregar mais exercícios ({filteredExercicios.length - listLimit} restantes)
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
