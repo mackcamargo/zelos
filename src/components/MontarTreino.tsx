@@ -1275,53 +1275,68 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative w-full max-w-sm bg-surface rounded-3xl overflow-hidden shadow-2xl z-10 flex flex-col"
+              className="relative w-full max-w-[320px] bg-surface rounded-2xl overflow-hidden shadow-2xl z-10 flex flex-col"
             >
-              {/* Header */}
-              <div className="p-5 border-b border-rose-500/10 flex items-center gap-3 bg-rose-500/[0.03]">
-                <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />
-                <h3 className="font-display font-bold text-base text-rose-600">Atenção Ortopédica</h3>
-              </div>
-
               {/* Content */}
-              <div className="p-5 space-y-4">
-                <div className="space-y-3">
-                  {orthopedicSafetyModal.regras.map((regra, idx) => (
-                    <div key={idx} className="p-3.5 rounded-2xl bg-rose-500/[0.04] border border-rose-500/10 space-y-2">
-                      <p className="text-xs text-ink-2 leading-snug">
-                        <strong className="text-ink font-bold">{orthopedicSafetyModal.exercicio?.nome}</strong> conflita com <strong className="text-rose-600 font-bold">{regra.condicaoName || 'Restrição'}</strong>
-                      </p>
-                      
-                      <p className="text-[11px] text-ink-3 italic line-clamp-1">
-                        {regra.motivo}
-                      </p>
-
-                      {regra.sugestao && (
-                        <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1.5 pt-1 border-t border-rose-500/5">
-                          <span className="shrink-0">💡</span>
-                          <span className="line-clamp-1">{regra.sugestao}</span>
-                        </p>
-                      )}
-                    </div>
-                  ))}
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <AlertCircle className={`w-4 h-4 shrink-0 ${orthopedicSafetyModal.regras.some(r => r.tipo === 'evitar') ? 'text-rose-500' : 'text-amber-500'}`} />
+                  <h3 className="font-display font-bold text-sm text-ink">Alerta de Segurança</h3>
+                </div>
+                
+                <div className="space-y-2">
+                  {orthopedicSafetyModal.regras.map((regra, idx) => {
+                    const isEvitar = regra.tipo === 'evitar';
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`p-3 rounded-xl border ${
+                          isEvitar 
+                            ? 'bg-rose-500/[0.04] border-rose-500/10' 
+                            : 'bg-amber-500/[0.04] border-amber-500/10'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-[10px] font-medium text-ink-3 uppercase tracking-wider mb-0.5">Exercício Contraindicado</p>
+                            <p className="text-xs font-bold text-ink leading-tight mb-1">{orthopedicSafetyModal.exercicio?.nome}</p>
+                            <p className={`text-[11px] font-semibold ${isEvitar ? 'text-rose-600' : 'text-amber-600'}`}>
+                              Causa: {regra.condicaoName || 'Restrição'}
+                            </p>
+                          </div>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black uppercase tracking-widest shrink-0 ${
+                            isEvitar 
+                              ? 'bg-rose-500/10 text-rose-600' 
+                              : 'bg-amber-500/10 text-amber-600'
+                          }`}>
+                            {isEvitar ? 'Evitar' : 'Atenção'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Footer Actions */}
-              <div className="p-4 bg-raise/5 border-t border-line flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={orthopedicSafetyModal.onConfirm}
-                  className="w-full h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors text-xs font-bold cursor-pointer"
-                >
-                  Adicionar mesmo assim
-                </button>
+              <div className="p-3 bg-raise/5 border-t border-line flex gap-2">
                 <button
                   type="button"
                   onClick={() => setOrthopedicSafetyModal({ show: false, exercicio: null, regras: [], onConfirm: () => {} })}
-                  className="w-full h-11 rounded-xl border border-line hover:bg-raise transition-colors text-xs font-bold text-ink-3 cursor-pointer"
+                  className="flex-1 h-9 rounded-lg border border-line hover:bg-raise transition-colors text-[11px] font-bold text-ink-3 cursor-pointer"
                 >
                   Escolher outro
+                </button>
+                <button
+                  type="button"
+                  onClick={orthopedicSafetyModal.onConfirm}
+                  className={`flex-1 h-9 rounded-lg text-white transition-colors text-[11px] font-bold cursor-pointer ${
+                    orthopedicSafetyModal.regras.some(r => r.tipo === 'evitar') 
+                      ? 'bg-rose-600 hover:bg-rose-700' 
+                      : 'bg-amber-600 hover:bg-amber-700'
+                  }`}
+                >
+                  Adicionar
                 </button>
               </div>
             </motion.div>

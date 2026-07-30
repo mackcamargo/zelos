@@ -273,7 +273,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
     { id: 'alunos', label: 'Alunos', icon: Users },
-    ...(isAdmin ? [{ id: 'gerenciar', label: 'Monte Seu Exercício', icon: Activity }] : []),
+    { id: 'gerenciar', label: 'Monte Seu Exercício', icon: Activity },
     { id: 'agenda', label: 'Agenda', icon: Calendar },
     { id: 'checkins', label: 'Check-ins', icon: MessageSquare },
     { id: 'templates', label: 'Monte Treinos Prontos', icon: FolderHeart },
@@ -1128,8 +1128,8 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
           </div>
         )}
 
-        {/* TAB 4: GERENCIAR EXERCÍCIOS (ADMIN ONLY) */}
-        {activeTab === 'gerenciar' && isAdmin && (
+        {/* TAB 4: GERENCIAR EXERCÍCIOS */}
+        {activeTab === 'gerenciar' && (
           <div id="tab-content-gerenciar" className="space-y-6">
             <GerenciarExercicios personalId={userId} isReadOnly={isReadOnly} />
           </div>

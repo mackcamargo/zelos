@@ -187,7 +187,7 @@ export default function GerenciarAlunos({
     });
 
     return () => timeouts.forEach(t => clearTimeout(t));
-  }, [condicaoBlocks.map(b => b.searchQuery).join('|')]);
+  }, [condicaoBlocks.map(b => b.searchQuery).join('|'), condicaoBlocks.map(b => b.isSearching).join('|')]);
 
   const getFilteredCondicoes = (query: string, searchResults: CondicaoOrtopedica[] = []) => {
     if (!query.trim()) return condicoesDisponiveis.slice(0, 20);
@@ -200,8 +200,13 @@ export default function GerenciarAlunos({
     return condicoesDisponiveis.filter(c => {
       const nome = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const cid = (c.cid || '').toLowerCase();
+      const cidDesc = (c.cid_descricao || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const sinonimos = (c.sinonimos || []).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      return nome.includes(normalizedQuery) || cid.includes(normalizedQuery) || sinonimos.includes(normalizedQuery);
+      
+      return nome.includes(normalizedQuery) || 
+             cid.includes(normalizedQuery) || 
+             cidDesc.includes(normalizedQuery) || 
+             sinonimos.includes(normalizedQuery);
     }).slice(0, 20);
   };
 
@@ -2085,7 +2090,7 @@ Bora juntos! 💪`;
                           return (
                             <div key={block.tempId} className="relative space-y-4 p-4 rounded-2xl bg-raise/5 border border-line/30 group">
                               {/* Remove Button */}
-                              {!editingCondicao && condicaoBlocks.length > 1 && (
+                              {(condicaoBlocks.length > 1 || block.tempId !== 'edit') && (
                                 <button
                                   type="button"
                                   onClick={() => setCondicaoBlocks(prev => prev.filter(b => b.tempId !== block.tempId))}
@@ -2158,11 +2163,18 @@ Bora juntos! 💪`;
                                           }`}
                                         >
                                           <div className="flex items-center justify-between gap-2">
-                                            <span className="text-sm font-semibold text-ink">
-                                              {c.nome} {c.cid ? `(${c.cid})` : ''}
-                                            </span>
+                                            <div className="flex flex-col">
+                                              <span className="text-sm font-semibold text-ink">
+                                                {c.nome} {c.cid ? `(${c.cid})` : ''}
+                                              </span>
+                                              {c.cid_descricao && c.cid_descricao.toLowerCase() !== c.nome.toLowerCase() && (
+                                                <span className="text-[11px] text-ink-2 leading-tight">
+                                                  {c.cid_descricao}
+                                                </span>
+                                              )}
+                                            </div>
                                             {c.origem === 'personalizada' && (
-                                              <span className="text-[9px] bg-[#F26A1B]/10 text-[#F26A1B] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Personalizada</span>
+                                              <span className="text-[9px] bg-[#F26A1B]/10 text-[#F26A1B] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">Personalizada</span>
                                             )}
                                           </div>
                                           {c.sinonimos && c.sinonimos.length > 0 && (
@@ -2294,7 +2306,7 @@ Bora juntos! 💪`;
                               {/* File Upload */}
                               <div className="space-y-2">
                                 <label className="text-xs font-semibold text-ink-2">
-                                  Laudo Técnico {selectedCond?.requer_laudo ? '(Obrigatório *)' : '(Opcional)'}
+                                  Laudo Técnico (Opcional)
                                 </label>
                                 <div className="border border-dashed border-ink/20 rounded-xl p-3 bg-surface/50 text-center hover:bg-raise/20 transition-all cursor-pointer relative">
                                   <input
@@ -2323,18 +2335,16 @@ Bora juntos! 💪`;
                         })}
 
                         {/* Add Another Block Button */}
-                        {!editingCondicao && (
-                          <button
-                            type="button"
-                            onClick={() => setCondicaoBlocks(prev => [...prev, createEmptyBlock()])}
-                            className="w-full py-4 rounded-2xl border-2 border-dashed border-line hover:border-[#F26A1B] hover:bg-[#F26A1B]/5 transition-all group flex flex-col items-center gap-1 cursor-pointer"
-                          >
-                            <div className="w-8 h-8 rounded-full bg-line group-hover:bg-[#F26A1B] flex items-center justify-center transition-colors">
-                              <Plus className="w-5 h-5 text-ink group-hover:text-white" />
-                            </div>
-                            <span className="text-xs font-bold text-ink-2 group-hover:text-[#F26A1B]">Adicionar outra condição</span>
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => setCondicaoBlocks(prev => [...prev, createEmptyBlock()])}
+                          className="w-full py-4 rounded-2xl border-2 border-dashed border-line hover:border-[#F26A1B] hover:bg-[#F26A1B]/5 transition-all group flex flex-col items-center gap-1 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-line group-hover:bg-[#F26A1B] flex items-center justify-center transition-colors">
+                            <Plus className="w-5 h-5 text-ink group-hover:text-white" />
+                          </div>
+                          <span className="text-xs font-bold text-ink-2 group-hover:text-[#F26A1B]">Adicionar outra condição</span>
+                        </button>
                       </div>
 
                       {/* Actions Footer */}

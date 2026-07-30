@@ -36,6 +36,9 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
     onConfirm: () => void;
   } | null>(null);
 
+  const [isReadOnlyState, setIsReadOnlyState] = useState(isReadOnly);
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
   const [selectedExercicio, setSelectedExercicio] = useState<Exercicio | null>(null);
@@ -108,11 +111,16 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [catsRes, exsRes, adjustmentsRes] = await Promise.all([
+      const [catsRes, exsRes, adjustmentsRes, profileRes] = await Promise.all([
         dbService.getCategorias(),
         supabase.from('exercicios').select('*').or(`personal_id.is.null,personal_id.eq.${user.id}`),
-        supabase.from('exercicios_ajustes').select('*').eq('personal_id', user.id)
+        supabase.from('exercicios_ajustes').select('*').eq('personal_id', user.id),
+        supabase.from('profiles').select('is_admin').eq('id', user.id).single()
       ]);
+      
+      if (profileRes.data) {
+        setIsAdmin(profileRes.data.is_admin === true);
+      }
       
       if (catsRes.data) setCategorias(catsRes.data);
       
@@ -210,8 +218,26 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
   // Handle Edit click
   const handleEdit = (ex: Exercicio) => {
     setDuplicatingFrom(null);
-    setSelectedExercicio(ex);
-    setNome(ex.nome);
+    
+    // Se não for admin e tentar editar um exercício global ou de outro personal, cria uma cópia local
+    const isGlobal = !ex.personal_id;
+    const isOtherPersonal = ex.personal_id && ex.personal_id !== personalId;
+
+    if (!isAdmin && (isGlobal || isOtherPersonal)) {
+      // Usar prefixo 'ex-copy-' para que o handleSave trate como novo registro (insert)
+      const newId = 'ex-copy-' + Math.random().toString(36).substring(2, 9);
+      setSelectedExercicio({
+        ...ex,
+        id: newId,
+        personal_id: personalId || null,
+        nome: ex.nome // Mantém o nome original
+      });
+      setNome(ex.nome);
+    } else {
+      setSelectedExercicio(ex);
+      setNome(ex.nome);
+    }
+
     setCategoriaId(ex.categoria_id);
     setMusculoPrimario(ex.musculo_primario || []);
     setMusculoSecundario(ex.musculo_secundario || []);
@@ -1023,6 +1049,14 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
               </div>
             )}
 
+            {/* Non-Admin Global Edit Notice */}
+            {!isAdmin && selectedExercicio?.id && String(selectedExercicio.id).startsWith('ex-copy-') && (
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2.5 text-[11px] text-amber-600 leading-tight">
+                <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>Suas alterações serão salvas como uma cópia própria, sem afetar o catálogo original. O vídeo de demonstração não pode ser alterado.</span>
+              </div>
+            )}
+
             {/* Form Header */}
             <div className="flex items-center justify-between">
               <button
@@ -1513,7 +1547,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                   />
 
                   <div className="flex gap-2">
-                    {!isReadOnly && (
+                    {isAdmin && !isReadOnly && (
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
@@ -1523,7 +1557,7 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                         <span>{videoUrl ? 'Substituir Vídeo' : 'Escolher Vídeo'}</span>
                       </button>
                     )}
-                    {!isReadOnly && videoUrl && (
+                    {isAdmin && !isReadOnly && videoUrl && (
                       <button
                         type="button"
                         onClick={() => {
