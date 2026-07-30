@@ -43,6 +43,12 @@ const playWhoosh = () => {
     const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const compressor = ctx.createDynamicsCompressor();
+    
+    compressor.threshold.setValueAtTime(-12, ctx.currentTime);
+    compressor.knee.setValueAtTime(20, ctx.currentTime);
+    compressor.ratio.setValueAtTime(12, ctx.currentTime);
+    compressor.connect(ctx.destination);
     
     osc.type = 'sine';
     // Deep whoosh frequency sweep
@@ -50,11 +56,11 @@ const playWhoosh = () => {
     osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.22);
     
     gain.gain.setValueAtTime(0.001, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.04);
+    gain.gain.linearRampToValueAtTime(0.24, ctx.currentTime + 0.04);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
     
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(compressor);
     
     osc.start();
     osc.stop(ctx.currentTime + 0.22);
@@ -70,6 +76,11 @@ const playSuccess = () => {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
+    const compressor = ctx.createDynamicsCompressor();
+    compressor.threshold.setValueAtTime(-12, ctx.currentTime);
+    compressor.knee.setValueAtTime(20, ctx.currentTime);
+    compressor.ratio.setValueAtTime(12, ctx.currentTime);
+    compressor.connect(ctx.destination);
     
     const playTone = (freq: number, start: number, duration: number) => {
       const osc = ctx.createOscillator();
@@ -79,11 +90,11 @@ const playSuccess = () => {
       osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
       
       gain.gain.setValueAtTime(0.001, ctx.currentTime + start);
-      gain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + start + 0.04);
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + start + 0.04);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration);
       
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(compressor);
       
       osc.start(ctx.currentTime + start);
       osc.stop(ctx.currentTime + start + duration);

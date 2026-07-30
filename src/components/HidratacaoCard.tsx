@@ -157,6 +157,12 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
+      const compressor = ctx.createDynamicsCompressor();
+
+      compressor.threshold.setValueAtTime(-12, now);
+      compressor.knee.setValueAtTime(20, now);
+      compressor.ratio.setValueAtTime(12, now);
+      compressor.connect(ctx.destination);
 
       osc.type = 'sine';
       // Bloop sweep up frequency
@@ -164,11 +170,12 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
       osc.frequency.exponentialRampToValueAtTime(1050, now + 0.1);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.3, now + 0.015);
+      // Volume triplicado (0.3 * 3 = 0.9)
+      gain.gain.linearRampToValueAtTime(0.9, now + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(compressor);
 
       osc.start(now);
       osc.stop(now + 0.15);
@@ -182,7 +189,7 @@ export default function HidratacaoCard({ alunoId }: HidratacaoCardProps) {
     try {
       // 1. Try to play standard /sounds/water.mp3 preloaded clipe
       const audio = new Audio('/sounds/water.mp3');
-      audio.volume = 0.4;
+      audio.volume = 1.0; // Triplicado (0.4 * 3 = 1.2 -> limite máximo 1.0 da Web Audio / HTMLAudio)
       audio.play().catch(() => {
         // Fallback to high quality synthesized drop sound
         playSynthWaterDrop();

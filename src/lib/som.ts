@@ -15,6 +15,7 @@ type TipoSom =
   | "timerEnd";    // fim do descanso
 
 let ctx: AudioContext | null = null;
+let compressor: DynamicsCompressorNode | null = null;
 let habilitado = true;
 
 // Notas da pentatônica maior de C — nada soa desafinado entre si
@@ -31,7 +32,21 @@ function getCtx(): AudioContext | null {
   return ctx;
 }
 
-// Toca uma nota com envelope suave (sem estalo)
+// Limitador / Compressor de dinâmica para evitar clipping/distorção ao triplicar o ganho
+function getOutputNode(c: AudioContext): AudioNode {
+  if (!compressor || compressor.context !== c) {
+    compressor = c.createDynamicsCompressor();
+    compressor.threshold.setValueAtTime(-12, c.currentTime);
+    compressor.knee.setValueAtTime(20, c.currentTime);
+    compressor.ratio.setValueAtTime(12, c.currentTime);
+    compressor.attack.setValueAtTime(0.003, c.currentTime);
+    compressor.release.setValueAtTime(0.15, c.currentTime);
+    compressor.connect(c.destination);
+  }
+  return compressor;
+}
+
+// Toca uma nota com envelope suave (sem estalo) e multiplicador de 3x no volume (candidato seguro até 0.95)
 function nota(freq: number, inicio: number, duracao: number, volume: number, tipo: OscillatorType = "sine") {
   const c = getCtx();
   if (!c) return;
@@ -39,17 +54,22 @@ function nota(freq: number, inicio: number, duracao: number, volume: number, tip
   const gain = c.createGain();
   osc.type = tipo;
   osc.frequency.setValueAtTime(freq, c.currentTime + inicio);
+  
+  // Triplica o volume base, limitando em 0.95 para segurança total contra distorção
+  const boostedVolume = Math.min(volume * 3, 0.95);
+
   // attack rápido + decay exponencial = som "gostoso", sem clique
   gain.gain.setValueAtTime(0.0001, c.currentTime + inicio);
-  gain.gain.exponentialRampToValueAtTime(volume, c.currentTime + inicio + 0.008);
+  gain.gain.exponentialRampToValueAtTime(boostedVolume, c.currentTime + inicio + 0.008);
   gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + inicio + duracao);
+  
   osc.connect(gain);
-  gain.connect(c.destination);
+  gain.connect(getOutputNode(c));
   osc.start(c.currentTime + inicio);
   osc.stop(c.currentTime + inicio + duracao + 0.02);
 }
 
-// Glide entre duas frequências (som de "swipe")
+// Glide entre duas frequências (som de "swipe") com volume 3x
 function glide(de: number, para: number, duracao: number, volume: number) {
   const c = getCtx();
   if (!c) return;
@@ -58,11 +78,16 @@ function glide(de: number, para: number, duracao: number, volume: number) {
   osc.type = "sine";
   osc.frequency.setValueAtTime(de, c.currentTime);
   osc.frequency.exponentialRampToValueAtTime(para, c.currentTime + duracao);
+  
+  // Triplica o volume base
+  const boostedVolume = Math.min(volume * 3, 0.95);
+
   gain.gain.setValueAtTime(0.0001, c.currentTime);
-  gain.gain.exponentialRampToValueAtTime(volume, c.currentTime + 0.008);
+  gain.gain.exponentialRampToValueAtTime(boostedVolume, c.currentTime + 0.008);
   gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + duracao);
+  
   osc.connect(gain);
-  gain.connect(c.destination);
+  gain.connect(getOutputNode(c));
   osc.start();
   osc.stop(c.currentTime + duracao + 0.02);
 }
@@ -82,8 +107,18 @@ export function tocar(tipo: TipoSom) {
       case "erro":       nota(N.G4, 0, 0.10, 0.12, "triangle"); nota(320, 0.10, 0.14, 0.12, "triangle"); break;
       case "abrir":      glide(500, 800, 0.06, 0.08); break;
       case "fechar":     glide(800, 500, 0.06, 0.08); break;
-      case "timerTick":  nota(N.E6, 0, 0.04, 0.08); break;
-      case "timerEnd":   nota(N.G5, 0, 0.10, 0.15); nota(N.C6, 0.10, 0.10, 0.15); nota(N.E6, 0.20, 0.30, 0.18); break;
+      
+      // Beeps de Cronômetro de Descanso (Extra perceptíveis e penetrantes para ambientes barulhentos como academia)
+      case "timerTick":  
+        nota(N.E6, 0, 0.08, 0.22, "triangle");
+        nota(1975.5, 0, 0.08, 0.15, "sine");
+        break;
+      case "timerEnd":   
+        nota(N.G5, 0, 0.12, 0.25, "triangle");
+        nota(N.C6, 0.10, 0.14, 0.28, "triangle");
+        nota(N.E6, 0.22, 0.18, 0.30, "triangle");
+        nota(2093, 0.35, 0.40, 0.32, "triangle");
+        break;
     }
   } catch { /* som nunca pode quebrar a UI */ }
 }
