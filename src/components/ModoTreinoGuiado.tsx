@@ -630,9 +630,9 @@ export default function ModoTreinoGuiado({
                           className="w-full h-full object-contain"
                         />
                         {/* Source Credit */}
-                        <div className="absolute bottom-2 inset-x-0 flex justify-center opacity-90 pointer-events-none z-10 select-none">
+                        <div className="absolute bottom-2 right-2 opacity-90 pointer-events-none z-10 select-none">
                           <span className="text-[10px] font-semibold text-[#F26A1B] drop-shadow-sm">
-                            Créditos gifdotreino.com
+                            Gifeiro
                           </span>
                         </div>
                       </>
