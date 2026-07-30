@@ -748,33 +748,10 @@ export const dbService = {
     if (rawUrlOrPath.startsWith('data:') || rawUrlOrPath.startsWith('blob:')) {
       return rawUrlOrPath;
     }
-
-    const sanitizeSegments = (p: string) => {
-      return p
-        .split('/')
-        .map(segment => {
-          try {
-            return encodeURIComponent(decodeURIComponent(segment));
-          } catch {
-            return encodeURIComponent(segment);
-          }
-        })
-        .join('/');
-    };
-
-    if (rawUrlOrPath.startsWith('http://') || rawUrlOrPath.startsWith('https://')) {
-      try {
-        const urlObj = new URL(rawUrlOrPath);
-        urlObj.pathname = sanitizeSegments(urlObj.pathname);
-        return urlObj.toString();
-      } catch {
-        return rawUrlOrPath.replace(/ /g, '%20');
-      }
+    if (rawUrlOrPath.includes(' ')) {
+      return rawUrlOrPath.replace(/ /g, '%20');
     }
-
-    const [base, query] = rawUrlOrPath.split('?');
-    const encodedBase = sanitizeSegments(base);
-    return query ? `${encodedBase}?${query}` : encodedBase;
+    return rawUrlOrPath;
   },
 
   async getSignedUrl(path: string): Promise<string | null> {
@@ -786,11 +763,11 @@ export const dbService = {
       return this.sanitizeStorageUrl(path);
     }
     if (isSupabaseConfigured && supabase) {
-      // Como tornamos o bucket público, podemos usar getPublicUrl para melhor performance e cache
+      // getPublicUrl do SDK do Supabase já codifica os caminhos com %20 automaticamente
       const { data } = supabase.storage
         .from('exercicios')
         .getPublicUrl(path);
-      return data?.publicUrl ? this.sanitizeStorageUrl(data.publicUrl) : null;
+      return data?.publicUrl ?? null;
     }
     // Modo demo: tenta recuperar blob local
     if ((window as any).__zenite_mock_videos) {
@@ -814,8 +791,9 @@ export const dbService = {
       return this.sanitizeStorageUrl(path);
     }
     if (isSupabaseConfigured && supabase) {
+      // getPublicUrl do SDK do Supabase já codifica os caminhos com %20 automaticamente
       const { data } = supabase.storage.from('exercicios').getPublicUrl(path);
-      return data?.publicUrl ? this.sanitizeStorageUrl(data.publicUrl) : null;
+      return data?.publicUrl ?? null;
     }
     // Modo demo: tenta recuperar blob local
     if ((window as any).__zenite_mock_videos) {

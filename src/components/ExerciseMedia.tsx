@@ -16,33 +16,11 @@ export function sanitizeStorageUrl(rawUrlOrPath: string | null): string | null {
   if (rawUrlOrPath.startsWith('data:') || rawUrlOrPath.startsWith('blob:')) {
     return rawUrlOrPath;
   }
-
-  const sanitizeSegments = (p: string) => {
-    return p
-      .split('/')
-      .map(segment => {
-        try {
-          return encodeURIComponent(decodeURIComponent(segment));
-        } catch {
-          return encodeURIComponent(segment);
-        }
-      })
-      .join('/');
-  };
-
-  if (rawUrlOrPath.startsWith('http://') || rawUrlOrPath.startsWith('https://')) {
-    try {
-      const urlObj = new URL(rawUrlOrPath);
-      urlObj.pathname = sanitizeSegments(urlObj.pathname);
-      return urlObj.toString();
-    } catch {
-      return rawUrlOrPath.replace(/ /g, '%20');
-    }
+  // Replace literal spaces with %20 if present, without double-encoding existing %20 or URL pathnames
+  if (rawUrlOrPath.includes(' ')) {
+    return rawUrlOrPath.replace(/ /g, '%20');
   }
-
-  const [base, query] = rawUrlOrPath.split('?');
-  const encodedBase = sanitizeSegments(base);
-  return query ? `${encodedBase}?${query}` : encodedBase;
+  return rawUrlOrPath;
 }
 
 export const ExerciseMedia: React.FC<ExerciseMediaProps> = ({
