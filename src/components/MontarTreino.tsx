@@ -602,70 +602,83 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
     <div id="workout-creator-root" className="space-y-6">
       
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-bg-sub p-5 rounded-2xl border border-line">
-        <div className="flex items-center gap-3">
+      <div className="bg-bg-sub p-5 sm:p-6 rounded-2xl border border-line flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
           <button
             id="btn-back-from-creator"
             type="button"
             onClick={onBack}
-            className="z-btn z-btn--ghost z-btn--icon"
+            className="w-10 h-10 rounded-xl border border-line bg-surface hover:bg-raise text-accent flex items-center justify-center shrink-0 transition-colors"
+            title="Voltar"
           >
-            <ArrowLeft className="w-5 h-5 text-accent" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="z-badge z-badge--accent">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5">
+              <span className="inline-flex items-center h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-accent/10 text-accent border border-accent/20">
                 Montando treino
               </span>
-              <span className={`text-[12px] px-2 py-0.5 rounded-full font-semibold ${
-                isTemplateMode ? 'bg-indigo-500/10 text-indigo-400' :
-                status === 'publicado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+              <span className={`inline-flex items-center h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
+                isTemplateMode ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                status === 'publicado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
               }`}>
                 {isTemplateMode ? 'Modo template' : (status === 'publicado' ? 'Publicado' : 'Rascunho')}
               </span>
             </div>
-            <h2 className="z-h2 mt-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-ink tracking-tight">
               {isTemplateMode ? 'Criando modelo de treino' : `Para: ${aluno?.profile?.nome || 'Aluno'}`}
             </h2>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Templates Button - Only show in Workout mode */}
-          {!isTemplateMode && (
-            <button
-              id="btn-templates-workout"
-              type="button"
-              onClick={() => setShowTemplatesModal(true)}
-              className="z-btn z-btn--ghost z-btn--sm flex items-center gap-1.5"
-            >
-              <FolderHeart className="w-4 h-4 text-accent" />
-              <span>Usar Modelo</span>
-            </button>
-          )}
+        <div className="w-full xl:w-80 shrink-0 space-y-2.5">
+          {!isTemplateMode ? (
+            <>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  id="btn-templates-workout"
+                  type="button"
+                  onClick={() => setShowTemplatesModal(true)}
+                  className="h-11 px-3 text-xs sm:text-sm font-semibold rounded-xl border border-line bg-surface hover:bg-raise text-ink-2 flex items-center justify-center gap-2 transition-colors w-full"
+                >
+                  <FolderHeart className="w-4 h-4 text-accent shrink-0" />
+                  <span className="truncate">Usar Modelo</span>
+                </button>
 
-          <button
-            id="btn-save-draft"
-            type="button"
-            disabled={saving || loading}
-            onClick={() => handleSave('rascunho')}
-            className="z-btn z-btn--ghost z-btn--sm flex items-center gap-1.5"
-          >
-            <Save className="w-4 h-4 text-accent" />
-            {isTemplateMode ? 'Salvar modelo' : 'Salvar rascunho'}
-          </button>
+                <button
+                  id="btn-save-draft"
+                  type="button"
+                  disabled={saving || loading}
+                  onClick={() => handleSave('rascunho')}
+                  className="h-11 px-3 text-xs sm:text-sm font-semibold rounded-xl border border-line bg-surface hover:bg-raise text-ink-2 flex items-center justify-center gap-2 transition-colors w-full disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4 text-accent shrink-0" />
+                  <span className="truncate">Salvar rascunho</span>
+                </button>
+              </div>
 
-          {!isTemplateMode && (
+              <button
+                id="btn-publish-workout"
+                type="button"
+                disabled={saving || loading}
+                onClick={() => setShowPublishConfirm(true)}
+                className="h-11 px-4 text-xs sm:text-sm font-semibold rounded-xl bg-accent hover:bg-accent/90 text-white shadow-sm flex items-center justify-center gap-2 transition-all w-full disabled:opacity-50"
+              >
+                <Send className="w-4 h-4 shrink-0" />
+                <span>Publicar treino</span>
+              </button>
+            </>
+          ) : (
             <button
-              id="btn-publish-workout"
+              id="btn-save-draft"
               type="button"
               disabled={saving || loading}
-              onClick={() => setShowPublishConfirm(true)}
-              className="z-btn z-btn--primary z-btn--sm flex items-center gap-1.5"
+              onClick={() => handleSave('rascunho')}
+              className="h-11 px-4 text-xs sm:text-sm font-semibold rounded-xl bg-accent hover:bg-accent/90 text-white shadow-sm flex items-center justify-center gap-2 transition-all w-full disabled:opacity-50"
             >
-              <Send className="w-4 h-4" />
-              <span>Publicar treino</span>
+              <Save className="w-4 h-4 shrink-0" />
+              <span>Salvar modelo</span>
             </button>
           )}
         </div>
