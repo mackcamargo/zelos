@@ -603,29 +603,30 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
       
       {/* Header Bar */}
       <div className="bg-bg-sub p-5 sm:p-6 rounded-2xl border border-line flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start sm:items-center gap-3.5">
           <button
             id="btn-back-from-creator"
             type="button"
             onClick={onBack}
-            className="w-10 h-10 rounded-xl border border-line bg-surface hover:bg-raise text-accent flex items-center justify-center shrink-0 transition-colors"
+            className="w-10 h-10 rounded-xl border border-line bg-surface hover:bg-raise text-accent flex items-center justify-center shrink-0 transition-colors shadow-xs mt-0.5 sm:mt-0"
             title="Voltar"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-accent/10 text-accent border border-accent/20">
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider rounded-md bg-accent/10 text-accent border border-accent/20">
                 Montando treino
               </span>
-              <span className={`inline-flex items-center h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${
-                isTemplateMode ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                status === 'publicado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+              <span className={`inline-flex items-center h-6 px-2.5 text-[10px] font-bold uppercase tracking-wider rounded-md border ${
+                isTemplateMode ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' :
+                status === 'publicado' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
+                'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30'
               }`}>
                 {isTemplateMode ? 'Modo template' : (status === 'publicado' ? 'Publicado' : 'Rascunho')}
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-ink tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-ink tracking-tight truncate">
               {isTemplateMode ? 'Criando modelo de treino' : `Para: ${aluno?.profile?.nome || 'Aluno'}`}
             </h2>
           </div>

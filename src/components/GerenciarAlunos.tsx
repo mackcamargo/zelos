@@ -968,42 +968,40 @@ Bora juntos! 💪`;
               {/* BLOCK 1: TREINOS */}
               <div className="bg-surface border border-white/5 rounded-2xl p-6 flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-display font-bold text-sm text-ink flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-flame animate-pulse" />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 className="font-display font-bold text-sm text-ink flex items-center gap-2 shrink-0">
+                      <Activity className="w-4 h-4 text-flame shrink-0 animate-pulse" />
                       <span>Fichas de Treino ({workouts.length})</span>
                     </h3>
-                    <div className="flex items-center gap-3">
-                      {!isReadOnly && (
-                        <>
-                          <button
-                            id="btn-apply-template"
-                            type="button"
-                            onClick={() => {
-                              setEditingTreinoId(null);
-                              setIsMontandoTreino(true);
-                            }}
-                            className="text-[12px] text-violet hover:text-violet/80 flex items-center gap-1"
-                          >
-                            <FolderHeart className="w-3 h-3" />
-                            <span>Usar modelo</span>
-                          </button>
-                          <button
-                            id="btn-add-new-workout"
-                            type="button"
-                            onClick={() => {
-                              setEditingTreinoId(null);
-                              setInitialTemplateId(null);
-                              setIsMontandoTreino(true);
-                            }}
-                            className="text-[12px] text-flame hover:text-flame/80 flex items-center gap-1"
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Novo treino</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    {!isReadOnly && (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          id="btn-apply-template"
+                          type="button"
+                          onClick={() => {
+                            setEditingTreinoId(null);
+                            setIsMontandoTreino(true);
+                          }}
+                          className="text-[12px] font-medium text-violet hover:bg-violet/20 bg-violet/10 border border-violet/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-colors"
+                        >
+                          <FolderHeart className="w-3.5 h-3.5 shrink-0" />
+                          <span>Usar modelo</span>
+                        </button>
+                        <button
+                          id="btn-add-new-workout"
+                          type="button"
+                          onClick={() => {
+                            setEditingTreinoId(null);
+                            setInitialTemplateId(null);
+                            setIsMontandoTreino(true);
+                          }}
+                          className="text-[12px] font-medium text-flame hover:bg-flame/20 bg-flame/10 border border-flame/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5 shrink-0" />
+                          <span>Novo treino</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {loadingWorkouts ? (
