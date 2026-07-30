@@ -356,6 +356,12 @@ export default function Biblioteca({ personalId, avatarTipo = 'masculino', isRea
                       <Sparkles className="w-3.5 h-3.5 text-flame animate-pulse" />
                       <span>Movimento Ilustrativo</span>
                     </div>
+                    {/* Source Credit */}
+                    <div className="absolute bottom-2.5 inset-x-0 flex justify-center opacity-90 pointer-events-none z-10 select-none">
+                      <span className="text-[10px] font-semibold text-[#F26A1B] drop-shadow-sm">
+                        Créditos gifdotreino.com
+                      </span>
+                    </div>
                   </>
                 ) : null;
               })()}

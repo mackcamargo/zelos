@@ -3123,6 +3123,12 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
                           <span>Movimento Ilustrativo</span>
                         </div>
+                        {/* Source Credit */}
+                        <div className="absolute bottom-2.5 inset-x-0 flex justify-center opacity-90 pointer-events-none z-10 select-none">
+                          <span className="text-[10px] font-semibold text-[#F26A1B] drop-shadow-sm">
+                            Créditos gifdotreino.com
+                          </span>
+                        </div>
                         <div className="video-placeholder hidden absolute inset-0 flex-col items-center justify-center p-6 text-center text-ink-3 space-y-3">
                           <div className="w-16 h-16 rounded-full bg-raise flex items-center justify-center">
                             <ImageIcon className="w-8 h-8 text-[#F26A1B]/60" />

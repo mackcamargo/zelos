@@ -1461,8 +1461,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 })()}
 
                 {/* Source Credit */}
-                <div className="absolute top-2.5 inset-x-0 flex justify-center opacity-90 pointer-events-none z-10 select-none">
-                  <span className="text-[10px] font-semibold text-[#F26A1B]">
+                <div className="absolute bottom-2.5 inset-x-0 flex justify-center opacity-90 pointer-events-none z-10 select-none">
+                  <span className="text-[10px] font-semibold text-[#F26A1B] drop-shadow-sm">
                     Créditos gifdotreino.com
                   </span>
                 </div>
