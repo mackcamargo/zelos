@@ -1403,8 +1403,8 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Video Preview - Fixed height (approx 35% of container) */}
-              <div className="h-[30vh] sm:h-[35%] w-full bg-void overflow-hidden relative border-b border-white/5">
+              {/* Video Preview - Increased height to reduce empty space */}
+              <div className="h-[40vh] sm:h-[45%] w-full bg-void overflow-hidden relative border-b border-white/5">
                 {(() => {
                   const videoPath = previewExercise.video_url_masc || previewExercise.video_url_fem;
                   const videoUrl = dbService.getExerciseVideoUrl(videoPath);

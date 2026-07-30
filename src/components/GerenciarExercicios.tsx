@@ -1432,10 +1432,9 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
 
                   {/* Video preview / upload box */}
                   <div 
-                    className={`aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border-2 border-dashed transition-all cursor-pointer flex items-center justify-center ${
+                    className={`aspect-[9/16] w-full max-w-[260px] mx-auto rounded-2xl bg-void overflow-hidden relative border-2 border-dashed transition-all flex items-center justify-center ${
                       videoPreview ? 'border-accent/40 bg-accent/5' : 'border-white/5 hover:border-accent/50 hover:bg-raise'
                     }`}
-                    onClick={() => fileInputRef.current?.click()}
                   >
                     {videoPreview ? (
                       <div className="relative w-full h-full group">
@@ -1443,10 +1442,6 @@ export default function GerenciarExercicios({ onBack, personalId, isReadOnly = f
                           src={videoPreview}
                           className="w-full h-full object-cover brightness-95"
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                          <UploadCloud className="w-8 h-8 text-white" />
-                          <span className="text-white text-[10px] font-bold uppercase tracking-wider">Alterar vídeo</span>
-                        </div>
                         <div className="absolute top-4 left-4 bg-void/80 backdrop-blur-md border border-white/10 rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[9px] uppercase tracking-wider font-bold text-ink-2 shadow-xl pointer-events-none z-10">
                           <Sparkles className="w-3 h-3 text-flame animate-pulse" />
                           <span>Movimento Ilustrativo</span>
