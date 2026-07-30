@@ -1422,10 +1422,10 @@ export default function MontarTreino({ aluno, personalId, treinoId, templateId, 
                   );
                 })()}
 
-                {/* Text Watermark */}
-                <div className="absolute bottom-2.5 right-2.5 opacity-75 pointer-events-none z-10 select-none">
-                  <span className="text-[10px] font-semibold text-[#F26A1B] tracking-[0.5px] uppercase">
-                    ZELOS PERSONAL
+                {/* Source Credit */}
+                <div className="absolute top-2.5 left-2.5 opacity-90 pointer-events-none z-10 select-none">
+                  <span className="text-[10px] font-semibold text-[#F26A1B]">
+                    Créditos gifdotreino.com
                   </span>
                 </div>
               </div>
