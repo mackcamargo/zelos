@@ -770,7 +770,7 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
       </aside>
 
       {/* CONTENT CONTAINER */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-[100dvh] overflow-hidden">
         
         {/* Read-only Mode Banner */}
         {isReadOnly && (

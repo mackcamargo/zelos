@@ -142,7 +142,7 @@ export default function ChatAluno({ userId }: ChatAlunoProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
+    messagesEndRef.current?.scrollIntoView({ behavior, block: 'nearest' });
   };
 
   const loadMessages = async () => {

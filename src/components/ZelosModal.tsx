@@ -7,7 +7,7 @@ interface ZelosModalProps {
   type: 'confirm' | 'alert';
   variant?: 'danger' | 'warning' | 'success' | 'info';
   title: string;
-  message: string;
+  message: React.ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   onConfirm: () => void;

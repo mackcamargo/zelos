@@ -19,7 +19,11 @@ interface CourtesyCode {
   criado_em?: string;
 }
 
-export default function GerenciarCortesias() {
+interface GerenciarCortesiasProps {
+  personalId?: string;
+}
+
+export default function GerenciarCortesias({ personalId }: GerenciarCortesiasProps = {}) {
   const [codes, setCodes] = useState<CourtesyCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);

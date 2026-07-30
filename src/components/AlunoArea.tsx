@@ -1242,7 +1242,7 @@ function AlunoAreaContent({ userId, userEmail, profile, onLogout, isDemoMode, on
 
       <div
       id="aluno-area-root"
-      className="bg-bg text-ink font-sans flex flex-col h-screen overflow-hidden"
+      className="bg-bg text-ink font-sans flex flex-col h-[100dvh] overflow-hidden"
     >
       {/* Top Header */}
       <header className="sticky top-0 bg-bg/90 backdrop-blur-md z-40 border-b border-line py-4 px-4 sm:px-6 shrink-0 pt-[calc(1rem+env(safe-area-inset-top))]">

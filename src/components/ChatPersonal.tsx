@@ -189,9 +189,8 @@ export default function ChatPersonal({
   const scrollToBottom = (behavior: 'smooth' | 'auto' = 'smooth') => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior });
     }
+    messagesEndRef.current?.scrollIntoView({ behavior, block: 'nearest' });
   };
 
   const loadConversations = async () => {
@@ -272,6 +271,19 @@ export default function ChatPersonal({
   useEffect(() => {
     loadConversations();
   }, [personalId]);
+
+  useEffect(() => {
+    if (selectedAlunoId) {
+      setTimeout(() => scrollToBottom('auto'), 100);
+      setTimeout(() => scrollToBottom('auto'), 300);
+    }
+  }, [selectedAlunoId]);
+
+  useEffect(() => {
+    if (activeMessages.length > 0) {
+      setTimeout(() => scrollToBottom('auto'), 100);
+    }
+  }, [activeMessages.length]);
 
   useEffect(() => {
     if (initialSelectedAlunoId && conversations.length > 0) {
