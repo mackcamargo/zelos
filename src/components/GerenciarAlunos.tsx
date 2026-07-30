@@ -71,6 +71,7 @@ export default function GerenciarAlunos({
   const [salvandoObjetivo, setSalvandoObjetivo] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [confirmNomeInput, setConfirmNomeInput] = useState('');
   const [removendo, setRemovendo] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
 
@@ -618,18 +619,30 @@ Bora juntos! 💪`;
     if (!selectedAluno) return;
     setRemovendo(true);
     try {
-      const { error } = await dbService.removeAluno(selectedAluno.id);
+      let error: any = null;
+      if (isSupabaseConfigured && supabase) {
+        const res = await supabase.rpc('desvincular_aluno_completo', { p_aluno_id: selectedAluno.id });
+        error = res.error;
+      } else {
+        const res = await dbService.removeAluno(selectedAluno.id);
+        error = res.error;
+      }
+
       if (error) {
         console.error('Erro ao desvincular aluno:', error);
-        showToast(`Erro ao desvincular: ${error.message}`);
+        showToast(`Erro ao desvincular: ${error.message || 'Falha ao executar operação no banco'}`);
       } else {
-        showToast(`Aluno desvinculado com sucesso!`);
+        showToast('Aluno removido com sucesso!');
+        const removedId = selectedAluno.id;
+        setAlunos((prev) => prev.filter((a) => a.id !== removedId));
         setSelectedAluno(null);
         setShowRemoveConfirm(false);
+        setConfirmNomeInput('');
         loadAlunosList();
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Exceção ao desvincular aluno:', err);
+      showToast(`Erro ao desvincular: ${err?.message || 'Erro inesperado'}`);
     } finally {
       setRemovendo(false);
     }
@@ -2509,48 +2522,121 @@ Bora juntos! 💪`;
 
             {/* BLOCK 9: DESVINCULAR ALUNO */}
             <div className="pt-6 border-t border-white/5 flex justify-end">
-              {!showRemoveConfirm ? (
-                <button
-                  id="btn-show-unlink-confirm"
-                  type="button"
-                  onClick={() => setShowRemoveConfirm(true)}
-                  className="py-3 px-5 rounded-xl border border-rose-500/10 hover:bg-rose-500/5 text-rose-500 text-xs font-mono flex items-center gap-2 transition-all cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Desvincular Aluno da Equipe</span>
-                </button>
-              ) : (
-                <div className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-5 space-y-4 max-w-md w-full">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-display font-semibold text-sm text-ink">Confirmar Desvinculação?</h4>
-                      <p className="text-xs text-ink-2 mt-1 leading-relaxed">
-                        Ao desvincular, este aluno será removido da sua lista e não poderá mais ver os treinos montados por você. Ele precisará de um novo código para retornar.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      id="btn-cancel-unlink"
-                      type="button"
-                      onClick={() => setShowRemoveConfirm(false)}
-                      className="px-4 py-2 rounded-xl text-xs text-ink-2 hover:text-ink transition-all"
+              <button
+                id="btn-show-unlink-confirm"
+                type="button"
+                onClick={() => {
+                  setConfirmNomeInput('');
+                  setShowRemoveConfirm(true);
+                }}
+                className="py-3 px-5 rounded-xl border border-rose-500/20 hover:bg-rose-500/10 text-rose-500 text-xs font-mono flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Desvincular Aluno da Equipe</span>
+              </button>
+
+              {/* MODAL DE CONFIRMAÇÃO DE DESVINCULAÇÃO E APAGAMENTO COMPLETO */}
+              <AnimatePresence>
+                {showRemoveConfirm && selectedAluno && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="bg-[#121214] border border-rose-500/30 rounded-3xl p-6 max-w-lg w-full space-y-5 shadow-2xl relative text-ink"
                     >
-                      Cancelar
-                    </button>
-                    <button
-                      id="btn-execute-unlink"
-                      type="button"
-                      disabled={removendo}
-                      onClick={handleRemoveAluno}
-                      className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-mono text-xs font-bold transition-all disabled:opacity-50"
-                    >
-                      {removendo ? 'Desvinculando...' : 'Sim, Desvincular'}
-                    </button>
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                          <AlertTriangle className="w-6 h-6 text-rose-500" />
+                        </div>
+                        <div className="space-y-1 pr-6">
+                          <h3 className="font-display font-bold text-base text-rose-500">
+                            Desvincular e Excluir Aluno
+                          </h3>
+                          <p className="text-xs text-ink-2 leading-relaxed">
+                            Ação <strong className="text-rose-400">IRREVERSÍVEL</strong>. Esta operação apaga permanentemente do banco todos os dados do aluno.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowRemoveConfirm(false);
+                            setConfirmNomeInput('');
+                          }}
+                          className="absolute top-5 right-5 text-ink-3 hover:text-ink transition-colors p-1 cursor-pointer"
+                        >
+                          <LucideX className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="bg-rose-950/20 border border-rose-500/20 rounded-2xl p-4 text-xs space-y-2">
+                        <p className="font-semibold text-rose-400">
+                          Serão excluídos permanentemente de <span className="text-white underline">{selectedAluno.profile?.nome || 'este aluno'}</span>:
+                        </p>
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-ink-2 font-mono">
+                          <li>• Fichas e treinos</li>
+                          <li>• Histórico de chat/mensagens</li>
+                          <li>• Check-ins e avaliações</li>
+                          <li>• Fotos de progresso</li>
+                          <li>• Métricas e anamnese</li>
+                          <li>• Hidratação e hábitos</li>
+                          <li>• Condições ortopédicas</li>
+                          <li>• Vínculo com a equipe</li>
+                        </ul>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs text-ink-2">
+                          Para confirmar a exclusão, digite o nome do aluno <span className="font-bold text-white">"{selectedAluno.profile?.nome || 'DESVINCULAR'}"</span> abaixo:
+                        </label>
+                        <input
+                          type="text"
+                          value={confirmNomeInput}
+                          onChange={(e) => setConfirmNomeInput(e.target.value)}
+                          placeholder={`Digite "${selectedAluno.profile?.nome || 'DESVINCULAR'}" para confirmar`}
+                          className="w-full h-11 px-4 rounded-xl bg-surface border border-line focus:border-rose-500 text-ink placeholder:text-ink-4 text-sm font-mono outline-none transition-colors"
+                        />
+                      </div>
+
+                      <div className="flex gap-3 justify-end pt-2">
+                        <button
+                          id="btn-cancel-unlink"
+                          type="button"
+                          onClick={() => {
+                            setShowRemoveConfirm(false);
+                            setConfirmNomeInput('');
+                          }}
+                          className="px-4 py-2.5 rounded-xl text-xs font-semibold text-ink-2 hover:bg-white/5 transition-all cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          id="btn-execute-unlink"
+                          type="button"
+                          disabled={
+                            removendo ||
+                            confirmNomeInput.trim().toLowerCase() !== (selectedAluno.profile?.nome || 'DESVINCULAR').trim().toLowerCase()
+                          }
+                          onClick={handleRemoveAluno}
+                          className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:bg-rose-950 disabled:text-rose-500/40 text-white font-mono text-xs font-bold transition-all shadow-lg shadow-rose-950/50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          {removendo ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                              <span>Excluindo...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="w-4 h-4" />
+                              <span>Excluir e Desvincular</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </motion.div>
                   </div>
-                </div>
-              )}
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}

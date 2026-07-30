@@ -547,12 +547,12 @@ export const dbService = {
 
   async removeAluno(alunoId: string): Promise<{ error: any }> {
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('alunos').update({ personal_id: null }).eq('id', alunoId);
+      const { error } = await supabase.rpc('desvincular_aluno_completo', { p_aluno_id: alunoId });
       return { error };
     }
     const alunos = loadMockAlunos();
     const index = alunos.findIndex(a => a.id === alunoId);
-    if (index >= 0) { alunos[index].personal_id = null; save('zenite_mock_alunos', alunos); return { error: null }; }
+    if (index >= 0) { alunos.splice(index, 1); save('zenite_mock_alunos', alunos); return { error: null }; }
     return { error: { message: 'Aluno não encontrado' } };
   },
 
