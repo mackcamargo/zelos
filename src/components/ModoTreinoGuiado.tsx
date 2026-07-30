@@ -1013,7 +1013,7 @@ export default function ModoTreinoGuiado({
                 onClick={handleProximoExercicio}
                 className="flex-1 bg-[#F26A1B] hover:bg-[#ff8a3d] text-white font-display font-bold py-3 px-5 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-[#F26A1B]/20 transition-all cursor-pointer active:scale-[0.98] text-sm"
               >
-                <span>Próximo</span>
+                <span>Próximo Exercício</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             )}
