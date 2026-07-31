@@ -604,7 +604,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
 
         {/* Footer */}
         <div className="relative z-10 text-xs text-ink-3 font-mono">
-          © {new Date().getFullYear()} ZELOS Personal • v1.0.0
+          © {new Date().getFullYear()} ZELOS Personal
         </div>
       </div>
 
