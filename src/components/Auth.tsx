@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { authService, isSupabaseConfigured, supabase } from '../lib/supabase';
 import { PapelUsuario, TipoAvatar } from '../types';
 import { 
@@ -131,7 +131,17 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [isFirstVisitPopupOpen, setIsFirstVisitPopupOpen] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
+
+  useEffect(() => {
+    const hasSeenPopup = localStorage.getItem('zelos_popup_boas_vindas_visto');
+    if (!hasSeenPopup) {
+      setIsFirstVisitPopupOpen(true);
+      setIsLogin(false); // Direcionar para o cadastro como primeira opção
+      localStorage.setItem('zelos_popup_boas_vindas_visto', 'true');
+    }
+  }, []);
 
   // Sound preference state
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
@@ -641,46 +651,105 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-[#F26A1B]/5 blur-[80px] pointer-events-none rounded-full" />
 
         {/* Welcome Modal for Students */}
-        {showWelcomeModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="w-full max-w-sm bg-surface border border-line rounded-xl p-8 relative overflow-hidden"
-            >
-              {/* Background accent */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
-              
-              <div className="text-center space-y-6 relative z-10">
-                <div className="flex justify-center">
-                  <div className="w-20 h-20 bg-[#F26A1B]/10 rounded-full flex items-center justify-center border border-[#F26A1B]/20">
-                    <div className="w-12 h-12 bg-[#F26A1B] rounded-full flex items-center justify-center">
-                      <Check className="w-7 h-7 text-white stroke-[3px]" />
+        <AnimatePresence>
+          {showWelcomeModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="w-full max-w-sm bg-surface border border-line rounded-xl p-8 relative overflow-hidden"
+              >
+                {/* Background accent */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#F26A1B]/10 blur-3xl pointer-events-none rounded-full" />
+                
+                <div className="text-center space-y-6 relative z-10">
+                  <div className="flex justify-center">
+                    <div className="w-20 h-20 bg-[#F26A1B]/10 rounded-full flex items-center justify-center border border-[#F26A1B]/20">
+                      <div className="w-12 h-12 bg-[#F26A1B] rounded-full flex items-center justify-center">
+                        <Check className="w-7 h-7 text-white stroke-[3px]" />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <h2 className="font-semibold text-2xl text-ink leading-tight">
-                    Bem-vindo à sua jornada!
-                  </h2>
-                  <p className="text-sm text-ink-2 leading-relaxed font-sans">
-                    Sua conta foi criada com sucesso e você já está conectado ao seu Personal. A partir de agora, seus treinos, metas e acompanhamento aparecem aqui. Assim que seu Personal montar seu plano, tudo estará disponível nesta tela.
-                  </p>
-                </div>
+                  <div className="space-y-2">
+                    <h2 className="font-semibold text-2xl text-ink leading-tight">
+                      Bem-vindo à sua jornada!
+                    </h2>
+                    <p className="text-sm text-ink-2 leading-relaxed font-sans">
+                      Sua conta foi criada com sucesso e você já está conectado ao seu Personal. A partir de agora, seus treinos, metas e acompanhamento aparecem aqui. Assim que seu Personal montar seu plano, tudo estará disponível nesta tela.
+                    </p>
+                  </div>
 
+                  <button
+                    id="btn-welcome-start"
+                    type="button"
+                    onClick={handleStartApp}
+                    className="w-full py-4 px-6 rounded-lg bg-[#F26A1B] hover:opacity-90 text-white font-semibold text-base transition-all active:scale-[0.98] cursor-pointer"
+                  >
+                    Começar
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Popup de Boas-vindas na Primeira Visita */}
+        <AnimatePresence>
+          {isFirstVisitPopupOpen && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="w-full max-w-lg bg-surface border border-line rounded-2xl p-8 sm:p-12 relative overflow-hidden shadow-2xl"
+              >
+                {/* Background accent */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#F26A1B]/10 blur-[100px] pointer-events-none rounded-full" />
+                
                 <button
-                  id="btn-welcome-start"
-                  type="button"
-                  onClick={handleStartApp}
-                  className="w-full py-4 px-6 rounded-lg bg-[#F26A1B] hover:opacity-90 text-white font-semibold text-base transition-all active:scale-[0.98] cursor-pointer"
+                  onClick={() => {
+                    setIsFirstVisitPopupOpen(false);
+                    playWhoosh();
+                  }}
+                  className="absolute top-6 right-6 p-2 text-ink-3 hover:text-ink hover:bg-raise rounded-xl transition-all cursor-pointer"
+                  title="Fechar"
                 >
-                  Começar
+                  <X className="w-6 h-6" />
                 </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+
+                <div className="text-center space-y-8 relative z-10">
+                  <div className="flex justify-center">
+                    <div className="w-24 h-24 bg-[#F26A1B]/10 rounded-3xl flex items-center justify-center border border-[#F26A1B]/20 rotate-3">
+                      <Sparkles className="w-12 h-12 text-[#F26A1B]" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h2 className="text-3xl sm:text-4xl font-black text-ink font-display leading-tight tracking-tight">
+                      Teste grátis, <br/><span className="text-[#F26A1B]">sem compromisso!</span>
+                    </h2>
+                    <p className="text-base sm:text-lg text-ink-2 leading-relaxed font-medium">
+                      Cadastre um e-mail e uma senha e teste todas as funções da plataforma ZELOS Personal, sem colocar cartão de crédito ou pagar nada. Se gostar, continue com a gente.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsFirstVisitPopupOpen(false);
+                      playWhoosh();
+                    }}
+                    className="w-full py-5 px-8 rounded-2xl bg-[#F26A1B] hover:opacity-90 text-white font-bold text-lg transition-all active:scale-[0.98] cursor-pointer shadow-lg shadow-[#F26A1B]/25"
+                  >
+                    Criar minha conta grátis
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Card */}
         <motion.div
