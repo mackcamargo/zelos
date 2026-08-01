@@ -137,8 +137,14 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   useEffect(() => {
     const hasSeenPopup = localStorage.getItem('zelos_popup_boas_vindas_visto');
     if (!hasSeenPopup) {
-      setIsFirstVisitPopupOpen(true);
-      setIsLogin(false); // Direcionar para o cadastro como primeira opção
+      const params = new URLSearchParams(window.location.search);
+      const isCortesia = params.has('cortesia');
+      
+      if (!isCortesia) {
+        setIsFirstVisitPopupOpen(true);
+        setIsLogin(false); // Direcionar para o cadastro como primeira opção
+      }
+      
       localStorage.setItem('zelos_popup_boas_vindas_visto', 'true');
     }
   }, []);
@@ -731,7 +737,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                       Teste grátis, <br/><span className="text-[#F26A1B]">sem compromisso!</span>
                     </h2>
                     <p className="text-base sm:text-lg text-ink-2 leading-relaxed font-medium">
-                      Cadastre um e-mail e uma senha e teste todas as funções da plataforma ZELOS Personal, sem colocar cartão de crédito ou pagar nada. Se gostar, continue com a gente.
+                      Cadastre um e-mail e uma senha e teste todas as funções da plataforma ZELOS Personal, sem colocar cartão de crédito ou pagar nada. Se gostar, depois de 7 dias crie seu plano e continue com a gente.
                     </p>
                   </div>
 
