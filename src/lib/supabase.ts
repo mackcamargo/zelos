@@ -55,6 +55,7 @@ interface MockUser {
   id: string;
   email: string;
   nome: string;
+  telefone?: string | null;
   papel: PapelUsuario;
   avatar_tipo: TipoAvatar;
   avatar_url: string | null;
@@ -138,13 +139,13 @@ const loadMockConvites = () => load('zenite_mock_convites', [
 ]);
 
 export const authService = {
-  async signUp(email: string, password: string, nome: string, papel: PapelUsuario, avatar_tipo: TipoAvatar, codigoConvite?: string) {
+  async signUp(email: string, password: string, nome: string, telefone: string, papel: PapelUsuario, avatar_tipo: TipoAvatar, codigoConvite?: string) {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { nome, papel, avatar_tipo, codigo_convite: codigoConvite || null }
+          data: { nome, telefone, papel, avatar_tipo, codigo_convite: codigoConvite || null }
         }
       });
       if (error) return { data: null, error };
@@ -169,6 +170,7 @@ export const authService = {
               await supabase.from('profiles').upsert({
                 id: user.id,
                 nome: nome,
+                telefone: telefone,
                 papel: 'aluno',
                 avatar_tipo: avatar_tipo,
                 criado_em: new Date().toISOString()
@@ -196,6 +198,7 @@ export const authService = {
             await supabase.from('profiles').upsert({
               id: user.id,
               nome: nome,
+              telefone: telefone,
               papel: 'personal',
               avatar_tipo: avatar_tipo,
               criado_em: new Date().toISOString()
@@ -231,7 +234,7 @@ export const authService = {
       
       const newUser: MockUser = {
         id: newUserId,
-        email, nome, papel, avatar_tipo, avatar_url: null,
+        email, nome, telefone, papel, avatar_tipo, avatar_url: null,
         criado_em: new Date().toISOString()
       };
       users.push(newUser);
@@ -244,19 +247,19 @@ export const authService = {
       });
       save('zenite_mock_alunos', alunos);
       
-      const session = { user: { id: newUser.id, email, user_metadata: { nome, papel, avatar_tipo } } };
+      const session = { user: { id: newUser.id, email, user_metadata: { nome, telefone, papel, avatar_tipo } } };
       save('zenite_mock_session', session);
       return { data: session, error: null };
     }
 
     const newUser: MockUser = {
       id: 'user-' + Math.random().toString(36).substring(2, 9),
-      email, nome, papel, avatar_tipo, avatar_url: null,
+      email, nome, telefone, papel, avatar_tipo, avatar_url: null,
       criado_em: new Date().toISOString()
     };
     users.push(newUser);
     save('zenite_mock_users', users);
-    const session = { user: { id: newUser.id, email, user_metadata: { nome, papel, avatar_tipo } } };
+    const session = { user: { id: newUser.id, email, user_metadata: { nome, telefone, papel, avatar_tipo } } };
     save('zenite_mock_session', session);
     return { data: session, error: null };
   },
@@ -452,6 +455,14 @@ export const dbService = {
       return { data: Number(data) || 0, error };
     }
     return { data: 0, error: null };
+  },
+
+  async adminListarPersonais(): Promise<{ data: any[] | null; error: any }> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.rpc('admin_listar_personais');
+      return { data, error };
+    }
+    return { data: [], error: null };
   },
   async getProfile(userId: string): Promise<{ data: Profile | null; error: any }> {
     if (isSupabaseConfigured && supabase) {

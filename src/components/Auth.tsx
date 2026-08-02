@@ -20,7 +20,8 @@ import {
   MessageSquare,
   TrendingUp,
   HeartPulse,
-  Zap 
+  Zap,
+  Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { traduzErro } from '../lib/erros';
@@ -117,6 +118,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const [confirmPassword, setConfirmPassword] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [nome, setNome] = useState('');
+  const [telefone, setTelefone] = useState('');
   const [papel, setPapel] = useState<PapelUsuario>('personal');
   const [avatarTipo, setAvatarTipo] = useState<TipoAvatar>('masculino');
   const [codigoConvite, setCodigoConvite] = useState('');
@@ -188,7 +190,39 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     return passwordCriteria.length && passwordCriteria.lower && passwordCriteria.upper && passwordCriteria.number;
   }, [passwordCriteria]);
 
-  const canSubmitSignup = isLogin || isPasswordValid;
+  const applyPhoneMask = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 2) return digits.length > 0 ? `(${digits}` : '';
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 11) {
+      setTelefone(applyPhoneMask(digits));
+    }
+  };
+
+  const isPhoneValid = useMemo(() => {
+    const digits = telefone.replace(/\D/g, '');
+    if (digits.length < 10) return false;
+    const ddd = parseInt(digits.slice(0, 2));
+    return ddd >= 11 && ddd <= 99;
+  }, [telefone]);
+
+  const isEmailValid = useMemo(() => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }, [email]);
+
+  const canSubmitSignup = isLogin || (
+    nome.trim().length > 0 && 
+    isPhoneValid && 
+    isEmailValid && 
+    isPasswordValid
+  );
   const canSubmitReset = view !== 'reset' || (isPasswordValid && newPassword === confirmPassword);
 
   React.useEffect(() => {
@@ -399,6 +433,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
           email,
           password,
           nome,
+          telefone.replace(/\D/g, ''),
           papel,
           avatarTipo,
           papel === 'aluno' && codigoConvite ? codigoConvite : undefined
@@ -924,6 +959,26 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                     </div>
                   </div>
 
+                  {/* Phone */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Telefone / WhatsApp</label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-ink-3" />
+                      <input
+                        id="input-phone"
+                        type="text"
+                        required
+                        value={telefone}
+                        onChange={handlePhoneChange}
+                        placeholder="(11) 99999-9999"
+                        className="z-input !pl-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15"
+                      />
+                    </div>
+                    {!isPhoneValid && telefone.replace(/\D/g, '').length > 0 && (
+                      <p className="text-[10px] text-danger font-medium mt-1">Digite um telefone válido com DDD (11-99)</p>
+                    )}
+                  </div>
+
                   {/* Contextual Signup Info */}
                   {isConviteLocked ? (
                     invitePersonalName && (
@@ -1075,7 +1130,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={isLogin ? "Mínimo 6 caracteres" : "Senha forte necessária"}
+                    placeholder={isLogin ? "Sua senha" : "Ex: Aaa32541"}
                     className="z-input !pl-12 !pr-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 num"
                   />
                   <button
@@ -1225,7 +1280,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Senha forte necessária"
+                    placeholder="Ex: Aaa32541"
                     className="z-input !pl-12 !pr-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 num"
                   />
                   <button

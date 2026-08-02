@@ -5,6 +5,7 @@ export interface Profile {
   id: string;
   papel: PapelUsuario;
   nome: string;
+  telefone?: string | null;
   avatar_url: string | null;
   avatar_tipo: TipoAvatar | null;
   criado_em: string;

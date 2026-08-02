@@ -15,7 +15,12 @@ import {
   ArrowRight,
   Search,
   LayoutDashboard,
-  Sparkles
+  Sparkles,
+  ClipboardList,
+  Filter,
+  Calendar,
+  UserPlus,
+  X
 } from 'lucide-react';
 import { ZelosModal } from './ZelosModal';
 
@@ -81,9 +86,25 @@ interface AdminUltimoAcesso {
   acessado_em: string;
 }
 
+interface PersonalCadastrado {
+  personal_id: string;
+  nome: string;
+  email: string;
+  cadastrado_em: string;
+  plano: string;
+  status_assinatura: string;
+  limite_alunos: number;
+  expira_em: string;
+  codigo_cortesia: string;
+  situacao: 'em_trial' | 'trial_expirado' | 'assinante_pagante' | 'cancelou';
+  qtd_alunos_cadastrados: number;
+  dias_desde_cadastro: number;
+}
+
 export default function AdminArea() {
   const [kpis, setKpis] = useState<AdminKPIs | null>(null);
   const [personais, setPersonais] = useState<AdminPersonal[]>([]);
+  const [personaisCompletos, setPersonaisCompletos] = useState<PersonalCadastrado[]>([]);
   const [alunos, setAlunos] = useState<AdminAluno[]>([]);
   const [planos, setPlanos] = useState<AdminPlano[]>([]);
   const [acessosResumo, setAcessosResumo] = useState<AdminAcessoResumo[]>([]);
@@ -91,7 +112,8 @@ export default function AdminArea() {
   const [loading, setLoading] = useState(true);
   const [selectedPersonalId, setSelectedPersonalId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeSection, setActiveSection] = useState<'personais' | 'alunos' | 'planos' | 'acessos'>('personais');
+  const [situacaoFilter, setSituacaoFilter] = useState<string>('Todos');
+  const [activeSection, setActiveSection] = useState<'personais' | 'alunos' | 'planos' | 'acessos' | 'lista_personais'>('personais');
 
   const [modalConfig, setModalConfig] = useState<{
     show: boolean;
@@ -112,13 +134,14 @@ export default function AdminArea() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [kpiRes, personaisRes, alunosRes, planosRes, acessosRes, ultimosRes] = await Promise.all([
+      const [kpiRes, personaisRes, alunosRes, planosRes, acessosRes, ultimosRes, personaisCompletosRes] = await Promise.all([
         supabase.from('v_admin_kpis').select('*').single(),
         supabase.from('v_admin_personais').select('*').order('receita_mes_centavos', { ascending: false }),
         supabase.from('v_admin_alunos').select('*').order('aluno_nome'),
         supabase.from('v_admin_por_plano').select('*').order('receita_mes_centavos', { ascending: false }),
         supabase.from('v_admin_acessos_resumo').select('*').order('ultimo_acesso', { ascending: false }),
-        supabase.from('v_admin_ultimos_acessos').select('*').limit(50)
+        supabase.from('v_admin_ultimos_acessos').select('*').limit(50),
+        supabase.rpc('admin_listar_personais')
       ]);
 
       if (kpiRes.data) setKpis(kpiRes.data);
@@ -127,6 +150,7 @@ export default function AdminArea() {
       if (planosRes.data) setPlanos(planosRes.data);
       if (acessosRes.data) setAcessosResumo(acessosRes.data);
       if (ultimosRes.data) setUltimosAcessos(ultimosRes.data);
+      if (personaisCompletosRes.data) setPersonaisCompletos(personaisCompletosRes.data);
 
       // Check for new notifications
       const { data: novos } = await supabase.from('v_admin_novos_nao_avisados').select('*');
@@ -225,6 +249,11 @@ export default function AdminArea() {
           <TabButton 
             active={activeSection === 'personais'} 
             onClick={() => { setActiveSection('personais'); setSelectedPersonalId(null); setHighlightedPersonalId(null); }}
+            label="Dashboard"
+          />
+          <TabButton 
+            active={activeSection === 'lista_personais'} 
+            onClick={() => { setActiveSection('lista_personais'); setSelectedPersonalId(null); setHighlightedPersonalId(null); }}
             label="Personais"
           />
           <TabButton 
@@ -360,6 +389,139 @@ export default function AdminArea() {
                 </div>
               </motion.div>
             )}
+          </div>
+        )}
+
+        {activeSection === 'lista_personais' && (
+          <div className="space-y-6">
+            {/* Resumo Situacao */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <KPICard 
+                title="Em Trial" 
+                value={personaisCompletos.filter(p => p.situacao === 'em_trial').length.toString()} 
+                icon={Activity} 
+                color="text-amber-500" 
+                bgColor="bg-amber-500/10"
+              />
+              <KPICard 
+                title="Assinantes Pagantes" 
+                value={personaisCompletos.filter(p => p.situacao === 'assinante_pagante').length.toString()} 
+                icon={CheckCircle2} 
+                color="text-emerald-500" 
+                bgColor="bg-emerald-500/10"
+              />
+              <KPICard 
+                title="Trial Expirado" 
+                value={personaisCompletos.filter(p => p.situacao === 'trial_expirado').length.toString()} 
+                icon={AlertCircle} 
+                color="text-rose-500" 
+                bgColor="bg-rose-500/10"
+              />
+              <KPICard 
+                title="Cancelaram" 
+                value={personaisCompletos.filter(p => p.situacao === 'cancelou').length.toString()} 
+                icon={X} 
+                color="text-ink-3" 
+                bgColor="bg-void"
+              />
+            </div>
+
+            {/* Filtros */}
+            <div className="bg-surface border border-line p-6 rounded-3xl space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 space-y-1.5">
+                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block ml-1">Buscar por Nome ou E-mail</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                    <input 
+                      type="text"
+                      placeholder="Nome ou e-mail..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 bg-void border border-line rounded-xl text-sm focus:border-accent transition-colors"
+                    />
+                  </div>
+                </div>
+                <div className="w-full sm:w-64 space-y-1.5">
+                  <label className="text-[10px] font-mono text-ink-3 uppercase tracking-wider block ml-1">Filtrar por Situação</label>
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
+                    <select 
+                      value={situacaoFilter}
+                      onChange={(e) => setSituacaoFilter(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 bg-void border border-line rounded-xl text-sm focus:border-accent appearance-none transition-colors cursor-pointer"
+                    >
+                      <option value="Todos">Todas as situações</option>
+                      <option value="em_trial">Em Trial</option>
+                      <option value="assinante_pagante">Assinante Pagante</option>
+                      <option value="trial_expirado">Trial Expirado</option>
+                      <option value="cancelou">Cancelou</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabela de Personais */}
+            <div className="bg-surface border border-line rounded-3xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-void/50 border-b border-line">
+                      <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Personal</th>
+                      <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Cadastro</th>
+                      <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Situação</th>
+                      <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider text-center">Alunos</th>
+                      <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider text-right">Dias</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {personaisCompletos
+                      .filter(p => {
+                        const matchesSearch = p.nome.toLowerCase().includes(searchTerm.toLowerCase()) || p.email.toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesSituacao = situacaoFilter === 'Todos' || p.situacao === situacaoFilter;
+                        return matchesSearch && matchesSituacao;
+                      })
+                      .map(p => (
+                        <tr key={p.personal_id} className="hover:bg-accent/5 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-semibold text-ink">{p.nome}</span>
+                              <span className="text-[11px] text-ink-3">{p.email}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2 text-xs text-ink-2">
+                              <Calendar className="w-3 h-3 text-ink-3" />
+                              {new Date(p.cadastrado_em).toLocaleDateString('pt-BR')}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                              p.situacao === 'assinante_pagante' ? 'bg-emerald-500/10 text-emerald-500' : 
+                              p.situacao === 'em_trial' ? 'bg-amber-500/10 text-amber-500' : 
+                              p.situacao === 'trial_expirado' ? 'bg-rose-500/10 text-rose-500' : 
+                              'bg-ink-3/10 text-ink-3'
+                            }`}>
+                              {p.situacao.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className="text-sm font-mono text-ink font-bold">
+                              {p.qtd_alunos_cadastrados}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <span className="text-xs text-ink-3 font-mono">
+                              {p.dias_desde_cadastro}d
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
