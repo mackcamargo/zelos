@@ -39,13 +39,22 @@ interface AdminKPIs {
 interface AdminPersonal {
   personal_id: string;
   personal_nome: string;
+  email: string;
+  telefone: string | null;
+  plano: string;
   plano_nome: string;
   assinatura_status: string;
   e_cortesia: boolean;
+  expira_em: string | null;
+  dias_restantes: number | null;
+  trial_expirado: boolean | null;
+  mensalidade_centavos: number;
+  receita_mes_centavos: number;
   alunos_ativos: number;
   alunos_total: number;
   limite_alunos: number;
-  receita_mes_centavos: number;
+  criado_em: string;
+  whatsapp_link: string | null;
 }
 
 interface AdminAluno {
@@ -228,6 +237,271 @@ function TrialCard({
   );
 }
 
+function PersonalDetailsModal({
+  personal,
+  onClose,
+  onSavePhone,
+  onVerAlunos
+}: {
+  personal: AdminPersonal;
+  onClose: () => void;
+  onSavePhone: (personalId: string, phoneDigits: string) => Promise<void>;
+  onVerAlunos: (personalId: string) => void;
+}) {
+  const formatPhoneMask = (val: string) => {
+    const digits = val.replace(/\D/g, '');
+    if (digits.length <= 2) return digits.length > 0 ? `(${digits}` : '';
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  };
+
+  const [phoneInput, setPhoneInput] = useState(formatPhoneMask(personal.telefone || ''));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    setPhoneInput(formatPhoneMask(personal.telefone || ''));
+  }, [personal.telefone]);
+
+  const handleSavePhone = async () => {
+    const digits = phoneInput.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 11) {
+      alert('Digite um telefone válido com DDD (10 ou 11 dígitos).');
+      return;
+    }
+    const ddd = parseInt(digits.slice(0, 2));
+    if (ddd < 11 || ddd > 99) {
+      alert('DDD inválido.');
+      return;
+    }
+    setSaving(true);
+    await onSavePhone(personal.personal_id, digits);
+    setSaving(false);
+  };
+
+  const formatCurrency = (centavos: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((centavos || 0) / 100);
+  };
+
+  const phoneDigits = personal.telefone ? personal.telefone.replace(/\D/g, '') : '';
+  const waUrl = personal.whatsapp_link || (phoneDigits ? `https://wa.me/55${phoneDigits}` : null);
+
+  const createdDate = personal.criado_em 
+    ? new Date(personal.criado_em).toLocaleDateString('pt-BR')
+    : 'N/A';
+
+  const expiraDate = personal.expira_em 
+    ? new Date(personal.expira_em).toLocaleDateString('pt-BR')
+    : null;
+
+  const isExpired = personal.trial_expirado || (personal.dias_restantes !== null && personal.dias_restantes !== undefined && personal.dias_restantes < 0);
+  const isExpiringSoon = !isExpired && personal.dias_restantes !== null && personal.dias_restantes !== undefined && personal.dias_restantes <= 3;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-md" onClick={onClose}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-surface border border-line rounded-3xl p-6 sm:p-8 max-w-xl w-full max-h-[90vh] overflow-y-auto space-y-6 shadow-2xl relative"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 border-b border-line pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-lg shrink-0">
+              {personal.personal_nome ? personal.personal_nome.charAt(0).toUpperCase() : 'P'}
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-lg sm:text-xl text-ink leading-snug">
+                {personal.personal_nome}
+              </h2>
+              <p className="text-xs text-ink-3">{personal.email}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-2 rounded-xl text-ink-3 hover:text-ink hover:bg-raise transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Details Grid */}
+        <div className="space-y-4">
+          {/* Telefone / WhatsApp */}
+          <div className="p-4 bg-void border border-line rounded-2xl space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-ink-3 font-semibold flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-accent" />
+                Telefone / WhatsApp
+              </span>
+              {waUrl && (
+                <span className="text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold border border-emerald-500/20">
+                  Cadastrado
+                </span>
+              )}
+            </div>
+
+            {waUrl ? (
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <span className="text-sm font-mono text-ink font-semibold">
+                  {formatPhoneMask(personal.telefone || '')}
+                </span>
+                <a
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Abrir no WhatsApp</span>
+                </a>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="text"
+                  placeholder="(11) 99999-9999"
+                  value={phoneInput}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    if (digits.length <= 11) setPhoneInput(formatPhoneMask(digits));
+                  }}
+                  className="flex-1 px-3 py-2 bg-surface border border-line rounded-xl text-xs text-ink focus:border-accent"
+                />
+                <button
+                  type="button"
+                  onClick={handleSavePhone}
+                  disabled={saving}
+                  className="px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                >
+                  {saving ? '...' : 'Salvar telefone'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Cadastro */}
+            <div className="p-4 bg-void border border-line rounded-2xl space-y-1">
+              <span className="text-[11px] text-ink-3 uppercase font-mono tracking-wider block">Data de Cadastro</span>
+              <p className="text-sm font-semibold text-ink flex items-center gap-2 pt-0.5">
+                <Calendar className="w-3.5 h-3.5 text-ink-3" />
+                {createdDate}
+              </p>
+            </div>
+
+            {/* Plano + Cortesia */}
+            <div className="p-4 bg-void border border-line rounded-2xl space-y-1">
+              <span className="text-[11px] text-ink-3 uppercase font-mono tracking-wider block">Plano Atual</span>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="text-sm font-bold text-ink">{personal.plano_nome || personal.plano || 'N/A'}</span>
+                {personal.e_cortesia && (
+                  <span className="bg-emerald-500/10 text-emerald-500 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-emerald-500/20">
+                    Cortesia
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Status da Assinatura & Expiração */}
+            <div className="p-4 bg-void border border-line rounded-2xl space-y-1 sm:col-span-2">
+              <span className="text-[11px] text-ink-3 uppercase font-mono tracking-wider block">Status da Assinatura</span>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <span className={`text-xs uppercase font-bold px-3 py-1 rounded-full ${
+                  personal.assinatura_status === 'ativa' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
+                  personal.assinatura_status === 'trial' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 
+                  'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                }`}>
+                  {personal.assinatura_status || 'desconhecido'}
+                </span>
+
+                {expiraDate && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-ink-3">Expira em <span className="font-mono text-ink-2 font-semibold">{expiraDate}</span></span>
+                    {personal.dias_restantes !== null && personal.dias_restantes !== undefined && (
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        isExpired
+                          ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                          : isExpiringSoon
+                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                            : 'bg-surface text-ink-2 border-line'
+                      }`}>
+                        {isExpired
+                          ? `Venceu há ${Math.abs(personal.dias_restantes)}d`
+                          : `Vence em ${personal.dias_restantes}d`}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mensalidade */}
+            <div className="p-4 bg-void border border-line rounded-2xl space-y-1">
+              <span className="text-[11px] text-ink-3 uppercase font-mono tracking-wider block">Mensalidade</span>
+              <p className="text-sm font-bold text-ink num">
+                {formatCurrency(personal.mensalidade_centavos)}
+              </p>
+            </div>
+
+            {/* Receita Mes */}
+            <div className="p-4 bg-void border border-line rounded-2xl space-y-1">
+              <span className="text-[11px] text-ink-3 uppercase font-mono tracking-wider block">Receita Mensal</span>
+              <p className="text-sm font-bold text-emerald-500 num">
+                {formatCurrency(personal.receita_mes_centavos)}
+              </p>
+            </div>
+
+            {/* Alunos Info */}
+            <div className="p-4 bg-void border border-line rounded-2xl space-y-1 sm:col-span-2">
+              <span className="text-[11px] text-ink-3 uppercase font-mono tracking-wider block">Alunos Cadastrados</span>
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-sm font-semibold text-ink">
+                  <span className="text-emerald-500 font-bold">{personal.alunos_ativos}</span> ativos de <span className="font-bold">{personal.alunos_total}</span> no total
+                </span>
+                <span className="text-xs font-mono text-ink-3">
+                  Limite: {personal.limite_alunos} alunos
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-line">
+          <button
+            type="button"
+            onClick={() => onVerAlunos(personal.personal_id)}
+            className="w-full sm:w-auto px-5 py-2.5 bg-accent hover:bg-accent/90 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+          >
+            <Users className="w-4 h-4" />
+            <span>Ver alunos deste personal</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full sm:w-auto px-5 py-2.5 bg-raise hover:bg-raise/80 text-ink font-bold text-xs rounded-xl transition-all cursor-pointer"
+          >
+            Fechar
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function AdminArea() {
   const [kpis, setKpis] = useState<AdminKPIs | null>(null);
   const [personais, setPersonais] = useState<AdminPersonal[]>([]);
@@ -238,6 +512,7 @@ export default function AdminArea() {
   const [ultimosAcessos, setUltimosAcessos] = useState<AdminUltimoAcesso[]>([]);
   const [trials, setTrials] = useState<AdminTrial[]>([]);
   const [expiredTrialsModal, setExpiredTrialsModal] = useState<AdminTrial[] | null>(null);
+  const [selectedPersonalForModal, setSelectedPersonalForModal] = useState<AdminPersonal | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPersonalId, setSelectedPersonalId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -275,7 +550,13 @@ export default function AdminArea() {
       ]);
 
       if (kpiRes.data) setKpis(kpiRes.data);
-      if (personaisRes.data) setPersonais(personaisRes.data);
+      if (personaisRes.data) {
+        setPersonais(personaisRes.data);
+        if (selectedPersonalForModal) {
+          const updated = personaisRes.data.find((item: AdminPersonal) => item.personal_id === selectedPersonalForModal.personal_id);
+          if (updated) setSelectedPersonalForModal(updated);
+        }
+      }
       if (alunosRes.data) setAlunos(alunosRes.data);
       if (planosRes.data) setPlanos(planosRes.data);
       if (acessosRes.data) setAcessosResumo(acessosRes.data);
@@ -661,11 +942,44 @@ export default function AdminArea() {
                       })
                       .map(p => {
                         const trial = trials.find(t => t.personal_id === p.personal_id);
+                        const fullPersonal = personais.find(item => item.personal_id === p.personal_id);
+
+                        const handleRowClick = () => {
+                          if (fullPersonal) {
+                            setSelectedPersonalForModal(fullPersonal);
+                          } else {
+                            setSelectedPersonalForModal({
+                              personal_id: p.personal_id,
+                              personal_nome: p.nome,
+                              email: p.email,
+                              telefone: trial?.telefone || null,
+                              plano: p.plano,
+                              plano_nome: p.plano,
+                              assinatura_status: p.situacao,
+                              e_cortesia: false,
+                              expira_em: p.expira_em,
+                              dias_restantes: trial?.dias_restantes ?? null,
+                              trial_expirado: p.situacao === 'trial_expirado' || (trial?.ja_expirado ?? false),
+                              mensalidade_centavos: 0,
+                              receita_mes_centavos: 0,
+                              alunos_ativos: p.qtd_alunos_cadastrados,
+                              alunos_total: p.qtd_alunos_cadastrados,
+                              limite_alunos: p.limite_alunos,
+                              criado_em: p.cadastrado_em,
+                              whatsapp_link: trial?.whatsapp_link || null
+                            });
+                          }
+                        };
+
                         return (
-                          <tr key={p.personal_id} className="hover:bg-accent/5 transition-colors">
+                          <tr 
+                            key={p.personal_id} 
+                            onClick={handleRowClick}
+                            className="hover:bg-accent/5 transition-colors cursor-pointer"
+                          >
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex flex-col">
-                                <span className="text-sm font-semibold text-ink">{p.nome}</span>
+                                <span className="text-sm font-semibold text-ink group-hover:text-accent">{p.nome}</span>
                                 <span className="text-[11px] text-ink-3">{p.email}</span>
                               </div>
                             </td>
@@ -704,6 +1018,7 @@ export default function AdminArea() {
                                       href={trial.whatsapp_link || `https://wa.me/55${trial.telefone?.replace(/\D/g, '')}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
                                       className="p-1.5 bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600 hover:text-white rounded-lg transition-colors cursor-pointer"
                                       title="Abrir WhatsApp"
                                     >
@@ -977,6 +1292,19 @@ export default function AdminArea() {
       </div>
 
       {/* 4. MODALS */}
+      {selectedPersonalForModal && (
+        <PersonalDetailsModal
+          personal={selectedPersonalForModal}
+          onClose={() => setSelectedPersonalForModal(null)}
+          onSavePhone={handleSavePhoneFromTrial}
+          onVerAlunos={(personalId) => {
+            setSelectedPersonalForModal(null);
+            setSelectedPersonalId(personalId);
+            setActiveSection('alunos');
+          }}
+        />
+      )}
+
       {expiredTrialsModal && expiredTrialsModal.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-md">
           <motion.div 
