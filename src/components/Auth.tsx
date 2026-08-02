@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { traduzErro } from '../lib/erros';
 import LogoZelos from './LogoZelos';
 import { useTheme } from '../contexts/ThemeContext';
+import { useFormValidation, FormFieldError } from '../hooks/useFormValidation';
 
 interface AuthProps {
   onAuthSuccess: (user: any) => void;
@@ -136,6 +137,9 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
   const [isFirstVisitPopupOpen, setIsFirstVisitPopupOpen] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
 
+  // Reusable form validation hook
+  const { errors, validateAndFocus, clearError, clearAllErrors, getFieldProps } = useFormValidation();
+
   useEffect(() => {
     const hasSeenPopup = localStorage.getItem('zelos_popup_boas_vindas_visto');
     if (!hasSeenPopup) {
@@ -169,6 +173,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     setIsLogin(login);
     setError(null);
     setSuccessMessage(null);
+    clearAllErrors();
     if (!login && !isConviteLocked) {
       setPapel('personal');
     }
@@ -389,9 +394,83 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
     setError(null);
     setSuccessMessage(null);
 
-    if (!isLogin && !isPasswordValid) {
-      setError('A senha não atende aos requisitos mínimos.');
-      return;
+    if (!isLogin) {
+      const isValid = validateAndFocus([
+        {
+          id: 'input-name',
+          label: 'Nome completo',
+          value: nome,
+          required: true,
+          errorMessage: 'Nome completo é obrigatório',
+        },
+        {
+          id: 'input-phone',
+          label: 'Telefone / WhatsApp',
+          value: telefone,
+          required: true,
+          errorMessage: 'Telefone / WhatsApp é obrigatório',
+          customValidate: (val) => {
+            const digits = String(val).replace(/\D/g, '');
+            if (digits.length < 10) return 'Digite um telefone válido com DDD (10 ou 11 dígitos)';
+            const ddd = parseInt(digits.slice(0, 2));
+            if (ddd < 11 || ddd > 99) return 'DDD inválido (11 a 99)';
+            return true;
+          },
+        },
+        {
+          id: 'input-email',
+          label: 'E-mail',
+          value: email,
+          required: true,
+          errorMessage: 'E-mail é obrigatório',
+          customValidate: (val) => {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val))) {
+              return 'Informe um e-mail válido (ex: nome@email.com)';
+            }
+            return true;
+          },
+        },
+        {
+          id: 'input-password',
+          label: 'Senha',
+          value: password,
+          required: true,
+          errorMessage: 'Senha é obrigatória',
+          customValidate: () => {
+            if (!isPasswordValid) {
+              return 'A senha deve conter no mínimo 8 caracteres, maiúscula, minúscula e número';
+            }
+            return true;
+          },
+        },
+      ]);
+
+      if (!isValid) return;
+    } else {
+      const isValid = validateAndFocus([
+        {
+          id: 'input-email',
+          label: 'E-mail',
+          value: email,
+          required: true,
+          errorMessage: 'E-mail é obrigatório',
+          customValidate: (val) => {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val))) {
+              return 'Informe um e-mail válido';
+            }
+            return true;
+          },
+        },
+        {
+          id: 'input-password',
+          label: 'Senha',
+          value: password,
+          required: true,
+          errorMessage: 'Senha é obrigatória',
+        },
+      ]);
+
+      if (!isValid) return;
     }
 
     setLoading(true);
@@ -406,12 +485,6 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
           onAuthSuccess(data.user);
         }
       } else {
-        if (!nome.trim()) {
-          setError('Por favor, informe seu nome completo.');
-          setLoading(false);
-          return;
-        }
-
         // Aluno cadastrando sem convite travado
         if (papel === 'aluno' && !isConviteLocked) {
           setError('O cadastro de aluno é feito por convite do seu personal. Peça o link de convite ao seu treinador.');
@@ -931,7 +1004,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
           )}
 
           {view === 'auth' && (
-            <form onSubmit={(e) => { playWhoosh(); handleSubmit(e); }} className="space-y-5">
+            <form noValidate onSubmit={(e) => { playWhoosh(); handleSubmit(e); }} className="space-y-5">
               {/* Sign Up Fields */}
               {!isLogin && (
                 <div className="space-y-4">
@@ -944,39 +1017,46 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
 
                   {/* Full Name */}
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Nome completo</label>
+                    <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Nome completo *</label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-ink-3" />
                       <input
                         id="input-name"
                         type="text"
-                        required
                         value={nome}
-                        onChange={(e) => setNome(e.target.value)}
+                        onChange={(e) => {
+                          setNome(e.target.value);
+                          clearError('input-name');
+                        }}
                         placeholder="Como prefere ser chamado"
-                        className="z-input !pl-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15"
+                        aria-invalid={getFieldProps('input-name')['aria-invalid']}
+                        aria-describedby={getFieldProps('input-name')['aria-describedby']}
+                        className={`z-input !pl-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 ${getFieldProps('input-name').className}`}
                       />
                     </div>
+                    <FormFieldError fieldId="input-name" error={errors['input-name']} />
                   </div>
 
                   {/* Phone */}
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Telefone / WhatsApp</label>
+                    <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Telefone / WhatsApp *</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-ink-3" />
                       <input
                         id="input-phone"
                         type="text"
-                        required
                         value={telefone}
-                        onChange={handlePhoneChange}
+                        onChange={(e) => {
+                          handlePhoneChange(e);
+                          clearError('input-phone');
+                        }}
                         placeholder="(11) 99999-9999"
-                        className="z-input !pl-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15"
+                        aria-invalid={getFieldProps('input-phone')['aria-invalid']}
+                        aria-describedby={getFieldProps('input-phone')['aria-describedby']}
+                        className={`z-input !pl-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 ${getFieldProps('input-phone').className}`}
                       />
                     </div>
-                    {!isPhoneValid && telefone.replace(/\D/g, '').length > 0 && (
-                      <p className="text-[10px] text-danger font-medium mt-1">Digite um telefone válido com DDD (11-99)</p>
-                    )}
+                    <FormFieldError fieldId="input-phone" error={errors['input-phone']} />
                   </div>
 
                   {/* Contextual Signup Info */}
@@ -1093,25 +1173,30 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
 
               {/* Email */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">E-mail</label>
+                <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">E-mail *</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-ink-3" />
                   <input
                     id="input-email"
                     type="email"
-                    required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      clearError('input-email');
+                    }}
                     placeholder="exemplo@zelos.com"
-                    className="z-input !pl-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 num"
+                    aria-invalid={getFieldProps('input-email')['aria-invalid']}
+                    aria-describedby={getFieldProps('input-email')['aria-describedby']}
+                    className={`z-input !pl-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 num ${getFieldProps('input-email').className}`}
                   />
                 </div>
+                <FormFieldError fieldId="input-email" error={errors['input-email']} />
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Senha</label>
+                  <label className="text-[11px] font-semibold text-ink-3 uppercase tracking-wider block">Senha *</label>
                   {isLogin && (
                     <button
                       type="button"
@@ -1127,11 +1212,15 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                   <input
                     id="input-password"
                     type={showPassword ? 'text' : 'password'}
-                    required
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearError('input-password');
+                    }}
                     placeholder={isLogin ? "Sua senha" : "Ex: Aaa32541"}
-                    className="z-input !pl-12 !pr-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 num"
+                    aria-invalid={getFieldProps('input-password')['aria-invalid']}
+                    aria-describedby={getFieldProps('input-password')['aria-describedby']}
+                    className={`z-input !pl-12 !pr-12 !h-12 text-sm focus:border-[#F26A1B] focus:ring-2 focus:ring-[#F26A1B]/15 num ${getFieldProps('input-password').className}`}
                   />
                   <button
                     type="button"
@@ -1141,6 +1230,7 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <FormFieldError fieldId="input-password" error={errors['input-password']} />
                 {!isLogin && <PasswordRequirements criteria={passwordCriteria} />}
               </div>
 
@@ -1148,9 +1238,10 @@ export default function Auth({ onAuthSuccess, initialRecoveryMode = false, onRec
               <button
                 id="btn-auth-submit"
                 type="submit"
-                disabled={loading || !canSubmitSignup}
+                disabled={loading}
                 className="w-full mt-4 h-12 rounded-xl bg-[#F26A1B] font-bold text-white hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-md shadow-[#F26A1B]/20"
               >
+
                 {loading ? (
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (

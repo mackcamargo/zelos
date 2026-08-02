@@ -127,3 +127,18 @@ body {
   }
 }
 
+@keyframes flash-error-border {
+  0%, 100% {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.4) !important;
+  }
+  50% {
+    border-color: #F26A1B !important;
+    box-shadow: 0 0 0 4px rgba(242, 106, 27, 0.5) !important;
+  }
+}
+
+.animate-flash-error {
+  animation: flash-error-border 0.4s ease-in-out 3 !important;
+}
+
