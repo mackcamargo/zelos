@@ -20,7 +20,9 @@ import {
   Filter,
   Calendar,
   UserPlus,
-  X
+  X,
+  MessageSquare,
+  Phone
 } from 'lucide-react';
 import { ZelosModal } from './ZelosModal';
 
@@ -101,6 +103,131 @@ interface PersonalCadastrado {
   dias_desde_cadastro: number;
 }
 
+interface AdminTrial {
+  assinatura_id: string;
+  personal_id: string;
+  personal_nome: string;
+  telefone: string | null;
+  status: string;
+  plano: string;
+  expira_em: string;
+  dias_restantes: number;
+  ja_expirado: boolean;
+  whatsapp_link: string | null;
+}
+
+function TrialCard({ 
+  trial, 
+  onSavePhone 
+}: { 
+  trial: AdminTrial; 
+  onSavePhone: (personalId: string, phone: string) => Promise<void>; 
+}) {
+  const formatPhoneMask = (val: string) => {
+    const digits = val.replace(/\D/g, '');
+    if (digits.length <= 2) return digits.length > 0 ? `(${digits}` : '';
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  };
+
+  const [phoneInput, setPhoneInput] = useState(formatPhoneMask(trial.telefone || ''));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setPhoneInput(formatPhoneMask(trial.telefone || ''));
+  }, [trial.telefone]);
+
+  const handleSave = async () => {
+    const digits = phoneInput.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 11) {
+      alert('Digite um telefone válido com DDD (10 ou 11 dígitos).');
+      return;
+    }
+    const ddd = parseInt(digits.slice(0, 2));
+    if (ddd < 11 || ddd > 99) {
+      alert('DDD inválido.');
+      return;
+    }
+    setSaving(true);
+    await onSavePhone(trial.personal_id, digits);
+    setSaving(false);
+  };
+
+  const formattedDate = trial.expira_em 
+    ? new Date(trial.expira_em).toLocaleDateString('pt-BR')
+    : 'N/A';
+
+  const isExpired = trial.ja_expirado || trial.dias_restantes < 0;
+  const isExpiringSoon = !isExpired && trial.dias_restantes <= 3;
+
+  const daysText = isExpired 
+    ? `Venceu há ${Math.abs(trial.dias_restantes)} dia(s)`
+    : trial.dias_restantes === 0 
+      ? 'Vence hoje' 
+      : `Vence em ${trial.dias_restantes} dia(s)`;
+
+  const badgeColor = isExpired 
+    ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' 
+    : isExpiringSoon 
+      ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' 
+      : 'bg-void text-ink-2 border-line';
+
+  const phoneDigits = trial.telefone ? trial.telefone.replace(/\D/g, '') : '';
+  const waUrl = trial.whatsapp_link || (phoneDigits ? `https://wa.me/55${phoneDigits}` : null);
+
+  return (
+    <div className="p-4 bg-void border border-line rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="space-y-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold text-sm text-ink truncate">{trial.personal_nome}</span>
+          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${badgeColor}`}>
+            {daysText}
+          </span>
+        </div>
+        <p className="text-xs text-ink-3">
+          Trial de {trial.personal_nome} encerrou em <span className="font-mono text-ink-2 font-semibold">{formattedDate}</span>
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        {waUrl ? (
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Oferta via WhatsApp</span>
+          </a>
+        ) : (
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="(11) 99999-9999"
+              value={phoneInput}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '');
+                if (digits.length <= 11) setPhoneInput(formatPhoneMask(digits));
+              }}
+              className="w-36 px-3 py-1.5 bg-surface border border-line rounded-xl text-xs text-ink focus:border-accent"
+            />
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="px-3 py-1.5 bg-accent hover:bg-accent/90 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+            >
+              {saving ? '...' : 'Salvar'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminArea() {
   const [kpis, setKpis] = useState<AdminKPIs | null>(null);
   const [personais, setPersonais] = useState<AdminPersonal[]>([]);
@@ -109,6 +236,8 @@ export default function AdminArea() {
   const [planos, setPlanos] = useState<AdminPlano[]>([]);
   const [acessosResumo, setAcessosResumo] = useState<AdminAcessoResumo[]>([]);
   const [ultimosAcessos, setUltimosAcessos] = useState<AdminUltimoAcesso[]>([]);
+  const [trials, setTrials] = useState<AdminTrial[]>([]);
+  const [expiredTrialsModal, setExpiredTrialsModal] = useState<AdminTrial[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPersonalId, setSelectedPersonalId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -134,14 +263,15 @@ export default function AdminArea() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [kpiRes, personaisRes, alunosRes, planosRes, acessosRes, ultimosRes, personaisCompletosRes] = await Promise.all([
+      const [kpiRes, personaisRes, alunosRes, planosRes, acessosRes, ultimosRes, personaisCompletosRes, trialsRes] = await Promise.all([
         supabase.from('v_admin_kpis').select('*').single(),
         supabase.from('v_admin_personais').select('*').order('receita_mes_centavos', { ascending: false }),
         supabase.from('v_admin_alunos').select('*').order('aluno_nome'),
         supabase.from('v_admin_por_plano').select('*').order('receita_mes_centavos', { ascending: false }),
         supabase.from('v_admin_acessos_resumo').select('*').order('ultimo_acesso', { ascending: false }),
         supabase.from('v_admin_ultimos_acessos').select('*').limit(50),
-        supabase.rpc('admin_listar_personais')
+        supabase.rpc('admin_listar_personais'),
+        supabase.from('v_admin_trials').select('*')
       ]);
 
       if (kpiRes.data) setKpis(kpiRes.data);
@@ -152,6 +282,16 @@ export default function AdminArea() {
       if (ultimosRes.data) setUltimosAcessos(ultimosRes.data);
       if (personaisCompletosRes.data) setPersonaisCompletos(personaisCompletosRes.data);
 
+      if (trialsRes.data) {
+        setTrials(trialsRes.data);
+        const expired = trialsRes.data.filter((t: AdminTrial) => t.ja_expirado === true || t.dias_restantes < 0);
+        if (expired.length > 0) {
+          setExpiredTrialsModal(expired);
+        } else {
+          setExpiredTrialsModal(null);
+        }
+      }
+
       // Check for new notifications
       const { data: novos } = await supabase.from('v_admin_novos_nao_avisados').select('*');
       if (novos && novos.length > 0) {
@@ -161,6 +301,20 @@ export default function AdminArea() {
       console.error('Erro ao carregar dados admin:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSavePhoneFromTrial = async (personalId: string, phoneDigits: string) => {
+    try {
+      const { error } = await supabase.from('profiles').update({ telefone: phoneDigits }).eq('id', personalId);
+      if (error) {
+        console.error('Erro ao salvar telefone:', error);
+        alert('Erro ao salvar telefone.');
+        return;
+      }
+      await fetchData();
+    } catch (err) {
+      console.error('Erro ao atualizar telefone:', err);
     }
   };
 
@@ -426,6 +580,28 @@ export default function AdminArea() {
               />
             </div>
 
+            {/* trials section */}
+            {trials.length > 0 && (
+              <div className="bg-surface border border-line rounded-3xl p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-line pb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-accent" />
+                    <h3 className="font-display font-bold text-sm sm:text-base text-ink">Personais em Trial & Contato via WhatsApp</h3>
+                  </div>
+                  <span className="text-xs text-ink-3 font-mono">{trials.length} personal(is) em trial</span>
+                </div>
+                <div className="space-y-3">
+                  {trials.map((trial) => (
+                    <TrialCard 
+                      key={trial.assinatura_id || trial.personal_id}
+                      trial={trial}
+                      onSavePhone={handleSavePhoneFromTrial}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Filtros */}
             <div className="bg-surface border border-line p-6 rounded-3xl space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
@@ -471,6 +647,7 @@ export default function AdminArea() {
                       <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Personal</th>
                       <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Cadastro</th>
                       <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Situação</th>
+                      <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider">Expiração / Contato</th>
                       <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider text-center">Alunos</th>
                       <th className="px-6 py-4 text-xs font-mono text-ink-3 uppercase tracking-wider text-right">Dias</th>
                     </tr>
@@ -482,42 +659,77 @@ export default function AdminArea() {
                         const matchesSituacao = situacaoFilter === 'Todos' || p.situacao === situacaoFilter;
                         return matchesSearch && matchesSituacao;
                       })
-                      .map(p => (
-                        <tr key={p.personal_id} className="hover:bg-accent/5 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-ink">{p.nome}</span>
-                              <span className="text-[11px] text-ink-3">{p.email}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2 text-xs text-ink-2">
-                              <Calendar className="w-3 h-3 text-ink-3" />
-                              {new Date(p.cadastrado_em).toLocaleDateString('pt-BR')}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                              p.situacao === 'assinante_pagante' ? 'bg-emerald-500/10 text-emerald-500' : 
-                              p.situacao === 'em_trial' ? 'bg-amber-500/10 text-amber-500' : 
-                              p.situacao === 'trial_expirado' ? 'bg-rose-500/10 text-rose-500' : 
-                              'bg-ink-3/10 text-ink-3'
-                            }`}>
-                              {p.situacao.replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className="text-sm font-mono text-ink font-bold">
-                              {p.qtd_alunos_cadastrados}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <span className="text-xs text-ink-3 font-mono">
-                              {p.dias_desde_cadastro}d
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      .map(p => {
+                        const trial = trials.find(t => t.personal_id === p.personal_id);
+                        return (
+                          <tr key={p.personal_id} className="hover:bg-accent/5 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-ink">{p.nome}</span>
+                                <span className="text-[11px] text-ink-3">{p.email}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-2 text-xs text-ink-2">
+                                <Calendar className="w-3 h-3 text-ink-3" />
+                                {new Date(p.cadastrado_em).toLocaleDateString('pt-BR')}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                                p.situacao === 'assinante_pagante' ? 'bg-emerald-500/10 text-emerald-500' : 
+                                p.situacao === 'em_trial' ? 'bg-amber-500/10 text-amber-500' : 
+                                p.situacao === 'trial_expirado' ? 'bg-rose-500/10 text-rose-500' : 
+                                'bg-ink-3/10 text-ink-3'
+                              }`}>
+                                {p.situacao.replace('_', ' ')}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              {trial ? (
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                    trial.ja_expirado || trial.dias_restantes < 0
+                                      ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                                      : trial.dias_restantes <= 3
+                                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                        : 'bg-void text-ink-2 border-line'
+                                  }`}>
+                                    {trial.ja_expirado || trial.dias_restantes < 0
+                                      ? `Venceu há ${Math.abs(trial.dias_restantes)}d`
+                                      : `Vence em ${trial.dias_restantes}d`}
+                                  </span>
+                                  {trial.whatsapp_link || trial.telefone ? (
+                                    <a
+                                      href={trial.whatsapp_link || `https://wa.me/55${trial.telefone?.replace(/\D/g, '')}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="p-1.5 bg-emerald-600/10 text-emerald-500 hover:bg-emerald-600 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                      title="Abrir WhatsApp"
+                                    >
+                                      <MessageSquare className="w-3.5 h-3.5" />
+                                    </a>
+                                  ) : (
+                                    <span className="text-[10px] text-amber-500 font-semibold italic">Sem telefone</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-ink-3 font-mono">-</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-center">
+                              <span className="text-sm font-mono text-ink font-bold">
+                                {p.qtd_alunos_cadastrados}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                              <span className="text-xs text-ink-3 font-mono">
+                                {p.dias_desde_cadastro}d
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -765,6 +977,60 @@ export default function AdminArea() {
       </div>
 
       {/* 4. MODALS */}
+      {expiredTrialsModal && expiredTrialsModal.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-md">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-surface border border-line rounded-3xl p-6 sm:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto space-y-6 shadow-2xl relative"
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-line pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-rose-500/10 text-rose-500 rounded-2xl">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="font-display font-bold text-lg sm:text-xl text-ink">
+                    Alertas de Trial Expirado
+                  </h2>
+                  <p className="text-xs text-ink-3 mt-0.5">
+                    {expiredTrialsModal.length} {expiredTrialsModal.length === 1 ? 'personal teve' : 'personais tiveram'} o período de avaliação encerrado.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpiredTrialsModal(null)}
+                className="p-2 rounded-xl text-ink-3 hover:text-ink hover:bg-raise transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {expiredTrialsModal.map((trial) => (
+                <TrialCard 
+                  key={trial.assinatura_id || trial.personal_id}
+                  trial={trial}
+                  onSavePhone={handleSavePhoneFromTrial}
+                />
+              ))}
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setExpiredTrialsModal(null)}
+                className="px-5 py-2.5 bg-raise hover:bg-raise/80 text-ink font-bold text-xs rounded-xl transition-all cursor-pointer"
+              >
+                Entendido, fechar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {novosCadastrosModal && (
         <ZelosModal
           show={true}

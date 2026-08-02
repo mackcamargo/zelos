@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard, Sun, Moon } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard, Sun, Moon, Phone } from 'lucide-react';
 import Biblioteca from './Biblioteca';
 import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarCortesias from './GerenciarCortesias';
@@ -154,6 +154,48 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const formatPhoneMask = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 2) return digits.length > 0 ? `(${digits}` : '';
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  };
+
+  const [phoneInputProfile, setPhoneInputProfile] = useState(() => formatPhoneMask(profile.telefone || ''));
+  const [savingPhoneProfile, setSavingPhoneProfile] = useState(false);
+
+  useEffect(() => {
+    setPhoneInputProfile(formatPhoneMask(profile.telefone || ''));
+  }, [profile.telefone]);
+
+  const handleSavePhoneProfile = async () => {
+    const digits = phoneInputProfile.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 11) {
+      showToast('Digite um telefone válido com DDD (10 ou 11 dígitos).');
+      return;
+    }
+    const ddd = parseInt(digits.slice(0, 2));
+    if (ddd < 11 || ddd > 99) {
+      showToast('DDD inválido.');
+      return;
+    }
+    setSavingPhoneProfile(true);
+    try {
+      const { error } = await supabase.from('profiles').update({ telefone: digits }).eq('id', profile.id);
+      if (error) throw error;
+      showToast('Telefone / WhatsApp salvo com sucesso!');
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+    } catch (err) {
+      console.error('Erro ao atualizar telefone do perfil:', err);
+      showToast('Erro ao atualizar telefone.');
+    } finally {
+      setSavingPhoneProfile(false);
+    }
+  };
 
   // Custom Modal State
   const [modalConfig, setModalConfig] = useState<{
@@ -1038,13 +1080,48 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
               </div>
 
               {/* Additional Account Metadata details */}
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-bg border border-line rounded-2xl space-y-1">
                   <span className="text-[12px] text-ink-3">Criado em</span>
                   <p className="text-sm text-ink flex items-center gap-1.5 num">
                     <Calendar className="w-3.5 h-3.5 text-accent" />
                     <span>{new Date(profile.criado_em).toLocaleDateString('pt-BR')}</span>
                   </p>
+                </div>
+
+                {/* Telefone / WhatsApp */}
+                <div className="p-4 bg-bg border border-line rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-ink-3 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-[#F26A1B]" />
+                      Telefone / WhatsApp
+                    </span>
+                    {profile.telefone && (
+                      <span className="text-[10px] text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full font-bold">Cadastrado</span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="(11) 99999-9999"
+                      value={phoneInputProfile}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '');
+                        if (digits.length <= 11) {
+                          setPhoneInputProfile(formatPhoneMask(digits));
+                        }
+                      }}
+                      className="flex-1 px-3 py-1.5 bg-surface border border-line rounded-xl text-xs text-ink focus:border-[#F26A1B]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSavePhoneProfile}
+                      disabled={savingPhoneProfile}
+                      className="px-3 py-1.5 bg-[#F26A1B] hover:bg-[#F26A1B]/90 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 cursor-pointer shrink-0"
+                    >
+                      {savingPhoneProfile ? '...' : 'Salvar'}
+                    </button>
+                  </div>
                 </div>
               </div>
 
