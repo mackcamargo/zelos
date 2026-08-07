@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { dbService, authService } from '../lib/supabase';
 import { Aluno, Profile } from '../types';
-import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Activity, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard, Sun, Moon, Phone } from 'lucide-react';
+import { Users, BookOpen, User, LogOut, Plus, Sparkles, Target, Calendar, ShieldCheck, FolderHeart, MessageSquare, Menu, X, ChevronLeft, ChevronRight, Volume2, VolumeX, CreditCard, AlertCircle, Camera, Trash2, Loader2, LayoutDashboard, Sun, Moon, Phone } from 'lucide-react';
 import Biblioteca from './Biblioteca';
-import GerenciarExercicios from './GerenciarExercicios';
 import GerenciarCortesias from './GerenciarCortesias';
 import GerenciarAgendaPersonal from './GerenciarAgendaPersonal';
 import GerenciarAlunos from './GerenciarAlunos';
@@ -315,7 +314,6 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
     { id: 'alunos', label: 'Alunos', icon: Users },
-    { id: 'gerenciar', label: 'Monte Seu Exercício', icon: Activity },
     { id: 'agenda', label: 'Agenda', icon: Calendar },
     { id: 'checkins', label: 'Check-ins', icon: MessageSquare },
     { id: 'templates', label: 'Monte Treinos Prontos', icon: FolderHeart },
@@ -1227,11 +1225,13 @@ function PersonalAreaContent({ userId, userEmail, profile, onLogout, isDemoMode,
         )}
 
         {/* TAB 4: GERENCIAR EXERCÍCIOS */}
+        {/* // Rota desativada em 07/08/2026 - funcionalidade redundante com "Monte Treinos Prontos"
         {activeTab === 'gerenciar' && (
           <div id="tab-content-gerenciar" className="space-y-6">
             <GerenciarExercicios personalId={userId} isReadOnly={isReadOnly} />
           </div>
         )}
+        */}
 
         {/* TAB: CORTESIAS ADMIN */}
         {activeTab === 'cortesias' && isAdmin && (
